@@ -4,12 +4,24 @@ Master authority: [ROGUE_TRADER_2_PLAN.md](../../../ROGUE_TRADER_2_PLAN.md), sec
 
 Canonical Rogue.lvl, Rogue.bmp overview and all81 Rogue.lio records. Native world topology/collision, overview display and F3 grid behavior have separate acceptance.
 
-Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc043c74ecdd15e35. Originals remain unchanged; runtime outputs are separate. Original field values are authoritative. Every record below is **Not started** for exact runtime behavior. Source indexing/pristine parsing are completed research, not runtime completion. Status transitions: Not started / Investigation / In progress / Testing / Done after feature-specific acceptance. Update status while working. Remove Done entries from this active table and retain ID/source/evidence in completion history; master/catalog retain their checked audit entries.
+Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc043c74ecdd15e35. Originals remain unchanged; runtime outputs are separate. Original field values are authoritative. Current domain stage is **Investigating native integration**; each unchecked record below still lacks exact runtime acceptance. Source indexing, versioned parsing, the bounded package audit and arena initialization are completed narrower capabilities. Record status describes full gameplay acceptance, not whether the record is available. Use Not started / Investigating / In progress / Testing / Complete; update at every transition. Remove specifically completed rows from this active table and retain ID/source/evidence in completion history; master/catalog retain checked audit entries.
+
+## Accomplished scope
+
+RT-F020/F373 verify the exact 1999×1998 overview in source and standalone inspector. Versioned LVL parsing exports 3,994,002 tiles/116,065 blocked masks; RT-F381 resolves 222 map archive/member links. RT-F383 initializes one original arena with 51 teams, 42 hides, 25 computers and 100 mineral drops. Native graphical delivery, grid, collision and LIO interactions remain unverified.
+
+## Next and parity boundary
+
+- [ ] **Investigating — RT-F387/F021/F022:** deliver the entire unchanged 1,290,994-byte LVL, including 380,052 graphical trailer bytes that the server parser leaves unread, and validate native rendering/grid/coordinates/collision.
+- [ ] **Not started — RT-F287–F367:** verify each original LIO placement, timer, event, warp/safezone/resource/hazard interaction through the existing handlers.
+- [ ] **Investigating — RT-F368–F372:** five help files are recovered unchanged from pinned corroborating Zone-Assets; native menu/key substitution behavior remains open.
+
+Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.
 
 ## Active acceptance steps
 
-- [ ] Preserve map/LIO bytes, positions, tile stride/origin fields and source hashes.
-- [ ] Decode LVL tile/material/height/physics and trailing graphic entities independently from BMP.
+- [ ] Validate native coordinates/origin/collision meaning from the preserved original map/LIO fields; source bytes and hashes are already retained.
+- [ ] Validate native use of parsed LVL tile/material/physics and graphical trailer; keep the unchanged raw LVL separate from the BMP overview.
 - [ ] Resolve all LIO versions, areas, timers, conditions, actor/item/faction/warp/sound references.
 - [ ] Render original objects and implement completed spawn, resource, warp and safezone events.
 - [ ] Check display via image/input/no-tick acceptance; simulate only completed behavior requiring it.
@@ -104,14 +116,14 @@ Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc0
 
 ## Completion history
 
-Research completed: canonical raw catalog indexed and the compiled pinned upstream parser accepted selected pristine ITM/VEH/RPG/LIO/LVL files. These are parser/hash checks. No original gameplay feature in this folder is complete. Record major implemented features in [CHANGELOG.md](../../../CHANGELOG.md); retain completed ID/source/acceptance evidence here after removing it from the active queue.
+Canonical raw indexing and the pinned compiled parser accept the unchanged ITM200/VEH30/RPG12/LIO81/LVL files. Package audit RT-F381 verifies 19,198 supported literal item values, twelve hull links and 222 map references. RT-F383 validates original arena initialization; RT-F392 validates bounded full-asset hosting without a native player. All 89 canonical BLOs are inventoried separately from the eleven-archive pixel export. Evidence: [package audit](../../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime plan](../../../docs/architecture/ROGUE_RUNTIME_PLAN.md), [dependency plan](../../../scripts/original-assets/DEPENDENCY_PLAN.md). These scoped capabilities do not complete any unchecked record-specific gameplay feature here. Preserve completed ID/evidence in this history, the master audit and [CHANGELOG.md](../../../CHANGELOG.md).
 
-Original overview F020 source-display acceptance complete: original1999x1998pixels/proportions/source identity, root-inspected artifacts/qa/original-map.log/png, simulationTicks0. Removed from active queue. Native F021/F022 remain open; updated export verification is pending root.
+Original overview RT-F020 and standalone package RT-F373 are Complete for original 1999×1998 pixels/proportions/source identity, inspected source/export captures and unchanged world tick0. They are removed from active work. Native RT-F021/F022 and full graphical LVL delivery RT-F387 remain open.
 
 ## Ancillary original zone dependencies
 
-- [ ] [RT-F368 - keys.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f368): Investigation. Canonical CFG HelpMenu row183 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
-- [ ] [RT-F369 - infcmdlst.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f369): Investigation. Canonical CFG HelpMenu row184 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
-- [ ] [RT-F370 - comms.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f370): Investigation. Canonical CFG HelpMenu row185 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
-- [ ] [RT-F371 - rules.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f371): Investigation. Canonical CFG HelpMenu row186 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
-- [ ] [RT-F372 - mods.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f372): Investigation. Canonical CFG HelpMenu row187 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
+- [ ] [RT-F368 - keys.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f368): Investigating native behavior. Canonical CFG HelpMenu row183 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
+- [ ] [RT-F369 - infcmdlst.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f369): Investigating native behavior. Canonical CFG HelpMenu row184 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
+- [ ] [RT-F370 - comms.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f370): Investigating native behavior. Canonical CFG HelpMenu row185 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
+- [ ] [RT-F371 - rules.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f371): Investigating native behavior. Canonical CFG HelpMenu row186 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.
+- [ ] [RT-F372 - mods.txt](../../../docs/original-research/FEATURE_CATALOG.md#rt-f372): Investigating native behavior. Canonical CFG HelpMenu row187 references original pinned Zone-Assets rogue ancillary text; preserve exact source/provenance and verify integration, no placeholder.

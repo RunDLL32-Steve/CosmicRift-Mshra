@@ -1,20 +1,15 @@
-Read `ROGUE_TRADER_2_PLAN.md` completely and treat it as the master project specification.
+# Project startup
 
-You are the lead developer for Rogue Trader 2.0.
+Read the complete ROGUE_TRADER_2_PLAN.md first; it is the master authority. Then read AGENTS.md, CONTINUATION.md and the affected folder implementation plan.
 
-Begin implementation with Milestone 0 and Milestone 1. Create the actual project, establish the solution and repository structure, and implement a working flight-and-combat prototype.
+The target is exact original Cosmic Rift Rogue Trader reproduction using unchanged fowlmouth assets at the pinned manifest commit. Original names, values, categories, pixels and files take precedence over provisional proposals. Keep derived runtime/working outputs separate.
 
-Follow the historical evidence classifications carefully. Reconstruct the original Cosmic Rift: Rogue Trader experience wherever supported, but keep speculative and new features clearly separated.
+M0/M1 engineering acceptance is complete. Current phase is original/native-engine fidelity;the server loads the original data and arena,while native playable entry remains unverified. CONTINUATION.md records current proof and remaining work.
 
-Prioritize working code over documentation-only output.
+Implement incrementally and keep the project runnable. Preserve pure simulation/rendering/input/data/networking boundaries. Update feature stage/master/subplans together; completed active tasks move to evidence/history and CHANGELOG. Run only appropriate completed-feature checks;documentation changes require no gameplay simulations.
 
-Implement incrementally, run automated tests, and keep the project buildable. Maintain AGENTS.md, CHANGELOG.md, and a development progress checklist.
+Document each meaningful source folder with purpose,accomplished work/evidence,next work/current status,and original-parity limits. New discoveries receive stable unchecked catalog/master IDs until specifically verified.
 
-Do not implement the entire roadmap at once. Complete the current milestone's acceptance criteria before proceeding to the next.
+Desktop testing was stopped while the user was playing another game. Do not resume desktop automation while the user is busy. Current checkpoint:394 feature entries,15 scoped completions,379 open.
 
-Begin by inspecting the repository and implementing the first runnable vertical slice.
-## Current continuation checkpoint — October 13, 2026
-
-M0/M1 engineering complete; exact-original fidelity is ongoing. The user requested stop research and wrap documentation. Read [CONTINUATION.md](CONTINUATION.md), AGENTS.md and the complete master before resuming. Preserve original source bytes/names/values; update feature stages/master/subplans together; completed active tasks move into history/changelog. Do not restart passed work or run blanket simulations. PROJECT_START.md..txt remains unchanged.
-
-Current resumption: user explicitly continued after the checkpoint. Follow the resumed slice in AGENTS.md and current per-feature status; the earlier stop is historical. Original viewer packaging/input validation and dependency/native inventories are prerequisites, not M2 gameplay completion.
+PROJECT_START.md..txt is the unchanged historical startup instruction.

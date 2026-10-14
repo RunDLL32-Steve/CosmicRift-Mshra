@@ -4,11 +4,23 @@ Master authority: [ROGUE_TRADER_2_PLAN.md](../../../ROGUE_TRADER_2_PLAN.md), sec
 
 Seventeen original computer VEH records plus distinct nonplayable type-4 Spectator. Preserve refinery, dock, satellite, factory, hazard and NPC roles/factions.
 
-Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc043c74ecdd15e35. Originals remain unchanged; runtime outputs are separate. Original field values are authoritative. Every record below is **Not started** for exact runtime behavior. Source indexing/pristine parsing are completed research, not runtime completion. Status transitions: Not started / Investigation / In progress / Testing / Done after feature-specific acceptance. Update status while working. Remove Done entries from this active table and retain ID/source/evidence in completion history; master/catalog retain their checked audit entries.
+Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc043c74ecdd15e35. Originals remain unchanged; runtime outputs are separate. Original field values are authoritative. Current domain stage is **Investigating native integration**; each unchecked record below still lacks exact runtime acceptance. Source indexing, versioned parsing, the bounded package audit and arena initialization are completed narrower capabilities. Record status describes full gameplay acceptance, not whether the record is available. Use Not started / Investigating / In progress / Testing / Complete; update at every transition. Remove specifically completed rows from this active table and retain ID/source/evidence in completion history; master/catalog retain checked audit entries.
+
+## Accomplished scope
+
+All seventeen original type-5 computer records and the separate type-4 Spectator are parsed. RT-F383 initializes 25 original computer instances; generic production, repair, shop, event and reward routes are audited in RT-F382. Actor-specific behavior and native spectator transitions are not verified.
+
+## Next and parity boundary
+
+- [ ] **Not started — RT-F269–F286/F059–F063:** validate each actor faction/ownership/production/repair/combat/hazard role and spectator transitions without replacing them with a generic invented pirate.
+- [ ] **Investigating — RT-F386:** resolve positive DropItemId66 on original manufactory vehicles425/426/427; no alias or invented item.
+- [ ] **Investigating — RT-F390:** complete the null-script full-arena join guard and focused regression before marking it done.
+
+Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.
 
 ## Active acceptance steps
 
-- [ ] Resolve full actor records, ownership/faction/logic, graphics/audio and product/item/child chains.
+- [ ] Validate actor ownership/faction/logic and remaining runtime graphics/audio/product/item/child chains; full raw/parsed records are already retained.
 - [ ] Decode exact spawn, production, repair, trade, combat, count and steal/destroy rules.
 - [ ] Keep player, bot and turret rewards separate and retain distinct original NPC factions.
 - [ ] Implement each actor role and dependencies before its behavior acceptance.
@@ -39,4 +51,4 @@ Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc0
 
 ## Completion history
 
-Research completed: canonical raw catalog indexed and the compiled pinned upstream parser accepted selected pristine ITM/VEH/RPG/LIO/LVL files. These are parser/hash checks. No original gameplay feature in this folder is complete. Record major implemented features in [CHANGELOG.md](../../../CHANGELOG.md); retain completed ID/source/acceptance evidence here after removing it from the active queue.
+Canonical raw indexing and the pinned compiled parser accept the unchanged ITM200/VEH30/RPG12/LIO81/LVL files. Package audit RT-F381 verifies 19,198 supported literal item values, twelve hull links and 222 map references. RT-F383 validates original arena initialization; RT-F392 validates bounded full-asset hosting without a native player. All 89 canonical BLOs are inventoried separately from the eleven-archive pixel export. Evidence: [package audit](../../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime plan](../../../docs/architecture/ROGUE_RUNTIME_PLAN.md), [dependency plan](../../../scripts/original-assets/DEPENDENCY_PLAN.md). These scoped capabilities do not complete any unchecked record-specific gameplay feature here. Preserve completed ID/evidence in this history, the master audit and [CHANGELOG.md](../../../CHANGELOG.md).

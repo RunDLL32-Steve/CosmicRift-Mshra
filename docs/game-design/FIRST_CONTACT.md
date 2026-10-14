@@ -46,9 +46,13 @@ A build recipe is not a runnable-build observation. A successful managed compila
 
 ## Scope after the first slice
 
-M2 targets the original resource generation/pickup → cargo → station sale/refining → upgrade → save/load loop, all twelve original RPG hulls and resolved original NPC/reward systems, after their dependencies validate. M3 adds authoritative multiplayer and PostgreSQL. Resource outposts, bounty tuning, faction warfare and sector expansion stay with their assigned master milestones. Acceptance gates determine when that work starts.
+M2 targets the original resource generation/pickup → cargo → station sale/refining → upgrade → save/load loop, all twelve original RPG hulls and resolved original NPC/reward systems, after their dependencies validate. M3 still requires authoritative multiplayer and persistence acceptance; current native server mode must be evaluated before committing to new infrastructure. Resource outposts, bounty tuning, faction warfare and sector expansion stay with their assigned master milestones. Acceptance gates determine when that work starts.
 
 The preserved RT catalog directly identifies Krandazite, Tellerium, Iron Ore and Wreckage, original hulls, and equipment definitions. Master §1.2 prioritizes these originals over NEW placeholder content and keeps new expansions after historical parity. The canonical snapshot is selected; validate units/sentinels and contradictory dated behavior before applying archived tuning. Decode/map originals into separate derived rendering data without altering source files, and validate full asset/UI/map parity. Record exact-file rights/notices as release provenance.
 
 Prototype geometric artwork remains a NEW engineering fixture. Local original-content inspection uses separately derived resources with canonical provenance; exact-file licenses/notices and release redistribution status remain part of the release gate. Original source bytes are never changed.
 
+
+## Current original-content checkpoint
+
+The updated OriginalContent standalone package and inspector input/render checks are complete (RT-F373/F374); accepted original overview/import/display capabilities remain separate from this NEW training world. Generic InfantryOnline handlers, original-data arena initialization and bounded full-asset backend have scoped acceptance. Native Start reached no confirmed arena entry, and standalone progression is not persisted. Next is private native entry/delivery and original per-feature gameplay verification when the user is available. [Current handoff](../original-research/HANDOFF.md) and [native runtime plan](../architecture/ROGUE_RUNTIME_PLAN.md) supersede earlier proposed implementation routes while retaining M0/M1 engineering history.

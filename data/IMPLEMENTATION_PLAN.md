@@ -1,17 +1,25 @@
-# Data implementation plan — M0 / M1
+# Data implementation plan
 
-Status authority: [master M0](../ROGUE_TRADER_2_PLAN.md#milestone-0--repository-and-historical-research), [master M1](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype) and [First Contact](../ROGUE_TRADER_2_PLAN.md#19-first-playable-build--version-01). Reconcile with [project progress](../docs/development-log/PROGRESS.md).
+Authority: [master §1.2, §§6–8 and §18 M0/M1/M2](../ROGUE_TRADER_2_PLAN.md), [feature catalog](../docs/original-research/FEATURE_CATALOG.md) and [progress](../docs/development-log/PROGRESS.md). Reconciled October 13, 2026.
 
-- [x] `ships/starter_interceptor.json`: one playable provisional Interceptor, equal forward/reverse thrust, mass, radius, speed cap, rotation, defenses and reactor.
-- [x] `weapons/plasma_cannon.json`: one provisional weapon with speed, radius, damage, cooldown, energy cost, lifetime and velocity-inheritance switch.
-- [x] `sectors/first_contact.json`: one sector, safe launch point, three stationary targets and 12 spaced static asteroids, with an unobstructed initial target lane.
-- [x] Record exact chosen values in [balance documentation](../docs/balance/PROVISIONAL_VALUES.md).
-- [x] Validate real JSON loads, NEW classifications and nonoverlapping entity placement in the unit suite; the initial target is destructible with the starting loadout.
+## Purpose and current stage
 
-The JSON and C# defaults are NEW/provisional design choices. Equal reverse thrust and ship-velocity inheritance are inspired by COMMUNITY evidence; these numbers are not recovered historical statistics. Future mineral, upgrade and additional ship content remains deferred to M2.
+`ships/`, `weapons/` and `sectors/` hold the accepted **NEW/provisional First Contact fixtures**. The Godot build stages these JSON files into `client/GameData/`; they remain the simulation's current training definitions. They are not original Rogue Trader values. [original/](original/IMPLEMENTATION_PLAN.md) holds record-specific parity queues; canonical source bytes stay outside runtime working outputs.
 
-Evidence: 41 unit cases passed, zero failed/skipped, SDK 8.0.419, during the October 12, 2026 implementation session (America/Chicago). Final exported client verification is recorded in the master/client subplan.
+## Accomplished
 
+- Accepted M0/M1 fixtures: one Interceptor, one plasma weapon, three targets and twelve static asteroids. JSON loads, NEW classifications, placement and target destruction passed the historical 41-unit-case and source/export acceptance.
+- Read-only raw catalog: 3,086 records, twelve RPG/VEH hull matches, 200 items, seven Resources records and 81 LIO entries; exact names/IDs in [ORIGINAL_CATALOG.md](ORIGINAL_CATALOG.md).
+- Pinned original parser accepts original CFG/ITM/VEH/RPG/LIO/LVL. Scoped package audit RT-F381 matches 19,198 literal item values, twelve hull links and 222 map archive/member references. Derived-only RT-F385 restores eight omitted VehicleMaker field18 values; originals and all other exported fields remain unchanged.
+- Original-data arena initialization RT-F383 and bounded full-asset backend RT-F392 pass. Generic existing handlers remain candidates for runtime reuse; no native player entered the arena.
 
-- [x] Index the unchanged original source in a separate generated area and record canonical hull/resource identities in ORIGINAL_CATALOG.md.
-- [ ] Replace engineering JSON fixtures with a validated original engine/data mapping after the compatibility decision; never overwrite canonical sources.
+Evidence: [package audit plan](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime plan](../docs/architecture/ROGUE_RUNTIME_PLAN.md), [balance ledger](../docs/balance/PROVISIONAL_VALUES.md) and the master completion history. No verification was rerun for this documentation update.
+
+## Next
+
+- [ ] **Investigating — RT-F069/F380/F384:** validate native profile/connection and actual unchanged asset delivery before selecting the production engine.
+- [ ] **Not started — M2, RT-F001–F019 and per-record queues:** verify original hulls, weapons, equipment, resources, actors and sector interactions through the chosen engine. Existing parser/initializer success does not complete gameplay acceptance.
+- [ ] **Investigating — RT-F386/F388–F390:** resolve item66 eligibility, shop quantity/transaction/proximity and full-arena null-script risks with focused checks.
+- [ ] **Not started — RT-F068/M2 persistence:** demonstrate durable progression; the current standalone native host does not save it.
+
+Use the specific [canonical domain plans](original/IMPLEMENTATION_PLAN.md). Keep fixture JSON until a validated original route replaces the relevant engineering scope; never overwrite canonical files or balance the originals to fit prototype equations. Completed tasks leave active queues but remain in master audit, completion history and [CHANGELOG.md](../CHANGELOG.md).

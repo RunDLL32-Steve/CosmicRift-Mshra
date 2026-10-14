@@ -18,3 +18,9 @@ The host initially had only SDK 7.0.400. Bootstrap installs an isolated SDK rath
 This pinned baseline needs maintenance: .NET 8 LTS reaches end of support on November 10, 2026 according to [Microsoft support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core). Before introducing the persistent server or shipping a public release, choose a supported .NET LTS / Godot pair, update all pins and checksums together, and rerun tests plus exported-client validation. Do not silently update the SDK while leaving the engine/template versions mismatched.
 
 Build reproducibility means fixed tools and gameplay inputs. Floating-point replay consistency is tested on this runtime; cross-architecture bit-identical lockstep is not claimed.
+
+## Isolated compatibility toolchain
+
+The InfantryOnline compatibility helpers target net10.0 and use official portable SDK 10.0.401 under `.tools/dotnet10`, selected by `.tools/compatibility/global.json`. Its official SHA512/provenance is recorded in `.tools/compatibility/compatibility-manifest.json`. This does not change root global.json/toolchain.lock or the Godot net8.0 projects. Root coordinates helper builds to avoid races against shared derived source outputs. See [compatibility folder plan](../../scripts/compatibility/IMPLEMENTATION_PLAN.md).
+
+Current artifact history: FirstContact provisional engineering acceptance remains historical; updated OriginalContent standalone export is Complete (RT-F373), approximately 98 MB, with native inspector input/three rendered-page evidence, world tick 0 and no SDK discovery. Native Infantry binary/version identity and production release packaging remain distinct unfinished work. Documentation reconciliation performs no build/simulation.

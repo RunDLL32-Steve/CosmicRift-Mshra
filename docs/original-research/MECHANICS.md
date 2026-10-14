@@ -1,5 +1,11 @@
 # Historical mechanics and evidence
 
+## Current implementation checkpoint — October 13, 2026
+
+[HANDOFF.md](HANDOFF.md) and the master §18 are current status authority:394 IDs,15 scoped capabilities complete,379 open. Selected11 BLO archives/231 sprites/36,516 frames, canonical1999×1998 overview and source/updated standalone inspector are verified; native palette/blit/bank/HUD/audio/gameplay remain open. All89 canonical BLO directories/1,262 members and609 candidates are inventoried, with eight missing/unknown raw candidates; runtime closure is unverified. Five original help files are recovered separately from pinned Zone-Assets.
+
+The package audit matches19,198 supported values/twelve hull links/222 map references; derived-only VehicleMaker fix restores eight field18 values. Original arena initializes25 computers/100 mineral drops/51teams/42hides; full-asset bounded host uses89 canonical BLOs plus authentic supplemental Soccer. Native test reached welcome only; Start produced no confirmed entry, private test/process cleanup is complete and desktop interaction stays stopped until the user is available. Standalone native mode does not persist progression. Generic handlers being present does not prove original runtime parity. Existing dated source-access observations below retain their historical scope; completed tasks are recorded in history/[CHANGELOG.md](../../CHANGELOG.md).
+
 Reviewed: October 12, 2026. Scope: the historical foundation for [master plan §2 and Milestone 0](../../ROGUE_TRADER_2_PLAN.md#2-historical-game-research), plus evidence informing §§5–8. Work status: [research implementation plan](IMPLEMENTATION_PLAN.md); project acceptance: [development progress](../development-log/PROGRESS.md). The user subsequently supplied preserved sources and requested exact Cosmic Rift presentation/assets for Rogue Trader, now recorded in master §1.2; see [InfantryOnline provenance and values](INFANTRYONLINE.md) and the [video reference](VIDEO_REFERENCE.md).
 
 ## Evidence rules
@@ -8,7 +14,7 @@ Reviewed: October 12, 2026. Scope: the historical foundation for [master plan §
 |---|---|
 | VERIFIED | The specific claim is present in an original source that was actually read, or in sufficiently direct surviving evidence. Scope the claim to the documented game/version/mode. |
 | COMMUNITY | Firsthand recollection, read in the linked discussion, with no independent original confirmation of that detail. |
-| RECONSTRUCTED | An estimate from footage or screenshots actually inspected, with a locator and method. No entries currently qualify. |
+| RECONSTRUCTED | An estimate from footage or screenshots actually inspected, with a locator and method. The limited observed video frame qualifies; no native physics measurement is claimed. |
 | NEW | A Rogue Trader 2.0 choice, including every current simulation constant, balancing value and proposed formula. |
 | UNKNOWN | Exact original behavior is missing, including secondary claims whose cited primary evidence does not establish that detail. |
 
@@ -53,7 +59,7 @@ Final prototype validation reported by the lead agent: integrated build, 41 unit
 | ID / mechanic | Historical description | Classification | Source URL and locator / timestamp | Confidence | Implementation status | Differences in Rogue Trader 2.0 |
 |---|---|---|---|---|---|---|
 | H01 / Overhead perspective | 2D overhead space combat. | VERIFIED — preserved config / visual reference | [N][source-n], Level / Isometric=0; [R][source-r], 0:25 reference | High for view mode | M1 prototype implemented; headless world smoke passed | Original screen scale/assets pending; prototype presentation NEW. |
-| H02 / Different spacecraft | Overview advertises 13 distinct fighter craft. | VERIFIED — general Cosmic Rift | [B][source-b], Game Info; 2007-04-01 capture | High | M1 NEW starter implemented; original catalog fidelity pending | Interceptor, Vanguard and Prospector are NEW placeholders; §1.2 prioritizes recovered original hulls. |
+| H02 / Different spacecraft | Overview advertises 13 distinct fighter craft. | VERIFIED — general Cosmic Rift | [B][source-b], Game Info; 2007-04-01 capture | High | M1 NEW starter implemented; original catalog fidelity pending | Only the NEW Interceptor is implemented; prior Vanguard/Prospector proposals are superseded/deferred. Twelve original identities/frames are inspected; playable hull acceptance remains open. |
 | H03 / Multiplayer | Multiplayer space action. | VERIFIED | [B][source-b], Game Info; 2007-04-01 capture | High | M3 deferred | M1 local simulation only; no original capacity adopted. |
 | H04 / Mining and selling | Rogue Trader offers resource mining and sales. | VERIFIED | [B][source-b], Rogue Trader paragraph; [M][source-m]/[P][source-p] recovered resource data | High | M2 original-data implementation pending | Original catalog/prices are present; decode and validate their evaluator behavior before implementing reproduction. |
 | H05 / Ship improvement | Resource sales fund improved weapons. | VERIFIED | [B][source-b], Rogue Trader paragraph; [M][source-m]/[P][source-p] upgrades | High | M2 original-data implementation pending | Original equipment definitions are present; eligibility and evaluator interpretation remain to validate. |
@@ -70,13 +76,13 @@ Final prototype validation reported by the lead agent: integrated build, 41 unit
 | H16 / Stun mines | Deployed mines disrupted pursuit. | COMMUNITY | [C][source-c], grey771 mines/laser paragraph | Medium | Later weapons deferred | General fusion proximity mines are VERIFIED in [H][source-h]; stun duration/mechanism unknown. |
 | H17 / Ammunition constraints | Mines/missiles were costly and limited. | COMMUNITY | [C][source-c], grey771 mines/missiles paragraphs | Medium | Later resupply deferred | M1 baseline weapon costs and cooldown are NEW; no original prices used. |
 | H18 / Direct-hit effects | Direct projectile hits affected damage. | COMMUNITY | [C][source-c], grey771 projectile paragraph | Low–medium | Later damage models deferred | Initial damage is constant; exact direction/impact formula UNKNOWN. |
-| H19 / Kran / Krandazite | Krandazite is an archived resource; “Kran” is the remembered nickname. | VERIFIED — archive name; COMMUNITY nickname/contested report | [M][source-m], Trade System; [P][source-p] Krandazite record; [C][source-c] fireb0x reply | High for archive name; medium for nickname | M2 catalog planned | Master NEW resources need reconciliation with recovered catalog; game tuning remains provisional. |
+| H19 / Kran / Krandazite | Krandazite is an archived resource; “Kran” is the remembered nickname. | VERIFIED — archive name; COMMUNITY nickname/contested report | [M][source-m], Trade System; [P][source-p] Krandazite record; [C][source-c] fireb0x reply | High for archive name; medium for nickname | M2 catalog planned | Master uses the seven original resources; NEW resource proposals are superseded/deferred. Native resource execution remains open. |
 | H20 / Refineries | Minerals refine before trading. | VERIFIED — preserved RT snapshot | [M][source-m], Trade System; [Q][source-q] Refinery record | High | Original recipe implementation pending | Recipe data is present; engine timing/evaluator semantics need validation; [C][source-c] supplies refinery combat context. |
 | H21 / Bounties | RT has combat bounties and credits. | VERIFIED — existence in preserved snapshot | [M][source-m], Bounty System/dates; [N][source-n] Bounty/Cash sections | High for existence | M4 configurable bounty deferred | Help/config/recollection differ; no single original formula claimed. |
 | H22 / Outpost purchases | Trading Posts can be bought/built. | VERIFIED — preserved RT snapshot | [M][source-m], Build System; [Q][source-q] outpost/satellite records | High | M5 deferred | Exact package revision and valid recipes require reconciliation. |
 | H23 / Asteroid maneuvering | Indestructible fields constrained navigation. | COMMUNITY | [C][source-c], grey771 closing mechanics paragraph | Medium | M1 NEW prototype/data implemented/tested; world/export smoke passed | Original LVL/BMP now preserved; map physics interpretation pending, prototype circle response NEW. |
 | H24 / Classic movement inputs | Arrow keys rotate and thrust forward/back. | VERIFIED — generic defaults | [F][source-f], movement commands; 2007-04-27 capture | High | M1 arrows/WASD and remapping code implemented; classic combat preset deferred | Modern WASD aliases are NEW; persisted controls present, manual/input smoke tracked in client plan. |
-| H25 / Classic combat/UI inputs | Ctrl light, Tab heavy, Shift+Tab mine; F3 map/F10 store/F11 ships. | VERIFIED — generic defaults | [F][source-f], weapon/UI commands | High | Optional classic preset deferred | Space primary/Shift secondary in master §5.4 are NEW bindings. |
+| H25 / Classic combat/UI inputs | Ctrl light, Tab heavy, Shift+Tab mine; F3 map/F10 store/F11 ships. | VERIFIED — generic defaults | [F][source-f], weapon/UI commands | High | Mandatory original RT control validation open | Space primary/Shift secondary in master §5.4 are NEW bindings. |
 | H26 / Ship identity and restriction | Ship equipment differs; RT equipment is slotted. | VERIFIED — general game / preserved RT snapshot | [G][source-g], ship descriptions; [M][source-m] Game Overview; [O][source-o] hull catalog | High | M1 one new ship; M2 configuration planned | Exact RT eligibility logic in item records still needs decoding. |
 | H27 / EMP / stealth / repulsion | Original catalog includes EMP, stealth and repulsion. | VERIFIED — general Cosmic Rift | [G][source-g] and [H][source-h], ship/utility descriptions | High | Future equipment deferred | No original duration, radius or availability asserted. |
 | H28 / Original constants | Raw archived values recovered; full engine semantics unresolved. | VERIFIED raw snapshot fields / UNKNOWN interpretation | [N][source-n]/[P][source-p]/[Q][source-q]; [raw values audit](INFANTRYONLINE.md#raw-recovered-values-not-prototype-constants) | High for bytes; low–medium for behavior | NEW prototype defaults configured | Units, sentinels and revision must be validated; [balance ledger](../balance/PROVISIONAL_VALUES.md) stays NEW. |
@@ -89,19 +95,21 @@ Final prototype validation reported by the lead agent: integrated build, 41 unit
 | Mechanic | Classification / source | Implementation implication |
 |---|---|---|
 | Fixed simulation rate and equations | NEW; [master §5.2–5.3](../../ROGUE_TRADER_2_PLAN.md#5-spacecraft-movement-and-physics) | Preserve momentum and test repeatable inputs. Do not claim the original ran this integrator or rate. |
-| Interceptor, Vanguard, Prospector | NEW; master §6 | Placeholder roles; none is a recovered original ship. |
+| Interceptor; earlier Vanguard/Prospector proposals | NEW; master §6 | Only Interceptor is implemented. Other proposals are superseded/deferred until original parity. |
 | Plasma baseline and mining beam | NEW; master §7.3 | Initial practical weapons; modern comparison [E][source-e] is not original evidence. |
-| Ferrite, Copperite, Iridium and resource rarity | NEW; master §8.2 | Names and economics remain provisional; Kran name handled separately in H19. |
+| Ferrite, Copperite, Iridium and resource rarity | NEW; master §8.2 | Superseded/deferred proposals, not implemented resource records. Canonical seven-resource catalog controls reproduction; Kran nickname handled in H19. |
 | Prototype shield overflow, circular collisions, cooldown and lifetime | NEW; master §§5–7 implementation choices | Broad shield/hull separation is now primary supported in M; exact hit rules and numeric tuning remain NEW. |
 | Station respawn, currency retention, cargo penalties | NEW; master §7.5 | Full progression/death policies belong to later milestones. |
 | Modern successor comparison | NEW implementation reference; [D][source-d]/[E][source-e] | Useful design comparison only. No evidence classification upgrade follows from another remake. |
 
+## Completed evidence history
+
+Original help/configuration/item/vehicle/hull source reading, canonical indexing and limited0:25 video observation are completed history with unchanged evidence classifications. Current importer/package/arena capabilities are summarized above; the historical matrix distinguishes broad mechanic evidence from exact runtime acceptance.
+
 ## Outstanding historical work
 
 - [ ] Recover primary documentation for persistent RT progression and original death/equipment-loss rules.
-- [x] Discover and read preserved RT help/configuration and selected item/vehicle/hull records; pin provenance in [INFANTRYONLINE.md](INFANTRYONLINE.md).
 - [ ] Fully decode RT store/equipment logic, validate mineral pricing/refinery timing and reconcile changing bounty behavior.
-- [x] Record supplied Chaos Zone footage and the lead agent's limited actual 0:25 presentation observation.
 - [ ] Inspect additional footage/RT screens and measure behavior; preserve precise reviewed timestamps before extending reconstructed claims.
 - [ ] Retry I–K through accessible captures; preserve the failed-access history.
 - [ ] Reconcile B's 13-ship marketing count against G's 16 named catalog entries and establish mode/version availability.

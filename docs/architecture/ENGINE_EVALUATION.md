@@ -4,7 +4,7 @@ Reviewed October 13, 2026 (America/Chicago). Status authority: [master §1.2 fid
 
 **Decision: engine choice remains open.** InfantryOnline is a credible path to testing the preserved content with a legacy client, but the inspected repository provides a server emulator and tools, rather than a recovered client rendering/physics engine. Neither this review nor the completed Godot engineering prototype establishes original Rogue Trader parity. The least rewriting route depends on a compatible client actually loading the preserved zone and reproducing its mechanics.
 
-This evaluation read public repository metadata, complete trees, selected source text, project documentation and the already-preserved local reference text. It executed no external client/server/parser binary, changed no original asset, and published nothing. The only new file is this document. The current prototype remains buildable and its provisional tuning is unchanged.
+The initial evaluation was static. Subsequent actual parser/arena/backend/native-bootstrap evidence is now recorded in the current checkpoint below; these scoped completions replace the old pending-execution statements. No original asset was changed or published. Documentation reconciliation launched no program or simulation.
 
 ## What is available, and what has not been proved
 
@@ -12,17 +12,17 @@ This evaluation read public repository metadata, complete trees, selected source
 |---|---|---|
 | Is this the original game engine source? | The [server README][server-readme] identifies its output as a zone-server emulator and directs users to acquire a separate client. The complete pinned server tree contains launcher, editor/parser and server projects. | Emulator and launcher source do not supply the client renderer, original player physics implementation or full client UI source. None was identified in this inventory. |
 | Is a separate client repository present? | The [complete organization API inventory][org-api] returned seven repositories: server, Zone-Assets, Tools, Discord-Bots, IGBL-Website, Playable-Zones and Editor. No client engine repository appeared. | This is a bounded finding about the public organization inventory, not proof that client source exists nowhere. |
-| Can a client be obtained? | The maintainer's [download page][client-download] links to [FreeInfantry on Steam][steam-client] and other distribution routes. | A current FreeInfantry binary is available through an identified channel. No binary was downloaded/executed in this review, its exact build was not pinned, and compatibility with Cosmic Rift/RT is unproved. A launcher is not itself the rendering client. |
+| Can a client be obtained? | The maintainer's [download page][client-download] links to [FreeInfantry on Steam][steam-client] and other distribution routes. | A current FreeInfantry binary is available through an identified channel. Actual native binaries have since been acquired/hashed; a derived private-profile copy reached welcome. Supported build identity and Cosmic Rift/RT arena entry remain unproved; see NATIVE_CLIENT_PLAN.md. A launcher is not itself the rendering client. |
 | Does the server understand relevant content? | [Vehicle definitions][vehicle-parser], [Car definitions][car-parser], [terrain speed definitions][speed-parser], [projectile definitions][projectile-parser] and [level tiles][level-tiles] represent controllable vehicles, radius/weight, thrust/rotation/reverse/strafe/hyper thrust, bounce, projectile inheritance/lifetime/damage, and tile physics/terrain. | The shared formats are a strong compatibility lead. Presence of fields does not establish their original client algorithms, units, sentinel interpretation, or complete RT behavior. |
 | Is overhead space presentation supported? | Archived `rogue.cfg` sets `Isometric=0`; [server initialization][server-init] selects Y scale 1.0 for that setting and 0.7 for isometric zones. | Overhead data is recognized. Exact RT rendering, controls, palettes, ship directions, UI and camera scale still require client/content validation. |
-| Is the recovered package already playable? | The pinned [Zone-Assets archive][rogue-archive] places it under `Incompatible Zone Archives/SilentClientCrash`; the [archive README][archive-readme] describes those folders as observed incompatibility categories. The matching fowlmouth payloads/text are documented in the archive audit. | Matching bytes establish provenance, not a repaired zone. No current launch result or crash cause is known. Do not rename the package compatible merely because an emulator can parse selected values. |
+| Is the recovered package already playable? | The pinned [Zone-Assets archive][rogue-archive] places it under `Incompatible Zone Archives/SilentClientCrash`; the [archive README][archive-readme] describes those folders as observed incompatibility categories. The matching fowlmouth payloads/text are documented in the archive audit. | Matching bytes establish provenance, not a repaired zone. Current native bootstrap reached welcome only; no RT arena entry or archived crash cause is proved. Do not rename the package compatible merely because an emulator can parse selected values. |
 | Does the latest server build match the prototype SDK? | The pinned [ZoneServer project][server-project] targets `net10.0`. Its active solution is [`dotnetcore/InfServerNetCore.sln`][modern-solution]; the root solution currently lists only LogEvictor. | README instructions for the older `InfServer.sln` layout are insufficient for a reproducible modern build. A separate toolchain/version choice is needed for a compatibility spike; the existing Godot/.NET 8 prototype need not change. |
 
 The asset archive supplies substantially more original content than the initial plan knew about. It does not supply the missing execution semantics by itself. The current package's hull names, items, equipment restrictions, maps and original presentation are fidelity targets; the master's explicitly provisional values should be replaced only through a validated mapping.
 
 ## Version 53 / 57 parsing: promising, not certified
 
-`Rogue.veh` records identify version 53. The [active vehicle base parser][vehicle-parser] reads the version and branches by revision, including fields introduced through version 52; the [Car parser][car-parser] also uses revision conditions for sprite layouts, thrust, hyper thrust and other fields. Version 53 falls within those branches. The generic [CSV loader][csv-parser] checks record consumption. This is evidence for a candidate decoder, not a completed parse or original-client compatibility test.
+`Rogue.veh` records identify version 53. The [active vehicle base parser][vehicle-parser] reads the version and branches by revision, including fields introduced through version 52; the [Car parser][car-parser] also uses revision conditions for sprite layouts, thrust, hyper thrust and other fields. Version 53 falls within those branches. The generic [CSV loader][csv-parser] checks record consumption. Actual pinned parser acceptance now passes RT-F072. Exact native evaluator/client compatibility remains open.
 
 `Rogue_mp.itm` identifies version 57. The [active item base loader][item-loader] reads that version, but the [active projectile loader][projectile-parser] accesses fixed field positions without version-conditioned dispatch. The older [Parsers/Items/Projectile.cs][legacy-projectile-parser] does have revision branches, with many fields still named as unknowns. There are two parser families to compare; neither should be described as a fully validated v57 behavioral specification.
 
@@ -40,7 +40,7 @@ The complete pinned tree has no Cosmic/Rift/Rogue-named GameType path. That does
 
 The [README][server-readme] documents standalone operation by setting database connection delay to zero. The [implementation][standalone-init] confirms `database/connectionDelay=0` disables the database connection. This is useful for a later local compatibility test; it does not prove between-session progression. Directory-free local zone selection is described in the [quickstart][quickstart]. No account was created or external server contacted beyond reading public source pages.
 
-A concrete local-isolation detail: [current socket initialization][socket-bind] binds the game and ping sockets to `0.0.0.0`, despite storing a configured `bindIP`. A future spike must verify actual socket endpoints and isolate both ports through the chosen test environment. Merely putting `127.0.0.1` in a zone listing or config is insufficient to establish local-only network exposure for this pinned implementation.
+A concrete local-isolation detail: [current socket initialization][socket-bind] binds the game and ping sockets to `0.0.0.0`, despite storing a configured `bindIP`. Completed derived bounded hosts verify actual game/ping loopback endpoints; upstream production binding semantics still need reconciliation. Merely putting `127.0.0.1` in a zone listing or config is insufficient to establish local-only network exposure for this pinned implementation.
 
 ## Routes to compare before choosing an engine
 
@@ -54,7 +54,7 @@ A concrete local-isolation detail: [current socket initialization][socket-bind] 
 
 ## Compatibility spike and decision gates
 
-The following work is pending. No external client/server binary was executed in this read-only evaluation; compatibility launch remains pending.
+Reference/tool/parser initialization and bounded loopback/full-asset hosting are now completed history; native entry, behavior and production decisions remain pending. See the scoped current evidence below.
 
 1. **Freeze references.** Pin all three repositories and verified LFS payload hashes in a manifest. Store originals in an ignored immutable reference area and hash before/after tool sessions. Editors must never save there.
 2. **Separate working copies.** Use an ignored derived zone such as `.tools/compatibility/working-zones/rt-compat-001/` and a fresh isolated client profile. Log every rename/conversion/config change with original and derived hashes. Exclude reference/working assets and original binaries from release exports.
@@ -67,13 +67,13 @@ Licensing/provenance is an input to that decision: inspected repository metadata
 
 ## Evidence and remaining status
 
-- [x] Read current master fidelity scope and prior archive audits.
-- [x] Inspect complete organization inventory and pinned server tree; distinguish server/launcher/client availability.
-- [x] Inspect active build target, parsing families, vehicle/projectile/map schemas, update authority, script hooks and standalone behavior.
-- [x] Specify immutable references, separate working-zone provenance and concrete comparison gates.
-- [ ] Validate complete v53/v57 decoding and asset dependency closure.
+- Read current master fidelity scope and prior archive audits.
+- Inspect complete organization inventory and pinned server tree; distinguish server/launcher/client availability.
+- Inspect active build target, parsing families, vehicle/projectile/map schemas, update authority, script hooks and standalone behavior.
+- Specify immutable references, separate working-zone provenance and concrete comparison gates.
+- [ ] Validate remaining v53/v57 evaluator/native semantics and runtime dependency closure; actual parser/inventory/package audits are completed history.
 - [ ] Reproduce and resolve SilentClientCrash on a pinned compatible client.
-- [ ] Execute any legacy binary or claim a launchable original RT zone.
+- [ ] Verify actual native RT arena entry/unspectating; actual parser/backend execution and welcome-screen bootstrap are completed narrower history.
 - [ ] Recover exact original movement/combat semantics and full RT economy/persistence.
 - [ ] Choose an engine and reconcile the master acceptance criteria with measured fidelity.
 
@@ -104,3 +104,17 @@ Licensing/provenance is an input to that decision: inspected repository metadata
 [bot-movement]: https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/dotnetcore/ZoneServer/Game/Arena/Bot/MovementController.cs#L25-L29
 
 
+
+## Current measured checkpoint — October 13, 2026
+
+| Gate | Current evidence |
+|---|---|
+| Reference/toolchain/data | Complete: pinned originals/server, isolated SDK10 actual parser; 200 items, 30 vehicles, 12 hulls, 81 LIO records, original 1999×1998 LVL. |
+| Asset inspection | Complete for scoped Godot original viewer/export and inventories: standalone input plus three rendered pages, world tick 0; 89 BLOs/1,262 members/609 raw candidates. Native appearance remains open. |
+| Package/source model | RT-F381/382/385 Complete: 19,198 direct values, 12 hull links, 222 map member links, offline 46-file roundtrip, generic original event/runtime routes and eight-field derived VehicleMaker repair. |
+| Actual original arena | RT-F383 Complete: 25 computers, 100 drops, 51 teams, 42 hides; no clients/begin/poll/physics. |
+| Full-asset backend | RT-F392/394 Complete: 89 canonical plus authentic shared Soccer working BLOs, one original RT arena, two actual loopbacks, 120.17-second exit 0, maximum clients 0, original hashes unchanged. |
+| Native entry | RT-F380/384 In progress: approved derived private namespace copy reached welcome; user Start gave no confirmed entry. Computer Use stopped while user played another game; owned processes/private registry cleaned up. |
+| Native delivery/gameplay/persistence | Open: RT-F387, original rendering/flight/combat/mining/economy/upgrades/rewards, durable progression, authority, shutdown and final engine choice. RT-F393 compiled guard awaits actual CS_Ready acceptance. |
+
+Current owners and exact evidence: [legacy](LEGACY_COMPATIBILITY_PLAN.md), [native](NATIVE_CLIENT_PLAN.md), [package](ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime](ROGUE_RUNTIME_PLAN.md), [tooling folders](../../scripts/compatibility/IMPLEMENTATION_PLAN.md). These checkpoints refine the historical investigation steps above; completed work is not an active rerun task. No desktop interaction while the user is playing another game.

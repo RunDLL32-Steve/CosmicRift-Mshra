@@ -1,5 +1,14 @@
 # Changelog
 
+## Original package and native-route verification — October 13, 2026
+
+- Produce standalone OriginalContent Windows package;source/export nativeUI frame/navigation/remap regression andthree renderedpages pass atworldtick0 withoutSDK/runtime discovery.
+- Inventoryall89 archives/1,262members and609candidates;retainmissing/unknownreferences withoutsubstitution. Crosscheck12hulls,200items,30vehicles,81LIO,19,198originalpropertyvalues and222maprefs;preserve fullLVL graphicaltrailer.
+- Initialize actualoriginal genericarena:25computers,100materialdrops,51teams,42hides withzero gameplayticks/clientinputs.
+- FixderivedVehicleMaker originalfield18 omission:exactly8 bountyvalues corrected,allotherexports unchanged;originals intact.
+- RecoverauthenticsharedSoccerBLO andverifyfullasset boundedloopbackhost/controlled120sexit. Compileofflinelegacy patch-endpoint guard;nativehandshake acceptance remainsopen.
+- Prepare/run user-approved isolatednativecopy;welcomeobserved,Start/entrynotverified. Desktopautomation stoppedwhileuserplaying;onlyownedprocesses/testkeys cleanedup.394featurechecks/subplans reconciled.
+
 ## Original fidelity checkpoint — October 13, 2026
 
 - Add verified original BLO/CFS importer/stager:11 archives,231 objects,36,516 frames;14 focused pixel/format/hash checks passed.

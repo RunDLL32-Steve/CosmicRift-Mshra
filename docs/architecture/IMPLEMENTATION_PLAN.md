@@ -13,7 +13,7 @@ Master authority: [§5.3 simulation boundaries](../../ROGUE_TRADER_2_PLAN.md#53-
 
 ## Active outstanding work
 
-- [ ] **Investigating — production engine/server/native-client compatibility:** follow [engine evaluation](ENGINE_EVALUATION.md) and [legacy spike](LEGACY_COMPATIBILITY_PLAN.md). Existing local server-probe logs record initialization dependencies/failures; compilation/parsing do not prove a running RT world or native entry/unspectate.
+- [ ] **Investigating — production engine/server/native-client compatibility:** follow [engine evaluation](ENGINE_EVALUATION.md) and [legacy spike](LEGACY_COMPATIBILITY_PLAN.md). Actual original arena and bounded full-asset loopback hosting are Complete (RT-F383/392/394); native copy reached welcome only, maximum clients 0. Actual native entry/unspectate and production engine decision remain open.
 - [ ] **Investigating — RT-F021 / RT-F069:** finish level/object/collision/terrain and dependency interpretation. Active LVL parser skips trailing graphical entities; nonzero physics counts/overview BMP do not prove native collision traversal.
 - [ ] **Investigating — RT-F027–RT-F041 / RT-F067:** establish versioned units, negative sentinels, skill/event grammar and execution order. Preserve raw fields plus sourced conversion hypotheses. Bot arithmetic and native player behavior are separate contracts.
 - [ ] **Not started — RT-F074 / Investigating — RT-F075:** resolve palette/HSV/shadow blits, direction rounding and bank/state selection. Original HSV Value 5 does not prove neutral column 5.
@@ -21,3 +21,9 @@ Master authority: [§5.3 simulation boundaries](../../ROGUE_TRADER_2_PLAN.md#53-
 - [ ] **Not started — M3 authoritative multiplayer:** design/verify protocol, input validation, reconciliation and transactions after the original loop/engine dependencies pass. Current emulator accepts client state/energy updates; reconcile that path with master server authority before production adoption.
 
 Original names/categories/values/bytes remain unchanged at eb1514eaae7f9b9425307d9cc043c74ecdd15e35; derived adapters/resources remain separate. [Field contracts](../original-research/FIELD_INTERPRETATION.md) retain unresolved semantics. NEW expansions stay deferred. Source availability, parsing, decoded pixels and prototype tests do not establish exact parity. Inspect licenses before reuse. Documentation reconciliation reads existing logs/source; simulation follows a completed feature requiring behavioral verification.
+
+## Current original-engine scope — October 13, 2026
+
+Completed history: RT-F381 package audit (19,198 direct values/12 hull links/222 map member links/46-file offline roundtrip); RT-F382 generic source routes; RT-F383 original initializer (25 computers/100 drops/51 teams/42 hides); RT-F385 derived eight-field VehicleMaker fix; RT-F392/394 full-asset host (89 canonical BLOs plus authentic Soccer, two loopbacks, one arena, exit 0 after 120.17 seconds, max clients 0). [Native plan](NATIVE_CLIENT_PLAN.md), [package](ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime](ROGUE_RUNTIME_PLAN.md) and [compatibility folder](../../scripts/compatibility/IMPLEMENTATION_PLAN.md) retain evidence.
+
+Next: RT-F380/384 native profile/Start/entry In progress; RT-F393 offline CS_Ready guard Testing; RT-F387 delivery Not started; original gameplay/persistence and known shop/proximity/capacity/shutdown risks open. User desktop interaction stopped while another game was active; owned processes/private test registry cleaned up. Documentation work runs no build, probe or simulation. Original-source hashes/names/values remain authoritative and unchanged.

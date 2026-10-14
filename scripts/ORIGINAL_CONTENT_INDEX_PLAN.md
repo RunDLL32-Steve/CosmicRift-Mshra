@@ -2,7 +2,7 @@
 
 Owner scope: `scripts/index-original-content.py` and this subplan. The generated JSON belongs outside the original reference checkout at `artifacts/research/original-content/index.json` by default.
 
-Reconcile with the master [fidelity clarification, §1.2](../ROGUE_TRADER_2_PLAN.md#12-user-fidelity-clarification-and-implementation-tracking--october-12-2026), [ship data, §6](../ROGUE_TRADER_2_PLAN.md#6-spacecraft-and-loadout-system), [combat, §7](../ROGUE_TRADER_2_PLAN.md#7-combat-system), [resources, §8](../ROGUE_TRADER_2_PLAN.md#8-mining-and-resource-collection), and [§18 M1 exact reproduction gate](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype). [PROGRESS.md](../docs/development-log/PROGRESS.md) indexes completion evidence. The master remains the authority: raw indexing is complete, while exact dependency closure and original behavior remain unchecked. Canonical acceptance IDs: [FEATURE_CATALOG.md](../docs/original-research/FEATURE_CATALOG.md), especially RT-F069–RT-F072. Current raw-index feature status: **Complete with evidence**; evidence below is historical, with no new run for documentation reconciliation.
+Reconcile with the master [fidelity clarification, §1.2](../ROGUE_TRADER_2_PLAN.md#12-user-fidelity-clarification-and-implementation-tracking--october-12-2026), [ship data, §6](../ROGUE_TRADER_2_PLAN.md#6-spacecraft-and-loadout-system), [combat, §7](../ROGUE_TRADER_2_PLAN.md#7-combat-system), [resources, §8](../ROGUE_TRADER_2_PLAN.md#8-mining-and-resource-collection), and [§18 M1 exact reproduction gate](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype). [PROGRESS.md](../docs/development-log/PROGRESS.md) indexes completion evidence. The master remains the authority: raw indexing is complete, while exact dependency closure and original behavior remain unchecked. Canonical acceptance IDs: [FEATURE_CATALOG.md](../docs/original-research/FEATURE_CATALOG.md), especially open RT-F069 and completed scoped RT-F070–RT-F072. Current raw-index feature status: **Complete with evidence**; evidence below is historical, with no new run for documentation reconciliation.
 
 ## Completion history — Complete with evidence
 
@@ -18,7 +18,7 @@ Reconcile with the master [fidelity clarification, §1.2](../ROGUE_TRADER_2_PLAN
 - Prevent output inside the original folder or over the manifest; write derived JSON atomically outside originals.
 - Re-hash every input after parsing; verify original hashes are unchanged.
 - Run actual indexing and meaningful parser/integrity/output checks described below.
-- [ ] **Investigating — RT-F069–RT-F072:** resolve remaining archive/member identities and complete dependency closure. The accepted selected decoder slice is recorded in [its owner plan](original-assets/IMPLEMENTATION_PLAN.md); it does not complete all raw-index candidates.
+- [ ] **Investigating — RT-F069:** resolve remaining archive/member identities and complete dependency closure. The accepted selected decoder slice is recorded in [its owner plan](original-assets/IMPLEMENTATION_PLAN.md); it does not complete all raw-index candidates.
 - [ ] **Investigating — RT-F027–RT-F041 / RT-F067:** finish version-aware evaluator, sentinel, units, combat and equipment/runtime interpretation. Selected formats are accepted by the pinned loader; native operational semantics remain open in [field contracts](../docs/original-research/FIELD_INTERPRETATION.md).
 - [ ] **Investigating — RT-F069:** reconcile complete dependency/record identity acceptance with the master; full original gameplay/appearance parity remains unfinished.
 
@@ -46,3 +46,5 @@ Executed checks passed: all 12 hull/VEH IDs and names match; all 323 CSV records
 
 No source artwork, stats, maps, names or bytes were changed. No gameplay behavior or engine compatibility is claimed by this index.
 
+
+Current raw dependency follow-up: [DEPENDENCY_PLAN.md](original-assets/DEPENDENCY_PLAN.md) completes RT-F375 all89 BLO/1,262 exact members/609 raw candidates with99 canonical hash checks. The original545 archive-member candidate count is historical and is not a current residual. [Package audit](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) verifies modeled identities/value links separately. Runtime eligibility, missing Portal/logo/numeric Ball roles and native delivery remain open; raw indexing never proves original gameplay.

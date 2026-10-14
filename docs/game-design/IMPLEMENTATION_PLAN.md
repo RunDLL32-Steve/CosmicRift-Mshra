@@ -12,11 +12,16 @@ Master authority: [§1.2 original target](../../ROGUE_TRADER_2_PLAN.md#12-user-f
 
 ## Active outstanding work
 
-- [ ] **In progress — RT-F073:** client owner is implementing the paused original-content inspector. Verify exact identities/full 12-hull roster/all directions and poses/provenance rejection/zero gameplay ticks before completing the tool. It cannot complete playable RT-F001–RT-F012 hulls.
-- [ ] **Investigating — RT-F020–RT-F024 / RT-F074–RT-F075:** verify original map overview/coordinates/world data, hull poses/effects and native palette/HSV/shadow/bank evaluators. Accepted selected decoded pixels are a narrower importer feature.
+- [ ] **Investigating — RT-F021–RT-F024 / RT-F074–RT-F075:** verify original map overview/coordinates/world data, hull poses/effects and native palette/HSV/shadow/bank evaluators. Accepted selected decoded pixels are a narrower importer feature.
 - [ ] **Investigating — RT-F025–RT-F026:** resolve RT HUD/store/selection art and actual action-token bindings/modifiers including strafe/hyper thrust. Original controls are mandatory; a modern preset may remain optional afterward. Generic command lists or Chaos Zone footage alone cannot validate RT scope.
 - [ ] **Investigating — RT-F027–RT-F041:** interpret native movement, shield/energy, restrictions and per-weapon execution. Preserve raw units/sentinels; a provisional inheritance flag does not prove exact weapon behavior.
-- [ ] **Not started — M2 original loop, RT-F013–RT-F019 / RT-F030 / RT-F033–RT-F035 / RT-F042–RT-F051 / RT-F068:** implement spawn/pickup, cargo, store/refining/trade/repair, equipment, rewards and persistence incrementally after dependencies validate. M1 engineering acceptance is already complete.
-- [ ] **Not started — M2 actors, RT-F059–RT-F063:** implement resolved original NPC/hazard roles individually. An invented generic pirate does not complete the cataloged actors.
+- [ ] **Not started — M2 original loop, RT-F013–RT-F019 / RT-F030 / RT-F033–RT-F035 / RT-F042–RT-F051 / RT-F068:** validate existing native engine handlers for spawn/pickup, cargo, store/refining/trade/repair, equipment and rewards, then durable persistence, after actual entry and delivery validate. M1 engineering acceptance is already complete.
+- [ ] **Not started — M2 actors, RT-F059–RT-F063:** validate existing resolved original NPC/hazard roles individually. An invented generic pirate does not complete the cataloged actors.
 
 NEW ships/minerals/sectors, unrelated expansion and modern presentation remain deferred until exact reproduction. Detailed content acceptance remains in the canonical catalog and data/original plans. Keep unfinished features unchecked and complete only the specifically verified feature. Parser/hash/image/build checks cover data/presentation; gameplay simulation follows completion of the behavior needing verification.
+
+## Current scoped completion and next gate
+
+RT-F020/F073/F373/F374 are Complete for the original overview and source/standalone inspector, verified input and three rendered pages at world tick0. All12 identities/64 direction rows/11 columns and231 sprites are available. Their tasks have left the active queue; native blit/bank/HUD and all playable hull/gameplay acceptance remain open.
+
+RT-F381/F382/F383/F385/F392/F394 establish package audit, generic-handler audit, actual arena initialization, eight-field derived parser fix and bounded full-asset backend with authentic supplemental Soccer. Native welcome Start gave no confirmed entry; private test cleanup is complete. Next is the native connection/hull-selection test when the user is available, then unchanged delivery and the original M2 loop. Standalone native hosting currently does not save progression. See [runtime plan](../architecture/ROGUE_RUNTIME_PLAN.md) and [native plan](../architecture/NATIVE_CLIENT_PLAN.md).

@@ -34,14 +34,14 @@ Current user requirements (October13,2026):
 - Run simulations only once a completed gameplay feature requires simulation verification. Use focused parser, byte-integrity, image and build checks for data/rendering work. Do not repeatedly rerun baseline gameplay simulations during research or documentation changes.
 - The archived source names, pixels, map and values are authoritative. Interpret version/scaling/evaluator semantics with evidence, preserve raw fields, and keep unexplained behavior visible as unfinished work.
 
-## Current checkpoint and documentation rule — October 13, 2026
+## Current documentation checkpoint — October 13, 2026
 
-The user stopped research and requested wrap-up. Read [CONTINUATION.md](CONTINUATION.md) before resuming. M0/M1 engineering acceptance is historical; importer/source inspector/parser/loopback milestones are now verified.372 original IDs have matching master checkboxes;5 narrowly complete,367 open. Updated standalone export and native/runtime parity remain unfinished.
+Read CONTINUATION.md and the complete master before resuming. Current catalog/master:394 feature entries,15 scoped completions,379 open. Viewer source/export/input checks, archive/package/runtime audits, original arena initialization, bounded full-asset hosting and VehicleMaker field18 fix are verified. Native playable entry, actual delivery, full original gameplay and persistence remain unverified.
 
-Specific canonical queues: data/original/{ships,weapons,equipment,resources,sectors,actors}/IMPLEMENTATION_PLAN.md. Update current stage whenever work becomes Investigating, In progress, Testing or Complete. Remove completed tasks from active outstanding lists, retain completion ID/evidence in history and CHANGELOG, and keep checked master audit synchronized. Original assets/names/values/categories come from pinned fowlmouth originals unchanged.
+Every meaningful source folder has an IMPLEMENTATION_PLAN.md or a linked parent plan describing purpose, accomplished work/evidence, next work/current stage and original-parity limits. Remove completed tasks from active queues; retain master checkmarks, concise history and major-feature CHANGELOG entries. Original queues are data/original/{ships,weapons,equipment,resources,sectors,actors}. Canonical names/categories/values/bytes remain unchanged.
 
-Do not run broad verification/simulations for documentation/assets. Only a completed behavior requiring simulation triggers that check. The earlier stop applied to that checkpoint; the user has now explicitly resumed work. Separate two-agent documentation handoff: DOCS_RECONCILIATION_HANDOFF.md.
+Update status at investigation, implementation, testing and completion. Run focused checks only for the completed feature requiring them; no builds, GUI launches or simulations for documentation reconciliation. Use parallel agents for independent work and avoid concurrent shared-output builds.
 
-## Resumed slice — October 13, 2026
+The isolated native client reached welcome only; Start had no verified result. Computer Use stopped while the user played another game. Owned processes/private test keys were cleaned up. Do not resume desktop interaction while the user is busy; follow action-time confirmation and authentication/security rules.
 
-User resumed from CONTINUATION.md. Active work: original viewer standalone packaging (RT-F373), inspector input/navigation fixes and validation (RT-F374), dependency inventory (RT-F375/RT-F069), native package inventory (RT-F376). Root owns packaging/master/reconciliation; parallel agents own inspector, dependency script and native metadata scope. Avoid concurrent builds. Only focused completed-feature checks; no baseline gameplay smoke for this slice.
+The current handoff is CONTINUATION.md. DOCS_RECONCILIATION_HANDOFF.md records earlier history; the latest documentation reports are DOCS_RUNTIME_FOLDERS_REPORT.md, DOCS_TOOLS_ARCHITECTURE_REPORT.md and DOCS_CONTENT_RESEARCH_REPORT.md.

@@ -1,36 +1,33 @@
-# Continuation checkpoint — October 13, 2026
+# Current continuation — October 13, 2026
 
-Read PROJECT_START.md, AGENTS.md and the complete ROGUE_TRADER_2_PLAN.md before resuming. The user stopped research and requested documentation wrap-up at the usage-window boundary. All agents were told to stop; no further work is scheduled. No commit/push.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:394 feature entries,15 scoped completions,379 open. No commit or push.
 
-## Completed
+## Accomplished
 
-- Canonical fowlmouth/cosmic-rift-assets pinned at eb1514eaae7f9b9425307d9cc043c74ecdd15e35;46 original manifest records unchanged.
-- Raw index:3,086 records,12 matched RPG/VEH hulls,200 items,seven resources.
-- Original importer/stager:11 BLO archives,231 objects,36,516 frames;14 focused format/pixel/hash tests. Derived exports in artifacts/original-assets; staged client/OriginalContent ignored. All12 Small/Tiny hull pairs, asteroid/resource/effect/UI pixels; exact1999×1998 overview. All64 direction rows/11 columns retained. Column5 is a preview choice, not proven native bank state.
-- Source client Debug build zero warnings/errors. F2/ORIGINAL CONTENT opens inspection; command argument --inspect-original-content supported. Three rendered QA pages each verify all231 textures/12 identities/map, exit0, world tick0. Actual artifacts/qa/original-ships.png, original-map.png, original-sprites.png inspected; corresponding logs preserve evidence.
-- Pinned InfantryOnline parser accepts unchanged CFG/ITM200/VEH30/RPG12/LIO81/LVL1999×1998. Raw level export:3,994,002 tiles,116,065 nonzero physics masks.
-- Runner crash fixed: by-ref CFG JSON and repeated diagnostic filename caused unhandled IOException/0xE0434352, likely the reported popup. Unique shards/field-only export/outer catch now controlled exit0/1/2.
-- Five original help dependencies recovered separately from pinned Zone-Assets Rogue archive with hashes. Derived offline host initializes with no arenas/clients, actual127.0.0.1:21337/:21338 sockets and eight-byte count/token ping verified. Exit0; owned host/sockets/SDK10 helpers stopped.
-- 372 stable original feature IDs;5 narrow features checked:F020/F070/F071/F072/F073. Six data/original domain queues and two-agent documentation reconciliation completed. See DOCS_RECONCILIATION_HANDOFF.md.
+- M0/M1 engineering prototype acceptance is complete; its41 unit/source/export input/world results are historical.
+- Original content remains pinned/unchanged at eb1514eaae7f9b9425307d9cc043c74ecdd15e35.46 foundation records and99 distinct canonical hashes are verified by the respective inventories.
+- Original viewer and updated Windows export pass:12 hulls,231 sprites,1999×1998 overview; source/standalone input and three rendered pages at world tick0. Artifact: artifacts/windows/OriginalContent-2026-10-13-win-x64.zip.
+- All89 canonical BLO directories/1,262 members indexed;609 raw candidates audited. Full runtime closure remains open.
+- Actual parser/package audit validates200 items,30 vehicles,12 hull links,81 LIO records,19,198 supported values and222 map references.
+- Original arena initializer passes:25 computers,100 mineral drops,51 teams,42 hides,zero clients/polls/physics. Bounded full-asset host passes with two loopback sockets and unchanged files; its separate ready report lists26 initial vehicles.
+- VehicleMaker original field18 fix restores exactly eight values;allother exports unchanged.
+- Authentic shared Soccer archive resolves full-asset startup without changing89 canonical archives.
+- Native client reached welcome;Start had no confirmed entry. Desktop testing stopped while user played;owned processes/private registry test keys cleaned up.
 
-## Remaining work on resumption
+## Next
 
-- [ ] Export/validate updated viewer as a new Windows artifact. Existing FirstContact package/zip is the earlier prototype.
-- [ ] Wider inspector native navigation/input regression and native palette/HSV/shadow/blit/banking/timing/audio/HUD.
-- [ ] Full asset dependency closure across89 BLO archives;545 was the original raw-index candidate count, not recomputed residual.
-- [ ] Actual native client engine/version, local entry/unspectating and archived SilentClientCrash proof; installer bootstrap metadata is insufficient.
-- [ ] Original LVL/LIO world/collision/event integration and coordinate semantics.
-- [ ] Upstream server cancellation/rearm shutdown race; bounded host normal exit bypasses this, not a production fix.
-- [ ] Original hull/strafe/hyper/reverse/energy/combat/evaluator behavior, then M2 mining/trading/repairs/upgrades/persistence using canonical records.
+- [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
+- [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
+- [ ] Investigating:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 eligibility.
+- [ ] Not started/Investigating:shop sell quantity/atomicity,store proximity,null-script capacity and upstream shutdown fixes.
+- [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
+- [ ] Not started:add persistent progression;standalone does not save.
+- [ ] Open:multiple native clients and final original playable-package acceptance;engine choice remains open.
 
 ## Evidence and rules
 
-Read client/IMPLEMENTATION_PLAN.md, scripts/original-assets/IMPLEMENTATION_PLAN.md, docs/architecture/LEGACY_COMPATIBILITY_PLAN.md and docs/original-research/FEATURE_CATALOG.md/FIELD_INTERPRETATION.md. Parser/server reports and provenance are in ignored .tools/compatibility/reports and compatibility-manifest.json. Original-domain queues: data/original/{ships,weapons,equipment,resources,sectors,actors}/IMPLEMENTATION_PLAN.md.
+Plans:docs/architecture/NATIVE_CLIENT_PLAN.md,ROGUE_RUNTIME_PLAN.md,ROGUE_PACKAGE_AUDIT_PLAN.md;client/ORIGINAL_INSPECTOR_PLAN.md;scripts/original-assets/IMPLEMENTATION_PLAN.md andDEPENDENCY_PLAN.md;data/original domain queues;docs/original-research/FEATURE_CATALOG.md.
 
-Root client remains SDK8/Godot pinned; isolated upstream spike uses SDK10.0.401. Preserve all canonical bytes/names/categories/values. Update feature stage at investigation/implementation/testing/completion, synchronize master and subplans, move completed active tasks into evidence/history and major-feature CHANGELOG.
+Logs/reports:artifacts/qa/OriginalContent,artifacts/rogue-package-audit,.tools/compatibility/reports,.tools/compatibility/local-working/session-host/reports,and.tools/native-client-inspection/native-test-cleanup.json.
 
-Simulations only after a completed behavior requires verification; parser/hash/image/build checks for assets/docs. Prior41-unit and source/export native-input/world smoke are historical acceptance and were not repeated here. No full original runtime parity or updated standalone export is claimed.
-
-## Resumed after checkpoint
-
-The user has continued. Current features: RT-F373 packaging In progress, RT-F374 inspector input fix In progress, RT-F375 dependency inventory Investigating, RT-F376 native package inventory Investigating. Earlier stop is historical; master/current plans are authoritative.
+SDK8/Godot is the inspection toolchain;upstream uses isolatedSDK10.0.401. Preserve originals and distinguish generic-handler availability from verified gameplay. Simulations require a completed behavior needing verification. Current task is documentation wrap-up;no further builds, GUI or simulations. Latest three documentation reports list folder edits and checks.

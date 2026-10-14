@@ -40,5 +40,19 @@ Write-DerivedPatch 'dotnetcore/ZoneServer/Game/Assets/AssetManager.cs' 'Compatib
     [regex]::Replace($text, $directoryPattern, '$1' + "`n            if (Environment.GetEnvironmentVariable(`"RT_COMPATIBILITY_OFFLINE`") == `"1`") return;")
 }
 
+Write-DerivedPatch 'dotnetcore/Assets/Itm/ItmInfo.VehicleMaker.cs' 'RT-F385: preserve original v57 prizeBountyPoints field18 for VehicleMaker; all other assignments unchanged.' {
+    param($text)
+    $site = 'vehicleMaker.radarColor = CSVReader.GetInt(values[17]);'
+    if ([regex]::Matches($text, [regex]::Escape($site)).Count -ne 1 -or $text.Contains('vehicleMaker.prizeBountyPoints =')) { throw 'Expected one unpatched original VehicleMaker assignment site.' }
+    $text.Replace($site, $site + "`n                vehicleMaker.prizeBountyPoints = CSVReader.GetInt(values[18]);")
+}
+
+Write-DerivedPatch 'dotnetcore/ZoneServer/Logic/Packets/Login/Login.cs' 'RT-F393: suppress the legacy external patch-server announcement for isolated local native sessions.' {
+    param($text)
+    $site = 'player._client.sendReliable(pinfo);'
+    if ([regex]::Matches($text, [regex]::Escape($site)).Count -ne 1) { throw 'Expected one original patch announcement site.' }
+    $text.Replace($site, 'if (Environment.GetEnvironmentVariable("RT_COMPATIBILITY_OFFLINE") != "1") player._client.sendReliable(pinfo);')
+}
+
 $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding utf8
-Write-Output 'Derived-only loopback/offline source patches recorded with original and working SHA-256.'
+Write-Output 'Derived-only loopback/offline and original VehicleMaker field18 patches recorded with original and working SHA-256.'

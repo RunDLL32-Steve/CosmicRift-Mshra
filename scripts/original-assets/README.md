@@ -1,3 +1,7 @@
+# Original asset tools
+
+Purpose/current progress: [decoder/staging implementation plan](IMPLEMENTATION_PLAN.md) and [dependency inventory](DEPENDENCY_PLAN.md) document completed selected11-archive/231-object/36,516-frame exports, staging and all89-archive/1,262-member/609-candidate inventory. Next work is native rendering/evaluator/dependency closure; source/standalone inspector rendering is verified but original native gameplay remains open. Originals are read only; outputs are derived and ignored. Reconciled October 13, 2026.
+
 # Derived original sprite API
 
 The generated `artifacts/original-assets/runtime.json` is a compact catalog; the full `index.json` retains palettes, frame crop metadata and unknown fields. Staging adds `map` and `staging` objects only to `client/OriginalContent/runtime.json`; generated metadata is read-only during staging.
@@ -23,3 +27,4 @@ Important concrete references:
 | Map overview | `Rogue.png` after staging | Native 1999×1998 RGB |
 
 All exported palette RGB entries remain unchanged. Index 0 is transparent. Source shadow/light index ranges and blit modes remain raw metadata; correct native blending, HSV/user palette transforms, pose selection, animation timing, and all gameplay behavior remain separate fidelity work. UI objects retain their full original cells, including empty margins and segmented components. PNGs and QA sheets are derived artifacts; canonical originals are never edited.
+

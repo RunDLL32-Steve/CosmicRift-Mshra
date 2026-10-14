@@ -57,8 +57,10 @@ Originals live in ignored `.tools/references/cosmic-rift-assets/`; the committed
 
 Current verified result: 41 unit tests, three native-input/UI smoke phases, six flight/combat phases and a self-contained Windows launch with rendered QA.
 
-## Current checkpoint — October 13, 2026
+## Current checkpoint
 
-Research/implementation stopped at the user's usage-window boundary. Resume from [CONTINUATION.md](CONTINUATION.md).372 original features have master checkboxes and specific canonical-domain queues under data/original. Completed tasks move out of active lists into evidence/history and major-feature changelog.
+See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md):394 features,15 scoped completions,379 open. The server loads original Rogue Trader data/arena;the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
 
-The source client now displays all12 hulls,231 sprite objects and canonical1999×1998 overview. Run scripts/run-client.ps1 and press F2/ORIGINAL CONTENT; world stays paused during inspection. Python3.11+ with Pillow runs scripts/original-assets/decode_blo.py then stage_original_assets.py to reproduce staged resources. Source compile/3 rendered pages passed;14 importer checks and actual parser/loopback proof passed. Original flight/economy/native blit/banking still pending; updated standalone export has not been produced.
+The updated [OriginalContent Windows package](artifacts/windows/OriginalContent-2026-10-13-win-x64.zip) passes standalone inspector input/render checks. Keep the full folder;launchRogueTrader2.exe andpressF2. Rebuild:./scripts/export-windows.ps1 -Mode OriginalContent. The package is a verified asset viewer/provisional flight range;original native gameplay and persistence remain unfinished.
+
+Every meaningful source folder documents purpose,accomplishments/evidence,next work/status and original-parity limits. Completed tasks are history;active queues list remaining work. Preserve unchanged canonical assets and prefer the current master over older dated handoffs.

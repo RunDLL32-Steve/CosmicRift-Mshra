@@ -72,3 +72,7 @@ Final validation reported by the lead agent on October 12, 2026: 41 unit cases p
 
 Original resource prices, death losses, reward formulas, refinery rates and upgrades remain unfinished pending native interpretation and their assigned acceptance; M1 engineering completion does not adopt invented tuning for them. The archive now directly documents Krandazite, Tellerium, Iron Ore and Wreckage, plus selected raw historic config/item fields; see [INFANTRYONLINE.md](../original-research/INFANTRYONLINE.md). Those recorded snapshot values remain separate from the NEW prototype tuning. Version, units and evaluator/sentinel behavior need validation before adoption. No unverified bounty formula is adopted.
 
+
+## Current original-value integration checkpoint
+
+RT-F381 verifies19,198 supported literal original item assignments, all200 item/30 vehicle/12 skill/81LIO identities and twelve hull links. RT-F385 restores eight omitted VehicleMaker field18 values in derived parser code; all other item properties and five other exports remain identical. Original content is never rebalanced. [Package audit](../architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) documents exact evidence. Original arena/bounded-host acceptance does not validate native player formulas, and standalone hosting currently has no progression saves. Continue per-feature native semantics and safe economy verification in [canonical queues](../../data/original/IMPLEMENTATION_PLAN.md); this NEW fixture ledger remains unchanged.

@@ -1,12 +1,18 @@
 # InfantryOnline source and asset research
 
+## Current implementation checkpoint — October 13, 2026
+
+[HANDOFF.md](HANDOFF.md) and the master §18 are current status authority:394 IDs,15 scoped capabilities complete,379 open. Selected11 BLO archives/231 sprites/36,516 frames, canonical1999×1998 overview and source/updated standalone inspector are verified; native palette/blit/bank/HUD/audio/gameplay remain open. All89 canonical BLO directories/1,262 members and609 candidates are inventoried, with eight missing/unknown raw candidates; runtime closure is unverified. Five original help files are recovered separately from pinned Zone-Assets.
+
+The package audit matches19,198 supported values/twelve hull links/222 map references; derived-only VehicleMaker fix restores eight field18 values. Original arena initializes25 computers/100 mineral drops/51teams/42hides; full-asset bounded host uses89 canonical BLOs plus authentic supplemental Soccer. Native test reached welcome only; Start produced no confirmed entry, private test/process cleanup is complete and desktop interaction stays stopped until the user is available. Standalone native mode does not persist progression. Generic handlers being present does not prove original runtime parity. Existing dated source-access observations below retain their historical scope; completed tasks are recorded in history/[CHANGELOG.md](../../CHANGELOG.md).
+
 Reviewed: October 12, 2026. Master references: [§2 historical research](../../ROGUE_TRADER_2_PLAN.md#2-historical-game-research), §§5–8, §18 M0/M1 and §22. Tracking: [research subplan](IMPLEMENTATION_PLAN.md) and [development progress](../development-log/PROGRESS.md).
 
 The user supplied [Infantry-Online-Server](https://github.com/InfantryOnline/Infantry-Online-Server), the [InfantryOnline organization](https://github.com/InfantryOnline), and a [Chaos Zone video](https://www.youtube.com/watch?v=A6u1ljFgQVU), then specified an exact Cosmic Rift presentation and asset target for **Rogue Trader mode**. The user subsequently designated [fowlmouth/cosmic-rift-assets](COSMIC_RIFT_ASSETS.md) as the canonical foundation, original bytes unchanged, for a 100% reproduction. InfantryOnline remains corroborating preservation evidence and a schema/format reference. The current NEW placeholder prototype is an engineering foundation; it does not satisfy the reproduction target.
 
 ## Repository provenance and actual access
 
-Public GitHub API metadata and complete recursive trees were read, followed by selected raw files at the immutable commits below. No external server/parser code was copied into the project. The later [fowlmouth archive comparison](COSMIC_RIFT_ASSETS.md) streamed four overlapping binary payloads in memory solely to compare hashes; the lead agent then retrieved the user-designated canonical originals into an unchanged working reference checkout. Original BLO records remain visually undecoded; the RT BMP map has been viewed and its limited observations recorded. Original content has not been bundled into the NEW prototype.
+Public GitHub API metadata and complete recursive trees were read, followed by selected raw files at the immutable commits below. No external server/parser code was copied into the project. The later [fowlmouth archive comparison](COSMIC_RIFT_ASSETS.md) streamed four overlapping binary payloads in memory solely to compare hashes; the lead agent then retrieved the user-designated canonical originals into an unchanged working reference checkout. The initial access was inventory-only. Current selected11 BLO batch is decoded/inspected, all89 directories are inventoried and separate derived resources are included in the local source/standalone inspector; the NEW training simulation remains provisional.
 
 [SOURCE_MANIFEST.json](SOURCE_MANIFEST.json) records selected exact paths, sizes, Git blob hashes and immutable URLs. `tree_metadata_only` explicitly marks binary entries whose contents were not inspected; the manifest is a reference inventory, not an asset pack or a gameplay import.
 
@@ -78,7 +84,7 @@ Negative values in the missile/beam rows are a reason to investigate engine conv
 
 ## Asset and format candidates
 
-All links below identify files whose existence was confirmed in the complete tree. Blob records, appearance, palette, direction count and animation frames have **not** been inspected. Hash-only comparison established identical preserved `rogueships`, `RogueWeapons` and `cruiart` payloads in the later fowlmouth source; a filename or byte match does not establish visual content.
+All links below identify files whose existence was confirmed in the complete tree. At the initial October12 inventory, blob records/appearance/palette/directions/frames were uninspected. Current selected11 decoding and original inspector acceptance are recorded above; native appearance remains open. Hash-only comparison established identical preserved `rogueships`, `RogueWeapons` and `cruiart` payloads in the later fowlmouth source; a filename or byte match does not establish visual content.
 
 | Candidate purpose | Preserved exact paths / immutable URLs | Next fidelity work |
 |---|---|---|
@@ -100,21 +106,16 @@ The Tools repository does contain an explicit [Gibbed notice][gibbed-license]: a
 
 The Zone-Assets README invites development use and explains preservation provenance, but the inspected materials do not establish original publisher ownership or a blanket original-asset redistribution grant. Public availability alone settles neither permission nor infringement. Before bundling preserved sprites/audio/maps, record the applicable rights/permissions for the exact files. Research, asset mapping and an original-code importer design can progress while that question remains documented.
 
-## Fidelity implementation backlog
+## Completed history and active parity backlog
 
-- [x] Inspect the user-supplied repositories and identify the RT archive at a fixed commit.
-- [x] Read original RT help, controls, config, conduct rules and selected actual definitions.
-- [x] Record candidate blobs/maps, schema references and license uncertainty without importing originals.
-- [x] Record the supplied video's limited observed presentation in [VIDEO_REFERENCE.md](VIDEO_REFERENCE.md).
-- [x] Select the user-designated canonical source snapshot, fowlmouth commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`, and preserve its originals unchanged.
-- [ ] Reconcile the snapshot's dated news/config/item evaluator semantics for exact operational reproduction.
-- [x] Record a source inventory of selected paths, sizes, hashes and immutable links without bundling original files.
-- [ ] Resolve the full reference graph of item/vehicle IDs, blob names and object names; keep source files outside distributable game assets until their applicable rights are recorded.
-- [ ] Validate a version-aware item/vehicle decoder and all sentinel/unit conversions against original client behavior or reliable engine documentation.
-- [ ] Resolve referenced asset records, then inspect direction frames, palettes, dimensions, animation and effects.
-- [ ] Recover RT map collision metadata and object layout; compare package and orphan map variants.
-- [ ] Verify persistence, cargo/death-loss policies and actual active equipment logic.
-- [ ] Implement the fidelity client/content mapping in the relevant master milestone; retain prototype acceptance evidence separately.
+Pinned repository/schema/license inventory, canonical provenance, original raw/indexed and compiled-parser records, selected pixel decoder/inspector/export, full directory/candidate inventory, package/runtime audits and original arena/bounded host are completed scoped work. See the current checkpoint and [HANDOFF.md](HANDOFF.md); prior counts/access metadata remain historical evidence.
+
+- [ ] **Investigating — RT-F380/F384:** compatible native channel/profile, welcome Start/entry, original hull choice and unspectating; resume desktop work only when the user is available.
+- [ ] **Investigating — RT-F069/F387:** actual original graphics/audio/help/full-LVL delivery and remaining dependency/evaluator eligibility.
+- [ ] **Investigating — RT-F027–F041/F067:** native unit/sentinel/grammar execution; compiled parser success is narrower.
+- [ ] **Not started — M2 canonical queues/RT-F068:** original cargo/refining/trade/upgrades/actors/rewards and durable progression. Existing generic handlers should be verified before deciding to replace them; standalone does not save.
+- [ ] **Investigating — RT-F388–F390:** quantity/credit-order/proximity and null-script join risks; production shutdown remains unresolved.
+- [ ] **Investigating — native presentation/release:** complete bank/blit/HUD/audio/controls and exact-file rights/provenance.
 
 [asset-readme]: https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/README.md
 [rogue-dir]: https://github.com/InfantryOnline/Zone-Assets/tree/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue

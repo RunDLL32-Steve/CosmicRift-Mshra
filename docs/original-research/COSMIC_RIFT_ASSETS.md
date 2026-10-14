@@ -1,5 +1,11 @@
 # fowlmouth Cosmic Rift asset archive
 
+## Current implementation checkpoint — October 13, 2026
+
+[HANDOFF.md](HANDOFF.md) and the master §18 are current status authority:394 IDs,15 scoped capabilities complete,379 open. Selected11 BLO archives/231 sprites/36,516 frames, canonical1999×1998 overview and source/updated standalone inspector are verified; native palette/blit/bank/HUD/audio/gameplay remain open. All89 canonical BLO directories/1,262 members and609 candidates are inventoried, with eight missing/unknown raw candidates; runtime closure is unverified. Five original help files are recovered separately from pinned Zone-Assets.
+
+The package audit matches19,198 supported values/twelve hull links/222 map references; derived-only VehicleMaker fix restores eight field18 values. Original arena initializes25 computers/100 mineral drops/51teams/42hides; full-asset bounded host uses89 canonical BLOs plus authentic supplemental Soccer. Native test reached welcome only; Start produced no confirmed entry, private test/process cleanup is complete and desktop interaction stays stopped until the user is available. Standalone native mode does not persist progression. Generic handlers being present does not prove original runtime parity. Existing dated source-access observations below retain their historical scope; completed tasks are recorded in history/[CHANGELOG.md](../../CHANGELOG.md).
+
 User-supplied source: [fowlmouth/cosmic-rift-assets](https://github.com/fowlmouth/cosmic-rift-assets). Reviewed: October 12, 2026. Master authority: [ROGUE_TRADER_2_PLAN.md](../../ROGUE_TRADER_2_PLAN.md), §1.2 exact-fidelity steering, §2, §§5–8, §16 and §18. Tracking: [research subplan](IMPLEMENTATION_PLAN.md) and [development progress](../development-log/PROGRESS.md).
 
 The user has designated this repository as the **correct canonical foundation** and requested a **100% Rogue Trader reproduction**, using its original content **without altering the original files**. Its repository description attributes the SOE zone assets to Military Police's preservation contribution. Actual files corroborate the Rogue Trader package already found through [InfantryOnline](INFANTRYONLINE.md); the matching copies are not independent confirmation of every original rule or a second historical version.
@@ -19,7 +25,7 @@ The user has designated this repository as the **correct canonical foundation** 
 | LFS configuration | [.gitattributes][attributes] explicitly applies Git LFS to `*.blo`, `*.lvl`, `*.bmp` |
 | Standard sprite images | No PNG, SVG or JPG files in the tree |
 | BMP images | `LVL-BMP/` contains map-preview candidates; [Rogue.bmp][rogue-bmp] points to an 11,988,054-byte payload now retrieved and viewed by the lead agent; collision/object semantics are not decoded from the image |
-| Binary access | Selected pointer texts read; four overlapping InfantryOnline payloads streamed in memory solely for SHA-256 comparison. Lead agent later fetched all 89 BLO payloads plus the RT LVL/LIO/BMP in the pinned working reference checkout; source Git status remained clean. BLO records remain undecoded and uninspected visually. |
+| Binary access | Selected pointer texts read; four overlapping InfantryOnline payloads streamed in memory solely for SHA-256 comparison. Lead agent later fetched all 89 BLO payloads plus the RT LVL/LIO/BMP in the pinned working reference checkout; source Git status remained clean. Current selected11 BLO batch is decoded/visually inspected; all89 archive directories are inventoried. Native appearance and full runtime closure remain open. |
 | Working reference | `.tools/references/cosmic-rift-assets`, pinned at the recorded commit; originals unchanged and kept separately from the prototype's bundled assets |
 
 Raw Git URLs for these LFS-tracked assets return short pointer files. A checkout without LFS payload resolution is not an asset pack. BLO files require a format decoder/record extractor before they become Godot textures or audio. The RT BMP payload is now retrieved and viewed; it is a standard map image, and does not supply gameplay collision/object data by itself.
@@ -62,27 +68,21 @@ The lead agent inspected the retrieved map view and reported its original dimens
 
 ## Fidelity implementation implications
 
-This source is the foundation for the requested original RT hull/weapon/UI/map content. Candidate [TerranShips.blo][terran], [SkithzarShips.blo][skithzar], [GraziShips.blo][grazi], and their small variants, plus [O_Asteroids.blo][asteroids], are present. Canonical RT text currently references the `*Small` ship variants; `rogueships.blo` is present but not yet proven to be that config's active dependency. Contents, palette/frame metadata and exact reference-ID coverage remain uninspected. The manifest's blob candidates come from a case-insensitive filename-stem scan of canonical text; that is a preparatory dependency inventory, not a completed record decoder.
+This source is the foundation for the requested original RT hull/weapon/UI/map content. Candidate [TerranShips.blo][terran], [SkithzarShips.blo][skithzar], [GraziShips.blo][grazi], and their small variants, plus [O_Asteroids.blo][asteroids], are present. Canonical RT text currently references the `*Small` ship variants; `rogueships.blo` is present but not yet proven to be that config's active dependency. Selected11 contents/palette/frame metadata are decoded and inspected; all89 directories are inventoried. Exact runtime eligibility, native blitting and full dependency closure remain open. The manifest's blob candidates come from a case-insensitive filename-stem scan of canonical text; that is a preparatory dependency inventory, not a completed record decoder.
 
 Use the recovered RT configuration as the dependency root: decode the versioned VEH/ITM/RPG/LIO records, resolve their blob/object IDs, validate map collision/material data, and map original assets to rendering without changing flight authority. Compare UI layout, world scale, ship directions and effects against [the limited video reference and parity checklist](VIDEO_REFERENCE.md). Retain the existing NEW prototype values until a validated target-version mapping can replace them.
 
 No inspected file establishes a blanket original-art/audio/map redistribution grant. The manifest preserves that provenance field separately from the user's canonical-foundation decision; it is not a finding that the files are unlawful. Immutable working-reference use, decoder design and source reconciliation proceed under the user's instruction, with exact-file rights/notices retained as a release provenance task.
 
-## Local completion and follow-up
+## Completed history and active follow-up
 
-- [x] Read exact user-supplied repository and pin its complete tree/commit.
-- [x] Identify real asset formats, LFS behavior, RT files and absence of a found license notice.
-- [x] Compare six RT text counterparts and four binary payload identities against InfantryOnline.
-- [x] Link this audit and its records to the master fidelity priority and historical subplan.
-- [x] Adopt the user-designated canonical foundation and record original-bytes preservation in ASSET_MANIFEST.json.
-- [x] Record the supplied exact map URL, pinned payload identity and actual lead-agent visual observations.
-- [x] Record retrieval of original BLO/RT map reference payloads with clean source Git status.
-- [ ] Analyze `Rogue.itm` vs `Rogue_mp.itm`; select a documented RT source revision.
-- [ ] Resolve asset payload availability/LFS and record applicable rights and attribution.
-- [ ] Decode blob records and inspect actual sprites/effects/audio; no visual parity completion claimed.
-- [x] Inspect the BMP map preview (lead agent observation, no inferred marker meaning).
-- [ ] Recover the actual LVL/LIO collision/object metadata and compare map-object meaning.
-- [ ] Implement and validate original-content rendering/behavior through the master's acceptance gates.
+Canonical selection, pinned provenance, six text/four binary comparisons, original payload acquisition, BMP inspection, selected importer/staging/source/standalone display, full directory inventory and bounded package/arena audits are complete within the scopes linked above. Source hashes remain unchanged. The reference is available locally; completed availability/decoding tasks are removed from active work.
+
+- [ ] **Investigating — RT-F069/F377–F379:** remaining raw/runtime reference eligibility, native audio/effects and actual delivery.
+- [ ] **Investigating — RT-F021/F022/F387:** full raw LVL native delivery, graphical trailer, world/grid/collision and object meaning; parsed tile layers/222 map links are already audited.
+- [ ] **Investigating — RT-F023–F026/F074/F075:** original native appearance, pose, control/HUD/menu semantics.
+- [ ] **Not started — canonical per-record queues:** validate original ship/item/actor/resource interactions and durable progression through the native engine route.
+- [ ] **Investigating — release provenance:** exact-file rights/notices and optional alternative Rogue.itm revision evidence; keep Rogue_mp.itm selected by canonical CFG unchanged.
 
 [attributes]: https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/.gitattributes
 [rogue-cfg]: https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/CFG/rogue.cfg

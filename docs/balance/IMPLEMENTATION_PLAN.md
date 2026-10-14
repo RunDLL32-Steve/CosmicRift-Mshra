@@ -21,3 +21,7 @@ Master authority: [§5 physics](../../ROGUE_TRADER_2_PLAN.md#5-spacecraft-moveme
 - [ ] **Not started — RT-F074 / Investigating — RT-F075:** retain original palette/HSV/shadow and pose-state requirements. Preview/export checks cannot finish native appearance.
 
 Raw values are available; preserve their source identities and complete fields, record candidate evaluator conversions separately, and keep unexplained behavior open. NEW expansion tuning and replacement ships/minerals remain deferred until exact reproduction. Gameplay simulation occurs only after the completed feature requires behavior verification; this documentation pass used existing evidence only.
+
+## Current native-route limit
+
+The package audit matches19,198 supported original item values and twelve hull links; the derived VehicleMaker fix restores exactly eight original bounty values without rebalancing. Original-data arena and bounded full-asset host acceptance are complete, but native Start produced no entry and standalone hosting has no progression saves. Next acceptance validates existing engine handling and original transaction/reward semantics; it does not tune originals to the NEW prototype. [Package audit](../architecture/ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime plan](../architecture/ROGUE_RUNTIME_PLAN.md) and [canonical queues](../../data/original/IMPLEMENTATION_PLAN.md) retain the current limits.

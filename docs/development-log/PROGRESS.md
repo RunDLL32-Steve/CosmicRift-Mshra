@@ -1,19 +1,17 @@
-# Development progress — master reconciliation
+# Development progress — October 13, 2026
 
-Updated: October 12, 2026 (America/Chicago). Authority: [ROGUE_TRADER_2_PLAN.md §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Startup: [PROJECT_START.md](../../PROJECT_START.md).
+Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff:[CONTINUATION.md](../../CONTINUATION.md).
 
-Current scope: Milestone 0 foundation and Milestone 1 First Contact. The user's exact Cosmic Rift assets/presentation target for Rogue Trader is recorded in master §1.2. Prototype acceptance and historical/visual parity are tracked separately.
+**394 feature entries;15 scoped completions;379 open.** M0/M1 prototype,original viewer/export,inventory/package/runtime audits,actual arena initialization,bounded full-asset hosting andVehicleMaker field18 fix pass. Native welcome only;no player joined. Actual native delivery/gameplay/persistence remain unfinished. Desktop interaction stopped;owned test processes/keys cleaned up.
 
-## Milestone status
+## Current milestone status
 
-| Milestone | Status | Completion evidence / remaining gate |
-|---|---|---|
-| 0 — repository and research | COMPLETE (foundation) | Local Git, four-project solution, pinned portable tools, build workflow, evidence matrix, archive research and conventions |
-| 1 — flight and combat | COMPLETE (engineering prototype) | 41 unit cases pass; three native-input/UI and six world phases pass in source and standalone builds; rendered source/controls/export QA inspected; standalone launch without SDK/runtime discovery passes |
-| 2 — core gameplay | Not started | Mining, cargo, trade, upgrades, persistence and NPC loop |
-| 3 — dedicated multiplayer | Not started | Dedicated server, authenticated protocol, database and network acceptance |
-| 4–6 | Not started | Complete earlier gates first |
-| Exact content/presentation fidelity | Research underway; not complete | Canonical original source acquired unchanged; 46 foundational hashes verified. InfantryOnline engine spike, format interpretation, asset/map decoding and exact gameplay/visual parity remain pending |
+- M0/M1 engineering:Complete with historical acceptance.
+- Original tooling/source/export/arena/hosting:scoped completions recorded in master/catalog.
+- Native playable reproduction:In progress/unverified.
+- M2 original gameplay loop/persistence:Not accepted;generic handlers exist but require runtime validation.
+- M3 multiple-player/persistent service:Not accepted;bounded loopback hosting is narrower proof.
+- Later additions:Deferred until original parity.
 
 ## Subplan index
 
@@ -42,46 +40,17 @@ Every path below is an implementation checklist with a reciprocal reference to t
 | [Network](../../tests/Network/IMPLEMENTATION_PLAN.md) | Deferred M3 |
 | [Load tests](../../tests/LoadTests/IMPLEMENTATION_PLAN.md) | Deferred M5 |
 
-## Reconciliation rules
 
-1. Implement a scoped feature and update its folder checklist.
-2. Run the relevant tests; record the exact command, result and material limitation.
-3. Verify the runnable artifact when required. A headless rules test does not establish visual parity or keyboard behavior.
-4. Update the corresponding §18 master checkbox and this table in the same phase.
-5. Record scope changes in the dated log and CHANGELOG. Recovered evidence must keep its source, classification and revision context.
+## Current plans and evidence
 
-## Next fidelity work
+Additional scoped plans:client/ORIGINAL_INSPECTOR_PLAN.md;scripts/original-assets/DEPENDENCY_PLAN.md;docs/architecture/NATIVE_CLIENT_PLAN.md,ROGUE_RUNTIME_PLAN.md,ROGUE_PACKAGE_AUDIT_PLAN.md;data/original domain queues. Each meaningful source folder records accomplished/next/parity status in its implementation plan or linked parent.
 
-- [x] Compare archive files at fixed commits; select `fowlmouth/cosmic-rift-assets` as canonical unchanged foundation. Six text records and four blob/map payloads corroborate the snapshot.
-- [ ] Evaluate InfantryOnline native-client/server compatibility before the next production engine decision.
-- [ ] Recover complete ship/item references and validate legacy field units and sentinel values against the actual engine behavior.
-- [ ] Decode and inspect original sprite directions, palettes, animation and sound records; record applicable asset reuse status.
-- [ ] Recover RT map/object/collision layers and port the documented rendering/content mapping.
-- [ ] Review the supplied video systematically with timestamped observations. Watch is installed separately; only one frame at 0:25 has been inspected so far.
-- [ ] Validate original flight/weapon/HUD parity before expanding presentation; M2 then adds the actual RT mining/trading/progression loop using recovered mode evidence.
-
-M1 currently has no working mining, station, economy, progression save, AI or networking. The placeholder build must not be presented as the finished recreation.
+Evidence:artifacts/qa/OriginalContent;artifacts/rogue-package-audit;.tools/compatibility/reports;.tools/compatibility/local-working/session-host/reports;native-test-cleanup.json. Initializer25 computers and host-ready26 initial vehicles are distinct observations. Full LVL graphical trailer must remain intact for native delivery.
 
 ## Final validation evidence
 
-- `scripts/verify.ps1`: full Debug solution build succeeds, 41 unit cases pass, source client native-input and world smoke both pass (exit 0). A cached NuGet vulnerability-feed retrieval warning is present; package restore/compile/tests succeed.
-- `scripts/export-windows.ps1`: ExportRelease build has zero warnings/errors; export succeeds; standalone input/world smoke passes (exit 0); self-contained zip produced with engine/runtime notices.
-- Exported executable launched with DOTNET_ROOT pointing to a missing location and PATH reduced to Windows system directories: original placeholder gameplay renders and capture succeeds (exit 0). No editor or installed .NET SDK/runtime discovery is required.
-- `artifacts/qa/first-contact.png`, `controls.png` and `standalone-first-contact.png`: actual rendered frames inspected; geometry/telemetry and all controls-menu actions visible at 1280×720. No original-art parity is claimed.
-- `scripts/verify-reference-assets.ps1`: 46 original records match exact SHA-256 and byte length at the pinned canonical commit. All original BLO payloads and the RT map are reference-only; decoded/derived outputs must remain outside the reference checkout.
+Historical41 unit/prototype input/world checks are preserved in October12 log/master/changelog;they were not repeated for assets/documentation. Updated OriginalContent source/standalone input/render checks pass atworldtick0. Runtime/package/helper proofs are scoped;native entry remains unchecked.
 
-Remaining milestone checkboxes in the master are unchanged except the user-directed original-content clarification in M2. No M2 gameplay or M3 multiplayer is complete.
+## Reconciliation rules
 
-Engine evaluation complete: [ENGINE_EVALUATION.md](../architecture/ENGINE_EVALUATION.md) distinguishes the server emulator and separate client, active .NET 10 requirements, archived compatibility issues and a measured engine decision. The actual legacy compatibility spike is pending.
-
-
-Original-content index verified: 3,086 records, 12 RPG/VEH hull name/ID cross-matches, 200 item records, seven original resources and 551 candidate references. All source hashes unchanged. Raw indexing is complete; 545 BLO archive-member candidates and evaluator/units remain unvalidated. Master §§6/8 and M2 now use the original catalog instead of proposed replacement ships/resources.
-
-
-## October 13 final checkpoint
-
-User requested stop researching and wrap documentation. Resume: [CONTINUATION.md](../../CONTINUATION.md). Master§1.3/§18 now records372 individual feature checks;5 narrow completions,367 open. Six canonical-domain plans cover ships/weapons/equipment/resources/sectors/actors. Two documentation agents reconciled remaining folders; see DOCS_RECONCILIATION_HANDOFF.md.
-
-Complete:14 importer/staging tests;11 archives/231objects/36,516frames;46 originals unchanged;source inspector12hulls/map/231resources rendered across3 pages with tick0;Debug zero warnings/errors. Actual pinned parser and bounded loopback/ping host pass;original help dependencies recovered with provenance;host/endpoints/ownedSDK10 helpers stopped. Runner crash repaired;upstream shutdown race remains open.
-
-Pending:updated standalone export,wider inspector input,native client/SilentClientCrash,full dependencies,LVL playable integration,native appearance/evaluators/original flight/combat andM2 loop. Historical41-unit/native-input/world smoke was not rerun for assets/docs. Completed active tasks are history/changelog/master audit, not outstanding queues.
+Update current stages and evidence with code changes. Master/catalog/projection IDs/checkmarks must match. Completed work leaves active queues and remains in history/CHANGELOG. Documentation-only checks do not launch builds, GUI or simulations.

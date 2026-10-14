@@ -1,71 +1,36 @@
 # Client implementation plan
 
-This subplan reconciles with the master [ROGUE_TRADER_2_PLAN.md](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), especially sections 5.3-5.4, 13.3, 15-16, and First Contact slices A-E in section 19. The master is the status authority. M0/M1 engineering is complete; current checkpoint is the fidelity gate.
+Reviewed October 13, 2026 against current source and saved acceptance logs. This documentation review runs no build, client, GUI or simulation.
 
-The current vector visuals, training sector, ship, and weapon are temporary **NEW/provisional** test fixtures. They demonstrate the engine and flight/combat architecture; they do not establish original Cosmic Rift visual or gameplay fidelity. Archive/asset and historical behavior research is a separate gate recorded by the master and research documentation.
+Status authority: [master §18 M1 engineering acceptance/fidelity gate](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§1.3 current work](../ROGUE_TRADER_2_PLAN.md#13-continued-exact-reproduction--october132026), [§15 UI](../ROGUE_TRADER_2_PLAN.md#15-user-interface) and [§16 appearance](../ROGUE_TRADER_2_PLAN.md#16-graphical-direction). Original acceptance is tracked in the [feature catalog](../docs/original-research/FEATURE_CATALOG.md); the master is the status authority.
 
-## Scope and completion
+## Purpose and current code
 
-- Completed: Godot 4.5.1 C# / .NET 8 client project and launch scene. Scoped build succeeds with zero warnings/errors.
-- Completed: Load the authoritative catalog from shared JSON, staged from root `data/` into `client/GameData/` at build time and exported as resources.
-- Completed: Thin bridge calls the shared C# world at 60 fixed physics ticks per second, independently from rendering.
-- Completed: Forward/reverse thrust, rotation, momentum and firing captured with Godot InputMap.
-- Completed: Keyboard remapping UI with persisted bindings in `user://controls.cfg`, conflict feedback, and restore defaults implemented and verified with native input plus UI callbacks.
-- Completed: Original placeholder renderer for player/targets, asteroids, stars, plasma, thrust exhaust, shield/impact flashes, and destruction bursts implemented. Visual QA remains listed below.
-- Completed: Camera follows simulation position; hull/shield/energy/speed/tick/FPS/projectile/sector/target telemetry implemented.
-- Completed: Pause, resume, reset sector, quit, target completion and player destruction/reset messages implemented.
-- Completed: Runtime smoke mode drives target destruction, forward thrust, drift, reverse, independent rotation and actual asteroid collision. All six phases pass in a headless client run with exit 0.
-- Completed: Screenshot mode saves after 30 rendered frames and exits automatically; optional controls-menu capture supported.
-- Completed: Windows x64 export preset with managed export templates and included JSON resources prepared.
-- Completed: Root integrated solution verification and exported Windows executable smoke validation (authoritative completion evidence recorded by root).
-- Completed: Rendered gameplay and controls-menu screenshot QA.
-- Completed: Runtime controls-remapping persistence and pause/reset UI interaction checks: three native-input regression phases pass, including held-key remapping and default restoration.
+Godot 4.5.1/.NET 8 is the local engineering testbed and original-content inspector. It is not the selected production engine. [GameClient.cs](Scripts/GameClient.cs) loads NEW/provisional ship, plasma and First Contact sector JSON, calls the pure C# world at 60 Hz, and connects rendering, camera, input, HUD and bounded QA modes. [WorldView.cs](Scripts/WorldView.cs) displays derived canonical Asp/Hornet pixels when staged; fallback ships, the training sector, rocks, projectiles, hit effects and handling remain provisional.
 
-## Module ownership
+[OriginalSpriteLibrary.cs](Scripts/OriginalSpriteLibrary.cs) reads a separate derived manifest and validates paths, pinned provenance and atlas dimensions. F2 or ORIGINAL CONTENT opens a paused inspector; no gameplay ticks advance while it is visible. All 12 hull identities, 64 direction rows and 11 preview columns, 231 sprite atlases and the canonical 1999×1998 overview are available. This does not implement original map traversal or select native banking rules.
 
-| Module | Responsibility |
+## Accomplished with evidence
+
+| Scope | Completed evidence and limits |
 |---|---|
-| `Scripts/GameClient.cs` | Engine/simulation bridge, fixed-step tick, camera, lifecycle and QA modes |
-| `Scripts/FlightInput.cs` | Default actions, input capture, remapping validation and persisted settings |
-| `Scripts/WorldView.cs` | Rendering and presentation-only effects; no gameplay authority |
-| `UI/FlightHud.cs` | Flight telemetry, objectives, pause and controls UI |
-| `Scripts/ClientSmokeTest.cs` | Acceptance sequence against the actual shared world |
-| `Scripts/ClientInputSmokeTest.cs` | Native keyboard, control-widget, persisted-binding and lifecycle regressions |
-| `Scenes/Main.tscn` | Startup scene |
-| `export_presets.cfg` | Windows x64 release packaging |
+| M0/M1 prototype client, camera, HUD, controls, lifecycle and Windows export | Historical 41-unit acceptance plus source/export three native-input/UI and six world phases; [October 12 acceptance](../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation). One provisional playable ship, three stationary targets and 12 static rocks. |
+| Canonical overview/derived frame inspection, RT-F020/RT-F073 | Source Debug build zero warnings/errors and three rendered pages at world tick 0; [source ships log](../artifacts/qa/original-ships.log), [map log](../artifacts/qa/original-map.log), [sprites log](../artifacts/qa/original-sprites.log). |
+| Standalone original viewer, RT-F373 | [Updated local Windows zip](../artifacts/windows/OriginalContent-2026-10-13-win-x64.zip); packaged ships/map/sprites pages pass resource/render checks at tick 0 with SDK/runtime discovery disabled. [Ships](../artifacts/qa/OriginalContent/standalone-ships.log), [map](../artifacts/qa/OriginalContent/standalone-map.log), [sprites](../artifacts/qa/OriginalContent/standalone-sprites.log). This is a local inspection artifact, not a complete gameplay release or redistribution grant. |
+| Inspector navigation/input, RT-F374 | [Source record](../artifacts/qa/original-input-source-record.json) and [standalone input log](../artifacts/qa/OriginalContent/standalone-input.log): all 8,448 hull frame selections, 231 selector signals, retained selections, native editing, remaps, physical Escape/Close and tick 0 isolation. [Detailed completion history](ORIGINAL_INSPECTOR_PLAN.md). |
 
-## Controls
+## Active outstanding work
 
-W / Up = forward; S / Down = reverse; A / Left = turn left; D / Right = turn right; Space = plasma cannon. Escape opens pause/controls; R resets the whole training sector. Every implemented binding can be changed in the controls menu. A remapped movement action uses the chosen single key; defaults restore letter/arrow alternatives. Reset reloads the catalog into a new world; it is not a persistence or progression feature.
+- [ ] **Investigating — RT-F023–RT-F026/RT-F074–RT-F075:** native bank/state selection, palette/HSV/shadow/blit, animation/timing, layered effects/audio and original HUD/controls. Column 5 and direction rounding are preview choices.
+- [ ] **Investigating — RT-F021/RT-F022/RT-F069:** original LVL/LIO coordinates, terrain/collision, objects and runtime dependency eligibility. The overview is an image; it is not a playable level.
+- [ ] **Investigating — native engine route:** the separate native client reached Welcome FreeInfantry; Start gave no confirmed entry. No native arena/player/asset-delivery acceptance. Test processes and private profile were cleaned; do not interact with the desktop while the user is playing. See [native plan](../docs/architecture/NATIVE_CLIENT_PLAN.md).
+- [ ] **Not started — original Godot runtime integration if required by engine choice:** canonical hull/weapon/loadout/economy/progression behavior. The new shared prototype schema is not a conversion of all original records.
+- [ ] **Not started — M2/M3 final acceptance:** mining, trading, repairs, upgrades, saves and independent multiplayer through the selected engine; preserve original records rather than implementing unrelated proposals.
 
-## Validation commands and evidence
+## Folder map and reproduction
 
-From the repository root, use the pinned environment established by `scripts/environment.ps1`:
+[Scripts](Scripts/IMPLEMENTATION_PLAN.md), [UI](UI/IMPLEMENTATION_PLAN.md), [Scenes](Scenes/IMPLEMENTATION_PLAN.md), [Assets](Assets/IMPLEMENTATION_PLAN.md), [Audio](Audio/IMPLEMENTATION_PLAN.md) and [Shaders](Shaders/IMPLEMENTATION_PLAN.md) document their current modules and next work. Ignored client/GameData is build-staged JSON; client/OriginalContent is derived content; .godot is generated. They are documented here rather than treated as source tasks. Empty editor template/profile/theme directories contain no implemented feature.
 
-```powershell
-./scripts/verify.ps1
-./scripts/run-client.ps1
-./scripts/export-windows.ps1
-```
+Prototype bindings: W/Up forward, S/Down reverse, A/Left and D/Right turn, Space fire, Escape pause/controls, R reset, F2 original inspector. All eight actions are remappable; settings persist in user://controls.cfg. Reset replaces the training world; it does not save progression.
 
-For direct QA, invoke Godot with `--path client -- --smoke-test` or `--path client -- --capture <absolute-png-path>`. Add `--capture-controls` to the capture invocation to show the pause/controls menu. Screenshot mode requires a rendered display; headless mode deliberately returns failure for screenshots. The smoke harness first drives native `Input.ParseInputEvent` sequences and the actual remap/default button callbacks through normal physics updates, then runs eight otherwise identical fixed world ticks per engine callback for bounded wall time. Existing user controls are preserved and restored after the input fixture.
-
-Client-scoped evidence: `dotnet build client/RogueTrader.Client.csproj --configuration Debug --no-restore` completed with zero warnings/errors, Godot resource import completed, and headless runtime printed `CLIENT_READY` followed by all six `SMOKE PASS` lines and `CLIENT_SMOKE_PASS`, exit 0. Input regression evidence: three additional phases printed `CLIENT_INPUT_SMOKE_PASS`, covering held W while paused then rebind to Q and release W, persisted reload, resume/coast/new Q thrust, held Q while restoring saved W/Up defaults, and R reset from pause. A mutation run that omitted `Input.ActionRelease(action)` failed at the exact held-W/remap assertion with exit 1; the restored fix passes with exit 0. Root reconciled exported-client and rendered QA evidence into this subplan, the master M0/M1 checklists and the central progress log.
-
-M2 mining, economy, upgrades, persistence, NPCs and M3 networking are deferred. No client-side authority for economy or multiplayer has been introduced.
-
-
-Final reconciliation: master M0/M1 engineering checklists are checked. Full solution and 41 unit tests pass, source and exported clients pass native-input/UI and world smoke, and actual rendered gameplay/controls/export captures were inspected. See docs/development-log/PROGRESS.md for evidence and original reproduction/engine gates.
-
-
-
-## Current source inspector checkpoint — October 13
-
-Complete scoped RT-F020/F073:read-only canonical-derived library and paused inspector,12 hull identities/64 rows/11 columns,231 sprites and1999×1998 overview. Debug build zero warnings/errors;3 actual rendered pages at world tick0, exit0, resource validation passed and screenshots inspected. Logs/captures:artifacts/qa/original-{ships,map,sprites}.log/.png. Godot root-certificate-store warning does not prevent successful local import/render.
-
-- [ ] In progress — RT-F373 updated Windows export/standalone viewer acceptance; existing FirstContact artifact is prior engineering build.
-- [ ] In progress — RT-F374 wider native navigation/input/pause/resume inspector regression.
-- [ ] Investigating — native bank/palette/HSV/shadow/blit/timing/audio/HUD.
-- [ ] Not started — original LVL/LIO playable world and original hull/weapon/economy behavior.
-
-Raw Asp/Hornet pixels render where staged, but training physics/effects remain provisional. Column5 preview selection is unvalidated native banking. Completed prototype tasks above are history; exact runtime checks remain open. User has resumed; current slice is packaging/input validation, with exact runtime parity still open.
+When an implemented feature needs re-verification, choose the focused mode: --verify-original-input or --inspect-original-content --verify-original-content --original-page=ships|map|sprites (optional --capture with an absolute PNG path). Original-content modes verify resources/input without advancing the world. Reproduce its package with scripts/export-windows.ps1 -Mode OriginalContent; the default Prototype mode performs historical gameplay smoke and is not needed for documentation/assets. Preserve original sources and keep outputs separate.

@@ -1,0 +1,36 @@
+# Compatibility tooling implementation plan
+
+Purpose: run bounded, reproducible checks of the preserved Rogue Trader package through the pinned InfantryOnline parser/server, without changing original content. This is diagnostic tooling, not the production game server.
+
+Master authority: [§1.2 canonical source](../../ROGUE_TRADER_2_PLAN.md#12-user-fidelity-clarification-and-implementation-tracking--october-12-2026), [§1.3 current checkpoint](../../ROGUE_TRADER_2_PLAN.md#13-continued-exact-reproduction--october132026), and [§18 M1 fidelity gate](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype). Current stages are reconciled October 13, 2026. Detailed architectural owners: [legacy](../../docs/architecture/LEGACY_COMPATIBILITY_PLAN.md), [native client](../../docs/architecture/NATIVE_CLIENT_PLAN.md), [package](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md), [runtime](../../docs/architecture/ROGUE_RUNTIME_PLAN.md).
+
+## Accomplished and evidence
+
+| Feature | Status and scope | Evidence |
+|---|---|---|
+| RT-F072 parser | Complete: actual CFG/200 ITM/30 VEH/12 RPG/81 LIO/LVL accepted, original bytes unchanged | [Loader plan](Loader/IMPLEMENTATION_PLAN.md); [pristine report](../../.tools/compatibility/reports/pristine-load-report.json) |
+| RT-F073 loopback probe | Complete: core-data offline startup, two real loopback sockets and native ping; no arenas/players | [ServerProbe plan](ServerProbe/IMPLEMENTATION_PLAN.md) |
+| RT-F381 package audit | Complete: 19,198 direct item checks, 12 hull links, 222 map member links and 46-file offline transfer roundtrip | [audit plan](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) and [audit output](../../artifacts/rogue-package-audit/index.json) |
+| RT-F382 source routes | Complete for bounded source/event/economy/persistence audit | [runtime-audit.json](../../.tools/compatibility/reports/runtime-audit.json) |
+| RT-F383 original arena initializer | Complete: 25 computers, 100 material drops, 51 teams, 42 hides; zero polls/physics/client inputs | [ArenaProbe plan](ArenaProbe/IMPLEMENTATION_PLAN.md) |
+| RT-F385 VehicleMaker field 18 | Complete: derived parser preserves eight original bounty values, all other exports unchanged | [check-vehiclemaker-fix.py](check-vehiclemaker-fix.py), [regression report](../../artifacts/rogue-package-audit/vehiclemaker-fix.json) |
+| RT-F392/RT-F394 full-asset host/shared Soccer | Complete for bounded hosting: all 89 canonical BLOs plus authentic supplemental Soccer, two loopbacks, one RT arena, exit 0 after 120.17 seconds, max clients 0 | [SessionHost plan](SessionHost/IMPLEMENTATION_PLAN.md), [ready](../../.tools/compatibility/local-working/session-host/reports/ready.json), [exit](../../.tools/compatibility/local-working/session-host/reports/exit.json) |
+| Private native preparation | In progress: unique derived registry namespace, approved welcome-screen bootstrap, cleanup verified; actual isolation/entry acceptance open | [prepare-native-profile.ps1](prepare-native-profile.ps1), [cleanup](../../.tools/native-client-inspection/native-test-cleanup.json) |
+
+## Next and original parity
+
+- [ ] **In progress — RT-F380/RT-F384:** resolve supported engine identity and actual private-profile/network isolation, then native welcome/Start/entry when the user is available. Computer Use stopped while the user was playing another game; do not resume desktop interaction during this documentation task.
+- [ ] **Testing — RT-F393:** derived offline patch-announcement guard is compiled; actual native CS_Ready behavior still requires a connected native client.
+- [ ] **Not started — RT-F387:** verify actual client/server asset delivery including original LVL graphical trailer. Offline roundtrip and local copies do not prove delivery.
+- [ ] **Investigating — RT-F388/RT-F389/RT-F390:** reproduce oversell/atomicity, station eligibility and null-script full-arena risks before focused fixes.
+- [ ] **Investigating — RT-F386/RT-F391:** establish absent drop-item 66 eligibility and optional administrator PrizeItems.xml policy without invented content/stubs.
+- [ ] **Investigating — RT-F069/RT-F021:** resolve remaining dependency/evaluator/native level semantics; preserve Portal/PrizeCrateA, logo and numeric Ball candidates as open.
+- [ ] **Not started:** original native movement/combat/mining/trading/refining/upgrades/rewards/persistence acceptance and safe production shutdown; choose the engine only after measured parity.
+
+## Reproduction and boundaries
+
+Root-owned Godot projects remain on SDK 8.0.419; this tooling uses isolated `.tools/dotnet10` SDK 10.0.401 and `.tools/compatibility/global.json`. Wrappers capture logs, use hidden owned helpers and bounded exits. Do not build helpers concurrently against the same derived server outputs. Parser/hash checks serve data features; simulations are reserved for completed gameplay needing behavior verification.
+
+`run-data-loader.ps1 -Build`, `run-local-server-probe.ps1 -Build` and `run-arena-probe.ps1 -Build` **execute their probes** after building. `run-native-session-host.ps1 -Build` only prepares/builds; adding `-Start -DurationSeconds 120` actually starts the backend. `prepare-native-profile.ps1` writes a fresh private HKCU test namespace and derived working executable but does not launch native UI; it is not a read-only inventory command. Follow the native plan for owned-process/profile cleanup.
+
+`prepare-derived-source.ps1` records four derived patch sites: game/ping loopback bind, offline news/directory guards, VehicleMaker field 18 and offline patch-announcement guard. It starts from unchanged pinned upstream files and records source/working SHA-256. `acquire-original-help.ps1` recovers five corroborating help files separately; `prepare-local-zone.ps1` retains the older core-data/no-BLO probe scope. `audit-rogue-package.py` and `check-vehiclemaker-fix.py` are offline readers with output guards. Canonical assets and upstream references remain unchanged; ignored `.tools/` and `artifacts/` evidence is not a redistribution license.

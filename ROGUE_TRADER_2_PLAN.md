@@ -90,11 +90,11 @@ Current checkpoint — October 13, 2026:
 - [x] Build/run pinned InfantryOnline parser: original CFG/200ITM/30VEH/12RPG/81LIO/1999×1998LVL accepted; raw tile/physics metadata exported.
 - [x] Fix runner diagnostic-file collision/by-ref JSON export; expected failures have controlled exits.
 - [x] Recover five original help dependencies with pinned corroborating provenance; bounded offline server initializes, two loopback sockets/ping verified, all owned helpers/sockets stopped.
-- [x] Catalog372 stable original features, six per-record domain queues, current statuses and reciprocal documentation reconciliation.
-- [ ] **In progress — RT-F373:** export/validate updated original-content viewer as a new standalone Windows artifact.
-- [ ] **In progress — RT-F374:** verify/fix native inspector navigation/input. Native bank/palette/HSV/shadow/blit/timing/audio/HUD remain separate open original features.
+- [x] Catalog394 stable feature entries, six original per-record domain queues, current statuses and reciprocal documentation reconciliation.
+- [x] **Complete — RT-F373:** updated standalone viewer/export; native input plus3rendered pages pass exit0/worldtick0 without SDK discovery.
+- [x] **Complete — RT-F374:** inspector frame retention/native editing/remaps/isolation; original native appearance remains open.
 - [ ] Integrate original LVL/LIO terrain/collision/objects into playable world with validated semantics.
-- [ ] **Investigating — RT-F375/RT-F376:** inventory complete dependencies/native package; SilentClientCrash and production engine choice remain open.
+- [x] **Complete — RT-F375/RT-F376:** scoped directory/native-package inventories. Runtime closure,engine identity,SilentClientCrash and production engine choice remain separate open checks.
 - [ ] Resolve upstream shutdown race and original evaluator/flight/combat/economy/persistence behavior.
 
 The previous usage-window stop is historical; user has now resumed. Start from [CONTINUATION.md](CONTINUATION.md). Completed tasks leave active queues and remain in master/history/[CHANGELOG.md](CHANGELOG.md). Full original gameplay remains unfinished.
@@ -1149,7 +1149,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 
 ### Original feature registry — October 13 checkpoint
 
-376 stable IDs;5 scoped importer/display capabilities complete,371 open. Source/acceptance details: [FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Whole hulls/weapons/economy/native presentation remain unchecked. Completed items remain here as audit; active domain queues retain outstanding work only.
+394 entries;15 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
 - [ ] RT-F001 - [Asp](docs/original-research/FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](docs/original-research/FEATURE_CATALOG.md#rt-f002)
@@ -1221,7 +1221,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] RT-F068 - [Original character/progression policy](docs/original-research/FEATURE_CATALOG.md#rt-f068)
 - [ ] RT-F069 - [Complete original dependency closure](docs/original-research/FEATURE_CATALOG.md#rt-f069)
 - [x] RT-F070 - [Selected11 original BLO member indexes](docs/original-research/FEATURE_CATALOG.md#rt-f070)
-- [x] RT-F071 - [Supported CFSv4 decoding on selected11 BLO batch:231objects,36,516frames, original indexed pixels/pa](docs/original-research/FEATURE_CATALOG.md#rt-f071)
+- [x] RT-F071 - [Supported CFSv4 decoding on selected11 BLO batch](docs/original-research/FEATURE_CATALOG.md#rt-f071)
 - [x] RT-F072 - [Derived RGB/RGBA export/staging for supported batch](docs/original-research/FEATURE_CATALOG.md#rt-f072)
 - [x] RT-F073 - [Original-content frame inspector](docs/original-research/FEATURE_CATALOG.md#rt-f073)
 - [ ] RT-F074 - [Native original palette/HSV/shadow blitting](docs/original-research/FEATURE_CATALOG.md#rt-f074)
@@ -1523,10 +1523,28 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] RT-F370 - [Original Messaging System](docs/original-research/FEATURE_CATALOG.md#rt-f370)
 - [ ] RT-F371 - [Original Rules menu](docs/original-research/FEATURE_CATALOG.md#rt-f371)
 - [ ] RT-F372 - [Original Moderators menu](docs/original-research/FEATURE_CATALOG.md#rt-f372)
-- [ ] RT-F373 - [Original-content standalone Windows package](docs/original-research/FEATURE_CATALOG.md#rt-f373)
-- [ ] RT-F374 - [Inspector input/navigation regression](docs/original-research/FEATURE_CATALOG.md#rt-f374)
-- [ ] RT-F375 - [All-archive dependency inventory](docs/original-research/FEATURE_CATALOG.md#rt-f375)
-- [ ] RT-F376 - [Native client package inventory](docs/original-research/FEATURE_CATALOG.md#rt-f376)
+- [x] RT-F373 - [Original-content standalone Windows package](docs/original-research/FEATURE_CATALOG.md#rt-f373)
+- [x] RT-F374 - [Inspector input/navigation and frame-selection regression](docs/original-research/FEATURE_CATALOG.md#rt-f374)
+- [x] RT-F375 - [All-archive directory and raw dependency inventory](docs/original-research/FEATURE_CATALOG.md#rt-f375)
+- [x] RT-F376 - [Actual native client package inventory and version route](docs/original-research/FEATURE_CATALOG.md#rt-f376)
+- [ ] RT-F377 - [Portal PrizeCrateA graphic reference](docs/original-research/FEATURE_CATALOG.md#rt-f377)
+- [ ] RT-F378 - [Original Uiart logo reference](docs/original-research/FEATURE_CATALOG.md#rt-f378)
+- [ ] RT-F379 - [Numeric BallGraphic member role](docs/original-research/FEATURE_CATALOG.md#rt-f379)
+- [ ] RT-F380 - [Isolated native-client integration preparation](docs/original-research/FEATURE_CATALOG.md#rt-f380)
+- [x] RT-F381 - [Original Rogue package links and transfer audit](docs/original-research/FEATURE_CATALOG.md#rt-f381)
+- [x] RT-F382 - [Generic Rogue arena/event runtime source audit](docs/original-research/FEATURE_CATALOG.md#rt-f382)
+- [x] RT-F383 - [Original-data arena initialization](docs/original-research/FEATURE_CATALOG.md#rt-f383)
+- [ ] RT-F384 - [Derived native registry-namespace adapter](docs/original-research/FEATURE_CATALOG.md#rt-f384)
+- [x] RT-F385 - [VehicleMaker original bounty field18 parser fix](docs/original-research/FEATURE_CATALOG.md#rt-f385)
+- [ ] RT-F386 - [Computer DropItem66 reference eligibility](docs/original-research/FEATURE_CATALOG.md#rt-f386)
+- [ ] RT-F387 - [Untouched full LVL native delivery](docs/original-research/FEATURE_CATALOG.md#rt-f387)
+- [ ] RT-F388 - [Shop sell quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f388)
+- [ ] RT-F389 - [Server store proximity validation](docs/original-research/FEATURE_CATALOG.md#rt-f389)
+- [ ] RT-F390 - [Null-script full-arena join handling](docs/original-research/FEATURE_CATALOG.md#rt-f390)
+- [ ] RT-F391 - [Optional admin-prize whitelist policy](docs/original-research/FEATURE_CATALOG.md#rt-f391)
+- [x] RT-F392 - [Bounded original-content native session host](docs/original-research/FEATURE_CATALOG.md#rt-f392)
+- [ ] RT-F393 - [Offline legacy patch announcement guard](docs/original-research/FEATURE_CATALOG.md#rt-f393)
+- [x] RT-F394 - [Authentic shared Soccer engine BLO](docs/original-research/FEATURE_CATALOG.md#rt-f394)
 
 ## MILESTONE 2 — Rogue Trader core gameplay
 
@@ -1993,3 +2011,7 @@ Use original placeholder assets initially.
 **First required deliverable: A functional Windows game where the player can launch, fly, drift, rotate, reverse, shoot, and navigate a field of asteroids.**
 
 Do not stop at planning. Begin implementing the actual project.
+
+## Native-engine continuation status — October 13, 2026
+
+Original package/link/runtime audits and actual arena initializer now pass (F381/F382/F383); bounded full-asset loopback hosting and authenticSoccer dependency pass (F392/F394). DerivedVehicleMaker field18 fix passes exact8-value regression (F385). Native copy reached welcome with private namespace, but Start produced no confirmed entry; Computer Use stopped by physicalEscape while user was playing another game. Owned client/server/test keys cleaned up. F380/F384/nativeentry/actualdelivery remain unchecked. Use NATIVE_CLIENT_PLAN,ROGUE_PACKAGE_AUDIT_PLAN,ROGUE_RUNTIME_PLAN for proof/gaps; no more desktop interaction until user is available.

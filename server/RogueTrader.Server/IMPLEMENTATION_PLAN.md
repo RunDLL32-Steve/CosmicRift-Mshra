@@ -1,16 +1,27 @@
 # Dedicated server implementation plan
 
-Status authority: [master §13.2 authority](../../ROGUE_TRADER_2_PLAN.md#132-server-responsibilities), [§13.5 validation](../../ROGUE_TRADER_2_PLAN.md#135-anti-cheat-principles), [M3](../../ROGUE_TRADER_2_PLAN.md#milestone-3--dedicated-multiplayer), and [§20.3 QA](../../ROGUE_TRADER_2_PLAN.md#203-multiplayer-tests). Reconcile with [canonical feature catalog](../../docs/original-research/FEATURE_CATALOG.md), [engine evaluation](../../docs/architecture/ENGINE_EVALUATION.md), [protocol plan](../../shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md), and [project progress](../../docs/development-log/PROGRESS.md). Reviewed October 13, 2026; documentation inspection only.
+Reviewed October 13, 2026 against the current source tree and saved compatibility reports; no server/build/test run. Status authority: [master §13.2 authority](../../ROGUE_TRADER_2_PLAN.md#132-server-responsibilities), [M1 fidelity gate and original registry](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [M2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--rogue-trader-core-gameplay) and [M3](../../ROGUE_TRADER_2_PLAN.md#milestone-3--dedicated-multiplayer).
 
-Module status: **Not started**. This folder is reserved; no dedicated RogueTrader server service is implemented. M0/M1 engineering acceptance is complete. Original fidelity, engine selection and the M2 loop remain dependencies.
+## Purpose and current code
 
-## Outstanding work
+**Not started in this folder.** No dedicated RogueTrader server service/project exists here. The separate ignored pinned InfantryOnline working source and compatibility harness are the active candidate engine route, documented by [runtime](../../docs/architecture/ROGUE_RUNTIME_PLAN.md), [native client](../../docs/architecture/NATIVE_CLIENT_PLAN.md) and [package audit](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md).
 
-- [ ] **Investigating** — pinned InfantryOnline server/native-client route. Separate compile/parser acceptance does not demonstrate a running compatible game, authenticated sessions or native parity. Existing compatibility probe rejects initialization; missing package dependencies remain visible in its logs. Do not describe the emulator player-update path as the eventual authoritative physics implementation.
-- [ ] **Not started** — M3 sessions/authentication, validated input, authoritative movement/combat/economy, shared mining/NPCs, reconnect, protocol integration and database integration. Keep [simulation](../RogueTrader.Simulation/IMPLEMENTATION_PLAN.md), AI and persistence modular.
-- [ ] **Investigating** — original transition/reward/spawn/warp contracts RT-F050–RT-F054/RT-F067: native event ordering, team/skill restrictions, targets, coordinate/timing units and location sentinels require [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md). Runtime implementation is **Not started**.
-- [ ] **Not started** — original ownership/production/visibility/dock behavior RT-F055–RT-F058/RT-F064–RT-F065 after per-record dependencies are validated; preserve original actor/object identities, recipes and values.
-- [ ] **Not started** — master M3 independent-client acceptance: join, move, fight, mine, trade and retain progress without duplication/desynchronization. [Network](../../tests/Network/IMPLEMENTATION_PLAN.md)/[integration](../../tests/Integration/IMPLEMENTATION_PLAN.md) provide evidence only after actual implementations.
-- [ ] **Not started** — record exact feature/test evidence and reconcile master/catalog status. Native palette/banking/state selection remains a client dependency; snapshots must not invent original state semantics.
+## Completed compatibility history
 
-Completion history: no dedicated server feature is complete. The prior [M0/M1 acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) concerns the local provisional prototype. No builds/launches/simulations ran for this review.
+- RT-F381/F382: bounded package/model/transfer-source audit and generic original-event/runtime route audit completed; 19,198 literal values matched. These are source/data proofs.
+- RT-F383: original arena initializes with 25 computers, 100 mineral drops, 51 teams and 42 hides; [report](../../.tools/compatibility/reports/original-arena-probe.json). The initializer runs no physics/poll/socket-begin calls.
+- RT-F385: derived VehicleMaker field18 parser fix preserves exactly eight canonical bounty values; every other parsed property remains unchanged.
+- RT-F392/F394: full-asset bounded host accepts canonical 89 BLOs plus authentic shared Soccer, initializes one original arena and binds 127.0.0.1:21337/:21338. [Readiness](../../.tools/compatibility/local-working/session-host/reports/ready.json) and [controlled exit](../../.tools/compatibility/local-working/session-host/reports/exit.json): 120.17 seconds, exit 0, max clients 0, original hashes unchanged, no synthetic player inputs.
+
+These do not satisfy native entry, gameplay, authority, persistence or final engine selection. The native client reached Welcome FreeInfantry; Start gave no confirmed entry. Owned processes/private test namespace were cleaned: [cleanup](../../.tools/native-client-inspection/native-test-cleanup.json).
+
+## Active outstanding work
+
+- [ ] **Investigating — RT-F380/F384:** actual native engine channel, profile isolation and welcome/Start route. No desktop interaction while the user is playing; actual entry remains unverified.
+- [ ] **Investigating — RT-F387/F069:** native receiver delivery/cache casing/full unchanged LVL graphical trailer and runtime dependency eligibility. Offline zlib/hash proof is not receiver proof.
+- [ ] **Investigating — RT-F388/F389/F390/F393:** shop sell quantity/credit ordering, store proximity, full-arena null-script join and offline announcement; upstream cancellation/rearm shutdown also remains unresolved. Controlled bounded process exit bypasses the latter.
+- [ ] **Investigating — original runtime:** original evaluator, motion/combat/energy, resources/events/actors/ownership and progression. Existing generic handlers and initialized objects are not full behavior acceptance.
+- [ ] **Not started — persistence acceptance:** standalone mode currently has no durable progression.
+- [ ] **Not started — master M2/M3 acceptance:** real original mine/collect/sell/upgrade/fight/save loop, then independent clients and authoritative validation through the selected engine. Reserved protocol/AI/persistence modules remain separate.
+
+The emulator player-update path accepts client motion; do not describe it as validated final server-authoritative physics. Preserve every canonical source byte/name/value. Reconcile only specifically verified features to the master/catalog; 394 IDs/15 scoped completions do not establish full reproduction.

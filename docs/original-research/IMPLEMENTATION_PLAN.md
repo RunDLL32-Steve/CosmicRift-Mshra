@@ -1,43 +1,37 @@
-# Historical research implementation plan
+# Original research implementation plan
 
-Master: [ROGUE_TRADER_2_PLAN.md](../../ROGUE_TRADER_2_PLAN.md), §1.2,§2,§§5–10,§18 exact reproduction gate/M2–M3 and§22. Reconciled October13,2026. Status: [PROGRESS.md](../development-log/PROGRESS.md). Next steps: [HANDOFF.md](HANDOFF.md).
+Authority: [master §1.2, §2, §§5–10 and §18 fidelity/M2](../../ROGUE_TRADER_2_PLAN.md), [feature catalog](FEATURE_CATALOG.md), [master projection](FEATURE_MASTER_CHECKLIST.md) and [progress](../development-log/PROGRESS.md). Reconciled October 13, 2026. Current stage: **Investigating native runtime parity**. Detailed handoff: [HANDOFF.md](HANDOFF.md).
 
-Completed work leaves this active queue and remains in history. [FEATURE_CATALOG.md](FEATURE_CATALOG.md) has372 stable IDs with exact sources/raw values/classifications/acceptance/owners; [FEATURE_MASTER_CHECKLIST.md](FEATURE_MASTER_CHECKLIST.md) projects status into the master. Completed narrow import/display tools do not complete native gameplay.
+## Accomplished and evidence
 
-## Active work
+394 stable feature IDs are reconciled with15 scoped completions and379 open. Completed tasks are history, not the active queue:
 
-| Unfinished acceptance | Status | Master / feature reference |
+- Canonical provenance/raw index and compiled parser acceptance for CFG/200ITM/30VEH/12RPG/81LIO/1999×1998LVL; originals unchanged.
+- RT-F020/F070–F073: selected11 BLO indexing/decoding/export,231 sprites/36,516 frames,14 focused tests and source inspector/map overview with zero world ticks. [Importer plan](../../scripts/original-assets/IMPLEMENTATION_PLAN.md).
+- RT-F373/F374: updated standalone inspector packaging/input plus three rendered pages pass; native appearance remains separate. [Client plan](../../client/IMPLEMENTATION_PLAN.md).
+- RT-F375: all89 canonical archives/1,262 members/609 candidates inventoried, eight raw missing/unknown candidates; original99-file integrity verified. [Dependency plan](../../scripts/original-assets/DEPENDENCY_PLAN.md).
+- RT-F376: static native executable/package/channel inventory. Actual local entry remains unverified. [Native plan](../architecture/NATIVE_CLIENT_PLAN.md).
+- RT-F381/F385: bounded package audit19,198 values/twelve hull links/222 map links and eight-field derived-only parser correction. [Package audit](../architecture/ROGUE_PACKAGE_AUDIT_PLAN.md).
+- RT-F382/F383/F392/F394: generic runtime source audit, actual original-data arena initialization, bounded full-asset loopback host and authentic supplemental Soccer dependency. [Runtime plan](../architecture/ROGUE_RUNTIME_PLAN.md).
+
+The native test reached welcome only. Start produced no confirmed arena entry; owned client/backend/private test registry namespace were cleaned up. No full original gameplay acceptance is claimed.
+
+## Active outstanding queue
+
+| Open acceptance | Current status | Reference |
 |---|---|---|
-| [ ] Validate native movement, reverse/strafe/hyper, energy, damage and cargo scales | Investigation | §§5–8,F027–F041; [FIELD_INTERPRETATION.md](FIELD_INTERPRETATION.md) separates proven parser assignments from emulator/native hypotheses. |
-| [ ] Resolve negative projectile/backward sentinels and skill/event operators | Investigation | F028,F034,F036–F040,F067; preserve raw values, prove evaluator meaning. |
-| [ ] Reconcile bounty/economy/death/resale operational revision | Investigation | F043–F051; dated news and current emulator formulas differ. |
-| [ ] Resolve full member/child/audio/map dependency closure | Investigation | F021,F024,F069; selected11 BLO decoding complete, native LVL graphics/collision and full89-BLO closure still open. |
-| [ ] Validate native palette/HSV/shadow blits and bank choice | Investigation | F023,F074–F075; center-column/alpha display adapter remains reconstructed. |
-| [ ] Validate original help/menu dependencies and native default key mapping | Investigation | F026,F368–F372; five exact ancillary files located in corroborating archive, tokens are not literal keys. |
-| [ ] Review original gameplay footage using actual timestamped observations | Not started | §22F; only supplied Chaos Zone frame0:25 observed, not full video/RT economy. |
-| [ ] Verify original persistence/save policy | Not started | F068,§14; canonical data does not establish historical backend ordering. |
-| [ ] Maintain component-specific reuse/provenance evidence | Investigation | §1.2/§16; separate original media, emulator and tool notices. |
-| [ ] Reconcile updated export verification after importer/client integration | Testing pending root | Current source inspector QA is complete; source acceptance does not prove updated exported artifact. |
+| [ ] Native channel/profile/Start/connection/hull selection/unspectating | Investigating; desktop stopped until user available | RT-F380/F384, native plan |
+| [ ] Actual unchanged asset delivery/full LVL graphics and runtime dependency eligibility | Investigating | RT-F069/F021/F387; original graphical trailer stays intact |
+| [ ] Portal/logo/numeric Ball and item66 references | Investigating | RT-F377–F379/F386; no invented substitutions |
+| [ ] Native movement, reverse/strafe/hyper, energy, cargo, weapon scales/sentinels and event/skill grammar | Investigating | F027–F041/F067; [FIELD_INTERPRETATION.md](FIELD_INTERPRETATION.md) |
+| [ ] Native palette/HSV/shadow/blit/bank/timing/HUD/audio and original help binding/menu behavior | Investigating | F023–F026/F074/F075/F368–F372 |
+| [ ] Original mineral/refinery/trade/repair/upgrade/death/reward execution | Not started for exact native acceptance | F013–F019/F042–F051; dated source/emulator revisions remain distinct |
+| [ ] Shop quantity/credit ordering, proximity and full-arena null-script guards | Investigating | F388–F390; focused regression required |
+| [ ] Durable original progression and production shutdown | Not started | F068/M2; standalone has no saves, bounded exit is not upstream shutdown fix |
+| [ ] Additional timestamped video/RT UI comparison and release provenance | Not started / Investigating | [VIDEO_REFERENCE.md](VIDEO_REFERENCE.md), [MECHANICS.md](MECHANICS.md); only0:25 frame observed |
 
-Research runs no gameplay simulations. Use source/parser/hash/image checks; behavior simulation follows implementation of the specific feature requiring it.
+## Domain ownership
 
-## Scoped active queues
+The [six canonical queues](../../data/original/IMPLEMENTATION_PLAN.md) cover [ships](../../data/original/ships/IMPLEMENTATION_PLAN.md), [weapons](../../data/original/weapons/IMPLEMENTATION_PLAN.md), [equipment](../../data/original/equipment/IMPLEMENTATION_PLAN.md), [resources](../../data/original/resources/IMPLEMENTATION_PLAN.md), [sectors](../../data/original/sectors/IMPLEMENTATION_PLAN.md) and [actors](../../data/original/actors/IMPLEMENTATION_PLAN.md). Every original per-record gameplay checkbox remains open; parser/importer/initializer success is narrower evidence.
 
-Every original record has its own feature ID, open acceptance and current runtime status. Keep source types/categories unchanged; verified Done entries leave active tables and retain ID/source/evidence in completion history. Catalog/master retain checked audit entries.
-
-- [Ships/hull exchanges](../../data/original/ships/IMPLEMENTATION_PLAN.md):12 hulls plus12 exchange records.
-- [Weapons/child effects/ammunition](../../data/original/weapons/IMPLEMENTATION_PLAN.md):125 records.
-- [Equipment/utilities/internal effects](../../data/original/equipment/IMPLEMENTATION_PLAN.md):52 records; not all are upgrades.
-- [Resources/credit effects](../../data/original/resources/IMPLEMENTATION_PLAN.md):seven materials plusfour distinct helpers.
-- [Original sector/level objects](../../data/original/sectors/IMPLEMENTATION_PLAN.md):81LIO records, separate overview/native map/grid acceptance and ancillary help dependencies.
-- [Computer actors/spectator](../../data/original/actors/IMPLEMENTATION_PLAN.md):17computer records plus nonplayable Spectator.
-
-## Completion history
-
-Research documentation complete: startup/master inspection; historical/COMMUNITY [MECHANICS.md](MECHANICS.md); [provisional ledger](../balance/PROVISIONAL_VALUES.md); [InfantryOnline](INFANTRYONLINE.md)/[canonical archive](COSMIC_RIFT_ASSETS.md) audits; [SOURCE_MANIFEST.json](SOURCE_MANIFEST.json)/[ASSET_MANIFEST.json](ASSET_MANIFEST.json); [video reference](VIDEO_REFERENCE.md)/exact map; full raw original-content index and pristine compiled-parser acceptance; [field contracts](FIELD_INTERPRETATION.md);372-entry catalog/projection; six record-specific queues.
-
-Narrow implemented tooling F070–F072 complete: selected11 BLO indexing/CFSv4 decode,231objects/36,516frames and supported export/staging,14focused tests,13source hashes unchanged. [Importer plan](../../scripts/original-assets/IMPLEMENTATION_PLAN.md) records scope; native original blits/banks/dependency closure remain open.
-
-Narrow source-client display F020/F073 complete:231textures validated, all12hulls/64directions/11columns, canonical overview1999×1998. Root inspected ships/map/sprites captures; each of the three pages recorded simulationTicks0. Evidence:`artifacts/qa/original-{ships,map,sprites}.log/png`; source build0warnings/errors. Updated exported-client verification is separate and pending root. These display checks do not complete hull physics, loadouts, native bank/blit/HUD or world collisions.
-
-M0/M1 provisional engineering acceptance remains complete under the master. Major implemented features belong in [CHANGELOG.md](../../CHANGELOG.md) and dated development evidence. Update catalog, local plan, log and master together; discovery/partial implementation never completes a broader feature.
+No new research, code or acceptance runs occurred in this documentation reconciliation. Keep unchanged original names/categories/values, update stages with the master, and move completed tasks to history/[CHANGELOG.md](../../CHANGELOG.md). Focused parser/hash/image/build checks cover data; simulation only follows completed gameplay behavior needing it.
