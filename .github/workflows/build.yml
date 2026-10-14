@@ -1,0 +1,38 @@
+name: Build and validate First Contact
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache portable tools and packages
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: windows-first-contact-${{ hashFiles('toolchain.lock.json', '**/*.csproj') }}
+      - name: Install verified portable tools
+        shell: pwsh
+        run: ./scripts/bootstrap.ps1 -IncludeExportTemplates
+      - name: Build, test and smoke-test Godot
+        shell: pwsh
+        run: ./scripts/verify.ps1
+      - name: Export and smoke-test Windows package
+        shell: pwsh
+        run: ./scripts/export-windows.ps1
+      - name: Upload Windows build and test evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: FirstContact-0.1.0-windows-x64
+          path: |
+            artifacts/windows/FirstContact-0.1.0-win-x64.zip
+            artifacts/test-results/*.trx
+          if-no-files-found: error

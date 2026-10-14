@@ -1,0 +1,26 @@
+; Rogue Trader 2.0 First Contact: original development prototype.
+config_version=5
+
+[application]
+config/name="Rogue Trader 2.0 - First Contact"
+run/main_scene="res://Scenes/Main.tscn"
+config/features=PackedStringArray("4.5", "C#", "GL Compatibility")
+config/icon="res://Assets/icon.svg"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+
+[dotnet]
+project/assembly_name="RogueTrader.Client"
+
+[physics]
+common/physics_ticks_per_second=60
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.017, 0.028, 0.05, 1)

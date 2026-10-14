@@ -1,0 +1,1117 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-12",
+  "foundation": true,
+  "canonicalSource": {
+    "repository": "fowlmouth/cosmic-rift-assets",
+    "url": "https://github.com/fowlmouth/cosmic-rift-assets",
+    "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+    "userDesignatesCorrectOriginalAssets": true,
+    "originalDataAuthoritative": true
+  },
+  "policy": {
+    "preserveOriginalBytes": true,
+    "alterOriginalFiles": false,
+    "normalizationForHashing": false,
+    "derivedConversionsStoredSeparately": true,
+    "retainOriginalNamesAndProvenance": true,
+    "targetRevisionSelected": "User-designated canonical source snapshot; original data authoritative. Engine units/sentinel/evaluator validation remains pending.",
+    "distributionRights": "Applicable exact-file notices/rights remain to be recorded; no blanket license identified"
+  },
+  "mapReference": {
+    "userSuppliedUrl": "https://media.githubusercontent.com/media/fowlmouth/cosmic-rift-assets/refs/heads/main/LVL-BMP/Rogue.bmp",
+    "pinnedPayloadUrl": "https://media.githubusercontent.com/media/fowlmouth/cosmic-rift-assets/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/LVL-BMP/Rogue.bmp",
+    "originalPath": "LVL-BMP/Rogue.bmp",
+    "role": "User-designated Rogue Trader map view; display preview separate from LVL/LIO gameplay physics"
+  },
+  "minimumBlobCandidates": [
+    "BLO/backgroundsprites.blo",
+    "BLO/ball.blo",
+    "BLO/creffects.blo",
+    "BLO/cruiart.blo",
+    "BLO/crwav.blo",
+    "BLO/debris.blo",
+    "BLO/defstructures.blo",
+    "BLO/Ebombs.blo",
+    "BLO/Effects.blo",
+    "BLO/ExplosionEffects.blo",
+    "BLO/gravity.blo",
+    "BLO/GraziShipsSmall.blo",
+    "BLO/GraziWeapons.blo",
+    "BLO/king.blo",
+    "BLO/planets.blo",
+    "BLO/Plasma.blo",
+    "BLO/Resources.blo",
+    "BLO/sfambient.blo",
+    "BLO/shipselect.blo",
+    "BLO/ShipSelectMov.blo",
+    "BLO/SkithzarShipsSmall.blo",
+    "BLO/SkithzarWeapons.blo",
+    "BLO/SpaceMold.blo",
+    "BLO/spacestations.blo",
+    "BLO/TerranShipsSmall.blo",
+    "BLO/terranweapons.blo",
+    "BLO/uiwav.blo",
+    "BLO/UtilityEffects.blo",
+    "BLO/UtilitySounds.blo",
+    "BLO/weaponeffects.blo",
+    "BLO/Weapons.blo",
+    "BLO/WeaponSounds.blo",
+    "BLO/weaponsounds2.blo"
+  ],
+  "dependencyValidation": "Case-insensitive stem scan over canonical RT text only; exact record-ID dependency decoder pending",
+  "assets": [
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": ".gitattributes",
+      "type": "gitattributes",
+      "gitBlobSha1": "e05a853c05fa66bc54d5023f8e12fc8284b0d39d",
+      "originalSha256": "bbd2e37eec7d7f104dd059f70d4ec0b03f0645e53bbc4ec55be804561205a91a",
+      "originalSizeBytes": 126,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "RPG/Rogue.rpg",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/.gitattributes",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/backgroundsprites.blo",
+      "type": "blo",
+      "gitBlobSha1": "9e59fe6fa2b707fb66b6fe6e311edcee0a028da0",
+      "originalSha256": "0b09c717c6f4726da1387ed46eb94f0d0468c748755e261dbd3348b728552b1e",
+      "originalSizeBytes": 68667,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "0b09c717c6f4726da1387ed46eb94f0d0468c748755e261dbd3348b728552b1e",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "LIO/Rogue.lio"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/backgroundsprites.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/ball.blo",
+      "type": "blo",
+      "gitBlobSha1": "ee3c0ce3c175d6472cc15e5d1c81f237ce5db64f",
+      "originalSha256": "b2a3bb759afb8aa4bdb39d61876246c1c9280458f4bef0085a2431baca319b58",
+      "originalSizeBytes": 6360,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "b2a3bb759afb8aa4bdb39d61876246c1c9280458f4bef0085a2431baca319b58",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/ball.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/creffects.blo",
+      "type": "blo",
+      "gitBlobSha1": "549963d80e74eb446b381102cd8bd69c1c428a09",
+      "originalSha256": "e1d58584c763115b72680888c76067011fcaed287d954c925a9e8a10b8365ce1",
+      "originalSizeBytes": 25275,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "e1d58584c763115b72680888c76067011fcaed287d954c925a9e8a10b8365ce1",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/creffects.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/cruiart.blo",
+      "type": "blo",
+      "gitBlobSha1": "15e4b59df2d310bcee0666cf3ccad1254d211fad",
+      "originalSha256": "eaefbbbbc065a38811ae1431b734099dce414f9e69a18dbd8d5063a75cf4179e",
+      "originalSizeBytes": 686200,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "eaefbbbbc065a38811ae1431b734099dce414f9e69a18dbd8d5063a75cf4179e",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/cruiart.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/cruiart.blo",
+        "gitBlobSha1": "97b949a0d34c2d6efc2a13412aad99f3bd6f5d1e"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/crwav.blo",
+      "type": "blo",
+      "gitBlobSha1": "d450ae97d0ed3ca9690efa223c8bdaa976b4f38f",
+      "originalSha256": "ce17fb0221cb1ee4d8027c5b0b0dae339a53ba8dd5db25fd788f4d79796e5b50",
+      "originalSizeBytes": 141857,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "ce17fb0221cb1ee4d8027c5b0b0dae339a53ba8dd5db25fd788f4d79796e5b50",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/crwav.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/debris.blo",
+      "type": "blo",
+      "gitBlobSha1": "aca1033641c5ed2d895d6355e01689859df99e03",
+      "originalSha256": "92e9850bde6028428e28372ea5db4bbf0f11aab96c6aab450f744c88d4c0ee59",
+      "originalSizeBytes": 34417,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "92e9850bde6028428e28372ea5db4bbf0f11aab96c6aab450f744c88d4c0ee59",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "NWS/Rogue.nws"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/debris.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/defstructures.blo",
+      "type": "blo",
+      "gitBlobSha1": "bc3a2437bc6271153a57e6197abe38751839625d",
+      "originalSha256": "fa21858474d160edfba905b900cccfa1273200539a8f34befb48d6f95879fcda",
+      "originalSizeBytes": 327507,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "fa21858474d160edfba905b900cccfa1273200539a8f34befb48d6f95879fcda",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/defstructures.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/Ebombs.blo",
+      "type": "blo",
+      "gitBlobSha1": "f22996292401b91e60c4a8e914c074a880d4ac9a",
+      "originalSha256": "3c933241bbe9fc3cee6b9404e7ca66347c8066797d63466783fd68295514db7f",
+      "originalSizeBytes": 201754,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "3c933241bbe9fc3cee6b9404e7ca66347c8066797d63466783fd68295514db7f",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/Ebombs.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/Ebombs.blo",
+        "gitBlobSha1": "fbfe97d84d617ef65a4d3fe79b3e2f801017d123"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/Effects.blo",
+      "type": "blo",
+      "gitBlobSha1": "0eb54624ea3710d0bf4e2a1966bc10011cf478d8",
+      "originalSha256": "10de72ad6ab90059f746adef0018b55a251641018b46ca631ce6e365475dbbdc",
+      "originalSizeBytes": 817140,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "10de72ad6ab90059f746adef0018b55a251641018b46ca631ce6e365475dbbdc",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/Effects.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/ExplosionEffects.blo",
+      "type": "blo",
+      "gitBlobSha1": "61b563179bf220b314de162eb2ed4261c34ce027",
+      "originalSha256": "5b058ce474b803ae530c4eb32f14cbf77bff31d1929305894a1703d70fc01aa3",
+      "originalSizeBytes": 1009288,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "5b058ce474b803ae530c4eb32f14cbf77bff31d1929305894a1703d70fc01aa3",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/ExplosionEffects.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/gravity.blo",
+      "type": "blo",
+      "gitBlobSha1": "a3dc9cf5e197319ec0729281d9a9617a96a2a06f",
+      "originalSha256": "d672d65e6b8ea3399773f013d78df350c99785cf3f4691a244bf2ba5d73c9f27",
+      "originalSizeBytes": 564675,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "d672d65e6b8ea3399773f013d78df350c99785cf3f4691a244bf2ba5d73c9f27",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/gravity.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/GraziShipsSmall.blo",
+      "type": "blo",
+      "gitBlobSha1": "f4865bb8f6383864aaaf9fd5366ec8e01e2ac16a",
+      "originalSha256": "ac7ea2cb9c4792a8c9abd776be242bef951dacacc96d940fbf5213c618975e2c",
+      "originalSizeBytes": 2801536,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "ac7ea2cb9c4792a8c9abd776be242bef951dacacc96d940fbf5213c618975e2c",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/GraziShipsSmall.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/GraziWeapons.blo",
+      "type": "blo",
+      "gitBlobSha1": "f3acead4e1b42025f96c9a6de65841016b701451",
+      "originalSha256": "562f26484c6f7efc2a671dd1daaf81d01d1a2d04165689b3a3446928bd915b0d",
+      "originalSizeBytes": 92596,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "562f26484c6f7efc2a671dd1daaf81d01d1a2d04165689b3a3446928bd915b0d",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/GraziWeapons.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/king.blo",
+      "type": "blo",
+      "gitBlobSha1": "719bbd1a08ef13b5a28aad0e1f0be4f310b331d3",
+      "originalSha256": "eff7fd64408e816f0c96986209b9d2545e687048128fee2a7654bcee08f83691",
+      "originalSizeBytes": 2852,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "eff7fd64408e816f0c96986209b9d2545e687048128fee2a7654bcee08f83691",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/king.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/planets.blo",
+      "type": "blo",
+      "gitBlobSha1": "9e950de58eb69da37f64809b1d53353915c10f31",
+      "originalSha256": "b342654018a2bd0b2310d4592580fca9c44881b69d75f24da29ebf28e283bc9b",
+      "originalSizeBytes": 29714,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "b342654018a2bd0b2310d4592580fca9c44881b69d75f24da29ebf28e283bc9b",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "LIO/Rogue.lio"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/planets.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/Plasma.blo",
+      "type": "blo",
+      "gitBlobSha1": "5714800654e53bf0de06bf8f1ed1fc245e7daccb",
+      "originalSha256": "71e609db24201848afa8f2a53a6fc00488f358ab3f93c630b3c5f7be40dfc139",
+      "originalSizeBytes": 620598,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "71e609db24201848afa8f2a53a6fc00488f358ab3f93c630b3c5f7be40dfc139",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/Plasma.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/Resources.blo",
+      "type": "blo",
+      "gitBlobSha1": "94b855729355c02366496a301cc998b962a38857",
+      "originalSha256": "fa8029527543c0335a965ba16ad4a293913a4f21e03a1db57c37d56c3bdd18e9",
+      "originalSizeBytes": 153519,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "fa8029527543c0335a965ba16ad4a293913a4f21e03a1db57c37d56c3bdd18e9",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/Resources.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/Resources.blo",
+        "gitBlobSha1": "5fcbb377da70dca5d618d207ebd64b2c8bc034ba"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/rogueships.blo",
+      "type": "blo",
+      "gitBlobSha1": "a0f06c15f1eba2cda3bb3ffc85613135ca25e8cd",
+      "originalSha256": "9dae17f9e2e989992579f3048081a03311509424b5a4e7273fb639d53a76c6be",
+      "originalSizeBytes": 3974968,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "9dae17f9e2e989992579f3048081a03311509424b5a4e7273fb639d53a76c6be",
+      "referenceKind": "alternative_archive_candidate",
+      "referencedBy": [],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/rogueships.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/rogueships.blo",
+        "gitBlobSha1": "813e7b2534938d0def87833339b578619ad20966"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/rogueweapons.blo",
+      "type": "blo",
+      "gitBlobSha1": "efb6edd925f6f2fe48879420888423777c313e13",
+      "originalSha256": "b84037b07cf40d9ae1a30dd11ab195423ca6845811a36bcb2cecee34bdb29fd7",
+      "originalSizeBytes": 877991,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "b84037b07cf40d9ae1a30dd11ab195423ca6845811a36bcb2cecee34bdb29fd7",
+      "referenceKind": "alternative_archive_candidate",
+      "referencedBy": [],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/rogueweapons.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/RogueWeapons.blo",
+        "gitBlobSha1": "afe18a7fb74c32c3226142364c6ad0e9126a7100"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/sfambient.blo",
+      "type": "blo",
+      "gitBlobSha1": "2134457cb1ae3049295e4dccec6e94626d53f9c9",
+      "originalSha256": "80b408e50da883a25a26f1c2d03354f43e54d8c27cf118621527cd1b6bc69db8",
+      "originalSizeBytes": 784806,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "80b408e50da883a25a26f1c2d03354f43e54d8c27cf118621527cd1b6bc69db8",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "LIO/Rogue.lio"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/sfambient.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/shipselect.blo",
+      "type": "blo",
+      "gitBlobSha1": "f1025acabf6855c341c3db2c1d7d1cddc362036c",
+      "originalSha256": "c87fe93f4d2b19b7702eef693cfc3dec128559d7ccfbcddda7530ba9cde0d058",
+      "originalSizeBytes": 166478,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "c87fe93f4d2b19b7702eef693cfc3dec128559d7ccfbcddda7530ba9cde0d058",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/shipselect.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/ShipSelectMov.blo",
+      "type": "blo",
+      "gitBlobSha1": "0d4f72b25a0494f35052e1b5ffe75f7420e21a6a",
+      "originalSha256": "77e5eab74377c5f88963e9d66a767be0f4284a2dcba789a8c8b7520ead5f4cd8",
+      "originalSizeBytes": 2239162,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "77e5eab74377c5f88963e9d66a767be0f4284a2dcba789a8c8b7520ead5f4cd8",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "RPG/Rogue.rpg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/ShipSelectMov.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/ShipSelectMov.blo",
+        "gitBlobSha1": "77b9d5e56bdd69a6941e65153406e46011817070"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/SkithzarShipsSmall.blo",
+      "type": "blo",
+      "gitBlobSha1": "679a934f59c3790c9aae3390a7d83bda27ca5d33",
+      "originalSha256": "a4804ccc0c5cdd6271bfe2b7f06e07221a6b6ddeec42f02b7b21e53d102af6ea",
+      "originalSizeBytes": 2682965,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "a4804ccc0c5cdd6271bfe2b7f06e07221a6b6ddeec42f02b7b21e53d102af6ea",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/SkithzarShipsSmall.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/SkithzarWeapons.blo",
+      "type": "blo",
+      "gitBlobSha1": "9c9a817f744c608c0a8019e7fe9d33c74e513a5d",
+      "originalSha256": "26afc35ddd6daf022cdfb974fb471820c62a9579b03ff168fbca2dc05551b0f9",
+      "originalSizeBytes": 19046,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "26afc35ddd6daf022cdfb974fb471820c62a9579b03ff168fbca2dc05551b0f9",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/SkithzarWeapons.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/SpaceMold.blo",
+      "type": "blo",
+      "gitBlobSha1": "b2ede7df37ab16e053f5dc57585025115eea70db",
+      "originalSha256": "2604ef4498f2982e0f66741454c904aa19a0627e5cf02776b7cd115117a0ce8c",
+      "originalSizeBytes": 361317,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "2604ef4498f2982e0f66741454c904aa19a0627e5cf02776b7cd115117a0ce8c",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/SpaceMold.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/spacestations.blo",
+      "type": "blo",
+      "gitBlobSha1": "d6d9c88f275f5ec8b27d5af3b147bd855bc5feec",
+      "originalSha256": "61a4bbb63122a96e8a996f99d3402183ab664c2338b646ff66730d90f2c55fdc",
+      "originalSizeBytes": 8050954,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "61a4bbb63122a96e8a996f99d3402183ab664c2338b646ff66730d90f2c55fdc",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/spacestations.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/spacestations.blo",
+        "gitBlobSha1": "31cca6c20674d0be6a6cf52b2c0dc14b63d3ada2"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/TerranShipsSmall.blo",
+      "type": "blo",
+      "gitBlobSha1": "6227778cdfc87fb49551f5c1501ce9500d493d09",
+      "originalSha256": "7e75eb5601803ede617a834b000a7e4b43945a4b3d36ae1de7eb4495f901467b",
+      "originalSizeBytes": 2602622,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "7e75eb5601803ede617a834b000a7e4b43945a4b3d36ae1de7eb4495f901467b",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/TerranShipsSmall.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/terranweapons.blo",
+      "type": "blo",
+      "gitBlobSha1": "42e0bf8c748568611a76da2bd7da41e2738a32fd",
+      "originalSha256": "7a9c279cafad1fad0f9aa7db7d5376e9a8f4c3efdb5283bd076d4c5c2c306674",
+      "originalSizeBytes": 147356,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "7a9c279cafad1fad0f9aa7db7d5376e9a8f4c3efdb5283bd076d4c5c2c306674",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/terranweapons.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/terranweapons.blo",
+        "gitBlobSha1": "9dee2d9434e5d57c22837721848b506726bfe028"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/uiwav.blo",
+      "type": "blo",
+      "gitBlobSha1": "63140a2d079b57ecb42c219ca6bbbebd707691d7",
+      "originalSha256": "2bf8e9dec1b5838f51cd6ed8c4a6a5278d2ccd8c5e1f702759767a02b51b2bf0",
+      "originalSizeBytes": 131242,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "2bf8e9dec1b5838f51cd6ed8c4a6a5278d2ccd8c5e1f702759767a02b51b2bf0",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/uiwav.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/UtilityEffects.blo",
+      "type": "blo",
+      "gitBlobSha1": "c401e8d2c6621198c8576590b03d02b89d2141ca",
+      "originalSha256": "4c4bb5bf96ccf09c4bcb1bb262ba85c99844d432b38a0ee9263832ba149cbcb2",
+      "originalSizeBytes": 260735,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "4c4bb5bf96ccf09c4bcb1bb262ba85c99844d432b38a0ee9263832ba149cbcb2",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/UtilityEffects.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/UtilitySounds.blo",
+      "type": "blo",
+      "gitBlobSha1": "0592efcda620bd9b837097ce6346ef98383a0eb1",
+      "originalSha256": "aa6c207bb871bd9180678bd57f0c37c0a00e17fb6671f46dc7a170ff97842880",
+      "originalSizeBytes": 1498404,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "aa6c207bb871bd9180678bd57f0c37c0a00e17fb6671f46dc7a170ff97842880",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/UtilitySounds.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/weaponeffects.blo",
+      "type": "blo",
+      "gitBlobSha1": "dbad10ad4831e492e97e911c3cd0f36021a7b25a",
+      "originalSha256": "94ba5e329cca0c7a5be2a865695ab15b4fb25eb59923c8f3fb17a53c0a290a0f",
+      "originalSizeBytes": 1164488,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "94ba5e329cca0c7a5be2a865695ab15b4fb25eb59923c8f3fb17a53c0a290a0f",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/weaponeffects.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/weaponeffects.blo",
+        "gitBlobSha1": "99fb7fd2b3d6bdfd8fa4aa95064a4d74bf152fbd"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/Weapons.blo",
+      "type": "blo",
+      "gitBlobSha1": "d0a1b7c0e01c00a9e238188db200255f9f4a5664",
+      "originalSha256": "b6579958489eb229d8eff924541831371e44ee4ef3ca1baa7bb15961e9983e57",
+      "originalSizeBytes": 1463868,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "b6579958489eb229d8eff924541831371e44ee4ef3ca1baa7bb15961e9983e57",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "NWS/Rogue.nws"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/Weapons.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/WeaponSounds.blo",
+      "type": "blo",
+      "gitBlobSha1": "792cf76c60e3f4661c8fa81a5b44116e6fa2d141",
+      "originalSha256": "4d17e15e6c9ac1b1303408d76feb70670b672015d376a74184316f6628d8f11f",
+      "originalSizeBytes": 1908242,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "4d17e15e6c9ac1b1303408d76feb70670b672015d376a74184316f6628d8f11f",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/WeaponSounds.blo",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Orphaned Archive Files/blo/WeaponSounds.blo",
+        "gitBlobSha1": "af0524080a3f41900eccddce6a2e682b8a7ebbf4"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/weaponsounds2.blo",
+      "type": "blo",
+      "gitBlobSha1": "86c3ec68b1b9d221e1c704b37a5c27f757f44cd4",
+      "originalSha256": "1846756d744dde4a219d202a36db92554e615d05c71a50e40d3f39a974bed8e2",
+      "originalSizeBytes": 134824,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "1846756d744dde4a219d202a36db92554e615d05c71a50e40d3f39a974bed8e2",
+      "referenceKind": "candidate_dependency_stem_match",
+      "referencedBy": [
+        "ITM/Rogue_mp.itm"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/weaponsounds2.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "CFG/rogue.cfg",
+      "type": "cfg",
+      "gitBlobSha1": "45cea7c254fe6a54902ffdb2898343137c04e250",
+      "originalSha256": "82a9e40ef4fbe5787ae34953b93e02236f5a9d927ef0f09e0c3699be9cddbf90",
+      "originalSizeBytes": 48399,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/CFG/rogue.cfg",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/rogue.cfg",
+        "gitBlobSha1": "87934fc32ff5f604de26983f356528c50417bb7c"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "ITM/Rogue_mp.itm",
+      "type": "itm",
+      "gitBlobSha1": "8feee81849f900669c6f1ff1e3b7f6b3fd97c4e8",
+      "originalSha256": "dd85dea54055108ec7c2996716c430a49c815baa937d36bc2a0a9b09b68334c7",
+      "originalSizeBytes": 111614,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/ITM/Rogue_mp.itm",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue_mp.itm",
+        "gitBlobSha1": "a8d3dd3757b725ac6e68b1413388dadbce9e03a4"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "ITM/Rogue.itm",
+      "type": "itm",
+      "gitBlobSha1": "03094650d7e6a3ed79ca7237abb0fdc6d0c3e42f",
+      "originalSha256": "142303a807da08e466d883da379d314c1223009c52ca3a0ee15e8b50cd300b05",
+      "originalSizeBytes": 111181,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "alternative_archive_candidate",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/ITM/Rogue.itm",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "LIO/Rogue.lio",
+      "type": "lio",
+      "gitBlobSha1": "9aa7df21e317fd2e584e435509c755df1b545a45",
+      "originalSha256": "73d008c5168efa46f73eaccdd78c461a121d6ae281b6d2a5e95a73e43bec2f6a",
+      "originalSizeBytes": 9782,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/LIO/Rogue.lio",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lio",
+        "gitBlobSha1": "95bcbdc4acd0ba336003bc9773faa0d65c91667d"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "LVL-BMP/Rogue.bmp",
+      "type": "bmp",
+      "gitBlobSha1": "ce507b5426a7ad2e9bbc9e154529067b9edea7ac",
+      "originalSha256": "605488d681fec3069d4b26863669072df2a44fd08d055f640cfcde9607ad2722",
+      "originalSizeBytes": 11988054,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "605488d681fec3069d4b26863669072df2a44fd08d055f640cfcde9607ad2722",
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/LVL-BMP/Rogue.bmp",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "LVL/Rogue.lvl",
+      "type": "lvl",
+      "gitBlobSha1": "5ce7c45bf9625a7ceed629ee41f05e5e1c31872b",
+      "originalSha256": "7034476858b86e9b11a41eaaa0d636003eb432a4b682e45d264def8b425cf02f",
+      "originalSizeBytes": 1290994,
+      "hashMeaning": "Git LFS payload OID; byte hash comparison verified separately where recorded",
+      "gitLfs": true,
+      "gitLfsOidSha256": "7034476858b86e9b11a41eaaa0d636003eb432a4b682e45d264def8b425cf02f",
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/LVL/Rogue.lvl",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lvl",
+        "gitBlobSha1": "f051d8d760e13f390ea9baf2da0cc00abb149cdc"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "NWS/Rogue.nws",
+      "type": "nws",
+      "gitBlobSha1": "9eefd66433330cd59460d6db559ff507430a29f3",
+      "originalSha256": "7fff837b85d52a78b93d50b5b8721d6e567b72b5989c5a96f4212add90aaa895",
+      "originalSizeBytes": 18753,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/NWS/Rogue.nws",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.nws",
+        "gitBlobSha1": "218e260c30d2280c8160d859c7e39a519e082a6d"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "RPG/Rogue.rpg",
+      "type": "rpg",
+      "gitBlobSha1": "eab3d32816b80a03831f5811a0ceb07a2e9cd7c5",
+      "originalSha256": "44d5e6d3c78bfa445c723260086235017bd1973557103003aa8f3b71e30ae123",
+      "originalSizeBytes": 2329,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/RPG/Rogue.rpg",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.rpg",
+        "gitBlobSha1": "f753c870bb404e17573ba20f5ba62e5f2c965365"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "VEH/Rogue.veh",
+      "type": "veh",
+      "gitBlobSha1": "713cd2eb9d03b4836447efb56f53238d070aa863",
+      "originalSha256": "9eefa85a04587867616be786fffc664f3ebc0fb1d50ba6f6fd303a7a8a988572",
+      "originalSizeBytes": 41075,
+      "hashMeaning": "SHA-256 of raw repository response bytes; no newline normalization",
+      "gitLfs": false,
+      "gitLfsOidSha256": null,
+      "referenceKind": "canonical_rogue_package_or_source_metadata",
+      "referencedBy": [
+        "CFG/rogue.cfg",
+        "ITM/Rogue_mp.itm",
+        "LIO/Rogue.lio",
+        "NWS/Rogue.nws",
+        "VEH/Rogue.veh"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/VEH/Rogue.veh",
+      "corroboratingSource": {
+        "repository": "InfantryOnline/Zone-Assets",
+        "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+        "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.veh",
+        "gitBlobSha1": "ee0b2a94e6adc58d79b1c7261901ce58ba079115"
+      },
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    },
+    {
+      "repository": "fowlmouth/cosmic-rift-assets",
+      "commit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+      "originalPath": "BLO/O_Asteroids.blo",
+      "type": "blo",
+      "gitBlobSha1": "a027489fc99e92c3332fbefe341a19d04f5bad31",
+      "originalSha256": "1e8ed03ed06f8421c46c56a332c9ebf4ade7b7020f890e54ab54c690dc907d2a",
+      "originalSizeBytes": 660880,
+      "hashMeaning": "SHA-256 of canonical Git LFS payload bytes; no normalization",
+      "gitLfs": true,
+      "gitLfsOidSha256": "1e8ed03ed06f8421c46c56a332c9ebf4ade7b7020f890e54ab54c690dc907d2a",
+      "referenceKind": "level_tile_archive_candidate",
+      "referencedBy": [
+        "LVL/Rogue.lvl"
+      ],
+      "sourceUrl": "https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/BLO/O_Asteroids.blo",
+      "corroboratingSource": null,
+      "workingReferenceOnly": true,
+      "bundledWithPrototype": false
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-12",
+  "purpose": "Historical provenance inventory; original binary assets are not bundled.",
+  "files": [
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "Docs/Itm/Projectile.txt",
+      "gitBlobSha": "3ceef068498571341ab3bc1e594492e6e644ec70",
+      "sizeBytes": 9766,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/Docs/Itm/Projectile.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "Docs/Veh/Car.txt",
+      "gitBlobSha": "f8868a6d33502e9b590c8610e52c1a97fa9f7675",
+      "sizeBytes": 18096,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/Docs/Veh/Car.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "Docs/Veh/Shared.txt",
+      "gitBlobSha": "8821574742740f262bedeb66f92e8f25e1d738bb",
+      "sizeBytes": 6395,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/Docs/Veh/Shared.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "dotnetcore/Assets/Itm/ItmInfo.Projectile.cs",
+      "gitBlobSha": "0a67ce6ff5a5cc4b05119ecae02e97960160f867",
+      "sizeBytes": 17120,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/dotnetcore/Assets/Itm/ItmInfo.Projectile.cs",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "dotnetcore/Assets/Veh/VehInfo.Car.cs",
+      "gitBlobSha": "bf0e616804e5273c5cb6f4ff2e281893635bed5d",
+      "sizeBytes": 7483,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/dotnetcore/Assets/Veh/VehInfo.Car.cs",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "dotnetcore/Assets/Veh/VehInfo.cs",
+      "gitBlobSha": "2bc7b57c8c397b3dd70841f9bb7ce6561ec6f266",
+      "sizeBytes": 11306,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/dotnetcore/Assets/Veh/VehInfo.cs",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "Parsers/Properties/AssemblyInfo.cs",
+      "gitBlobSha": "59cc8ead5f0ce3c5abe28ee495d7899b3779f55f",
+      "sizeBytes": 1389,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/Parsers/Properties/AssemblyInfo.cs",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "Parsers/Vehicles/SpeedValues.cs",
+      "gitBlobSha": "71722ad59ad1904e08571859c3376baef2c1229e",
+      "sizeBytes": 2519,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/Parsers/Vehicles/SpeedValues.cs",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Server",
+      "commit": "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
+      "path": "README.md",
+      "gitBlobSha": "e6cd6803ab10c73ca3499dabdc6ef1b6a31ece3f",
+      "sizeBytes": 6489,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Server/blob/bb97579efeceff1c63d781d8c1bb8dd4a5b9b849/README.md",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Infantry-Online-Tools",
+      "commit": "93001c57845269e87b32a2bf042257c7ef61298c",
+      "path": "InfantryOnline.Tools/Tools.External/Gibbed/license.txt",
+      "gitBlobSha": "badac5d28072707fd1c17899609786b6fc50bf27",
+      "sizeBytes": 876,
+      "url": "https://github.com/InfantryOnline/Infantry-Online-Tools/blob/93001c57845269e87b32a2bf042257c7ef61298c/InfantryOnline.Tools/Tools.External/Gibbed/license.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/comms.txt",
+      "gitBlobSha": "66b8d4fc47ec43c8112f2e2ce08e7c6da3a9f7e4",
+      "sizeBytes": 1692,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/comms.txt",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/infcmdlst.txt",
+      "gitBlobSha": "d644a34e08d6a3238e03eceedd8a36d3409d4f7e",
+      "sizeBytes": 11315,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/infcmdlst.txt",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/keys.txt",
+      "gitBlobSha": "e8dc82bb2e4d11a6aa28d0b9ee68d5df3613d7ba",
+      "sizeBytes": 1942,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/keys.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/mods.txt",
+      "gitBlobSha": "95680c2f4eabc01dac6189b69fdda97ebf46fa7c",
+      "sizeBytes": 2942,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/mods.txt",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue_mp.itm",
+      "gitBlobSha": "a8d3dd3757b725ac6e68b1413388dadbce9e03a4",
+      "sizeBytes": 111414,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue_mp.itm",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/rogue.cfg",
+      "gitBlobSha": "87934fc32ff5f604de26983f356528c50417bb7c",
+      "sizeBytes": 45348,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/rogue.cfg",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lio",
+      "gitBlobSha": "95bcbdc4acd0ba336003bc9773faa0d65c91667d",
+      "sizeBytes": 9701,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue.lio",
+      "access": "text_equality_compared_no_object_decode",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lvl",
+      "gitBlobSha": "f051d8d760e13f390ea9baf2da0cc00abb149cdc",
+      "sizeBytes": 1290994,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue.lvl",
+      "access": "binary_hash_only_in_memory",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.nws",
+      "gitBlobSha": "218e260c30d2280c8160d859c7e39a519e082a6d",
+      "sizeBytes": 18271,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue.nws",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.rpg",
+      "gitBlobSha": "f753c870bb404e17573ba20f5ba62e5f2c965365",
+      "sizeBytes": 2317,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue.rpg",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.veh",
+      "gitBlobSha": "ee0b2a94e6adc58d79b1c7261901ce58ba079115",
+      "sizeBytes": 41045,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/Rogue.veh",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/rules.txt",
+      "gitBlobSha": "0c4c237be4b8ebc4cd4747194d5567792c11ff13",
+      "sizeBytes": 13509,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/rules.txt",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Incompatible Zone Archives/SilentClientCrash/rogue/standard.tip",
+      "gitBlobSha": "78956dded9f2850bf27953a59f543ddca6cc9ceb",
+      "sizeBytes": 1612,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Incompatible%20Zone%20Archives/SilentClientCrash/rogue/standard.tip",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/cruiart.blo",
+      "gitBlobSha": "97b949a0d34c2d6efc2a13412aad99f3bd6f5d1e",
+      "sizeBytes": 686200,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/cruiart.blo",
+      "access": "binary_hash_only_in_memory",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/Ebombs.blo",
+      "gitBlobSha": "fbfe97d84d617ef65a4d3fe79b3e2f801017d123",
+      "sizeBytes": 201754,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/Ebombs.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/GraziShips.blo",
+      "gitBlobSha": "1b5f4d1c5d917b58f489353076c6191c26be0db2",
+      "sizeBytes": 4168225,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/GraziShips.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/Resources.blo",
+      "gitBlobSha": "5fcbb377da70dca5d618d207ebd64b2c8bc034ba",
+      "sizeBytes": 153519,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/Resources.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/rogueships.blo",
+      "gitBlobSha": "813e7b2534938d0def87833339b578619ad20966",
+      "sizeBytes": 3974968,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/rogueships.blo",
+      "access": "binary_hash_only_in_memory",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/RogueWeapons.blo",
+      "gitBlobSha": "afe18a7fb74c32c3226142364c6ad0e9126a7100",
+      "sizeBytes": 877991,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/RogueWeapons.blo",
+      "access": "binary_hash_only_in_memory",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/ShipSelectMov.blo",
+      "gitBlobSha": "77b9d5e56bdd69a6941e65153406e46011817070",
+      "sizeBytes": 2239162,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/ShipSelectMov.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/SkithzarShips.blo",
+      "gitBlobSha": "377680a75b898ba1ca123c0e4bf1fa53b6f61353",
+      "sizeBytes": 3738784,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/SkithzarShips.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/spacestations.blo",
+      "gitBlobSha": "31cca6c20674d0be6a6cf52b2c0dc14b63d3ada2",
+      "sizeBytes": 8050954,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/spacestations.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/TerranShips.blo",
+      "gitBlobSha": "c42e7750d8e766469796cc60cb4160083294db9f",
+      "sizeBytes": 3665495,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/TerranShips.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/terranweapons.blo",
+      "gitBlobSha": "9dee2d9434e5d57c22837721848b506726bfe028",
+      "sizeBytes": 147356,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/terranweapons.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/weaponeffects.blo",
+      "gitBlobSha": "99fb7fd2b3d6bdfd8fa4aa95064a4d74bf152fbd",
+      "sizeBytes": 1164488,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/weaponeffects.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/blo/WeaponSounds.blo",
+      "gitBlobSha": "af0524080a3f41900eccddce6a2e682b8a7ebbf4",
+      "sizeBytes": 1908242,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/blo/WeaponSounds.blo",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/lvb/roguetrader.lvb",
+      "gitBlobSha": "b327bf38211151dfa078d26d09b7db1f78f3812f",
+      "sizeBytes": 4071810,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/lvb/roguetrader.lvb",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "Orphaned Archive Files/lvl/roguetrader.lvl",
+      "gitBlobSha": "dda466f58bb9597f227ba614cebf59092c8dd3f3",
+      "sizeBytes": 1298731,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/Orphaned%20Archive%20Files/lvl/roguetrader.lvl",
+      "access": "tree_metadata_only",
+      "importedIntoGame": false
+    },
+    {
+      "repository": "InfantryOnline/Zone-Assets",
+      "commit": "401633b9b6829d9e5ae56b76a2563b1b95bbe4b9",
+      "path": "README.md",
+      "gitBlobSha": "cb001845ed2f2864315b7346c900870ed20f217e",
+      "sizeBytes": 11041,
+      "url": "https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/README.md",
+      "access": "text_inspected",
+      "importedIntoGame": false
+    }
+  ]
+}

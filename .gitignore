@@ -1,0 +1,14 @@
+.tools/
+artifacts/
+**/bin/
+**/obj/
+**/.godot/
+client/GameData/
+*.user
+*.suo
+.vs/
+.DS_Store
+
+client/OriginalContent/
+
+**/__pycache__/

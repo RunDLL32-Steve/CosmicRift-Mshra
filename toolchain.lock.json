@@ -1,0 +1,20 @@
+{
+  "godotVersion": "4.5.1",
+  "dotnetSdkVersion": "8.0.419",
+  "targetFramework": "net8.0",
+  "godot": {
+    "url": "https://github.com/godotengine/godot-builds/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_win64.zip",
+    "file": "Godot_v4.5.1-stable_mono_win64.zip",
+    "sha256": "8ce2346c05c8a9674ab267b4a0a7e2764a6e47da730713aa932c2a6db774a239"
+  },
+  "templates": {
+    "url": "https://github.com/godotengine/godot-builds/releases/download/4.5.1-stable/Godot_v4.5.1-stable_mono_export_templates.tpz",
+    "file": "Godot_v4.5.1-stable_mono_export_templates.tpz",
+    "sha256": "c425633061bb49f4390bdcece2b9ce68b3b0be3c71095b40644d8f6f17b1146e"
+  },
+  "dotnet": {
+    "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.419/dotnet-sdk-8.0.419-win-x64.zip",
+    "file": "dotnet-sdk-8.0.419-win-x64.zip",
+    "sha512": "cb83ccb60cf6a3d9dc3c5f3bf0270114628c5487505cda21a46fbdb45220fb1a04395c2e041f8025e711a89d6b526ca995e1a3e9a04e31a0a1e2a2a64276b5a8"
+  }
+}

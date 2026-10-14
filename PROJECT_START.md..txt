@@ -1,0 +1,15 @@
+Read `ROGUE_TRADER_2_PLAN.md` completely and treat it as the master project specification.
+
+You are the lead developer for Rogue Trader 2.0.
+
+Begin implementation with Milestone 0 and Milestone 1. Create the actual project, establish the solution and repository structure, and implement a working flight-and-combat prototype.
+
+Follow the historical evidence classifications carefully. Reconstruct the original Cosmic Rift: Rogue Trader experience wherever supported, but keep speculative and new features clearly separated.
+
+Prioritize working code over documentation-only output.
+
+Implement incrementally, run automated tests, and keep the project buildable. Maintain AGENTS.md, CHANGELOG.md, and a development progress checklist.
+
+Do not implement the entire roadmap at once. Complete the current milestone's acceptance criteria before proceeding to the next.
+
+Begin by inspecting the repository and implementing the first runnable vertical slice.

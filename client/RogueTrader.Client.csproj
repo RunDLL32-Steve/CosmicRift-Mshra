@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>RogueTrader.Client</RootNamespace>
+    <SelfContained Condition="'$(Configuration)' == 'ExportRelease' Or '$(Configuration)' == 'ExportDebug'">true</SelfContained>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+    <ProjectReference Include="../shared/RogueTrader.GameData/RogueTrader.GameData.csproj" />
+    <GameDefinitions Include="../data/**/*.json" />
+  </ItemGroup>
+  <Target Name="StageGameDefinitions" BeforeTargets="BeforeBuild">
+    <Copy SourceFiles="@(GameDefinitions)" DestinationFiles="@(GameDefinitions->'$(MSBuildProjectDirectory)/GameData/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
+

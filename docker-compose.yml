@@ -1,0 +1,3 @@
+# Deployment belongs to Milestone 3; no services are started by this skeleton.
+# Define a server/PostgreSQL profile only after flight/combat and persistence tests pass.
+services: {}

@@ -1,0 +1,25 @@
+{
+  "id": "first_contact",
+  "name": "First Contact",
+  "evidenceClassification": "NEW",
+  "playerSpawn": { "x": 0, "y": 0, "heading": -1.5707963267948966 },
+  "targets": [
+    { "id": "target_alpha", "x": 0, "y": -280, "radius": 20, "hull": 100, "shield": 40, "heading": 1.5707963267948966 },
+    { "id": "target_beta", "x": 340, "y": -440, "radius": 20, "hull": 100, "shield": 40, "heading": 1.5707963267948966 },
+    { "id": "target_gamma", "x": -340, "y": 300, "radius": 20, "hull": 100, "shield": 40, "heading": 1.5707963267948966 }
+  ],
+  "asteroids": [
+    { "id": "asteroid_01", "x": -210, "y": -160, "radius": 48 },
+    { "id": "asteroid_02", "x": 200, "y": -140, "radius": 42 },
+    { "id": "asteroid_03", "x": -100, "y": 190, "radius": 56 },
+    { "id": "asteroid_04", "x": 250, "y": 220, "radius": 64 },
+    { "id": "asteroid_05", "x": -390, "y": -420, "radius": 72 },
+    { "id": "asteroid_06", "x": 500, "y": -250, "radius": 58 },
+    { "id": "asteroid_07", "x": 70, "y": -560, "radius": 80 },
+    { "id": "asteroid_08", "x": -480, "y": 110, "radius": 60 },
+    { "id": "asteroid_09", "x": 0, "y": 480, "radius": 70 },
+    { "id": "asteroid_10", "x": 500, "y": 510, "radius": 88 },
+    { "id": "asteroid_11", "x": -590, "y": 440, "radius": 74 },
+    { "id": "asteroid_12", "x": 690, "y": 70, "radius": 65 }
+  ]
+}

@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{84DB7477-1146-4361-BAF4-06D3BDAEA619}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.Simulation", "server\RogueTrader.Simulation\RogueTrader.Simulation.csproj", "{8513547E-AB48-4A79-9121-97011604DA4D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{8FAAE6FC-F3E2-4CCA-A0B2-22ECC5B6E32D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.GameData", "shared\RogueTrader.GameData\RogueTrader.GameData.csproj", "{EFC85877-DBF2-4C44-B0E0-A28EF9704753}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8785A3E8-FB63-4547-A187-66925E501B07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.UnitTests", "tests\Unit\RogueTrader.UnitTests.csproj", "{18137E69-623B-48D2-B49B-BF576909D9A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.Client", "client\RogueTrader.Client.csproj", "{799C4036-7FA2-4DE1-8B99-CE38248BBC46}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8513547E-AB48-4A79-9121-97011604DA4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8513547E-AB48-4A79-9121-97011604DA4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8513547E-AB48-4A79-9121-97011604DA4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8513547E-AB48-4A79-9121-97011604DA4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFC85877-DBF2-4C44-B0E0-A28EF9704753}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFC85877-DBF2-4C44-B0E0-A28EF9704753}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFC85877-DBF2-4C44-B0E0-A28EF9704753}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFC85877-DBF2-4C44-B0E0-A28EF9704753}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18137E69-623B-48D2-B49B-BF576909D9A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18137E69-623B-48D2-B49B-BF576909D9A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18137E69-623B-48D2-B49B-BF576909D9A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18137E69-623B-48D2-B49B-BF576909D9A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{799C4036-7FA2-4DE1-8B99-CE38248BBC46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{799C4036-7FA2-4DE1-8B99-CE38248BBC46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{799C4036-7FA2-4DE1-8B99-CE38248BBC46}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{799C4036-7FA2-4DE1-8B99-CE38248BBC46}.Release|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8513547E-AB48-4A79-9121-97011604DA4D} = {84DB7477-1146-4361-BAF4-06D3BDAEA619}
+		{EFC85877-DBF2-4C44-B0E0-A28EF9704753} = {8FAAE6FC-F3E2-4CCA-A0B2-22ECC5B6E32D}
+		{18137E69-623B-48D2-B49B-BF576909D9A4} = {8785A3E8-FB63-4547-A187-66925E501B07}
+	EndGlobalSection
+EndGlobal

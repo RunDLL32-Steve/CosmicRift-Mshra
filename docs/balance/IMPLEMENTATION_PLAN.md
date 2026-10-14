@@ -1,0 +1,23 @@
+# Balance implementation plan
+
+Master authority: [§5 physics](../../ROGUE_TRADER_2_PLAN.md#5-spacecraft-movement-and-physics), [§6 hulls/loadouts](../../ROGUE_TRADER_2_PLAN.md#6-spacecraft-and-loadout-system), [§7 combat](../../ROGUE_TRADER_2_PLAN.md#7-combat-system), [§8 resources](../../ROGUE_TRADER_2_PLAN.md#8-mining-and-resource-collection), [§18 M0/M1](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype) and [M2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--rogue-trader-core-gameplay). Canonical acceptance IDs: [original feature catalog](../original-research/FEATURE_CATALOG.md). Reconciled October 13, 2026 with [progress](../development-log/PROGRESS.md). The master remains the status authority.
+
+## Completion history and evidence
+
+| Scoped feature | Current status | Evidence and limit |
+|---|---|---|
+| Classify and reconcile prototype tuning | Complete with evidence | [PROVISIONAL_VALUES.md](PROVISIONAL_VALUES.md) separates master examples, implemented NEW JSON and original raw fields; ship/weapon/sector JSON was re-inspected read-only here. |
+| Record accepted prototype consistency/launch | Complete with evidence | Prior 41 unit cases, three native-input/UI and six world phases in source/export; standalone launch/captures in [progress](../development-log/PROGRESS.md#final-validation-evidence). [unit.trx](../../artifacts/test-results/unit.trx) corroborates 41 passed. Light/heavy fixtures verify the NEW model, not original playable hulls. No new acceptance ran. |
+| Preserve original value provenance | Complete with evidence, documentation only | [Manifest](../original-research/ASSET_MANIFEST.json), [raw index](../../artifacts/research/original-content/index.json), [catalog](../original-research/FEATURE_CATALOG.md) and [field contracts](../original-research/FIELD_INTERPRETATION.md). Original values are present/authoritative; native meaning remains unfinished. |
+
+## Active outstanding work
+
+- [ ] **Investigating — RT-F027–RT-F030 / RT-F001–RT-F012:** validate terrain flight blocks, acceleration/rotation/speed/bounce units, reverse -1 fallback, hyper/strafe behavior and cargo thresholds; compare completed original hull handling. Do not substitute NEW meter conventions or bot formulas.
+- [ ] **Investigating — RT-F031–RT-F032 / RT-F041:** resolve shield-energy relation, default/hull overrides, recharge/time scales, hit order and armor/damage types. Prototype separate pools do not prove original semantics.
+- [ ] **Investigating — RT-F036–RT-F040:** validate weighted/sentinel inheritance, fire-delay/muzzle/lifetime scales and trigger/child behavior; preserve -550 and negative lifetime fields without guessed conversions.
+- [ ] **Investigating — RT-F033–RT-F035 / RT-F048–RT-F049:** resolve slots, skill grammar, starting loadouts, modifiers, prices/resale and restrictions. Original 200-item data replaces invented equipment tuning; verify each completed item individually.
+- [ ] **Not started — RT-F013–RT-F019 / RT-F042–RT-F047:** implement/verify original spawn/pickup, mass/refining/trade/repair lifecycles after dependencies validate. Preserve the seven Resources records/categories; credits, repairs and Moltor ammunition remain separate.
+- [ ] **Investigating — RT-F051:** resolve selected-revision cash/points/bounty scaling and truncation; current emulator formulas and dated help variants remain distinct evidence.
+- [ ] **Not started — RT-F074 / Investigating — RT-F075:** retain original palette/HSV/shadow and pose-state requirements. Preview/export checks cannot finish native appearance.
+
+Raw values are available; preserve their source identities and complete fields, record candidate evaluator conversions separately, and keep unexplained behavior open. NEW expansion tuning and replacement ships/minerals remain deferred until exact reproduction. Gameplay simulation occurs only after the completed feature requires behavior verification; this documentation pass used existing evidence only.
