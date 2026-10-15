@@ -15,3 +15,4 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
+- C2 + RT-F046 (data only, cloud/rt-f046-c2-cfg-terrain-access, review pending): `OriginalCfg` raw-preserving INI reader (pinned CFG/rogue.cfg hash guard; 144 sections, duplicates kept, no interpretation) and `OriginalTerrainAccess` (16 Terrain blocks: store disabled in 0/9/15, skill shop disabled in 0/9/10/15, team change disabled in 0/9/15). Enforcement, store UI, loadouts, prices and safezone rules unverified; RT-F046 box stays open.
