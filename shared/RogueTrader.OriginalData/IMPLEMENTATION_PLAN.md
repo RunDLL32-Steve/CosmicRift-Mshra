@@ -10,9 +10,12 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - `OriginalHull`: name, skill id, vehicle id, category, complete raw RPG and VEH records, and raw typed values with field indexes: hull points f[6], weight f[7], cargo f[47..48], energy f[94..96], all sixteen speed blocks f[202..361] (ten fields each), bounce f[362], hyper energy cost f[373]. No units, scaling or interpretation are applied; negative values are flagged `IsNegativeSentinel` and returned as-is.
 - Tests: [tests/Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md).
 
+## Per-item entries
+
+Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
+
 ## Outstanding
 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
-- Skill-logic grammar (RT-F034 data, branch cloud/rt-f034-skill-logic): `OriginalSkillLogic.Parse` reads the ITM f[5] strings (ids, `|`, `&`, `!`, parentheses, `%n`, implicit join, empty); all 53 distinct strings of the 200 rows parse and round-trip exactly (120 rows empty). Mixed `|`/`&` without parentheses is rejected (no evidence). Not done: original-evaluator semantics (implicit = AND, empty = allowed and `%n` meaning are inferences), CFG ExitSpectatorLogic, loadout checks; RT-F034 unchecked.
