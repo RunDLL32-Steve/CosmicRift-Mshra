@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #11 review round 1, senior review 5540408596 on head 4193265; label review-approved)
 
 # cloud/rt-f035-starting-loadouts
 
