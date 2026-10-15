@@ -44,6 +44,15 @@ Current user requirements (October13,2026):
 - The coordinating agent must review every agent's work before accepting or integrating it: inspect the actual changes/findings, verify the relevant evidence and focused checks, and resolve identified defects. An agent's completion claim alone is not acceptance. Record the review outcome with the work's evidence; leave unverified feature checkboxes open.
 - Keep this rule in force across sessions and handoffs unless the user explicitly changes it.
 
+## Agent and branch workflow — October 14, 2026
+
+- One scoped branch (and worktree) per issue; inspect existing checkout state first and preserve unrelated uncommitted work.
+- The orchestrating session runs Sonnet 5.5 at medium effort. Set each agent's model and effort to fit its task: do not put a top-tier model on documentation, and do not put a lightweight model on code or review work. Reserve higher effort for complex implementation, architecture and subtle correctness.
+- The coordinator must inspect every agent's actual diff and evidence before accepting it; a completion claim alone is not acceptance. Leave unverified feature checkboxes open.
+- The coordinating CI/CD session reviews and tests each issue branch (`scripts/verify.ps1` plus the relevant compatibility checks) and merges to main only branches that fix their issue. Diagnostic or WIP branches are merged only as clearly labelled tooling and never mark a feature complete.
+- At a usage/checkpoint stop, commit owned issue work first, then record the commit, verified results, incomplete reviews and exact resume point. Preservation commits never imply completed verification.
+- No pushes unless the user asks. No desktop/GUI interaction is authorized without the user present.
+
 ## Current documentation checkpoint â€” October 13, 2026
 
 Read CONTINUATION.md and the complete master before resuming. Current catalog/master:394 feature entries,15 scoped completions,379 open. Viewer source/export/input checks, archive/package/runtime audits, original arena initialization, bounded full-asset hosting and VehicleMaker field18 fix are verified. Native playable entry, actual delivery, full original gameplay and persistence remain unverified.
