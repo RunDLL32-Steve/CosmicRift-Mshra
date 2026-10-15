@@ -19,7 +19,3 @@ Each registry item's status (done vs remaining clauses, branch, evidence) lives 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
-
-## Projectile field view (G5 part, RT-F036 / RT-F037 data only) — branch cloud/rt-f036-f037-g5-weapon-records
-- `OriginalProjectile` / `ItmProjectileFields`: raw typed view of ITM f[54] fireDelay, f[94] inheritedSpeed, f[101] muzzleVelocity, f[110] aliveTime, f[131], f[135..138], f[142] for the 92 type-6 / 227-field rows; the type-8 rows (145..193 fields, e.g. `None` at f[94]) get no view. Negatives (-550, -65) preserved and flagged.
-- Oracle tests (FIELD_INTERPRETATION table: rows 1, 6, 7, 61, 141, 153, 156) in `tests/Unit/OriginalProjectileTests.cs`. Not done: launcher→ammo→child chain (RT-F040), scale/sentinel semantics, native behaviour; RT-F036/F037 stay unchecked.
