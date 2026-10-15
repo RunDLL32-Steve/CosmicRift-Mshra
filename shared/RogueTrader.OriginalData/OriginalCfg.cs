@@ -112,3 +112,18 @@ public sealed record OriginalTerrainAccess(int Terrain, int Line, int StoreEnabl
         return list;
     }
 }
+
+/// <summary>
+/// The three raw [Arena] values the catalog names for RT-F050 (data only): DeleteWeaponsOnClassChange (line 72),
+/// DeathForceUtilityOff (line 75) and TeamSwitchMinEnergy (line 83). Units, event order and the NWS 218-220 loss list
+/// (unrefined/wreckage/unused nanobots on spectate) are not interpreted.
+/// </summary>
+public sealed record OriginalClassChangePrune(CfgEntry DeleteWeaponsOnClassChange, CfgEntry DeathForceUtilityOff, CfgEntry TeamSwitchMinEnergy)
+{
+    public static OriginalClassChangePrune Of(OriginalCfg cfg)
+    {
+        var a = cfg.Section("Arena");
+        CfgEntry Need(string k) => a.Find(k) ?? throw new OriginalDataException($"CFG [Arena] has no key '{k}'.");
+        return new OriginalClassChangePrune(Need("DeleteWeaponsOnClassChange"), Need("DeathForceUtilityOff"), Need("TeamSwitchMinEnergy"));
+    }
+}
