@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: CHANGES REQUESTED
 
 # cloud/rt-f049-sell-sentinel-audit
 
@@ -21,3 +21,24 @@ tests/Unit/OriginalSellSentinelTests.cs.
 
 ## Resume point
 Next: RT-F047/F048 item-table audits (repair rows 149/150/162, upgrade families), or G7 non-hull VEH loader (also resolves the unresolved Manufactory drop id 66).
+
+## Review round 1 (senior review)
+
+Scope understood: RT-F049 data clause only. A test-only audit of the raw buy f[8] and sell f[15] distribution over the 200 pinned ITM rows, including the -1 sell sentinel; nothing is interpreted. Stacked on cloud/rt-f043-hull-drops, which sits on cloud/rt-f041-armor-records.
+
+Verdict: CHANGES REQUESTED. The branch's own content would be approvable (no own blocker or major). The stack base cloud/rt-f041-armor-records is CHANGES REQUESTED in this run, and cloud/rt-f043-hull-drops is therefore held as well: NEEDS BASE FIX.
+
+Findings:
+1. blocker (stack) - docs/development-log/cloud/cloud-rt-f049-sell-sentinel-audit.md:6. This branch contains the F041 commits with the open major. Expected fix: once cloud/rt-f043-hull-drops has merged the reworked F041 base, merge it into this branch with a normal merge (no rebase or force-push). Then fix the minors below and set READY FOR RE-REVIEW.
+2. minor - tests/Unit/OriginalSellSentinelTests.cs:27. The test name SellSentinelAlwaysHasZeroBuyAndNoShopCategory claims "no shop category", which is neither asserted nor true. The -1 rows include Refined Tellerium (row 69, id 2004) and Refined Krandazite (row 71, id 2006), two of the seven G4 trade resources, and Orion Booster (row 161, Defensive Weapons). Expected fix: rename the test to something like SellSentinelAlwaysHasZeroBuy. Record in the log that both refined resources carry sell -1/buy 0, because that bears directly on M4 trading and RT-F014/F016 pricing.
+3. minor - scope overlap. The log claims "gate item 2 (sentinel inventory)", and the local claim branch claim/g8a-format-audit already claims the "negative sentinel inventory over ITM/VEH/RPG (fidelity gate item 2)". This is not an RT-ID collision under the claim rule, since G8a does not name RT-F049. Expected fix: claim only RT-F049's buy/sell data clause, drop "sentinel inventory" from the gate claim, and note that G8a owns the cross-file inventory.
+
+Verified independently (Python audit of the pinned Rogue_mp.itm): 200 rows, no negative buy, no sell below -1. Sell is -1 in 34 rows, all with buy 0, across the 7 categories listed in the test. Sell is 0 in 72 rows and positive in 94. 114 rows have buy > 0. The only row with positive sell and zero buy is 165 Wake Caster-Child (id 1082, sell 500), which is also the only row with sell > buy. 3 positive-sell rows have sell exactly buy/2. Six -1 rows are Resources (69, 71, 84, 85, 90, 168). All of this matches the test and the log.
+
+Branch name, claims and collisions: the name carries RT-F049 and the log claims RT-F049. No other branch names RT-F049. No queue row.
+
+Verified in cloud (this review):
+- apt dotnet-sdk-8.0 8.0.131 in a detached scratch worktree, global.json moved aside and restored (not committed), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 253, Failed 0, Skipped 0. Without RT_ORIGINAL_ASSETS_ROOT: Passed 195, Skipped 34, Failed 0. Both match the log.
+- python scripts/check-trackers.py -> TRACKERS_CONSISTENT. No canonical asset, .tools/references, secret or unrelated changes.
+
+Not verified (local CI required): a run with the pinned SDK 8.0.419; the meaning of -1, the NWS policy revision choice, drop flags and shop exploit behavior.
