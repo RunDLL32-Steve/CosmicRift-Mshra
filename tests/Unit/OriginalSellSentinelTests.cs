@@ -24,7 +24,7 @@ public sealed class OriginalSellSentinelTests
     }
 
     [RequiresOriginalAssetsFact]
-    public void SellSentinelAlwaysHasZeroBuyAndNoShopCategory()
+    public void SellSentinelAlwaysHasZeroBuy()
     {
         var neg = Catalog.Value.Items.Where(i => i.Sell.Value == -1).ToList();
         Assert.All(neg, i => Assert.Equal(0, i.Buy.Value));
