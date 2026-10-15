@@ -65,7 +65,7 @@ These advance later plan milestones with code and tests that need no desktop, Go
 | C9 | Bounty and reputation rules engine (plan 10), data-driven, persisted through the transaction core | server | cloud | M1 merged | OPEN |
 | C10 | Sector transition model and recoverable transfer protocol (plan 11.3 and 14.1) | server/RogueTrader.Persistence + Simulation | cloud | M1 merged | OPEN |
 
-Caveat for asset-dependent rows (G3-G5, G7, C1, C2): the pinned asset repo stores some files with Git LFS. If a shallow clone yields LFS pointer files, run `git lfs pull` if available; otherwise the asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required" so the owner's local session re-runs them.
+Caveat for asset-dependent rows (G3-G5, G7, C1, C2): the pinned asset repo's `.gitattributes` tracks only `*.blo`, `*.lvl` and `*.bmp` with Git LFS, so a shallow clone can yield LFS pointer files for those types only (C1 reads BLO; G6 reads LVL). The ITM, VEH and CFG files these rows read are plain files. If LFS pointer files appear, run `git lfs pull` if available; otherwise the asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required" so the owner's local session re-runs them.
 
 Gap: plan section 18 gate item "Decode original assets ... preserve their original appearance/behavior" (RT-F023, RT-F025) has no row. G6 covers only map and collision. Add a G row when that work is scoped; do not infer one here.
 
