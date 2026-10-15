@@ -14,6 +14,10 @@ Status authority: [master M1 engineering acceptance/fidelity gate](../../ROGUE_T
 
 The test data copies the same provisional JSON consumed by the client. Heavy fixtures do not add original playable ships. No original parity, M2 economy, AI or M3 network tests are claimed complete.
 
+## Original raw-data loader tests - October 15, 2026
+
+[OriginalHullCatalogTests.cs](OriginalHullCatalogTests.cs), [RawRecordReaderTests.cs](RawRecordReaderTests.cs) and [AssetIntegrityTests.cs](AssetIntegrityTests.cs) add 40 tests (81 total with the 41 above): twelve hulls with names, skill/vehicle ids, RPG/VEH rows, hull points, cargo and ten speed values asserted against the RT-F001-RT-F012 catalog rows, Asp raw values from FIELD_INTERPRETATION, sentinel preservation, all sixteen terrain blocks, reader edge cases on inline fixtures, hash guard on tampered copies, and original files unchanged. Asset-dependent tests find the assets via `RT_ORIGINAL_ASSETS_ROOT`, a walk up for `.tools/references/cosmic-rift-assets`, or `git rev-parse --git-common-dir`; if not found they report as **Skipped** with a reason, never as passed. These prove data availability only and complete no hull feature.
+
 ## Outstanding feature verification
 
 - [ ] **Investigating** — define original expected results for RT-F027–RT-F041/RT-F075 after native units, reverse/inheritance/lifetime sentinels, shield/armor ordering and bank/state selection are resolved. Prototype expectations are not original acceptance oracles.
