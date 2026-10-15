@@ -2,8 +2,7 @@
 
 Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff:[CONTINUATION.md](../../CONTINUATION.md).
 
-**396 feature entries;18 scoped completions;378 open.** M0/M1 prototype, original viewer/export, inventory/package/runtime audits, actual arena initialization, bounded full-asset hosting and VehicleMaker field18 fix pass. October 14 adds scoped sell validation, null-script capacity and host radar safeguards: 35/35 focused checks and a clean 10-second headless host. Native welcome only; no player joined. Actual native delivery/gameplay/persistence remain unfinished. No desktop interaction occurred in this slice.
-**395 feature entries;16 scoped completions;379 open.** M0/M1 prototype,original viewer/export,inventory/package/runtime audits,actual arena initialization,bounded full-asset hosting andVehicleMaker field18 fix pass. Native welcome only;no player joined. Actual native delivery/gameplay/persistence remain unfinished. Desktop interaction stopped;owned test processes/keys cleaned up.
+**397 feature entries;20 scoped completions;377 open.** M0/M1 prototype, original viewer/export, inventory/package/runtime audits, actual arena initialization, bounded full-asset hosting and VehicleMaker field18 fix pass. October 14 adds scoped sell validation, null-script capacity and host radar safeguards: 35/35 focused checks and a clean 10-second headless host. Native welcome only; no player joined. Actual native delivery/gameplay/persistence remain unfinished. No desktop interaction occurred in this slice.
 
 ## Current milestone status
 

@@ -397,5 +397,5 @@
 - [ ] RT-F393 - [Offline legacy patch announcement guard](FEATURE_CATALOG.md#rt-f393)
 - [x] RT-F394 - [Authentic shared Soccer engine BLO](FEATURE_CATALOG.md#rt-f394)
 - [x] RT-F395 - [Bounded-host radar routing configuration](FEATURE_CATALOG.md#rt-f395)
-- [ ] RT-F396 - [Shop purchase quantity and credit ordering](FEATURE_CATALOG.md#rt-f396)
-- [ ] RT-F397 - [Large asset packet length accounting](FEATURE_CATALOG.md#rt-f397)
+- [x] RT-F396 - [Shop purchase quantity and credit ordering](FEATURE_CATALOG.md#rt-f396)
+- [x] RT-F397 - [Large asset packet length accounting](FEATURE_CATALOG.md#rt-f397)

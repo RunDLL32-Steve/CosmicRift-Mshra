@@ -1,7 +1,6 @@
 # Current continuation — October 14, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:396 feature entries,18 scoped completions,378 open. No commit or push.
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:395 feature entries,16 scoped completions,379 open. No commit or push.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,20 scoped completions,377 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
 
 ## Accomplished
 
@@ -19,12 +18,12 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 
 ## Next
 
-- RT-F397 narrow acceptance complete on `codex/rt-f397-packet-length`: root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. User tests/merges the issue branch. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
+- RT-F397 narrow acceptance complete and merged to main (a7d4f7b): root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
 
 - [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
 - [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
 - [ ] Investigated:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 — all four genuinely absent/unknown. Findings: docs/original-research/MISSING_REFERENCES_FINDINGS.md.
-- [x] RT-F396 (branch fix/rt-f396-purchase-safety, uncommitted): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
+- [x] RT-F396 (merged to main, 804fc87): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
 - [ ] Investigating:RT-F389 original store proximity/eligibility and production shutdown. Bounded sale safeguards do not establish durable transactions.
 - [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
 - [ ] Not started:add persistent progression;standalone does not save.

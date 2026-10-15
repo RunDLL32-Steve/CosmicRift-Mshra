@@ -1547,13 +1547,12 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] RT-F393 - [Offline legacy patch announcement guard](docs/original-research/FEATURE_CATALOG.md#rt-f393)
 - [x] RT-F394 - [Authentic shared Soccer engine BLO](docs/original-research/FEATURE_CATALOG.md#rt-f394)
 - [x] RT-F395 - [Bounded-host radar routing configuration](docs/original-research/FEATURE_CATALOG.md#rt-f395)
-- [ ] RT-F396 - [Shop purchase quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f396)
-- [ ] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
-
-October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. RT-F396 buying safety, RT-F389 store eligibility, native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
+- [x] RT-F396 - [Shop purchase quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f396)
 - [x] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
 
-RT-F397 issue branch: both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. This branch has395 actual catalog entries; IDs395/396 belong to separate pending issue work and are not entries here. Native asset reception and ready handshake remain unverified. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
+October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. RT-F389 store eligibility, native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
+
+RT-F397 (merged to main): both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
 
 ## MILESTONE 2 — Rogue Trader core gameplay
 
