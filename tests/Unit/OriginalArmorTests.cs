@@ -42,4 +42,36 @@ public sealed class OriginalArmorTests
         var armorIds = OriginalArmor.All(Catalog.Value).Select(x => x.Item.Id).OrderBy(x => x);
         Assert.Equal(armorIds, pairs.Select(p => p.Armor.Id).OrderBy(x => x));
     }
+
+    [RequiresOriginalAssetsFact]
+    public void ModifierBlockIsSharedWithNonArmorType13RowsAndDoesNotEncodeProtectionGrades()
+    {
+        var c = Catalog.Value;
+        int[] Block(OriginalItem i) => new[] { i.Record.Int(42).Value, i.Record.Int(43).Value, i.Record.Int(44).Value };
+        var super = c.Items.Single(i => i.RowNumber == 18);
+        Assert.Equal("SuperBoosters", super.Name);
+        Assert.Equal(new[] { 80, 100, 0 }, Block(super));
+        var thruster = c.Items.Single(i => i.RowNumber == 131);
+        Assert.Equal(new[] { 0, 0, 50 }, Block(thruster));
+        // Different help-text grades, identical stored block: the grades are not in f[42..44].
+        var armors = OriginalArmor.All(c);
+        var duraplas = armors.Single(x => x.Item.RowNumber == 21);
+        var ablative = armors.Single(x => x.Item.RowNumber == 136);
+        Assert.NotEqual(duraplas.Description, ablative.Description);
+        Assert.Equal(Block(duraplas.Item), Block(ablative.Item));
+        Assert.Equal(new[] { -75, -75, -20 }, Block(ablative.Item));
+        var tiathamate = armors.Single(x => x.Item.RowNumber == 66);
+        var absorption = armors.Single(x => x.Item.RowNumber == 137);
+        Assert.Equal(Block(tiathamate.Item), Block(absorption.Item));
+        Assert.Equal(new[] { -100, -100, -35 }, Block(absorption.Item));
+    }
+
+    [RequiresOriginalAssetsFact]
+    public void RemoveArmorRowHoldsNothingAfterThePairTerminator()
+    {
+        var r = Catalog.Value.ById(41).Record;
+        var pairs = OriginalRemoveArmor.Pairs(Catalog.Value).Count;
+        for (var i = OriginalRemoveArmor.FirstPairField + pairs * 2; i < r.FieldCount; i++)
+            Assert.Equal(0, r.Int(i).Value);
+    }
 }

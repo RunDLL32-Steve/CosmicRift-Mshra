@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f041-armor-records
 
@@ -47,3 +47,10 @@ Verified in cloud (this review):
 - An independent Python audit of all type-13 rows produced the evidence in finding 1. No canonical asset, .tools/references, secret or unrelated changes.
 
 Not verified (local CI required): a run with the pinned SDK 8.0.419; damage scale/order, the NWS 131-134/323 flow, paid removal and simulation/native behavior. These remain open by design.
+
+## Rework after round 1
+1. major (f[42..44] interpretation) - fixed. The kinetic/explosive/energy wording is removed from the class and property summaries; f[42..44] is now documented as a type-13 modifier block shared with Engine and Thruster Mods, with no semantic decision, and the help-text protection grades are stated not to be stored there (storage undecoded). New oracle test `ModifierBlockIsSharedWithNonArmorType13RowsAndDoesNotEncodeProtectionGrades` pins SuperBoosters row 18 = 80,100,0, Turbo Reaction Thrusters row 131 = 0,0,50, Ablative(136)==Duraplas(21) = -75,-75,-20 and Absorption(137)==Tiathamate(66) = -100,-100,-35. Folder IMPLEMENTATION_PLAN line updated. The earlier "Done" wording about "help-text order for most rows" is superseded by this section.
+2. minor (catalog rows) - fixed: FEATURE_CATALOG.md RT-F041 text corrected to rows 21-23,63,66,108,109,136,137 (row 20 is HyperBoosters); research-note correction only, no status change.
+3. nit (pair terminator) - fixed: test `RemoveArmorRowHoldsNothingAfterThePairTerminator` asserts every field after the pairs is 0.
+
+Verified in cloud: apt dotnet-sdk-8.0 8.0.131 (global.json moved aside, restored), RT_ORIGINAL_ASSETS_ROOT = pinned eb1514ea: dotnet test tests/Unit -> Passed 250, Failed 0, Skipped 0. check-trackers -> TRACKERS_CONSISTENT. Not verified: pinned SDK 8.0.419 (local CI required).

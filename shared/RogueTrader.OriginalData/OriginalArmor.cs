@@ -1,11 +1,12 @@
 namespace RogueTrader.OriginalData;
 
 /// <summary>
-/// Raw view of an original "Hull Armor" item (type 13, 137 fields) for RT-F041 (data only). f[42], f[43] and f[44] are
-/// candidate kinetic/explosive/energy modifiers: in the five armors whose help text gives a protection grade they are
-/// ordered consistently with the grade (for example Carbolux "Strong/Medium/light" = -100,-100,-25) but do not map
-/// one-to-one for every row (Sillicate "no protection versus Energy" = -25), so they are exposed under neutral names and
-/// no damage formula is derived. The fields are unscaled and unvalidated.
+/// Raw view of an original "Hull Armor" item (type 13, 137 fields) for RT-F041 (data only). f[42..44] is a modifier block
+/// shared by every type-13 row (Engine Mods and Thruster Mods use it too: SuperBoosters 80,100,0; Turbo Reaction Thrusters
+/// 0,0,50), so it is not armor-specific. The armors' negative values do not store the protection grades printed in their
+/// help text (Ablative Shell row 136 and Duraplas row 21 carry the identical -75,-75,-20 despite different grades); where
+/// the grades are stored is undecoded. The three fields are exposed unnamed, unscaled and unvalidated, with no semantic
+/// decision.
 /// </summary>
 public sealed class OriginalArmor
 {
@@ -25,13 +26,13 @@ public sealed class OriginalArmor
     }
 
     public OriginalItem Item { get; }
-    /// <summary>Raw f[42] (candidate kinetic modifier; unvalidated).</summary>
+    /// <summary>Raw f[42] of the shared type-13 modifier block (meaning undecoded).</summary>
     public OriginalInt ModifierFieldA { get; }
-    /// <summary>Raw f[43] (candidate explosive modifier; unvalidated).</summary>
+    /// <summary>Raw f[43] of the shared type-13 modifier block (meaning undecoded).</summary>
     public OriginalInt ModifierFieldB { get; }
-    /// <summary>Raw f[44] (candidate energy modifier; unvalidated).</summary>
+    /// <summary>Raw f[44] of the shared type-13 modifier block (meaning undecoded).</summary>
     public OriginalInt ModifierFieldC { get; }
-    /// <summary>The original help text, which states the protection grades in words.</summary>
+    /// <summary>The original help text, which states the protection grades in words (not stored in f[42..44]).</summary>
     public string Description => Item.Record.Value(6);
 
     public static bool TryOf(OriginalItem item, out OriginalArmor? view)
