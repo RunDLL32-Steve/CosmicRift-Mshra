@@ -36,7 +36,7 @@ Findings:
 4. nit - f[31] "ammo" name is inferred (correctly flagged). Evidence supports it: the 20 non-zero values are either the row's own id (mines/defensive/Repulsor) or a type-4 "Ammo-*" row. Keep it flagged until a loader source names it.
 
 Verified by the reviewer (cloud):
-- Independent Python audit of pinned Rogue_mp.itm (eb1514eaae7f9b9425307d9cc043c74ecdd15e35): 20 type-6 rows with non-zero f[31] (all resolve; 13 self-references, 7+ to Ammo-* rows, e.g. 1047->2002 row 82, 1050->2009, 1072->2017); every non-zero f[142] resolves (all to type-8 rows); MIRV, Shrapnel 1050->3011, Moltor Shower 1072->3015 confirmed.
+- Independent Python audit of pinned Rogue_mp.itm (eb1514eaae7f9b9425307d9cc043c74ecdd15e35): 20 type-6 rows with non-zero f[31] (all resolve; 9 self-references, 11 to type-4 Ammo-* rows, e.g. 1047->2002 row 82, 1050->2009, 1072->2017); every non-zero f[142] resolves (all to type-8 rows); MIRV, Shrapnel 1050->3011, Moltor Shower 1072->3015 confirmed.
 - apt dotnet-sdk-8.0 8.0.131, global.json removed in a scratch worktree only, RT_ORIGINAL_ASSETS_ROOT set: `dotnet test tests/Unit` -> Passed 239, Failed 0, Skipped 0 (matches the log).
 - `python scripts/check-trackers.py` -> TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open).
 - No canonical asset, .tools/references or secret changes.
