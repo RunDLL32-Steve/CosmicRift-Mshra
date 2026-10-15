@@ -27,7 +27,7 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 | G2 | Original hull records: raw loader, integrity guard (RT-F001..F012 data only) | shared/RogueTrader.OriginalData | cloud/local | - | MERGED 2e76140 (loader fe879b1) |
 | G3 | Original ITM item loader: all 200 records raw-preserving, typed accessors only for confirmed fields, sentinels kept | shared/RogueTrader.OriginalData | cloud | G2 merged | REVIEW cloud/rt-f013-f019-g3-g4-itm-resources |
 | G4 | Original resource records (7: Tellerium, Refined Tellerium, Krandazite, Refined Krandazite, Wreckage, Iron Ore, Alloy; RT-F013..F019) from ITM with categories | OriginalData | cloud | G3 | REVIEW cloud/rt-f013-f019-g3-g4-itm-resources |
-| G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | OPEN |
+| G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | CLAIMED cloud/rt-f036-f037-g5-weapon-records |
 | G6 | Original LVL/LIO reader and collision grid (RT-F021/F022 data only) | shared/RogueTrader.OriginalLevel | cloud/local | - | CLAIMED claim/g6-level-reader (local feat/original-level-reader) |
 | G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | OPEN |
 | G8 | Validate field scaling/sentinels: native flight constants vs recorded evidence, produce an evidence table (no gameplay change) | docs + OriginalData tests | local | G2, G3 | OPEN |
