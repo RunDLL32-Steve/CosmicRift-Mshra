@@ -15,7 +15,7 @@ shared/RogueTrader.OriginalData/OriginalRewardConfig.cs, tests/Unit/OriginalRewa
 
 ## Verified (cloud)
 - apt dotnet-sdk-8.0 8.0.131 (global.json moved aside, restored), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 219, Failed 0, Skipped 0.
-- python scripts/check-trackers.py -> see PR.
+- python scripts/check-trackers.py -> TRACKERS_CONSISTENT.
 ## Not verified in cloud - local CI required
 - Pinned SDK 8.0.419 run; native behaviour.
 
