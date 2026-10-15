@@ -1540,7 +1540,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] RT-F386 - [Computer DropItem66 reference eligibility](docs/original-research/FEATURE_CATALOG.md#rt-f386)
 - [ ] RT-F387 - [Untouched full LVL native delivery](docs/original-research/FEATURE_CATALOG.md#rt-f387)
 - [x] RT-F388 - [Shop sell quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f388)
-- [ ] RT-F389 - [Server store proximity validation](docs/original-research/FEATURE_CATALOG.md#rt-f389)
+- [x] RT-F389 - [Server store proximity validation](docs/original-research/FEATURE_CATALOG.md#rt-f389)
 - [x] RT-F390 - [Null-script full-arena join handling](docs/original-research/FEATURE_CATALOG.md#rt-f390)
 - [ ] RT-F391 - [Optional admin-prize whitelist policy](docs/original-research/FEATURE_CATALOG.md#rt-f391)
 - [x] RT-F392 - [Bounded original-content native session host](docs/original-research/FEATURE_CATALOG.md#rt-f392)
@@ -1550,7 +1550,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [x] RT-F396 - [Shop purchase quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f396)
 - [x] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
 
-October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. RT-F389 store eligibility, native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
+October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
 
 RT-F397 (merged to main): both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
 

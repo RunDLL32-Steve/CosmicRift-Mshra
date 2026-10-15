@@ -12,7 +12,7 @@ The retained [baseline report](../../../artifacts/rogue-runtime-checks/baseline.
 
 ## Next and parity
 
-- [ ] RT-F389: establish authoritative station/range eligibility; the sale fixture does not validate store proximity.
+- [x] RT-F389: 11 Store.* checks (in-store/out-of-store sell and buy, tile boundary, out-of-range positions, spectator store on/off, players ignore the spectator flag, missing state, hook skipped) use NEW in-memory map/terrain fixtures and the original rule; 8 fail on unpatched source ([pre-patch report](../../../artifacts/rogue-runtime-checks/f389-prepatch-defect.json)), fixed report passes 61/61.
 - [ ] RT-F396: purchase fulfillment/overflow/cash ordering is separately cataloged and not implemented here.
 - [ ] Verify durable transaction atomicity, native trading and persistence through their own acceptance scope.
 

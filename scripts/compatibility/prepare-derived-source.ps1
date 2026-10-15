@@ -57,11 +57,13 @@ Write-DerivedPatch 'dotnetcore/ZoneServer/Logic/Packets/Login/Login.cs' 'RT-F393
 . (Join-Path $PSScriptRoot 'patches/shop-sales.ps1')
 . (Join-Path $PSScriptRoot 'patches/shop-purchases.ps1')
 . (Join-Path $PSScriptRoot 'patches/null-script-capacity.ps1')
-Write-DerivedPatch 'dotnetcore/ZoneServer/Game/Arena/ScriptArena.cs' 'RT-F388/RT-F390/RT-F396: validate sale and purchase quantity/balance, remove inventory before credit/final sync, and handle null-script capacity safely; store eligibility/persistence rules unchanged.' {
+. (Join-Path $PSScriptRoot 'patches/shop-store-access.ps1')
+Write-DerivedPatch 'dotnetcore/ZoneServer/Game/Arena/ScriptArena.cs' 'RT-F388/RT-F389/RT-F390/RT-F396: validate sale and purchase quantity/balance, remove inventory before credit/final sync, handle null-script capacity safely, and require the original StoreEnabled-terrain/spectator-store rule for packet shop transactions; persistence rules unchanged.' {
     param($text)
     $text = & $shopSalesTransform $text
     $text = & $shopPurchasesTransform $text
-    & $nullScriptCapacityTransform $text
+    $text = & $nullScriptCapacityTransform $text
+    & $shopStoreAccessTransform $text
 }
 
 . (Join-Path $PSScriptRoot 'patches/packet-length.ps1')

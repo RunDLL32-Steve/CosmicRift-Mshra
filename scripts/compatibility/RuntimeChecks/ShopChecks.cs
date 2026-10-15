@@ -135,8 +135,72 @@ public static class ShopChecks
             f.Arena.handlePlayerShop(f.Player, f.Item, 2);
             AssertSale(f, 3, 100, 0);
         });
+
+        // RT-F389 store-location checks: NEW fixture map/terrain/position/price values, original rule only.
+        // Rule mirrors the pinned /buy and /sell commands: StoreEnabled terrain, or spectator with SpectatorStore.
+        yield return Check("Store.SellOutsideStore", () => StoreSale(new Fixture(NewItem(7), 5, storeTerrain: false), -2, 5, 100, 0));
+        yield return Check("Store.BuyOutsideStore", () => StoreSale(new Fixture(BuyItem(10), 1, storeTerrain: false), 2, 1, 100, 0));
+        yield return Check("Store.SellInsideStore", () => StoreSale(new Fixture(NewItem(7), 5), -2, 3, 114, 1));
+        yield return Check("Store.BuyInsideStore", () => StoreSale(new Fixture(BuyItem(10), 1), 2, 3, 80, 1));
+        yield return Check("Store.OutsideSkipsHook", () =>
+        {
+            var f = new Fixture(NewItem(7), 5, storeTerrain: false);
+            var hook = new SaleHook((_, _, _) => true);
+            f.AddHook(hook);
+            f.Arena.handlePlayerShop(f.Player, f.Item, -2);
+            Require(hook.Calls == 0, "Out-of-store sale must be rejected before invoking scripts.");
+            AssertSale(f, 5, 100, 0);
+        });
+        yield return Check("Store.TerrainBoundary", () =>
+        {
+            // Tile columns 0-1 are non-store terrain; columns 2-3 are store terrain (16 map ticks per tile).
+            foreach ((short x, bool allowed) in new[] { ((short)0, false), ((short)31, false), ((short)32, true), ((short)63, true) })
+            {
+                var f = new Fixture(NewItem(7), 5, storeTerrain: null);
+                f.Player._state.positionX = x;
+                f.Arena.handlePlayerShop(f.Player, f.Item, -2);
+                Require((f.Player.getInventoryAmount(f.Item.id) == 3) == allowed, $"positionX {x}: expected allowed={allowed}.");
+            }
+        });
+        yield return Check("Store.OutOfRangePosition", () =>
+        {
+            foreach ((short x, short y) in new[] { ((short)-16, (short)0), ((short)0, (short)-16), ((short)64, (short)0), ((short)0, (short)64), (short.MaxValue, short.MaxValue), (short.MinValue, short.MinValue) })
+            {
+                var f = new Fixture(NewItem(7), 5);
+                f.Player._state.positionX = x;
+                f.Player._state.positionY = y;
+                f.Arena.handlePlayerShop(f.Player, f.Item, -2);
+                AssertSale(f, 5, 100, 0);
+            }
+        });
+        yield return Check("Store.SpectatorStoreEnabled", () => StoreSale(new Fixture(NewItem(7), 5, storeTerrain: false, team: "spec", spectatorStore: true), -2, 3, 114, 1));
+        yield return Check("Store.SpectatorStoreDisabled", () => StoreSale(new Fixture(NewItem(7), 5, storeTerrain: false, team: "spec", spectatorStore: false), -2, 5, 100, 0));
+        yield return Check("Store.SpectatorFlagIgnoredForPlayers", () => StoreSale(new Fixture(NewItem(7), 5, storeTerrain: false, team: "Rogues", spectatorStore: true), -2, 5, 100, 0));
+        yield return Check("Store.MissingState", () =>
+        {
+            var f = new Fixture(NewItem(7), 5);
+            f.Player._state = null!;
+            f.Arena.handlePlayerShop(f.Player, f.Item, -2);
+            AssertSale(f, 5, 100, 0);
+            f = new Fixture(NewItem(7), 5);
+            f.Player._team = null!;
+            f.Arena.handlePlayerShop(f.Player, f.Item, -2);
+            AssertSale(f, 3, 114, 1);
+        });
     }
 
+    static void StoreSale(Fixture f, int request, int remaining, int cash, int packets)
+    {
+        f.Arena.handlePlayerShop(f.Player, f.Item, request);
+        AssertSale(f, remaining, cash, packets);
+    }
+
+    internal static CfgInfo.Terrain NewTerrain(bool storeEnabled)
+    {
+        var terrain = (CfgInfo.Terrain)RuntimeHelpers.GetUninitializedObject(typeof(CfgInfo.Terrain));
+        terrain.storeEnabled = storeEnabled;
+        return terrain;
+    }
     static ItemInfo BuyItem(int buyPrice, int maxAllowed = 0, int heldCategory = 0) => new() { id = 60001, name = "NEW buy boundary fixture", buyPrice = buyPrice, sellPrice = -1, maxAllowed = maxAllowed, heldCategoryType = heldCategory };
     static void Buy(ItemInfo item, ushort owned, int request, int cash, int remaining, int expectedCash, int packets)
     {
@@ -176,9 +240,31 @@ public static class ShopChecks
         public ScriptArena Arena { get; } = (ScriptArena)RuntimeHelpers.GetUninitializedObject(typeof(ScriptArena));
         public Player Player { get; } = new();
         public ItemInfo Item { get; }
-        public Fixture(ItemInfo item, ushort owned, int cash = 100)
+        // storeTerrain: true/false = every tile uses a store/non-store terrain; null = columns 0-1 non-store, 2-3 store.
+        public Fixture(ItemInfo item, ushort owned, int cash = 100, bool? storeTerrain = true, string team = "Rogues", bool spectatorStore = false)
         {
             Item = item;
+            var level = (LvlInfo)RuntimeHelpers.GetUninitializedObject(typeof(LvlInfo));
+            level.TerrainLookup = new int[128];
+            level.TerrainLookup[2] = 1; // tile terrain 2 -> cfg terrain 1 (store); tile terrain 1 -> cfg terrain 0 (non-store)
+            level.TerrainLookup[1] = 0;
+            var config = (CfgInfo)RuntimeHelpers.GetUninitializedObject(typeof(CfgInfo));
+            config.terrains = new() { ShopChecks.NewTerrain(false), ShopChecks.NewTerrain(true) };
+            config.arena = (CfgInfo.Arena)RuntimeHelpers.GetUninitializedObject(typeof(CfgInfo.Arena));
+            config.arena.spectatorStore = spectatorStore;
+            var assets = (AssetManager)RuntimeHelpers.GetUninitializedObject(typeof(AssetManager));
+            assets.Level = level;
+            var server = (ZoneServer)RuntimeHelpers.GetUninitializedObject(typeof(ZoneServer));
+            server._zoneConfig = config;
+            server._assets = assets;
+            Arena._server = server;
+            Arena._levelWidth = 4;
+            Arena._tiles = new LvlInfo.Tile[16];
+            for (int i = 0; i < Arena._tiles.Length; i++)
+                Arena._tiles[i].Unknown0 = (byte)(storeTerrain ?? (i % 4 >= 2) ? 2 : 1);
+            Player._state = new Helpers.ObjectState { positionX = 32, positionY = 32 };
+            Player._team = (Team)RuntimeHelpers.GetUninitializedObject(typeof(Team));
+            Player._team._name = team;
             Arena.eventInit(false);
             Player.WipeStats();
             Player._inventory = new();

@@ -23,6 +23,8 @@ try
         "Shop.HookRemovesInventory", "Shop.HookFillsBalance", "Shop.InvalidSkipsHook",
         "Buy.PriceOverflow", "Buy.NegativePrice", "Buy.StackOverflow", "Buy.RejectedDeliveryNotCharged",
         "Buy.HookDrainsCash", "Buy.HookFillsLimit",
+        "Store.SellOutsideStore", "Store.BuyOutsideStore", "Store.OutsideSkipsHook", "Store.TerrainBoundary", "Store.OutOfRangePosition",
+        "Store.SpectatorStoreDisabled", "Store.SpectatorFlagIgnoredForPlayers", "Store.MissingState",
         "Capacity.NullScript.AtCapacity", "Capacity.NullScript.OverCapacity", "Capacity.NullScript.ZeroCapacity",
         "routing.generated-config", "routing.near-update", "routing.radar-update", "routing.far-update", "routing.radar-skipped-update"
     ];

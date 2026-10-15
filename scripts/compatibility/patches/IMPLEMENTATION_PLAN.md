@@ -9,7 +9,7 @@ Current stage, October 14, 2026: **Complete for scoped RT-F388/RT-F390 fixes.** 
 
 ## Next and parity
 
-- [ ] RT-F389 original shop station/range eligibility remains unfinished.
+- [x] RT-F389 [shop-store-access.ps1](shop-store-access.ps1): packet shop transactions require the original /buy,/sell location rule (StoreEnabled terrain, or spectator with SpectatorStore); fails closed on missing state/out-of-range positions; guard runs before any price/inventory/cash/script side effect. 11 Store.* checks. Not covered: skill shop (terrain skillEnabled), durable transactions, native store UI.
 - [x] RT-F396 [shop-purchases.ps1](shop-purchases.ps1): 64-bit price math, negative-price and 65535-stack rejection, post-hook revalidation, exact delivery with rollback of partial grants, debit only after delivery (Upgrade/Skill/Multi items debit first and refund if refused). Verified by 14 Buy.* checks in ShopChecks.cs. Not covered: store eligibility (RT-F389), durable transactions, multi-item cash side effects.
 - [ ] Durable transaction atomicity, native trading and persistence require separate acceptance; these transformations establish no full original economy parity.
 

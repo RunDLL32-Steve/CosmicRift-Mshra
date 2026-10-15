@@ -1,6 +1,6 @@
 # Current continuation — October 14, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,20 scoped completions,377 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,21 scoped completions,376 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
 
 ## Accomplished
 
@@ -24,7 +24,7 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 - [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
 - [ ] Investigated:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 — all four genuinely absent/unknown. Findings: docs/original-research/MISSING_REFERENCES_FINDINGS.md.
 - [x] RT-F396 (merged to main, 804fc87): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
-- [ ] Investigating:RT-F389 original store proximity/eligibility and production shutdown. Bounded sale safeguards do not establish durable transactions.
+- [x] RT-F389 packet-shop location gate (branch fix/rt-f389-store-proximity): derived canUseStore applies the original /buy,/sell rule (StoreEnabled terrain, or spectator with SpectatorStore); 11 Store.* checks, 61/61 fixed, 8 fail pre-patch. Not covered: skill shop (terrain skillEnabled), durable transactions, production shutdown, native store UI.
 - [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
 - [ ] Not started:add persistent progression;standalone does not save.
 - [ ] Open:multiple native clients and final original playable-package acceptance;engine choice remains open.

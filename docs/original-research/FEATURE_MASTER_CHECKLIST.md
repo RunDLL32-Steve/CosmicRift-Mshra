@@ -390,7 +390,7 @@
 - [ ] RT-F386 - [Computer DropItem66 reference eligibility](FEATURE_CATALOG.md#rt-f386)
 - [ ] RT-F387 - [Untouched full LVL native delivery](FEATURE_CATALOG.md#rt-f387)
 - [x] RT-F388 - [Shop sell quantity and credit ordering](FEATURE_CATALOG.md#rt-f388)
-- [ ] RT-F389 - [Server store proximity validation](FEATURE_CATALOG.md#rt-f389)
+- [x] RT-F389 - [Server store proximity validation](FEATURE_CATALOG.md#rt-f389)
 - [x] RT-F390 - [Null-script full-arena join handling](FEATURE_CATALOG.md#rt-f390)
 - [ ] RT-F391 - [Optional admin-prize whitelist policy](FEATURE_CATALOG.md#rt-f391)
 - [x] RT-F392 - [Bounded original-content native session host](FEATURE_CATALOG.md#rt-f392)
