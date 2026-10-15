@@ -85,6 +85,7 @@ public sealed class OriginalProjectileTests
     public void RejectsRowsTooShortForTheView()
     {
         var fields = Enumerable.Repeat("0", 31).ToArray();
+        fields[0] = "6";
         fields[1] = "v57"; fields[2] = "1"; fields[3] = "\"n\""; fields[4] = "\"c\"";
         var catalog = OriginalItemCatalog.FromRecords(RawRecordReader.Parse(string.Join(",", fields), "t.itm"));
         Assert.Throws<OriginalItemException>(() => OriginalProjectile.Of(catalog.Items[0]));
