@@ -10,6 +10,7 @@ public sealed record OriginalStartingLoadout(OriginalHull Hull, string Raw, stri
     public const int EventField = 129;
     public const string AddInventoryVerb = "addinv";
 
+    /// <remarks>Only the single <c>verb=name</c> form of f[129] is handled (true of all 12 pinned hulls); several events in one field would give a null Item until the event grammar (RT-F067) is decoded.</remarks>
     public static IReadOnlyList<OriginalStartingLoadout> All(OriginalHullCatalog hulls, OriginalItemCatalog items)
     {
         var list = new List<OriginalStartingLoadout>();

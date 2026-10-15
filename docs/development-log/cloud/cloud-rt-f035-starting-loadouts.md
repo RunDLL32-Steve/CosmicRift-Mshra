@@ -1,10 +1,11 @@
-Review status: CHANGES REQUESTED (merge gate: conflicts with main in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md after PR #3 merged; code review round 1 on PR #11 was APPROVED; label review-changes-requested)
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f035-starting-loadouts
 
 - Claims: RT-F035 (data clauses only: the twelve starting-loadout strings and the twelve type-16 same-race hull-exchange rows); gate items 2 and 5 (data). No queue row.
 - Stacked on cloud/rt-f013-f019-g3-g4-itm-resources (PR #2, APPROVED log; provides OriginalItemCatalog).
-- Status: done for the scoped data part. No registry box ticked.
+- Status: done for the scoped data part.
+- RT-F249..RT-F260 (rows 181-192) are read and tested here but NOT claimed; their boxes stay open. No registry box ticked.
 
 ## Acceptance clauses
 Done (data): independent Python audit of pinned Rogue.veh f[129] for the 12 type-2 hulls (rows 18-29): exactly one `addinv=<name>` each. Plasma Cannon (item 1004): Hornet, Asp, Excelsior, Ravager; Bio Cannon (1036): Skithist, Kragath, Mastakith, Tarthist; D-Cannon (1041): Rak'Kir, Rip'Pir, Zap'Pir, Zag'Gir. All resolve by exact name to a unique ITM "Cannon" row. ITM rows 181-192 (type 16, "Ship Hulls-<race>"): buy 15000, sell 0, f[5] logic = skills of the three other same-race hulls, f[32] = RPG skill id of the named hull (all 12), f[31] repeats f[5] except Zag'Gir (f[5] `9|6|5`, f[31] `5|6|9`, same set).
@@ -21,3 +22,7 @@ shared/RogueTrader.OriginalData/OriginalLoadout.cs, tests/Unit/OriginalLoadoutTe
 
 ## Resume point
 Next unclaimed registry entry: RT-F042 (needs LIO reader, G6 claimed), RT-F044..F048.
+
+
+## Rework after merge-gate round
+Merged origin/main (merge commit, no conflicts remained); plan line moved to shared/RogueTrader.OriginalData/plan.d/rt-f035.md (IMPLEMENTATION_PLAN.md = main). Review fixes: RT-F249..F260 stated as read/tested but NOT claimed; all twelve hull names asserted; single-addinv limitation documented. dotnet test not re-run in cloud (no SDK); check-trackers consistent.

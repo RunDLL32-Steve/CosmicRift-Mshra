@@ -24,6 +24,10 @@ public sealed class OriginalLoadoutTests
         Assert.Equal("Plasma Cannon", byName["Ravager"]);
         Assert.Equal("Bio Cannon", byName["Skithist"]);
         Assert.Equal("Bio Cannon", byName["Tarthist"]);
+        Assert.Equal("Bio Cannon", byName["Kragath"]);
+        Assert.Equal("Bio Cannon", byName["Mastakith"]);
+        Assert.Equal("D-Cannon", byName["Rip'Pir"]);
+        Assert.Equal("D-Cannon", byName["Zap'Pir"]);
         Assert.Equal("D-Cannon", byName["Rak'Kir"]);
         Assert.Equal("D-Cannon", byName["Zag'Gir"]);
         Assert.Equal(new[] { 1004, 1036, 1041 }, l.Select(x => x.Item!.Id).Distinct().OrderBy(x => x));
