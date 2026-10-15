@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED
 
 # cloud/rt-f040-mirv-launcher-chain
 
@@ -49,3 +49,25 @@ Not verified in cloud - local CI required: pinned SDK 8.0.419 run.
 3. nit (FirstOrDefault): FIXED. Lookup reuses `OriginalItemCatalog.ById` (KeyNotFoundException translated).
 4. nit (f[31] name inferred): kept flagged.
 Verified (cloud): apt dotnet-sdk-8.0 8.0.131 with global.json temporarily moved aside (restored, not committed), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 242, Failed 0, Skipped 0. Not verified in cloud: pinned SDK 8.0.419.
+
+## Review round 2 (senior review)
+
+Reviewer: senior review routine (did not author this work). Base origin/cloud/rt-f036-f037-g5-weapon-records is APPROVED (round 1); rework diff (63876f2) reviewed against b8dc615 and the full branch against the base tip.
+
+Scope understood: RT-F040 data clause only - launcher -> ammo (f[31], inferred name) -> child (f[142]) resolution, now with raw expansion of the type-8 child entry list. No registry box ticked; Remaining clauses (negative lifetime/trigger meaning, offset/angle units, per-entry other fields, damage, inheritance, native) listed. Branch name carries RT-F040, log lists it, no collision with other origin branches.
+
+Verdict: APPROVED. All round-1 findings are resolved: (1) major fixed by option (a) - `ChildEntries`/`MultiItemEntries` expose MIRV 3008 = 1045,1048,1045,1046,1049,1046 with raw f-entry[4] -5,-10,-15,5,10,15; 3015 = 1071 x5; 3011 = 1057 x10, each id resolved; (2) three synthetic `FromRecords` tests cover type-6 -> type-6 -> 0, a 2-cycle (stops at the launcher id held in `seen`) and an unresolved reference; (3) lookup reuses `OriginalItemCatalog.ById`; (4) f[31] name still flagged.
+
+Findings:
+1. minor - shared/RogueTrader.OriginalData/OriginalWeaponChain.cs:15-21,69-76: the doc comment states the entry layout is `id, 0, 0, 0, offset, 0` and `OriginalMultiItemEntry` keeps only entry field 4, but `MultiItemEntries` is public and accepts every type-8 row. In pinned Rogue_mp.itm 22 entries in other type-8 rows have non-zero entry fields 1/2 that are silently dropped, e.g. 3002 BaseStationCannon (row 73) entries (1038,10,15,0,0,0)/(1038,-10,15,0,0,0); 3018 Wake Caster (row 164) (1082,5,-25,0,135,0)/(1082,-5,-25,0,225,0); 3003/3005/3006/3010/3013/3016/3017/3019 carry +-10/+-20 in field 1. The values 135/225 also suggest field 4 is an angle in degrees, so "offset" is a misleading raw name. Not wrong for the RT-F040 chains (MIRV/Shrapnel/Moltor have zeros there), hence minor. Expected fix (in a later G5 branch or rework, not required for this approval): expose all six raw entry ints (e.g. `IReadOnlyList<int> RawFields`) without interpretation, correct the doc comment, and add an oracle test on 3018 Wake Caster.
+2. nit - docs/development-log/cloud/cloud-rt-f040-mirv-launcher-chain.md:3: still says the base is "UNREVIEWED"; it is APPROVED (3f73342).
+3. nit - OriginalWeaponChain.cs:63: `ChildEntries` covers only the last child; fine for every pinned chain (single type-8 child), but say so in the property doc if a type-6 -> type-8 mid-chain ever appears.
+Merge note: the branch diff against the base tip shows the base log's review section "removed" only because this branch was cut before 3f73342; this branch does not touch that file, so merging base then this branch is conflict-free.
+
+Verified by the reviewer (cloud):
+- Pinned assets cloned at eb1514eaae7f9b9425307d9cc043c74ecdd15e35 (outside the checkout). Independent Python audit of all 21 type-8 rows: the f[97] stride-6 layout holds; every non-zero entry id resolves (0 unresolved); the MIRV/3011/3015 entry lists match the tests; 22 entries elsewhere have non-zero non-offset fields (finding 1).
+- apt dotnet-sdk-8.0 8.0.131, global.json removed in a scratch worktree only (restored, not committed), RT_ORIGINAL_ASSETS_ROOT set: `dotnet test tests/Unit` -> Passed 242, Failed 0, Skipped 0 (matches the rework log).
+- `python scripts/check-trackers.py` -> TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open). TASK_QUEUE G5 row set to REVIEW for both G5 branches.
+- No canonical asset, .tools/references, secret or unrelated changes.
+
+Not verified in cloud - local CI required: pinned SDK 8.0.419 run.
