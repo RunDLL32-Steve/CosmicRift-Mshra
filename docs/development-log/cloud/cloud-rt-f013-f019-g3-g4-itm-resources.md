@@ -1,4 +1,4 @@
-Review status: APPROVED
+Review status: APPROVED (PR #2 review round 2, senior review 5540407746 on head a07baa0; label review-approved)
 
 # cloud/rt-f013-f019-g3-g4-itm-resources
 
