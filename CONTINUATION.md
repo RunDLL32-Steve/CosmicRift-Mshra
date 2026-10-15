@@ -1,6 +1,6 @@
-# Current continuation — October 13, 2026
+# Current continuation — October 14, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:394 feature entries,15 scoped completions,379 open. No commit or push.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:396 feature entries,18 scoped completions,378 open. No commit or push.
 
 ## Accomplished
 
@@ -13,21 +13,28 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 - VehicleMaker original field18 fix restores exactly eight values;allother exports unchanged.
 - Authentic shared Soccer archive resolves full-asset startup without changing89 canonical archives.
 - Native client reached welcome;Start had no confirmed entry. Desktop testing stopped while user played;owned processes/private registry test keys cleaned up.
+- RT-F388/RT-F390: derived sale quantity/cash ordering and null-script capacity fixes pass actual-handler checks. Canonical item values, original buy branch and upstream references unchanged.
+- RT-F395: shared NEW/provisional radar config fixes prior swallowed divide-by-zero errors; host rejects invalid divisors/logged runtime exceptions. Final headless10.25s host exit0,zero exceptions/clients,unchanged originals.35/35 focused checks pass against16 reproduced baseline failures.
 
 ## Next
 
 - [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
 - [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
-- [ ] Investigating:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 eligibility.
-- [ ] Not started/Investigating:shop sell quantity/atomicity,store proximity,null-script capacity and upstream shutdown fixes.
+- [ ] Investigated:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 — all four genuinely absent/unknown. Findings: docs/original-research/MISSING_REFERENCES_FINDINGS.md.
+- [x] RT-F396 (branch fix/rt-f396-purchase-safety, uncommitted): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
+- [ ] Investigating:RT-F389 original store proximity/eligibility and production shutdown. Bounded sale safeguards do not establish durable transactions.
 - [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
 - [ ] Not started:add persistent progression;standalone does not save.
 - [ ] Open:multiple native clients and final original playable-package acceptance;engine choice remains open.
 
 ## Evidence and rules
 
+Maintained delegation rule: explicitly select effort per task (low mechanical docs/checks;medium bounded research/simple implementation;high complex work;Ultra only when justified),reassess for changed assignments,and review every agent's actual work/evidence before acceptance. Full rule:AGENTS.md,maintained agent qualification and review section. This persists across sessions.
+
 Plans:docs/architecture/NATIVE_CLIENT_PLAN.md,ROGUE_RUNTIME_PLAN.md,ROGUE_PACKAGE_AUDIT_PLAN.md;client/ORIGINAL_INSPECTOR_PLAN.md;scripts/original-assets/IMPLEMENTATION_PLAN.md andDEPENDENCY_PLAN.md;data/original domain queues;docs/original-research/FEATURE_CATALOG.md.
 
 Logs/reports:artifacts/qa/OriginalContent,artifacts/rogue-package-audit,.tools/compatibility/reports,.tools/compatibility/local-working/session-host/reports,and.tools/native-client-inspection/native-test-cleanup.json.
 
-SDK8/Godot is the inspection toolchain;upstream uses isolatedSDK10.0.401. Preserve originals and distinguish generic-handler availability from verified gameplay. Simulations require a completed behavior needing verification. Current task is documentation wrap-up;no further builds, GUI or simulations. Latest three documentation reports list folder edits and checks.
+Latest runtime evidence:artifacts/rogue-runtime-checks/{baseline,fixed}.json,host/{ready,exit}.json,invalid-host/exit.json,transformation-guards.json;docs/development-log/2026-10-14.md. Runtime checks require -Build;SessionHost -Start automatically compiles. Both use shared SessionHost/write-session-config.ps1;fixed checks generate fresh XML and reports hash loaded assemblies. No native UI/registry interaction occurred October14. No build remains running.
+
+SDK8/Godot is the inspection toolchain;upstream uses isolatedSDK10.0.401. Preserve originals and distinguish generic-handler availability from verified gameplay. Simulations require a completed behavior needing verification. Documentation reconciliation is complete. Completed runtime safeguards need no repeated baseline simulations;run focused checks for the next completed feature only. Latest three documentation reports retain earlier folder reconciliation evidence.

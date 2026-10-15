@@ -31,8 +31,18 @@ Current user requirements (October13,2026):
 - Catalog every newly discovered original feature with a stable ID and an unchecked box in the master and relevant subplan. Discovery, source availability and a provisional implementation do not complete the feature.
 - Check off only the specifically implemented feature after its acceptance verification passes; do not imply complete original parity from a narrower renderer/parser milestone.
 - Use parallel subagents for independent research, implementation, tests and fixes; avoid concurrent builds against the same outputs.
+- Follow the maintained agent qualification and review rule below for every delegation.
 - Run simulations only once a completed gameplay feature requires simulation verification. Use focused parser, byte-integrity, image and build checks for data/rendering work. Do not repeatedly rerun baseline gameplay simulations during research or documentation changes.
 - The archived source names, pixels, map and values are authoritative. Interpret version/scaling/evaluator semantics with evidence, preserve raw fields, and keep unexplained behavior visible as unfinished work.
+
+## Maintained agent qualification and review rule — October 14, 2026
+
+- Use agents for independent work that advances the current project goals. Give each agent a bounded task, file ownership, required context and acceptance criteria; avoid overlapping edits and shared-output builds.
+- Choose and explicitly set each agent's reasoning effort for its task before spawning or assigning follow-up work. Do not let routine work inherit Ultra by default. When the tool requires a fresh context to set effort, supply the necessary context in that assignment.
+- Use **low** for mechanical documentation updates, link/count checks and straightforward read-only audits; **medium** for documentation synthesis, bounded research, simple implementation and focused test work; **high** for complex implementation, architecture, subtle correctness issues or difficult debugging. Use higher settings, including **Ultra**, only when the task's complexity or unresolved evidence warrants them.
+- Reassess effort when an agent's task changes. If follow-up work needs a different effort and the tool cannot change it, assign it to a suitably configured agent instead of silently reusing the previous setting.
+- The coordinating agent must review every agent's work before accepting or integrating it: inspect the actual changes/findings, verify the relevant evidence and focused checks, and resolve identified defects. An agent's completion claim alone is not acceptance. Record the review outcome with the work's evidence; leave unverified feature checkboxes open.
+- Keep this rule in force across sessions and handoffs unless the user explicitly changes it.
 
 ## Current documentation checkpoint — October 13, 2026
 

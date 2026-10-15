@@ -54,5 +54,15 @@ Write-DerivedPatch 'dotnetcore/ZoneServer/Logic/Packets/Login/Login.cs' 'RT-F393
     $text.Replace($site, 'if (Environment.GetEnvironmentVariable("RT_COMPATIBILITY_OFFLINE") != "1") player._client.sendReliable(pinfo);')
 }
 
+. (Join-Path $PSScriptRoot 'patches/shop-sales.ps1')
+. (Join-Path $PSScriptRoot 'patches/shop-purchases.ps1')
+. (Join-Path $PSScriptRoot 'patches/null-script-capacity.ps1')
+Write-DerivedPatch 'dotnetcore/ZoneServer/Game/Arena/ScriptArena.cs' 'RT-F388/RT-F390/RT-F396: validate sale and purchase quantity/balance, remove inventory before credit/final sync, and handle null-script capacity safely; store eligibility/persistence rules unchanged.' {
+    param($text)
+    $text = & $shopSalesTransform $text
+    $text = & $shopPurchasesTransform $text
+    & $nullScriptCapacityTransform $text
+}
+
 $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding utf8
-Write-Output 'Derived-only loopback/offline and original VehicleMaker field18 patches recorded with original and working SHA-256.'
+Write-Output 'Derived-only loopback/offline, VehicleMaker field18, sale validation and null-script capacity patches recorded with original and working SHA-256.'

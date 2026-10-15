@@ -1,0 +1,18 @@
+# Native delivery headless checks
+
+Purpose: bounded evidence for actual server cache/packet serialization and the derived offline ready guard, without opening sockets or invoking authentication, accounts, transport polling, physics or native UI. Master authority: [§18 M1 fidelity gate, RT-F387/RT-F393](../../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype); [compatibility parent](../IMPLEMENTATION_PLAN.md), [native plan](../../../docs/architecture/NATIVE_CLIENT_PLAN.md), [package audit](../../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md).
+
+## Current stage — October 14, 2026
+
+- [ ] Testing — RT-F387: actual `AssetManager.Cache.prepareCache(List<AssetInfo>)`, cache lookup and `SC_AssetUpdate.MakeSerialized(null, null)` on the 46 canonical files from the existing audited inventory. Independent BCL zlib decoding, CRC32/SHA256, packet header/name/length and full 380,052-byte original LVL trailer checks; rehash sources after execution. This is serialized in-memory output, not native delivery acceptance.
+- [ ] Testing — RT-F393: reflectively invoke the actual internal `Logic_Login.Handle_CS_Ready(CS_Ready, Player)` with an inert `ZoneServer` and no-handler/no-endpoint `Client`. Confirm offline `1` queues only asset information and both unset/`0` controls retain the legacy patch announcement; confirm ready flag, queue and zero transport counters. Never invoke login/authentication/account code. Actual native handshake remains unverified.
+- [ ] Investigating — RT-F397: source `PacketBase.Write(byte[])` narrows payload length to ushort while `Data` retains full bytes. Record desired `Length == Data.Length` invariant separately from successful payload hashes. NEW/provisional 65,535/65,536/65,537-byte synthetic boundary arrays isolate accounting; they are not valid compressed assets or historical tuning. Root owns catalog reconciliation and any derived fix.
+- [ ] Root review, serialized build, baseline run and fixed run remain required. This folder's author ran no builds/programs/sockets/simulations.
+
+## Reproduction and acceptance
+
+Requires the already prepared ignored `.tools/compatibility/server-working` project, isolated SDK10.0.401, cached packages, canonical originals and `artifacts/rogue-package-audit/index.json`. This helper references existing local derived assemblies only and copies no external source or assets into tracked/distributable outputs. Existing source-license audit has not established a repository-wide redistribution grant; local diagnostic evidence adds no redistribution claim.
+
+Root builds `LegacyNativeDeliveryChecks.csproj` using the same isolated SDK and redirected ignored intermediates as other compatibility helpers, serially with other shared-output builds. Invoke its resulting DLL with repository root, report path under `artifacts/native-delivery-checks/`, and `baseline` or `fixed`, with `RT_COMPATIBILITY_OFFLINE=1`. Run from a separate ignored working directory so diagnostic logger outputs remain ignored. All sources are read-only; reports are the only helper-written project outputs.
+
+Exit0 means the selected mode's bounded checks were accepted. Baseline requires exact existing narrowing behavior, at least one canonical length mismatch and two synthetic boundary mismatches; `LengthInvariantPassed=false` and `ExpectedBaselineLengthFailures` distinguish reproduced defects from successful serialized data checks. Fixed requires correct lengths on every canonical/synthetic packet and no discrepancies. Any unexpected integrity/ready/serialization/length result exits2. No native receiver, transport fragmentation/reassembly, graphical rendering, full original parity or broader master checkbox is completed by either mode.

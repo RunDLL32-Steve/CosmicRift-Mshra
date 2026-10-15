@@ -1,5 +1,13 @@
 # Changelog
 
+## Native runtime safeguards — October 14, 2026
+
+- Fix derived emulator sales: validate owned quantity and widened cash arithmetic, recheck script mutations, remove inventory before crediting and sync the committed balance.
+- Fix null-script capacity crashes while retaining existing sport queue exceptions.
+- Correct bounded-host radar configuration; reject invalid divisors and logged runtime exceptions. Share fresh configuration generation and compile before execution to prevent stale verification.
+- Verify 35 actual-handler checks against 16 reproduced baseline failures, plus invalid-config rejection and a 10-second full-asset host with zero exceptions. Canonical/upstream files remain unchanged.
+- Catalog purchase overflow/fulfillment/cash-ordering separately as open RT-F396. Native entry, store eligibility, durable progression and full original gameplay remain unverified.
+
 ## Original package and native-route verification — October 13, 2026
 
 - Produce standalone OriginalContent Windows package;source/export nativeUI frame/navigation/remap regression andthree renderedpages pass atworldtick0 withoutSDK/runtime discovery.

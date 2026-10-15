@@ -5,9 +5,10 @@ Status: **Complete for directory/candidate inventory; runtime closure remains In
 ## Outstanding
 
 - [ ] RT-F069: validate version-specific field roles, runtime eligibility and actual dependency closure. A unique filename/member candidate is inventory evidence, not original runtime acceptance.
-- [ ] Resolve missing exact `UtilityEffects/PrizeCrateA` visual reference: ITM/Rogue_mp.itm row112, type17 v57 ID26 Portal (RT-F182), fields23/24. No such member/stem exists among all1,262 members. No replacement is selected.
-- [ ] Resolve missing `cruiart/logo`: CFG/rogue.cfg row2752, Uiart Logo value components0/1. Exact native use/version and intended fallback remain unknown.
-- [ ] Validate `BallGraphic=Ball,0`: CFG/rogue.cfg row2107. BLO/ball.blo ordinal0 is GameBall.cfs; numeric field interpretation remains unknown, so the index does not automatically accept this mapping.
+- [ ] Resolve missing exact `UtilityEffects/PrizeCrateA` visual reference: ITM/Rogue_mp.itm row112, type17 v57 ID26 Portal (RT-F182), fields23/24. **Investigated** — UtilityEffects.blo exhaustively examined (7 members). PrizeCrateA is genuinely absent. No replacement selected. See [MISSING_REFERENCES_FINDINGS.md](../../docs/original-research/MISSING_REFERENCES_FINDINGS.md).
+- [ ] Resolve missing `cruiart/logo`: CFG/rogue.cfg row2752, Uiart Logo value components0/1. **Investigated** — cruiart.blo exhaustively examined (33 members). Logo is genuinely absent. Intended fallback unknown. See [MISSING_REFERENCES_FINDINGS.md](../../docs/original-research/MISSING_REFERENCES_FINDINGS.md).
+- [ ] Validate `BallGraphic=Ball,0`: CFG/rogue.cfg row2107. **Investigated** — BLO/ball.blo ordinal0 is GameBall.cfs; ordinal-reference hypothesis supported but unproven. Index does not automatically accept this mapping. See [MISSING_REFERENCES_FINDINGS.md](../../docs/original-research/MISSING_REFERENCES_FINDINGS.md).
+- [ ] Validate DropItemId66 for VEH records 425/426/427: **Investigated** — item 66 is genuinely missing from ITM catalog. Three manufactory vehicles reference a non-existent drop target. See [MISSING_REFERENCES_FINDINGS.md](../../docs/original-research/MISSING_REFERENCES_FINDINGS.md).
 - [ ] Validate RT-F368–372 native HelpMenu behavior for keys.txt/infcmdlst.txt/comms.txt/rules.txt/mods.txt. Separate authentic recovery/hash/startup acceptance is completed history; do not leave acquisition as pending.
 - [ ] Interpret non-file links (item/vehicle IDs, event scripts/evaluators) against their version-specific schemas. The inventory retains non-CFG record IDs/versions without guessing all integer field roles.
 

@@ -1,6 +1,6 @@
 # Original feature master checklist projection
 
-394 entries;15 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](FEATURE_CATALOG.md). Native welcome does not verify arena entry.
+396 entries;18 scoped completions,378 open. Source/acceptance:[FEATURE_CATALOG.md](FEATURE_CATALOG.md). Native welcome does not verify arena entry.
 
 - [ ] RT-F001 - [Asp](FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](FEATURE_CATALOG.md#rt-f002)
@@ -389,10 +389,13 @@
 - [x] RT-F385 - [VehicleMaker original bounty field18 parser fix](FEATURE_CATALOG.md#rt-f385)
 - [ ] RT-F386 - [Computer DropItem66 reference eligibility](FEATURE_CATALOG.md#rt-f386)
 - [ ] RT-F387 - [Untouched full LVL native delivery](FEATURE_CATALOG.md#rt-f387)
-- [ ] RT-F388 - [Shop sell quantity and credit ordering](FEATURE_CATALOG.md#rt-f388)
+- [x] RT-F388 - [Shop sell quantity and credit ordering](FEATURE_CATALOG.md#rt-f388)
 - [ ] RT-F389 - [Server store proximity validation](FEATURE_CATALOG.md#rt-f389)
-- [ ] RT-F390 - [Null-script full-arena join handling](FEATURE_CATALOG.md#rt-f390)
+- [x] RT-F390 - [Null-script full-arena join handling](FEATURE_CATALOG.md#rt-f390)
 - [ ] RT-F391 - [Optional admin-prize whitelist policy](FEATURE_CATALOG.md#rt-f391)
 - [x] RT-F392 - [Bounded original-content native session host](FEATURE_CATALOG.md#rt-f392)
 - [ ] RT-F393 - [Offline legacy patch announcement guard](FEATURE_CATALOG.md#rt-f393)
 - [x] RT-F394 - [Authentic shared Soccer engine BLO](FEATURE_CATALOG.md#rt-f394)
+- [x] RT-F395 - [Bounded-host radar routing configuration](FEATURE_CATALOG.md#rt-f395)
+- [ ] RT-F396 - [Shop purchase quantity and credit ordering](FEATURE_CATALOG.md#rt-f396)
+- [ ] RT-F397 - [Large asset packet length accounting](FEATURE_CATALOG.md#rt-f397)

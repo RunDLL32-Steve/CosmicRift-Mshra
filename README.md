@@ -59,7 +59,9 @@ Current verified result: 41 unit tests, three native-input/UI smoke phases, six 
 
 ## Current checkpoint
 
-See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md):394 features,15 scoped completions,379 open. The server loads original Rogue Trader data/arena;the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
+See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md): 396 features, 18 scoped completions, 378 open. The server loads original Rogue Trader data/arena; the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
+
+The October 14 runtime slice fixes oversized sale credits, null-script full-arena crashes and bounded-host radar routing errors. All 35 focused handler checks pass; a 10-second headless host run has zero logged exceptions and unchanged assets. Reproduce with `./scripts/compatibility/prepare-derived-source.ps1` then `./scripts/compatibility/run-runtime-checks.ps1 -Build`. [Evidence and limits](docs/development-log/2026-10-14.md). Native entry, buying/store eligibility, original gameplay and persistence remain open.
 
 The updated [OriginalContent Windows package](artifacts/windows/OriginalContent-2026-10-13-win-x64.zip) passes standalone inspector input/render checks. Keep the full folder;launchRogueTrader2.exe andpressF2. Rebuild:./scripts/export-windows.ps1 -Mode OriginalContent. The package is a verified asset viewer/provisional flight range;original native gameplay and persistence remain unfinished.
 

@@ -11,7 +11,7 @@ Current stage: **Native entry In progress; runtime parity open**. RT-F382 source
 - [ ] Not started — original mining/drop/pickup and seven resource behavior, computer refining/trading/manufactories and native upgrade installation restrictions.
 - [ ] Not started — repair, original bounty/reward formulas and event triggers with sentinel/scaling proof.
 - [ ] Not started — durable original inventory/skills/currency/progression; standalone mode deliberately does not persist.
-- [ ] Investigating — RT-F388 sell validation/transaction atomicity, RT-F389 server shop range/store eligibility and RT-F390 null-script full-arena join guard; source-derived risks below need isolated regression proof before any fix is checked.
+- [ ] Investigating — RT-F389 server shop range/store eligibility, RT-F396 buying overflow/fulfillment/cash ordering; native trading and durable atomicity remain open.
 - [ ] Deferred — original native client appearance/movement/combat and authoritative server validation; generic ping/source parser success does not complete these.
 
 - [ ] Investigating - RT-F391 optional administrator prize-item eligibility, separate from canonical gameplay drops/initial spawns; no XML stub.
@@ -47,8 +47,8 @@ The prior no-client socket probe leaves gameType/scripts empty and creates zero 
 
 1. Preserve the completed initializer/hosting evidence; next executable acceptance is actual native entry/delivery when the user is available. Do not rerun passed initialization for documentation.
 2. Preserve original bytes while supplying complete native asset dependencies and compatible client. Native entry requires actual client login/assets/arena selection/hull selection/unspectate evidence.
-3. Add a focused shop regression before altering generic shop code: negative sell quantity is compared to positive owned quantity; Cash changes before an ignored inventoryModify result. Oversell can bypass the first gate. Packet/shop path contains no station/range gate. Exact historical eligibility still needs evidence; authoritative validation cannot depend solely on native UI.
-4. Guard null script in full-arena join: `_scriptType.Equals` dereferences the fallback null when capacity is reached. Zero-client initializer does not exercise it.
+3. RT-F388 sell validation/cash ordering is complete for bounded generic handler checks (October14 evidence below). Packet/shop path still has no proven original station/range gate (RT-F389). Buying overflow/partial fulfillment/debit ordering is separately cataloged RT-F396 and remains unfinished. Durable transactions and native trading remain open.
+4. RT-F390 null-script full-arena guard is complete at the actual handler/team-selection boundary (October14 evidence below). It does not establish actual native join/spawn.
 5. Inspect original building logic against `BuildingCheck`'s runtime vehicle `_id`, distinct from `_type.Id`; do not assume raw type IDs already work.
 6. Retain completed RT-F385 VehicleMaker regression in history: eight field18 values corrected in derived parser, all other exports unchanged. Original gameplay bounty evaluation remains open.
 7. Add persistence after native original behavior works, with explicit isolated backend configuration. Keep external services/account requests absent from bounded diagnostics.
@@ -91,5 +91,13 @@ RT-F392 passed actual root execution: full assets loaded, one public Rogue Trade
 NativePID4088 reached welcome; no arena entry verified. PhysicalEscape stopped Computer Use while another game was active. Owned client/backend were stopped, unique test registry namespace removed, existing Infantry profiles untouched. See .tools/native-client-inspection/native-test-cleanup.json. The broader native connection/gameplay/proximity/persistence queues remain unchecked.
 
 RT-F393 offline patch-announcement guard is implemented/compiled and included in source-hash preflight; actual native CS_Ready acceptance remains Testing. RT-F394 authentic shared Soccer dependency is Complete for extraction/required-member/startup acceptance. Neither modifies canonical Rogue CFG/map/ships/items.
+
+## October 14 scoped safeguard acceptance
+
+RT-F388/RT-F390/RT-F395 are Complete in the master/catalog for their specific emulator safeguards. [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md) exercises real handlers, not copied decisions: 17 sale cases, 12 capacity cases and six routing/config cases. The [baseline](../../artifacts/rogue-runtime-checks/baseline.json) exposed exactly16 defects; [fixed checks](../../artifacts/rogue-runtime-checks/fixed.json) pass35/35. Sale tests inspect serialized final cash and cover oversell, min integer, cash/price overflow, veto and ownership/balance script mutations. Free sales remain supported. The buy branch is unchanged.
+
+Prior hosting logs contain600 swallowed radar divide-by-zero exceptions despite normal exit; prior startup/socket/hash proof does not prove healthy polling. [Shared config generator](../../scripts/compatibility/SessionHost/write-session-config.ps1) supplies explicitly NEW/provisional local diagnostic radar ranges/cadences without changing canonical CFG. The host now rejects zero divisors and logged runtime exceptions. [Final bounded run](../../artifacts/rogue-runtime-checks/host/exit.json) passes10.25s with two loopback sockets,zero exceptions/clients/synthetic inputs,unchanged originals and normal exit0. [Invalid config](../../artifacts/rogue-runtime-checks/invalid-host/exit.json) rejects before startup/readiness. This is a completed runtime fix requiring its focused host check, not a repeated baseline flight/combat simulation.
+
+Runtime checks require compilation; host -Start forces compilation. Fixed checks generate fresh XML from the same source as the host; loaded assemblies are hashed in reports. [Transformation guards](../../artifacts/rogue-runtime-checks/transformation-guards.json) verify unchanged buying, rejected repeated transformations and required compilation. Native entry/delivery, production shutdown, store eligibility, purchases, durable atomicity and original gameplay/persistence remain unfinished.
 
 

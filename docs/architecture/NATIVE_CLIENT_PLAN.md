@@ -6,6 +6,8 @@ Current status, October 13, 2026: **RT-F376 static package inventory Complete; R
 
 ## Active acceptance queue
 
+October14 active investigation: user explicitly confirmed desktop availability for a renewed isolated native test. Root owns UI/native execution and cleanup; authentication/security dialogs require user handoff. Earlier desktop-stop notes are historical. Start/profile diagnosis and full-asset cache/packet checks proceed separately; no full native delivery/entry is inferred from headless checks.
+
 - [ ] **Investigating — RT-F376 broader compatibility/RT-F380:** establish supported engine channel/build identity; engine binaries have no FileVersion/ProductVersion, and launcher/installer metadata cannot substitute for engine identity. Static inventory itself is complete.
 - [ ] **In progress — RT-F384:** verify complete private profile read/write behavior and network isolation. Two redirected literals, blank directories and cleanup are narrower evidence than all dynamically constructed accesses.
 - [ ] **In progress — RT-F380:** diagnose welcome/Start behavior, reach local zone selection/login, join the actual Rogue Trader arena, choose a hull with native F11 and unspectate. Server evidence recorded maximum clients 0.

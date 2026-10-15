@@ -1,5 +1,7 @@
 param([switch]$Build, [switch]$Start, [ValidateRange(10,120)][int]$DurationSeconds=120)
 $ErrorActionPreference = 'Stop'
+# Every execution compiles current source; a source hash cannot authenticate an old DLL.
+$Build = $Build -or $Start
 $repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $compatRoot = Join-Path $repoRoot '.tools/compatibility'
 $taskRoot = Join-Path $compatRoot 'local-working/session-host'
@@ -14,7 +16,7 @@ $project = Join-Path $PSScriptRoot 'SessionHost/LegacySessionHost.csproj'
 $probeDll = Join-Path $PSScriptRoot 'SessionHost/bin/Release/net10.0/LegacySessionHost.dll'
 # Fail closed before backend launch if required derived loopback/offline/parser patches changed.
 $manifest = Get-Content -LiteralPath (Join-Path $compatRoot 'compatibility-manifest.json') -Raw | ConvertFrom-Json
-foreach ($required in @('server-working/dotnetcore/ZoneServer/Game/ZoneServer.cs', 'server-working/dotnetcore/ZoneServer/Game/Assets/AssetManager.cs', 'server-working/dotnetcore/Assets/Itm/ItmInfo.VehicleMaker.cs', 'server-working/dotnetcore/ZoneServer/Logic/Packets/Login/Login.cs')) {
+foreach ($required in @('server-working/dotnetcore/ZoneServer/Game/ZoneServer.cs', 'server-working/dotnetcore/ZoneServer/Game/Assets/AssetManager.cs', 'server-working/dotnetcore/Assets/Itm/ItmInfo.VehicleMaker.cs', 'server-working/dotnetcore/ZoneServer/Logic/Packets/Login/Login.cs', 'server-working/dotnetcore/ZoneServer/Game/Arena/ScriptArena.cs')) {
     $patch = @($manifest.Patches | Where-Object Path -eq $required)
     if ($patch.Count -ne 1 -or (Get-FileHash -LiteralPath (Join-Path $compatRoot $required) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $patch[0].DerivedSha256) { throw "Required derived patch provenance mismatch: $required" }
 }
@@ -49,24 +51,7 @@ if ((Get-FileHash -LiteralPath $sharedSoccer -Algorithm SHA256).Hash.ToLowerInva
 Copy-Unchanged $sharedSoccer
 $copied | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $taskRoot 'copied-source-hashes.json') -Encoding utf8
 # NEW local diagnostic host config. Original Rogue CFG/data names/values never edited.
-@'
-<xml>
-  <server>
-    <zoneConfig value="rogue.cfg" /><zoneName value="Rogue Trader local native check" />
-    <zoneDescription value="Bounded original-content local native session; standalone no persistence" />
-    <zoneIsAdvanced value="false" /><bindIP value="127.0.0.1" /><bindPort value="21337" />
-    <maxPlayers value="1" /><gameType value="" /><loadBlobs value="true" />
-    <updateGlobalNws value="" /><copyServerFrom value="" />
-    <pathFindingEnabled value="false" /><pathFindingEnabledNew value="false" />
-    <ipAllowlistFile value="loopback-allowlist.txt" /><logPackets value="false" />
-  </server>
-  <database><connectionDelay value="0" /></database><assets><location value="assets" /></assets>
-  <protocol><udpMaxSize value="512" /><crcLength value="2" /><connectionTimeout value="10000" />
-    <clientPingFreq value="1000" /><logUnknownPackets value="false" /></protocol>
-  <arena><maxArenaItems value="512" /><maxArenaVehicles value="512" /><allowArenaCreation value="false" />
-    <gameCheckInterval value="1000" /><routing><routeRange value="1000" /><routeWeaponRange value="1000" /></routing></arena>
-</xml>
-'@ | Set-Content -LiteralPath (Join-Path $zoneRoot 'server.xml') -Encoding utf8
+& (Join-Path $PSScriptRoot 'SessionHost/write-session-config.ps1') -OutputPath (Join-Path $zoneRoot 'server.xml')
 '<xml><scripts /></xml>' | Set-Content -LiteralPath (Join-Path $zoneRoot 'scripts.xml') -Encoding utf8
 '127.0.0.1' | Set-Content -LiteralPath (Join-Path $zoneRoot 'loopback-allowlist.txt') -Encoding utf8
 '<xml />' | Set-Content -LiteralPath (Join-Path $taskRoot 'Global/assets.xml') -Encoding utf8

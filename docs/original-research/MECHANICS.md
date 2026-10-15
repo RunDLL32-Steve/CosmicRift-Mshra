@@ -101,6 +101,8 @@ Final prototype validation reported by the lead agent: integrated build, 41 unit
 | Prototype shield overflow, circular collisions, cooldown and lifetime | NEW; master §§5–7 implementation choices | Broad shield/hull separation is now primary supported in M; exact hit rules and numeric tuning remain NEW. |
 | Station respawn, currency retention, cargo penalties | NEW; master §7.5 | Full progression/death policies belong to later milestones. |
 | Modern successor comparison | NEW implementation reference; [D][source-d]/[E][source-e] | Useful design comparison only. No evidence classification upgrade follows from another remake. |
+| RT-F388/RT-F390 emulator safeguards | NEW derived implementation; defects VERIFIED in locally read pinned ScriptArena/Player source, October14 | Bounded sell arithmetic/ownership/cash ordering and null-safe capacity pass focused actual-handler checks. Original native trading, durable transactions and join/spawn semantics remain unverified. [Source access, acceptance and limits](../development-log/2026-10-14.md). |
+| RT-F395 local host routing | NEW/provisional diagnostic configuration; not original balance | Near/weapon ranges1000,radar2000/factor2,far4000/factor4 are NEW local test settings. The previous omitted divisors caused VERIFIED emulator modulo-by-zero errors. Canonical CFG/data are unchanged. [Shared generator](../../scripts/compatibility/SessionHost/write-session-config.ps1);[bounded acceptance](../../artifacts/rogue-runtime-checks/host/exit.json). |
 
 ## Completed evidence history
 

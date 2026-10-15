@@ -1,8 +1,8 @@
-# Development progress — October 13, 2026
+# Development progress — October 14, 2026
 
 Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff:[CONTINUATION.md](../../CONTINUATION.md).
 
-**394 feature entries;15 scoped completions;379 open.** M0/M1 prototype,original viewer/export,inventory/package/runtime audits,actual arena initialization,bounded full-asset hosting andVehicleMaker field18 fix pass. Native welcome only;no player joined. Actual native delivery/gameplay/persistence remain unfinished. Desktop interaction stopped;owned test processes/keys cleaned up.
+**396 feature entries;18 scoped completions;378 open.** M0/M1 prototype, original viewer/export, inventory/package/runtime audits, actual arena initialization, bounded full-asset hosting and VehicleMaker field18 fix pass. October 14 adds scoped sell validation, null-script capacity and host radar safeguards: 35/35 focused checks and a clean 10-second headless host. Native welcome only; no player joined. Actual native delivery/gameplay/persistence remain unfinished. No desktop interaction occurred in this slice.
 
 ## Current milestone status
 
@@ -31,6 +31,7 @@ Every path below is an implementation checklist with a reciprocal reference to t
 | [Balance ledger](../balance/IMPLEMENTATION_PLAN.md) | M0 / §§5–8 provisional values and recovered raw values |
 | [First Contact design](../game-design/IMPLEMENTATION_PLAN.md) | M1 slices A–E and fidelity acceptance |
 | [Development log](IMPLEMENTATION_PLAN.md) | M0/M1 / §21 maintenance and reconciliation |
+| [Runtime checks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md) | Fidelity prerequisites RT-F388/RT-F390/RT-F395; purchase safety RT-F396 remains open |
 | [Architecture](../architecture/IMPLEMENTATION_PLAN.md) | M0/M1 / §§5.3/13/17/21 |
 | [Server](../../server/RogueTrader.Server/IMPLEMENTATION_PLAN.md) | Deferred M3 |
 | [Persistence](../../server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) | Deferred M2/M3 |
@@ -50,6 +51,8 @@ Evidence:artifacts/qa/OriginalContent;artifacts/rogue-package-audit;.tools/compa
 ## Final validation evidence
 
 Historical41 unit/prototype input/world checks are preserved in October12 log/master/changelog;they were not repeated for assets/documentation. Updated OriginalContent source/standalone input/render checks pass atworldtick0. Runtime/package/helper proofs are scoped;native entry remains unchecked.
+
+October 14: [baseline](../../artifacts/rogue-runtime-checks/baseline.json) reproduces 16 defects across 35 actual-handler checks; [fixed](../../artifacts/rogue-runtime-checks/fixed.json) passes all 35. [Actual host](../../artifacts/rogue-runtime-checks/host/exit.json) exits 0 after 10.25 seconds, zero logged exceptions/clients, unchanged originals; invalid routing configuration exits 2 before readiness. Details: [dated log](2026-10-14.md). No baseline movement/combat simulations or native UI launches.
 
 ## Reconciliation rules
 

@@ -36,14 +36,26 @@ static int Run(string[] args)
         cfg["server/maxPlayers"].intValue != 1 || cfg["server/gameType"].Value.Length != 0 ||
         cfg["server/updateGlobalNws"].Value.Length != 0 || cfg["server/copyServerFrom"].Value.Length != 0 ||
         cfg["server/pathFindingEnabled"].boolValue || cfg["server/pathFindingEnabledNew"].boolValue ||
-        !cfg["server/loadBlobs"].boolValue)
+        !cfg["server/loadBlobs"].boolValue ||
+        cfg["arena/routing/routeRange"].intValue <= 0 || cfg["arena/routing/routeWeaponRange"].intValue <= 0 ||
+        cfg["arena/routing/routeRadarRange"].intValue <= 0 || cfg["arena/routing/routeRadarRangeFar"].intValue <= 0 ||
+        cfg["arena/routing/routeRadarRangeFactor"].intValue <= 0 || cfg["arena/routing/routeRadarRangeFarFactor"].intValue <= 0)
         throw new InvalidDataException("Bounded native session isolation configuration mismatch.");
     var hashes = Directory.GetFiles("assets").ToDictionary(path => Path.GetFileName(path)!, Hash);
+    var assemblyHashes = new
+    {
+        Host = Hash(typeof(SessionZoneServer).Assembly.Location), Server = Hash(typeof(ZoneServer).Assembly.Location),
+        Network = Hash(typeof(InfServer.Protocol.Client).Assembly.Location), Assets = Hash(typeof(ItemInfo).Assembly.Location)
+    };
     if (hashes.Keys.Count(name => name.EndsWith(".blo", StringComparison.OrdinalIgnoreCase)) != 90 ||
         !hashes.TryGetValue("soccer.blo", out var sharedSoccerHash) ||
         sharedSoccerHash != "93ec29ba6ea7618b6f298253fa75ef397ec934911231370d961a960f7d050784")
         throw new InvalidDataException("All 89 canonical BLO archives and authentic shared soccer.blo required.");
     if (!Log.init()) throw new IOException("Logger initialization failed.");
+    // Upstream catches arena-poll exceptions and keeps its worker alive. A clean
+    // process exit must not hide those failures in this bounded diagnostic.
+    var loggedExceptionCount = 0;
+    Log.eException += (_, _, _) => Interlocked.Increment(ref loggedExceptionCount);
     Log.assume(Log.createClient("BoundedNativeSession")); InfServer.Logic.Registrar.register();
     var server = new SessionZoneServer();
     if (!server.init() || !server.IsStandalone || !server._assets.bUseBlobs)
@@ -72,17 +84,21 @@ static int Run(string[] args)
     var gameEndpoint = server.Endpoint!; var pingEndpoint = (IPEndPoint)ping.LocalEndPoint!;
     if (!gameEndpoint.Equals(new IPEndPoint(IPAddress.Loopback, 21337)) || !pingEndpoint.Equals(new IPEndPoint(IPAddress.Loopback, 21338)))
         throw new InvalidDataException("Actual socket binding is not the required loopback pair.");
+    RequireHealthy();
     Save("ready.json", new { Ready = true, ProcessId = Environment.ProcessId, Game = gameEndpoint.ToString(), Ping = pingEndpoint.ToString(),
         Arena = arena._name, Standalone = true, MaxClients = 1, DurationLimitSeconds = duration, Assets = assetList,
         MapWidth = server._assets.Level.Width, MapHeight = server._assets.Level.Height, Items = server._assets.getItems.Count,
         Vehicles = server._assets.getVehicleInfos.Count, Hulls = server._assets.getSkillInfos.Count,
-        InitialVehicles = arena.Vehicles.Count(), InitialItems = CountField(arena, "_items"), NamedArenaOverride = "NEW host routing metadata; original CFG unchanged",
+        InitialVehicles = arena.Vehicles.Count(), InitialItems = CountField(arena, "_items"), LoggedExceptionCount = Volatile.Read(ref loggedExceptionCount),
+        AssemblyHashes = assemblyHashes,
+        NamedArenaOverride = "NEW host routing metadata; original CFG unchanged",
         Limits = "No durable persistence; generic script fallback; original native playback/unspec/economy remain unverified" });
     Console.WriteLine($"NATIVE_SESSION_READY: pid={Environment.ProcessId}; game={gameEndpoint}; ping={pingEndpoint}; arena=Rogue Trader; limit={duration}s");
     var clock = Stopwatch.StartNew(); var maxClients = 0; var maxArenaPlayers = 0;
     while (clock.Elapsed.TotalSeconds < duration && !File.Exists(stopPath))
     {
         if (workerError is not null || !worker.IsAlive) throw new InvalidOperationException("Owned server worker ended unexpectedly.");
+        RequireHealthy();
         maxClients = Math.Max(maxClients, server._clients.Count);
         maxArenaPlayers = Math.Max(maxArenaPlayers, arena.TotalPlayerCount);
         // Aggregate observations only; do not record aliases, credentials, UID, chat or real user state.
@@ -91,14 +107,22 @@ static int Run(string[] args)
     server.run = false;
     responder.GetType().GetMethod("End")!.Invoke(responder, null);
     if (!worker.Join(2000)) throw new TimeoutException("Owned server thread failed to stop.");
+    RequireHealthy();
     foreach (var pair in hashes) if (Hash(Path.Combine("assets", pair.Key)) != pair.Value) throw new InvalidDataException($"Source bytes changed: {pair.Key}");
     Save("exit.json", new { ProcessId = Environment.ProcessId, ControlledExitCode = 0, BoundedSeconds = clock.Elapsed.TotalSeconds,
         StopMarkerObserved = File.Exists(stopPath), MaxClientCount = maxClients, MaxArenaPlayerCount = maxArenaPlayers,
         FinalClientCount = server._clients.Count, ArenaCount = server._arenas.Count, OriginalHashesUnchanged = true,
+        LoggedExceptionCount = Volatile.Read(ref loggedExceptionCount),
+        AssemblyHashes = assemblyHashes,
         SyntheticPlayerInputs = 0, Cleanup = "Normal bounded process exit releases both owned sockets; upstream end/rearm path deliberately not invoked",
         NativeBehaviorProof = "Client presence count alone is not proof of original gameplay" });
     Console.WriteLine("NATIVE_SESSION_EXIT: controlled=0; originals unchanged; owned process releases loopback sockets.");
     Log.close(); return 0;
+    void RequireHealthy()
+    {
+        if (Volatile.Read(ref loggedExceptionCount) != 0)
+            throw new InvalidOperationException("Bounded host logged a runtime exception; inspect owned logs.");
+    }
     void Save(string name, object value) => File.WriteAllText(Path.Combine(reportRoot, name), JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }));
 }
 static int CountField(object value, string name)

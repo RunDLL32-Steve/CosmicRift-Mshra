@@ -10,6 +10,6 @@ Implement incrementally and keep the project runnable. Preserve pure simulation/
 
 Document each meaningful source folder with purpose,accomplished work/evidence,next work/current status,and original-parity limits. New discoveries receive stable unchecked catalog/master IDs until specifically verified.
 
-Desktop testing was stopped while the user was playing another game. Do not resume desktop automation while the user is busy. Current checkpoint:394 feature entries,15 scoped completions,379 open.
+Desktop testing was stopped while the user was playing another game. Do not resume desktop automation while the user is busy. Current checkpoint:396 feature entries,18 scoped completions,378 open. October14 headless sale/capacity/routing fixes pass; native entry remains unverified.
 
 PROJECT_START.md..txt is the unchanged historical startup instruction.
