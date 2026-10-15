@@ -74,13 +74,17 @@ Current user requirements (October13,2026):
 
 Never use a Fable-class or Opus model for routine documentation. Documentation count/status edits must be followed by a mechanical consistency check of the counts across the master checklist, catalog, README, PROJECT_START, CONTINUATION and PROGRESS.
 
-### Cloud routine (unattended, PC off)
+### Cloud routines (unattended, PC off)
 
-- A cloud routine continues the queue in CONTINUATION.md from the latest `origin/main` under every rule above. It works one item per branch named `cloud/<RT-ID or slug>`, commits there and pushes only that branch; it never pushes or merges main.
-- Cloud runs lack the ignored local toolchain (`.tools/` SDKs, Godot, pinned upstream and original assets). Anything a cloud run cannot test is recorded as "not verified in cloud — local CI required" and is not marked complete. Do not fabricate results.
-- Each pushed branch carries an independent cloud reviewer's verdict in `docs/development-log/cloud/<branch>.md` (approved / pushed back with reasons). When the user's PC is back, a local review agent re-tests and merges approved branches into main under the rules above.
-- Stop and write the resume point to the branch log when a task needs desktop interaction, an authentication ticket, a user decision or a toolchain the cloud lacks.
+Two scheduled cloud routines run while the owner's PC is off: **CosmicRift overnight development** (Sonnet 5.5, 4:15/7:15/10:15 Chicago time) and **CosmicRift senior reviewer** (Opus 5.5 High, 90 minutes after each development run). Both start from the latest `origin/main` and obey every rule above.
 
+- **Branches and claims.** One item per branch named `cloud/<lowercase RT-ID>-<slug>`, one RT-ID per branch. Cloud branches are not merged overnight, so main's checkboxes lag behind: any RT-ID touched by an `origin/cloud/*` branch (name, commits, log) is claimed and must not be started again. A branch that truly depends on an unmerged cloud branch is cut from it and says so in its log. Cloud routines push only their own `cloud/*` branch and never push or merge main.
+- **Branch log.** `docs/development-log/cloud/<branch with / replaced by ->.md`. Its first line is `Review status: UNREVIEWED | READY FOR RE-REVIEW | CHANGES REQUESTED | APPROVED | NEEDS HUMAN`; it also records scope and acceptance criteria, RT-IDs claimed, files touched, status (done/wip/blocked), verified and unverified results with numbers, and the resume point.
+- **Review loop.** The author never reviews or approves its own work. The senior reviewer reviews pending branches (no status yet, or READY FOR RE-REVIEW) against scope and acceptance criteria, runs what it can, and writes a detailed `## Review round N (senior review)` section in the log plus a commit whose subject is `REVIEW round N: APPROVED|CHANGES REQUESTED` and whose body repeats every finding (empty commit if nothing else changed). Findings carry file:line, severity (blocker/major/minor/nit), evidence and the expected fix. The reviewer never fixes the author's code. APPROVED requires no blockers or majors and a match to scope.
+- **Rework.** The next development run takes the oldest CHANGES REQUESTED branch before any new item, fixes every blocker and major on that same branch, answers each finding in a `## Rework after round N` log section (fixed with commit / disputed with reasoning / cannot fix and why), sets READY FOR RE-REVIEW and pushes. The senior reviewer re-reviews. After round 3 with blockers open the status becomes NEEDS HUMAN.
+- **Merging.** Only APPROVED branches are merged into main, by a local review agent after the owner's PC is back and the relevant tests are re-run locally (stacked branches in order).
+- **Verification limits.** Cloud runs lack the ignored local toolchain (`.tools/` SDKs, Godot, pinned upstream and original assets). Anything a cloud run cannot test is recorded as "not verified in cloud - local CI required" and never marked complete; results are never fabricated.
+- **Stop conditions.** Stop and write the resume point to the branch log when a task needs desktop interaction, an authentication ticket, a user decision or a toolchain the cloud lacks.
 
 ## Current documentation checkpoint — October 13, 2026
 
