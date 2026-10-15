@@ -4,6 +4,10 @@
 
 - Add `shared/RogueTrader.OriginalData`: raw CSV record reader (every field by index, source file, 1-based row, version token), SHA-256/length guard for RPG/Rogue.rpg, VEH/Rogue.veh and ITM/Rogue_mp.itm, and a loader that links the twelve RPG hull rows to VEH Car rows by vehicle id. Typed accessors return raw unscaled values with their field index; negative values are flagged, never replaced; all sixteen terrain speed blocks stay available.
 - 40 new unit tests (81 total) assert the RT-F001-RT-F012 catalog values; assets are located from the environment, repository or git and tests are reported as skipped if absent. Originals unchanged. No hull checkbox ticked: native selection, loadout and movement remain unverified.
+## Persistence and transaction core — October 15, 2026
+
+- Add `server/RogueTrader.Persistence`: immutable player profile, in-memory and isolated file repositories (atomic temp-and-replace write, previous-generation backup, SHA-256 checksum envelope, quarantine instead of deletion, versioned schema with migration hook, single-owner lock) and an idempotent, per-profile serialized, revision-checked transaction processor (buy, sell, buy upgrade, grant reward) with typed rejection reasons.
+- 108 new unit tests cover the master 20.2 economy bullets, concurrent double-spend, crash recovery and corruption handling (149/149 total). The layer is data-agnostic and not wired into gameplay; no original-parity feature or master M2 box is checked.
 
 ## Native runtime safeguards — October 14, 2026
 
