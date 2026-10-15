@@ -1,4 +1,4 @@
-Review status: APPROVED (PR #4 review round 2, senior review 5540408303 on head 3f73342; label review-approved)
+Review status: CHANGES REQUESTED (merge gate: conflicts with main in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md after PR #3 merged; code review round 2 on PR #4 was APPROVED; label review-changes-requested)
 
 # cloud/rt-f036-f037-g5-weapon-records
 
