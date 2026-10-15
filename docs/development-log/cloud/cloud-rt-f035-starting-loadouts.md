@@ -1,4 +1,4 @@
-Review status: APPROVED (PR #11 review round 1, senior review 5540408596 on head 4193265; label review-approved)
+Review status: CHANGES REQUESTED (merge gate: conflicts with main in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md after PR #3 merged; code review round 1 on PR #11 was APPROVED; label review-changes-requested)
 
 # cloud/rt-f035-starting-loadouts
 
