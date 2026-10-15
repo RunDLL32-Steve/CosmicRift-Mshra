@@ -10,6 +10,10 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - `OriginalHull`: name, skill id, vehicle id, category, complete raw RPG and VEH records, and raw typed values with field indexes: hull points f[6], weight f[7], cargo f[47..48], energy f[94..96], all sixteen speed blocks f[202..361] (ten fields each), bounce f[362], hyper energy cost f[373]. No units, scaling or interpretation are applied; negative values are flagged `IsNegativeSentinel` and returned as-is.
 - Tests: [tests/Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md).
 
+## Per-item entries
+
+Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
+
 ## Outstanding
 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
