@@ -24,6 +24,9 @@ public static class VehFields
     public const int HullPoints = 6;
     /// <summary>f[7]: Weight (10000 for all twelve). Index inferred from the pinned parser order (Name f[3], logic f[4], description f[5], Hitpoints f[6], Weight f[7]) and the documented Asp value; units unvalidated.</summary>
     public const int Weight = 7;
+    /// <summary>Catalog DropItemId / DropQuantity (raw): item id and count dropped on death (RT-F043).</summary>
+    public const int DropItemId = 68;
+    public const int DropQuantity = 69;
     public const int NormalWeight = 47;
     public const int StopWeight = 48;
     /// <summary>f[94..96] EnergyMax, EnergyRate, EnergyMin: positions located by the documented Asp values 1700/1050/1700 and the active parser's field order.</summary>
@@ -90,6 +93,8 @@ public sealed class OriginalHull
 
         HullPoints = veh.Int(VehFields.HullPoints);
         Weight = veh.Int(VehFields.Weight);
+        DropItemId = veh.Int(VehFields.DropItemId);
+        DropQuantity = veh.Int(VehFields.DropQuantity);
         NormalWeight = veh.Int(VehFields.NormalWeight);
         StopWeight = veh.Int(VehFields.StopWeight);
         EnergyMax = veh.Int(VehFields.EnergyMax);
@@ -124,6 +129,10 @@ public sealed class OriginalHull
     public OriginalInt HullPoints { get; }
     /// <summary>VEH f[7].</summary>
     public OriginalInt Weight { get; }
+    /// <summary>VEH f[68] (raw item id dropped on death; resolved against the ITM catalog by the caller).</summary>
+    public OriginalInt DropItemId { get; }
+    /// <summary>VEH f[69] (raw count; carried-vs-produced wreck quantities are unresolved).</summary>
+    public OriginalInt DropQuantity { get; }
     /// <summary>VEH f[47] (cargo normal weight threshold, raw).</summary>
     public OriginalInt NormalWeight { get; }
     /// <summary>VEH f[48] (cargo stop weight threshold, raw).</summary>
