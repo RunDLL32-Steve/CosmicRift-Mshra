@@ -49,6 +49,7 @@ try {
     if (Test-Path -LiteralPath $report) { Remove-Item -LiteralPath $report }
     $arguments = @($runner,$repoRoot,$report,$Mode) | ForEach-Object { '"' + $_ + '"' }
     $process = Start-Process -FilePath $dotnetExe -ArgumentList $arguments -WorkingDirectory $taskRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskRoot "$Mode.stdout.log") -RedirectStandardError (Join-Path $taskRoot "$Mode.stderr.log") -PassThru
+    $null = $process.Handle  # PS 5.1: cache the handle so ExitCode is populated after WaitForExit
     if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Owned delivery checks exceeded 30 seconds and were stopped.' }
     $process.Refresh()
     Get-Content -LiteralPath (Join-Path $taskRoot "$Mode.stdout.log") -Tail 8

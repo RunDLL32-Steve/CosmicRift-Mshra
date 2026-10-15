@@ -22,6 +22,7 @@ try {
     }
     $reportPath = Join-Path $compatRoot 'reports/local-server-probe.json'
     $ownedProcess = Start-Process -FilePath $dotnetExe -ArgumentList @($probeDll, $reportPath) -WorkingDirectory (Join-Path $compatRoot 'working-zones/rogue-pristine') -WindowStyle Hidden -RedirectStandardOutput (Join-Path $compatRoot 'logs/server-probe.stdout.log') -RedirectStandardError (Join-Path $compatRoot 'logs/server-probe.stderr.log') -PassThru
+    $null = $ownedProcess.Handle  # PS 5.1: cache the handle so ExitCode is populated after WaitForExit
     if (-not $ownedProcess.WaitForExit(30000)) {
         $ownedProcess.Kill()
         throw 'Owned compatibility probe exceeded 30 seconds and was stopped.'

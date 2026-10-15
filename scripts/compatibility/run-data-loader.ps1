@@ -18,6 +18,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Loader build failed; see data-loader-build.log.' }
     }
     $ownedProcess = Start-Process -FilePath $dotnetExe -ArgumentList @($runnerDll, (Join-Path $compatRoot 'working-zones/rogue-pristine/assets'), (Join-Path $compatRoot 'reports'), (Join-Path $compatRoot 'server-working')) -WorkingDirectory $compatRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $compatRoot 'logs/data-loader.stdout.log') -RedirectStandardError (Join-Path $compatRoot 'logs/data-loader.stderr.log') -PassThru
+    $null = $ownedProcess.Handle  # PS 5.1: cache the handle so ExitCode is populated after WaitForExit
     if (-not $ownedProcess.WaitForExit(30000)) { $ownedProcess.Kill(); throw 'Owned parser exceeded 30 seconds and was stopped.' }
     $ownedProcess.Refresh()
     Write-Output "DataLoaderPid=$($ownedProcess.Id); ControlledExitCode=$($ownedProcess.ExitCode)"

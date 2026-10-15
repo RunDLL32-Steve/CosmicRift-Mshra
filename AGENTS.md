@@ -51,6 +51,19 @@ Current user requirements (October13,2026):
 - At a usage/checkpoint stop, commit owned issue work on its branch first, then record the commit, verified results, incomplete reviews and the exact resume point. Preservation commits never imply completed verification.
 - Pushes only to feature branches and only where the user has authorized it (the cloud routine below); never push main without the user. No desktop/GUI interaction without the user present.
 
+### Test selection and marking off work
+
+- **Run only the checks that apply to what changed.** Do not run login/native-delivery checks for a weapon change or flight tests for a shop fix. Map the change to its checks:
+  - `shared/`, `server/RogueTrader.*`, `tests/Unit` -> `dotnet test tests/Unit` only (plus the Godot smoke in `verify.ps1` only if `client/` or the simulation/physics shared with the client changed).
+  - `client/` -> `scripts/verify.ps1` (build, unit tests, Godot import and smoke).
+  - `scripts/compatibility/patches/shop-*`, null-script capacity, radar routing, `RuntimeChecks/` -> `prepare-derived-source.ps1` then `run-runtime-checks.ps1 -Build`.
+  - `patches/packet-length.ps1`, `NativeDeliveryChecks/`, asset packet code -> `run-native-delivery-checks.ps1 -Mode fixed`.
+  - `scripts/compatibility/*native-start*` -> `python scripts/compatibility/test-native-start.py`.
+  - Markdown only -> `python scripts/check-trackers.py` and nothing else.
+  Run the full set only for a cross-cutting change (shared build props, solution layout, the derived-source pipeline itself) or before a release. Report which checks were skipped and why.
+- **Mark off finished work in the same branch that finishes it**, so nobody repeats it: tick the item in `docs/original-research/FEATURE_MASTER_CHECKLIST.md` and `ROGUE_TRADER_2_PLAN.md` section 18, set the catalog row, update the folder `IMPLEMENTATION_PLAN.md` line and `CONTINUATION.md` "Next", and move every status count together. Only tick with verified acceptance evidence; leave anything unverified open and say so. `python scripts/check-trackers.py` must print `TRACKERS_CONSISTENT` before a branch is reviewed or merged, and the reviewer re-runs it.
+- Judge compatibility-wrapper results by their exit code; since the PS 5.1 handle fix a blank or non-zero exit is a real failure. The JSON report (`Accepted`) remains the evidence of record.
+
 ### Model and effort matrix
 
 | Task | Model | Effort |

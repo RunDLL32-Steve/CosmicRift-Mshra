@@ -38,6 +38,7 @@ try {
     }
     $report = Join-Path $compatRoot 'reports/original-arena-probe.json'
     $process = Start-Process -FilePath $dotnetExe -ArgumentList @($probeDll, $report) -WorkingDirectory $zoneRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $compatRoot 'logs/arena-probe.stdout.log') -RedirectStandardError (Join-Path $compatRoot 'logs/arena-probe.stderr.log') -PassThru
+    $null = $process.Handle  # PS 5.1: cache the handle so ExitCode is populated after WaitForExit
     if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Owned arena probe exceeded 30 seconds and was stopped.' }
     $process.Refresh()
     [pscustomobject]@{Utc=[DateTime]::UtcNow.ToString('O'); ProcessId=$process.Id; ControlledExitCode=$process.ExitCode; ReportExists=($process.ExitCode -eq 0 -and (Test-Path -LiteralPath $report)); NoBeginOrPollCalls=$true; NoRealClient=$true} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $compatRoot 'reports/original-arena-probe-result.json') -Encoding utf8

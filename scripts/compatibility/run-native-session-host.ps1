@@ -75,6 +75,7 @@ try {
             if (Test-Path -LiteralPath $stale) { Remove-Item -LiteralPath $stale }
         }
         $owned = Start-Process -FilePath $dotnetExe -ArgumentList @($probeDll, $reportRoot, $stopPath, $DurationSeconds) -WorkingDirectory $zoneRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $logRoot 'host.stdout.log') -RedirectStandardError (Join-Path $logRoot 'host.stderr.log') -PassThru
+        $null = $owned.Handle  # PS 5.1: cache the handle so ExitCode is populated after WaitForExit
         $deadline = [DateTime]::UtcNow.AddSeconds(20)
         while (-not (Test-Path -LiteralPath (Join-Path $reportRoot 'ready.json')) -and -not $owned.HasExited -and [DateTime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 200; $owned.Refresh() }
         if ($owned.HasExited) { Get-Content -LiteralPath (Join-Path $logRoot 'host.stderr.log') -Tail 12; throw "Controlled session startup exit $($owned.ExitCode)." }
