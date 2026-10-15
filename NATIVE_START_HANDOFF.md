@@ -1,6 +1,6 @@
 # Native Start/profile handoff — October 14, 2026
 
-Issue branch: `codex/native-start-profile`, based on `626a09f`. Worktree: `C:\Repos\CosmicRift\.tools\issue-worktrees\native-start-profile`. Implementation/testing stopped at the user's usage checkpoint. Root review, local commit, user native test and user merge are pending. No GUI interaction is authorized for continuation. The user's later local-commit authorization was acted on once: `git add` failed creating `C:/Repos/CosmicRift/.git/worktrees/native-start-profile/index.lock` with permission denied. No retry or commit occurred; root must commit the five owned files after resolving Git metadata access. No push/merge.
+Issue branch: `codex/native-start-profile`, based on `626a09f`. Worktree: `C:\Repos\CosmicRift\.tools\issue-worktrees\native-start-profile`. Diagnostic/WIP source committed by root as `26d3226` after the agent's Git metadata permission failure. Implementation/testing stopped at the user's usage checkpoint. Root's full technical acceptance review, user native test and user merge remain pending; this commit is not an accepted Start fix. No further GUI interaction, push or automatic merge is authorized.
 
 ## Current source state
 
@@ -32,4 +32,4 @@ The report writer refuses to overwrite that existing report. Earlier exploratory
 
 ## Resume step
 
-Root first reviews the two actual Python files and this evidence, including diagnostic error/output guards and the distinction between static checks and readiness. Do not resume coding, checks or native interaction merely because this handoff exists. After the user resumes, obtain their decision on any further work; root review/local commit remain pending. The user owns real native testing and merging. A later user test should use a fresh approved private profile, the canonical executable name and its containing directory as launch working directory; explicitly click visible Start rather than assuming Enter activates it, and record the actual next window/message. Do not supply fabricated auth arguments or modify authentication to get past a prompt.
+Root first completes technical review of the two committed Python files and this evidence, including diagnostic error/output guards and the distinction between static checks and readiness. Do not resume coding, checks or native interaction merely because this handoff exists. The user owns real native testing and merging. A later user test should use a fresh approved private profile, the canonical executable name and its containing directory as launch working directory; explicitly click visible Start rather than assuming Enter activates it, and record the actual next window/message. Do not supply fabricated auth arguments or modify authentication to get past a prompt.
