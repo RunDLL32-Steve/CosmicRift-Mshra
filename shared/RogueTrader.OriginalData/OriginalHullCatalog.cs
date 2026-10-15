@@ -5,7 +5,7 @@ namespace RogueTrader.OriginalData;
 /// <summary>
 /// Loads the twelve original selectable hulls from RPG/Rogue.rpg and VEH/Rogue.veh.
 /// <para>
-/// Hull rows: every RPG record with version token <c>v6</c> and f[2] == "1". A record that is not v6 is an error.
+/// Hull rows: every RPG record with version token <c>v6</c> and f[2] == "1" (an inferred marker: the pinned parser calls f[2] Price; all 12 file rows have it). A record that is not v6 is an error.
 /// </para>
 /// <para>
 /// VEH matching rule: the RPG vehicle id (f[3]) is compared with VEH f[2]. The VEH record is the single row whose

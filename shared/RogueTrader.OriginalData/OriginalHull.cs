@@ -5,23 +5,24 @@ public static class RpgFields
 {
     /// <summary>f[1]: the skill id (Asp = 2). Identified in FIELD_INTERPRETATION.md ("selected skill 2").</summary>
     public const int SkillId = 1;
-    /// <summary>f[2]: record type token (catalog: "type 1"). Rows with a different value are not hull rows.</summary>
+    /// <summary>f[2]: the pinned active parser names this field Price (value 1 in all twelve rows). Used here only as the hull-row marker (f[2] == "1"), an inferred rule: its native meaning is not established.</summary>
     public const int RecordType = 2;
-    /// <summary>f[3]: the vehicle id that links to the VEH record (Asp = 2002).</summary>
+    /// <summary>f[3]: the default vehicle id (pinned parser: DefaultVehicleId; FIELD_INTERPRETATION: selected skill 2 to vehicle 2002), linked to VEH f[2].</summary>
     public const int VehicleId = 3;
-    /// <summary>f[39]: first quoted string, the hull name. Position read from the file contents.</summary>
+    /// <summary>f[39]: the hull name. Inferred: position located in the file contents and the pinned parser field order (Name follows CashAdjustment); not stated in FIELD_INTERPRETATION.md.</summary>
     public const int Name = 39;
-    /// <summary>f[40]: second quoted string, the category text such as "Ship Hull - Terran".</summary>
+    /// <summary>f[40]: category text such as "Ship Hull - Terran". Inferred like <see cref="Name"/> (pinned parser: Category follows Name).</summary>
     public const int Category = 40;
 }
 
-/// <summary>Field indexes in a VEH/Rogue.veh v53 Car record whose meaning is confirmed in docs/original-research/FIELD_INTERPRETATION.md.</summary>
+/// <summary>Field indexes in a VEH/Rogue.veh v53 Car record. Each index is documented in docs/original-research/FIELD_INTERPRETATION.md or FEATURE_CATALOG.md, or is marked inferred (Weight f[7], Energy f[94..96]) from the pinned parser order and the documented Asp values.</summary>
 public static class VehFields
 {
     public const int RecordType = 0;
     public const int VehicleId = 2;
     public const int Name = 3;
     public const int HullPoints = 6;
+    /// <summary>f[7]: Weight (10000 for all twelve). Index inferred from the pinned parser order (Name f[3], logic f[4], description f[5], Hitpoints f[6], Weight f[7]) and the documented Asp value; units unvalidated.</summary>
     public const int Weight = 7;
     public const int NormalWeight = 47;
     public const int StopWeight = 48;
