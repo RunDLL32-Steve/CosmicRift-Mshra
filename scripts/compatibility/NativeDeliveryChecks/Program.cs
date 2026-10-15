@@ -71,7 +71,7 @@ try
             Sha256 = Hash(restored), Crc32 = Crc32(restored), Trailer = trailer });
     }
     var ready = ReadyChecks.Run(assets);
-    var boundaries = CheckBoundaries(args[2]);
+    var boundaries = PacketLengthChecks.Run(args[2]);
     Require(args[2] != "baseline" || metadataDifferences.Count > 0, "Baseline did not reproduce canonical packet length discrepancies.");
     foreach (var file in files) VerifySource(file);
     string sourceRoot = Path.Combine(repo, ".tools", "compatibility", "server-working", "dotnetcore");
@@ -79,22 +79,23 @@ try
     {
         SchemaVersion = 1, Mode = args[2], Accepted = true, CanonicalFileCount = files.Length, Files = results, ReadyChecks = ready,
         BoundaryChecks = boundaries, LengthMetadataMismatchFiles = metadataDifferences,
-        LengthInvariantPassed = metadataDifferences.Count == 0 && args[2] == "fixed",
-        ExpectedBaselineLengthFailures = args[2] == "baseline" ? metadataDifferences.Concat(new[] { "NEW-boundary-65536", "NEW-boundary-65537" }).ToArray() : [],
+        LengthInvariantPassed = metadataDifferences.Count == 0 && boundaries.DesiredInvariantFailures.Length == 0,
+        ExpectedBaselineLengthFailures = args[2] == "baseline" ? metadataDifferences.Concat(boundaries.DesiredInvariantFailures).ToArray() : [],
         CanonicalCommit = "eb1514eaae7f9b9425307d9cc043c74ecdd15e35", InventorySha256 = Hash(File.ReadAllBytes(inventoryPath)),
         SourceHashes = new Dictionary<string, string>
         {
             ["Cache"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "ZoneServer", "Game", "Assets", "AssetManager.Cache.cs"))),
             ["AssetUpdate"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "ZoneServer", "Protocol", "Packets", "Login", "SC_AssetUpdate.cs"))),
             ["Ready"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "ZoneServer", "Logic", "Packets", "Login", "Login.cs"))),
-            ["PacketBase"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "Network", "Network", "PacketBase.cs")))
+            ["PacketBase"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "Network", "Network", "PacketBase.cs"))),
+            ["Client"] = Hash(File.ReadAllBytes(Path.Combine(sourceRoot, "Network", "Network", "Client.cs")))
         },
         AssemblyHashes = new { Runner = Hash(File.ReadAllBytes(typeof(ExpectedAsset).Assembly.Location)),
             Server = Hash(File.ReadAllBytes(typeof(ZoneServer).Assembly.Location)), Network = Hash(File.ReadAllBytes(typeof(PacketBase).Assembly.Location)),
             Assets = Hash(File.ReadAllBytes(typeof(Assets.CRC32).Assembly.Location)) },
         NativeDeliveryVerified = false, NativeReadyHandshakeVerified = false, OriginalsUnchanged = true,
         SocketBeginCalls = 0, PollCalls = 0, TransportSendCalls = 0, PhysicsTicks = 0, NativeClients = 0,
-        Scope = "Real cache/packet serialization and inert actual ready handler only. Packet length metadata discrepancies are recorded, not repaired. No transport fragmentation/reassembly, receiver, authentication, native rendering or original gameplay acceptance."
+        Scope = "Real cache/packet serialization, two byte-array write overloads, actual inert reliable queue selection and ready handler. No transport fragmentation/reassembly, receiver, authentication, native rendering or original gameplay acceptance."
     };
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
     File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
@@ -125,22 +126,6 @@ static byte[] DecodePacket(byte[] data, string name, int expectedLength)
     }
     Require(output.Length == expectedLength, "Decompressed size differs.");
     return output.ToArray();
-}
-
-static object[] CheckBoundaries(string mode)
-{
-    // NEW/provisional synthetic byte-array sizes isolate the historical ushort
-    // length accounting. These are test boundaries, never game tuning/data.
-    return new[] { 65535, 65536, 65537 }.Select(length =>
-    {
-        var packet = new SC_AssetUpdate { filename = "NEW-boundary.bin", uncompressedLen = length, compressedData = new byte[length] };
-        packet.MakeSerialized(null!, null!);
-        Require(packet.Data.Length == 74 + length, "Byte-array boundary lost serialized bytes.");
-        Require(packet.Length == (mode == "baseline" ? 74 + (ushort)length : packet.Data.Length), "Unexpected synthetic boundary length accounting.");
-        // Record observed metadata; do not encode its current defect as success.
-        return (object)new { Fixture = "NEW/provisional byte array; intentionally not zlib", PayloadLength = length,
-            SerializedLength = packet.Data.Length, ReportedPacketLength = packet.Length, LengthMetadataMatches = packet.Length == packet.Data.Length };
-    }).ToArray();
 }
 
 static void VerifySource(ExpectedAsset file)

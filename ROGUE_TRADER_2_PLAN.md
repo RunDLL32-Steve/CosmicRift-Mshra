@@ -1150,6 +1150,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 ### Original feature registry — October 14 checkpoint
 
 396 entries;18 scoped completions,378 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
+395 entries;16 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
 - [ ] RT-F001 - [Asp](docs/original-research/FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](docs/original-research/FEATURE_CATALOG.md#rt-f002)
@@ -1550,6 +1551,9 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
 
 October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. RT-F396 buying safety, RT-F389 store eligibility, native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
+- [x] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
+
+RT-F397 issue branch: both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. This branch has395 actual catalog entries; IDs395/396 belong to separate pending issue work and are not entries here. Native asset reception and ready handshake remain unverified. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
 
 ## MILESTONE 2 — Rogue Trader core gameplay
 

@@ -7,6 +7,9 @@
 - Correct bounded-host radar configuration; reject invalid divisors and logged runtime exceptions. Share fresh configuration generation and compile before execution to prevent stale verification.
 - Verify 35 actual-handler checks against 16 reproduced baseline failures, plus invalid-config rejection and a 10-second full-asset host with zero exceptions. Canonical/upstream files remain unchanged.
 - Catalog purchase overflow/fulfillment/cash-ordering separately as open RT-F396. Native entry, store eligibility, durable progression and full original gameplay remain unverified.
+## RT-F397 isolated issue branch — October 14, 2026
+
+- Prepare a derived-only correction for full int length accounting in both outgoing byte-array writers, preserving serialized bytes and received-packet parsing. Add canonical cache/packet checks and60 whole/indexed boundary/queue fixtures. Root baseline exposed29 canonical length discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed passes all46 canonical packets/60 fixtures with unchanged wire bytes and originals; native receiver delivery is unverified.
 
 ## Original package and native-route verification — October 13, 2026
 

@@ -1,5 +1,7 @@
 # Project startup
 
+Current issue branch: `codex/rt-f397-packet-length`, based on626a09f, adds only RT-F397. No desktop use; user tests and merges fixes. Actual branch catalog has395 entries, with IDs395/396 absent because their issue branches are pending. Follow [issue evidence](docs/development-log/2026-10-14-rt-f397.md).
+
 Read the complete ROGUE_TRADER_2_PLAN.md first; it is the master authority. Then read AGENTS.md, CONTINUATION.md and the affected folder implementation plan.
 
 The target is exact original Cosmic Rift Rogue Trader reproduction using unchanged fowlmouth assets at the pinned manifest commit. Original names, values, categories, pixels and files take precedence over provisional proposals. Keep derived runtime/working outputs separate.
@@ -11,5 +13,6 @@ Implement incrementally and keep the project runnable. Preserve pure simulation/
 Document each meaningful source folder with purpose,accomplished work/evidence,next work/current status,and original-parity limits. New discoveries receive stable unchecked catalog/master IDs until specifically verified.
 
 Desktop testing was stopped while the user was playing another game. Do not resume desktop automation while the user is busy. Current checkpoint:396 feature entries,18 scoped completions,378 open. October14 headless sale/capacity/routing fixes pass; native entry remains unverified.
+Desktop testing was stopped while the user was playing another game. Do not resume desktop automation while the user is busy. Current checkpoint:395 feature entries,16 scoped completions,379 open.
 
 PROJECT_START.md..txt is the unchanged historical startup instruction.

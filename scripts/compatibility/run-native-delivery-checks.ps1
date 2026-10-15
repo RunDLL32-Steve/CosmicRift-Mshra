@@ -15,6 +15,22 @@ if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream files changed.' }
 foreach ($patch in $manifest.Patches) {
     if ((Get-FileHash -LiteralPath (Join-Path $compatRoot $patch.Path) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $patch.DerivedSha256) { throw "Derived source provenance mismatch: $($patch.Path)" }
 }
+$packetRelative = 'dotnetcore/Network/Network/PacketBase.cs'
+$originalPacket = Join-Path $reference $packetRelative
+$derivedPacket = Join-Path $compatRoot "server-working/$packetRelative"
+$originalPacketHash = (Get-FileHash -LiteralPath $originalPacket -Algorithm SHA256).Hash.ToLowerInvariant()
+$derivedPacketHash = (Get-FileHash -LiteralPath $derivedPacket -Algorithm SHA256).Hash.ToLowerInvariant()
+$packetEntries = @($manifest.Patches | Where-Object Path -eq "server-working/$packetRelative")
+if ($Mode -eq 'baseline') {
+    if ($derivedPacketHash -ne $originalPacketHash -or $packetEntries.Count -ne 0) { throw 'Baseline requires pristine original PacketBase and no applied PacketBase transform.' }
+} else {
+    if ($packetEntries.Count -ne 1 -or $packetEntries[0].OriginalPath -ne $packetRelative -or
+        $packetEntries[0].OriginalSha256 -ne $originalPacketHash -or $packetEntries[0].DerivedSha256 -ne $derivedPacketHash -or
+        $originalPacketHash -eq $derivedPacketHash) { throw 'Fixed requires exactly one original/derived PacketBase provenance entry.' }
+    . (Join-Path $PSScriptRoot 'patches/packet-length.ps1')
+    $expectedPacket = & $packetLengthTransform ([IO.File]::ReadAllText($originalPacket))
+    if ([IO.File]::ReadAllText($derivedPacket) -cne $expectedPacket) { throw 'Fixed PacketBase must match only the reviewed two-site transform.' }
+}
 $env:DOTNET_ROOT = Split-Path $dotnetExe -Parent
 $env:DOTNET_ROOT_X64 = $env:DOTNET_ROOT
 $env:DOTNET_CLI_HOME = Join-Path $compatRoot 'dotnet-home'

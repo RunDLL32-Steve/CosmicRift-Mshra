@@ -64,5 +64,8 @@ Write-DerivedPatch 'dotnetcore/ZoneServer/Game/Arena/ScriptArena.cs' 'RT-F388/RT
     & $nullScriptCapacityTransform $text
 }
 
+. (Join-Path $PSScriptRoot 'patches/packet-length.ps1')
+Write-DerivedPatch 'dotnetcore/Network/Network/PacketBase.cs' 'RT-F397: retain full int accounting for both outgoing byte-array overloads; serialized bytes and receive constructor unchanged.' $packetLengthTransform
+
 $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding utf8
-Write-Output 'Derived-only loopback/offline, VehicleMaker field18, sale validation and null-script capacity patches recorded with original and working SHA-256.'
+Write-Output 'Derived-only compatibility, VehicleMaker field18, shop/null-script and RT-F397 outgoing packet length patches recorded with original and working SHA-256.'
