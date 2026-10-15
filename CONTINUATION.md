@@ -19,12 +19,12 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 ## Next
 
 - RT-F001-RT-F012 raw hull catalog: `shared/RogueTrader.OriginalData` (branch feat/original-hull-catalog) loads the 12 RPG hulls linked to VEH rows with a SHA-256 guard; 81 unit tests (41 existing + 40 new). Hull boxes stay open: next is native ship choice/loadout/movement and interpreting units, energy and cargo before any value is applied.
-- RT-F397 narrow acceptance complete and merged to main (a7d4f7b): root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
+- RT-F397 narrow acceptance complete and merged to main (8b34c38): root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
 
 - [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
 - [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
 - [ ] Investigated:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 — all four genuinely absent/unknown. Findings: docs/original-research/MISSING_REFERENCES_FINDINGS.md.
-- [x] RT-F396 (merged to main, 804fc87): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
+- [x] RT-F396 (merged to main, ff3397d): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
 - [x] RT-F389 packet-shop location gate (branch fix/rt-f389-store-proximity): derived canUseStore applies the original /buy,/sell rule (StoreEnabled terrain, or spectator with SpectatorStore); 11 Store.* checks, 61/61 fixed, 8 fail pre-patch. Not covered: skill shop (terrain skillEnabled), durable transactions, production shutdown, native store UI.
 - [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
 - [ ] Not started:add persistent progression;standalone does not save.

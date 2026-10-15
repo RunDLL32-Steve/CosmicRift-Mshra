@@ -48,9 +48,24 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 | M8 | Client integration: HUD for cargo/currency, station UI, save/load flow in the Godot client | client | local (Godot) | M1, M2, M4, M5 | OPEN |
 | M9 | Persisted progression across exit/relaunch acceptance test (M2 acceptance criteria) | tests/Integration | local | M1..M8 | OPEN |
 
-## C. Later (not yet orderable)
+## C. Additional cloud-ready work (plan Milestones 2-4 groundwork; take only after every earlier cloud-eligible row is claimed, merged or blocked)
 
-Milestone 3 dedicated multiplayer (shared/RogueTrader.Protocol, authoritative server, prediction), Milestone 4 universe, sectors, bounty/reputation. Queue them after M9.
+These advance later plan milestones with code and tests that need no desktop, Godot or ignored local toolchain. They keep a long unattended session busy. Stacking on an approved or same-run dependency is allowed (see AGENTS.md "Cloud routines").
+
+| ID | Task | Where | Run | Depends on | Status |
+|---|---|---|---|---|---|
+| C1 | Original BLO archive directory/member reader (89 archives, 1,262 members, hash guard, raw bytes preserved; no pixel interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | OPEN |
+| C2 | Original CFG reader: raw-preserving sections/keys including the 16 terrain blocks and Rogue arena settings (no interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | OPEN |
+| C3 | Deterministic simulation replay harness: record inputs per tick, replay, state-hash equality tests (plan 20.1) | server/RogueTrader.Simulation + tests | cloud | - | OPEN |
+| C4 | Simulation tick performance benchmark harness (Stopwatch based, no new packages; plan 20.4 targets as documented thresholds, results recorded not asserted) | tests/LoadTests | cloud | C3 | OPEN |
+| C5 | Network protocol messages and binary serialization (input, snapshot, transaction request/response) with round-trip, truncation and fuzz tests (plan 13) | shared/RogueTrader.Protocol | cloud | - | OPEN |
+| C6 | Authoritative server tick loop and input queue, headless (plan 13.2, no sockets yet) | server/RogueTrader.Server | cloud | C3, C5 | OPEN |
+| C7 | Client prediction and reconciliation as a pure library with simulated latency/loss tests (plan 13.3) | shared + tests | cloud | C5, C6 | OPEN |
+| C8 | Anti-cheat input validation layer: speed/rate/teleport sanity (plan 13.5) | server/RogueTrader.Server | cloud | C5 | OPEN |
+| C9 | Bounty and reputation rules engine (plan 10), data-driven, persisted through the transaction core | server | cloud | M1 merged | OPEN |
+| C10 | Sector transition model and recoverable transfer protocol (plan 11.3 and 14.1) | server/RogueTrader.Persistence + Simulation | cloud | M1 merged | OPEN |
+
+Caveat for asset-dependent rows (G3-G5, G7, C1, C2): the pinned asset repo stores some files with Git LFS. If a shallow clone yields LFS pointer files, run `git lfs pull` if available; otherwise the asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required" so the owner's local session re-runs them.
 
 Gap: plan section 18 gate item "Decode original assets ... preserve their original appearance/behavior" (RT-F023, RT-F025) has no row. G6 covers only map and collision. Add a G row when that work is scoped; do not infer one here.
 
