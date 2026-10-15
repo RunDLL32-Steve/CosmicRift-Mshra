@@ -8,7 +8,7 @@ Reviewed October 13, 2026; documentation/source/evidence inspection only. Master
 |---|---|---|
 | [Simulation](RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) | Complete provisional .NET 8 fixed-60-Hz flight/combat; historical 41-case acceptance. | Investigating original units/physics/evaluators; original gameplay remains open. |
 | [Server](RogueTrader.Server/IMPLEMENTATION_PLAN.md) | Reserved plan; no dedicated source service here. | Investigating selected engine route and native entry. |
-| [Persistence](RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) | .NET 8 persistence/transaction core (file + in-memory repositories, idempotent CAS transaction processor); 108 unit cases pass; not wired into gameplay. | Original retention policy and actual durable progression. |
+| [Persistence](RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) | .NET 8 persistence/transaction core (file + in-memory repositories, idempotent CAS transaction processor); 129 unit cases pass; not wired into gameplay. | Original retention policy and actual durable progression. |
 | [AI](RogueTrader.AI/IMPLEMENTATION_PLAN.md) | Reserved plan; stationary prototype targets have no AI. | Validate original actor/controllers through selected engine. |
 
 Separate ignored InfantryOnline compatibility source/harnesses now pass parser, package audit, original arena initialization and bounded full-asset loopback hosting: RT-F381/F382/F383/F385/F392/F394. See [runtime plan](../docs/architecture/ROGUE_RUNTIME_PLAN.md), [package audit](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) and [native plan](../docs/architecture/NATIVE_CLIENT_PLAN.md). These do not implement production services in the reserved folders.

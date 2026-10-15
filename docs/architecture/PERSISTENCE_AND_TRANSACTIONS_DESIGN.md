@@ -15,7 +15,7 @@ public sealed record PlayerProfile
 {
     public const int CurrentSchemaVersion = 1;
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;   // must equal CurrentSchemaVersion in memory
-    public required string ProfileId { get; init; }                   // ^[A-Za-z0-9_-]{1,64}$ (used in file names)
+    public required string ProfileId { get; init; }                   // ^[A-Za-z0-9_-]{1,64}$, not a Windows device name (used in file names)
     public long Revision { get; init; }                               // 0 at creation; +1 per committed save
     public long Wallet { get; init; }                                 // >= 0
     public ImmutableSortedDictionary<string, int> Inventory { get; init; } // Ordinal comparer; every value > 0; no zero entries
@@ -189,5 +189,15 @@ Implemented in `server/RogueTrader.Persistence` with tests in `tests/Unit/Persis
 7. **`ProfileSaveResult.StoredRevision`** is the saved revision on success, otherwise the repository's tracked revision or -1 when none is tracked. `TransactionResult.Revision` is -1 (and `WalletAfter` 0) for rejections issued before the profile state is known (shape, identity, not open).
 8. **Transaction pipeline detail:** `ProfileNotOpen` is also re-checked under the lock (another caller may have set `NeedsReload` while waiting). A failed `OpenProfileAsync` (anything but `Loaded`/`RecoveredFromBackup`) leaves the slot `NeedsReload` so no transaction runs on unknown disk state. A migration step that throws propagates to the caller instead of quarantining the file.
 9. **Version 0 files** (schemaVersion below 1) report `MigrationMissing` because version 1 ships with no migration steps; the migration hook itself is covered with synthetic versions and a synthetic version-0 step in the tests.
+
+Review fixes (independent review, October 15, 2026; regression tests in `ProfileIdentityAndEncodingTests`):
+
+10. **Profile identity on disk.** A readable primary/backup whose payload `profileId` differs (ordinal) from the requested id returns `Corrupt` (diagnostic `InvariantViolation`) and is left in place, never quarantined, because it may be another profile's live save. Before this, on a case-insensitive file system (Windows) `Load("alice")` returned `Alice`'s profile and a processor spent `Alice`'s wallet. The file repository's per-profile locks use `OrdinalIgnoreCase` so case variants cannot touch the same files concurrently; tracked revisions stay ordinal. `OpenProfileAsync` also refuses (as `Corrupt`) any repository result whose id differs.
+11. **Reserved device names.** `CON`, `PRN`, `AUX`, `NUL`, `COM0`-`COM9`, `LPT0`-`LPT9` (any case) are invalid profile ids on every platform: on Windows `<name>.profile.json` addresses the device, not a file.
+12. **Well-formed UTF-16 ids.** Request ids (transaction, station/source, item, upgrade, reward items) with an unpaired surrogate are `InvalidRequest`, and `ProfileInvariants` rejects such stored strings, because UTF-8/JSON encoding replaces them with U+FFFD: the id was not stored verbatim and a transaction id no longer matched after a restart (a replayed reward applied twice).
+13. **Reward items are snapshotted** into an ordinal immutable dictionary when the call is made; shape check, fingerprint and application use that copy, so a caller mutating its dictionary while the request waits cannot bypass validation. A caller dictionary whose comparer admits two ordinally equal keys is `InvalidRequest`.
+14. **`InMemoryProfileRepository`** stores profiles in a `ConcurrentDictionary` (different ids run in parallel under different locks; the plain `Dictionary` lost entries). `TransactionProcessor` requires `IdempotencyWindow >= 1` (0 silently disabled duplicate detection).
+
+Known limits (recorded, not fixed): (a) revisions are the only CAS token, so if a primary is lost and recovered from the backup while a second, stale processor in the same process still holds the higher revision, that processor's next save can pass the CAS over a newer commit (requires on-disk corruption plus two live processors on one repository; cross-process sharing is already out of scope). (b) The temp file is flushed with write-through, but `File.Replace`/`File.Move` renames are not themselves flushed, so after a power loss (not a process crash) the last acknowledged rename may be rolled back by the file system; the previous generation is then loaded.
 
 Not implemented (non-goals unchanged): cross-process sharing, PostgreSQL, original item/price/cargo data, upgrade eligibility, retained-state-on-death rules.
