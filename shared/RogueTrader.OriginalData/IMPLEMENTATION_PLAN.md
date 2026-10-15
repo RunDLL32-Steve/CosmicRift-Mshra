@@ -15,3 +15,4 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
+- RT-F047 (data only, cloud/rt-f047-repair-items, review pending): `OriginalRepairItems.Resolve` lists Minor/Major/Full Repair (rows 149/150/162, ids 39/40/43) with raw unscaled f[33] = 5/10/50, buy 0, sell 0; they are the only type-1 rows using f[33] (credit effects ids 17/18/19/44 use f[31] = 80/55/300/20 with sell -1). Unit/cost/dock-range semantics undecoded; box stays open.
