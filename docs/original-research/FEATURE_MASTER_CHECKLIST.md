@@ -1,6 +1,6 @@
 # Original feature master checklist projection
 
-396 entries;18 scoped completions,378 open. Source/acceptance:[FEATURE_CATALOG.md](FEATURE_CATALOG.md). Native welcome does not verify arena entry.
+397 entries;21 scoped completions,376 open. Source/acceptance:[FEATURE_CATALOG.md](FEATURE_CATALOG.md). Native welcome does not verify arena entry.
 
 - [ ] RT-F001 - [Asp](FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](FEATURE_CATALOG.md#rt-f002)

@@ -1149,8 +1149,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 
 ### Original feature registry — October 14 checkpoint
 
-396 entries;18 scoped completions,378 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
-395 entries;16 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
+397 entries;21 scoped completions,376 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
 - [ ] RT-F001 - [Asp](docs/original-research/FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](docs/original-research/FEATURE_CATALOG.md#rt-f002)

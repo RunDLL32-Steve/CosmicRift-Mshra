@@ -1,6 +1,6 @@
 # Project startup
 
-Current issue branch: `codex/rt-f397-packet-length`, based on626a09f, adds only RT-F397. No desktop use; user tests and merges fixes. Actual branch catalog has395 entries, with IDs395/396 absent because their issue branches are pending. Follow [issue evidence](docs/development-log/2026-10-14-rt-f397.md).
+RT-F397 (outgoing packet length) is merged to main; see [issue evidence](docs/development-log/2026-10-14-rt-f397.md). No desktop use; commits/merges to main go through CI/CD review.
 
 Read the complete ROGUE_TRADER_2_PLAN.md first; it is the master authority. Then read AGENTS.md, CONTINUATION.md and the affected folder implementation plan.
 

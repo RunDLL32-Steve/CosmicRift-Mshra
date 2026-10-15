@@ -1,6 +1,6 @@
 # Repository implementation index
 
-Authority:ROGUE_TRADER_2_PLAN.md. Start atPROJECT_START.md,AGENTS.md andCONTINUATION.md. Current code/checkpoint:396 features;18 scoped completions;378 open.
+Authority:ROGUE_TRADER_2_PLAN.md. Start atPROJECT_START.md,AGENTS.md andCONTINUATION.md. Current code/checkpoint:397 features;21 scoped completions;376 open.
 
 Folders:client,shared,server,data,tests,scripts,docs and.github/workflows each have purpose/accomplishments/next/parity documentation. The master/catalog keep audit checkmarks;active folder queues keep outstanding work.
 

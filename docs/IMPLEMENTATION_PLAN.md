@@ -2,7 +2,7 @@
 
 Authority:[master](../ROGUE_TRADER_2_PLAN.md),[current continuation](../CONTINUATION.md),and[progress](development-log/PROGRESS.md).
 
-Purpose:architecture,original-source research,game design,balance anddevelopment evidence. Current state:396 catalog/master entries with18 scoped completions and378 open;native playable entry andfulloriginalparity remainopen.
+Purpose:architecture,original-source research,game design,balance anddevelopment evidence. Current state:397 catalog/master entries with21 scoped completions and376 open;native playable entry andfulloriginalparity remainopen.
 
 Accomplished:original-source provenance/field catalogs,component subplans,current proof/history,master/status reconciliation andknown-gap tracking.
 
