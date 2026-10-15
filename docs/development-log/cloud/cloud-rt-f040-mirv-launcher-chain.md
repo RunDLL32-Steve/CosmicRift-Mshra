@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f040-mirv-launcher-chain
 
@@ -42,3 +42,10 @@ Verified by the reviewer (cloud):
 - No canonical asset, .tools/references or secret changes.
 
 Not verified in cloud - local CI required: pinned SDK 8.0.419 run.
+
+## Rework after round 1
+1. major (Children stops before type-8 entries): FIXED (option a). `OriginalWeaponChain.ChildEntries` / `MultiItemEntries` expose the type-8 entry list raw (item id + raw offset, entries from f[97] stride 6, each id resolved); oracle test asserts MIRV 3008 = 1045,1048,1045,1046,1049,1046 offsets -5,-10,-15,5,10,15, plus 3015 = 1071 x5 and 3011 = 1057 x10. The layout is inferred from the pinned file (133/157/127 fields = 6/10/5 entries), offset meaning undecided. Remaining clause added: offset/angle units, per-entry other fields, damage, inheritance.
+2. minor (transitive/cycle untested): FIXED. Three synthetic `FromRecords` tests: type-6 -> type-6 -> 0 chain, cycle stop, unresolved reference.
+3. nit (FirstOrDefault): FIXED. Lookup reuses `OriginalItemCatalog.ById` (KeyNotFoundException translated).
+4. nit (f[31] name inferred): kept flagged.
+Verified (cloud): apt dotnet-sdk-8.0 8.0.131 with global.json temporarily moved aside (restored, not committed), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 242, Failed 0, Skipped 0. Not verified in cloud: pinned SDK 8.0.419.
