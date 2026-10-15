@@ -44,7 +44,7 @@ Current user requirements (October13,2026):
 - The coordinating agent must review every agent's work before accepting or integrating it: inspect the actual changes/findings, verify the relevant evidence and focused checks, and resolve identified defects. An agent's completion claim alone is not acceptance. Record the review outcome with the work's evidence; leave unverified feature checkboxes open.
 - Keep this rule in force across sessions and handoffs unless the user explicitly changes it.
 
-## Agent and branch workflow — October 14, 2026
+## Agent and branch workflow â€” October 14, 2026
 
 - One scoped branch (and worktree) per issue; inspect existing checkout state first and preserve unrelated uncommitted work.
 - The orchestrating session runs Sonnet 5.5 at medium effort. Set each agent's model and effort to fit its task: do not put a top-tier model on documentation, and do not put a lightweight model on code or review work. Reserve higher effort for complex implementation, architecture and subtle correctness.
