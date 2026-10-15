@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: CHANGES REQUESTED
 
 # cloud/rt-f043-hull-drops
 
@@ -21,3 +21,25 @@ shared/RogueTrader.OriginalData/OriginalHull.cs (DropItemId, DropQuantity), test
 
 ## Resume point
 Next: RT-F047/F048/F049 item-table audits (repair items rows 149/150/162; upgrade families; f[8]/f[15] sell sentinels), or G7 non-hull VEH loader.
+
+## Review round 1 (senior review)
+
+Scope understood: RT-F043 data clause only. Expose VEH f[68] DropItemId and f[69] DropQuantity on OriginalHull and check that every playable hull drops item 2008 (Wreckage, ITM row 87) x1. The NWS conflicts and the death/pickup lifecycle remain open. Stacked on cloud/rt-f041-armor-records.
+
+Verdict: CHANGES REQUESTED. The branch's own content would be approvable (no own blocker or major). It cannot be approved because its stacked base, cloud/rt-f041-armor-records, is CHANGES REQUESTED in this run: NEEDS BASE FIX.
+
+Findings:
+1. blocker (stack) - docs/development-log/cloud/cloud-rt-f043-hull-drops.md:6. This branch contains the base's commits, and the base has an open major (the f[42..44] armor interpretation). Expected fix: after cloud/rt-f041-armor-records is reworked and pushed, merge it into this branch with a normal merge (no rebase or force-push). Then update the "Stacked on" line, fix the minors below and set READY FOR RE-REVIEW.
+2. minor - shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md was not updated. The log says "appends to no shared plan", but AGENTS.md requires each affected folder's IMPLEMENTATION_PLAN.md to be maintained, and this branch adds public fields to OriginalHull in that folder. Expected fix: one line, like the F039/F041 lines, stating the DropItemId/DropQuantity exposure, the audit result and that RT-F043 stays open.
+3. nit - shared/RogueTrader.OriginalData/OriginalHull.cs:27 and :132 say "dropped on death". That is the catalog's lifecycle interpretation, which this branch leaves unverified (the death/spec/team-change order is listed as remaining). Expected fix: "catalog DropItemId/DropQuantity; drop trigger unvalidated (RT-F043)".
+4. nit - the log says "all 12 playable hulls (VEH ids 2000-2012)". The hull ids are 2000-2006 and 2008-2012; 2007 does not exist. Expected fix: list the ids, or say "12 type-2 rows".
+
+Verified independently: the VEH audit matches the log exactly. Rows 18-29 are the 12 type-2 hulls, all with 2008,1 resolving to ITM row 87 Wreckage. Actors 401, 403, 405, 410, 411, 413 and 414 drop 2008x1. Actors 400, 402, 404, 407, 408, 409 and 412, and 2030 Spectator Mode, drop 0x0. The Manufactories 425, 426 and 427 carry 66,1, and ITM has no id 66.
+
+Branch name, claims and collisions: the name carries RT-F043 and the log claims RT-F043. No other branch names RT-F043. claim/g11-hull-reference-resolution (local) resolves hull references to BLO members and does not claim f[68..69]; no collision. No queue row.
+
+Verified in cloud (this review):
+- apt dotnet-sdk-8.0 8.0.131 in a detached scratch worktree, global.json moved aside and restored (not committed), RT_ORIGINAL_ASSETS_ROOT = pinned assets eb1514ea: dotnet test tests/Unit -> Passed 250, Failed 0, Skipped 0. This matches the log.
+- python scripts/check-trackers.py -> TRACKERS_CONSISTENT. No canonical asset, .tools/references, secret or unrelated changes.
+
+Not verified (local CI required): a run with the pinned SDK 8.0.419; the NWS revision choice, wreck quantity semantics and simulation/native lifecycle.
