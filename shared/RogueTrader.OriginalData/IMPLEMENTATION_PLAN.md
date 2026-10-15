@@ -15,3 +15,4 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
+- RT-F035 (data only, cloud/rt-f035-starting-loadouts, review pending): `OriginalStartingLoadout` (VEH f[129] addinv strings for 12 hulls, resolved to Plasma/Bio/D-Cannon) and `OriginalHullExchange` (the 12 type-16 rows 181-192, buy 15000/sell 0, f[32] = target hull skill id). Event grammar, class-change order and inventory/energy/velocity policy unverified; box stays open.
