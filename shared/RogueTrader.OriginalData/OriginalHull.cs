@@ -24,7 +24,7 @@ public static class VehFields
     public const int HullPoints = 6;
     /// <summary>f[7]: Weight (10000 for all twelve). Index inferred from the pinned parser order (Name f[3], logic f[4], description f[5], Hitpoints f[6], Weight f[7]) and the documented Asp value; units unvalidated.</summary>
     public const int Weight = 7;
-    /// <summary>Catalog DropItemId / DropQuantity (raw): item id and count dropped on death (RT-F043).</summary>
+    /// <summary>Catalog DropItemId / DropQuantity (raw); drop trigger unvalidated (RT-F043).</summary>
     public const int DropItemId = 68;
     public const int DropQuantity = 69;
     public const int NormalWeight = 47;
@@ -129,7 +129,7 @@ public sealed class OriginalHull
     public OriginalInt HullPoints { get; }
     /// <summary>VEH f[7].</summary>
     public OriginalInt Weight { get; }
-    /// <summary>VEH f[68] (raw item id dropped on death; resolved against the ITM catalog by the caller).</summary>
+    /// <summary>VEH f[68] (raw item id; drop trigger unvalidated; resolved against the ITM catalog by the caller).</summary>
     public OriginalInt DropItemId { get; }
     /// <summary>VEH f[69] (raw count; carried-vs-produced wreck quantities are unresolved).</summary>
     public OriginalInt DropQuantity { get; }
