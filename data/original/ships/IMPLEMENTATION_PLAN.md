@@ -10,10 +10,12 @@ Canonical source: fowlmouth/cosmic-rift-assets commit eb1514eaae7f9b9425307d9cc0
 
 Twelve exact RPG-to-VEH identity links are confirmed. All twelve Small/Tiny sprite pairs, 64 direction rows and eleven state columns are available in the verified source/standalone inspector (RT-F073/F373/F374). Native banking, palette/blitting and playable statistics are not accepted.
 
+Raw-data loader (October 15, 2026, branch feat/original-hull-catalog): `shared/RogueTrader.OriginalData` verifies the pinned SHA-256/length of RPG/Rogue.rpg, VEH/Rogue.veh and ITM/Rogue_mp.itm, reads every field by index, links the twelve RPG hull rows to their VEH Car rows (VEH f[0]=2, version v53, f[2] equal to RPG f[3]) and exposes raw hull points, cargo f[47..48], energy f[94..96], all sixteen terrain speed blocks f[202..361], bounce f[362] and hyper energy cost f[373]. Evidence: 81 unit tests pass (41 existing + 40 new, none skipped when the assets are present); oracle table RT-F001-RT-F012 asserted. This is data availability only; no hull box below is ticked.
+
 ## Next and parity boundary
 
 - [ ] **Investigating — RT-F380/F384:** enter the local original arena with the native client when the user is available.
-- [ ] **Not started — RT-F001–F012/F249–F260:** validate native F11 selection, default vehicle/loadout, unspectating, hull-specific flight/energy/cargo and exact exchange costs/restrictions.
+- [ ] **In progress — RT-F001–F012/F249–F260:** raw hull records now load (see above); next validate native F11 selection, default vehicle/loadout, unspectating, hull-specific flight/energy/cargo and exact exchange costs/restrictions.
 - [ ] **Investigating — RT-F023/F074/F075:** preserve every frame and prove native palette/bank/timing semantics; the inspector center-column preview is reconstructed.
 
 Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.

@@ -18,6 +18,7 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 
 ## Next
 
+- RT-F001-RT-F012 raw hull catalog: `shared/RogueTrader.OriginalData` (branch feat/original-hull-catalog) loads the 12 RPG hulls linked to VEH rows with a SHA-256 guard; 81 unit tests (41 existing + 40 new). Hull boxes stay open: next is native ship choice/loadout/movement and interpreting units, energy and cargo before any value is applied.
 - RT-F397 narrow acceptance complete and merged to main (a7d4f7b): root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
 
 - [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.

@@ -1,5 +1,10 @@
 # Changelog
 
+## Original hull raw-data loader - October 15, 2026
+
+- Add `shared/RogueTrader.OriginalData`: raw CSV record reader (every field by index, source file, 1-based row, version token), SHA-256/length guard for RPG/Rogue.rpg, VEH/Rogue.veh and ITM/Rogue_mp.itm, and a loader that links the twelve RPG hull rows to VEH Car rows by vehicle id. Typed accessors return raw unscaled values with their field index; negative values are flagged, never replaced; all sixteen terrain speed blocks stay available.
+- 40 new unit tests (81 total) assert the RT-F001-RT-F012 catalog values; assets are located from the environment, repository or git and tests are reported as skipped if absent. Originals unchanged. No hull checkbox ticked: native selection, loadout and movement remain unverified.
+
 ## Native runtime safeguards — October 14, 2026
 
 - Fix derived emulator sales: validate owned quantity and widened cash arithmetic, recheck script mutations, remove inventory before crediting and sync the committed balance.
