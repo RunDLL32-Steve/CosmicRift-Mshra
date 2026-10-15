@@ -2,9 +2,11 @@
 
 Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff:[CONTINUATION.md](../../CONTINUATION.md).
 
-**394 feature entries;15 scoped completions;379 open.** M0/M1 prototype,original viewer/export,inventory/package/runtime audits,actual arena initialization,bounded full-asset hosting andVehicleMaker field18 fix pass. Native welcome only;no player joined. Actual native delivery/gameplay/persistence remain unfinished. Desktop interaction stopped;owned test processes/keys cleaned up.
+**395 feature entries;16 scoped completions;379 open.** M0/M1 prototype,original viewer/export,inventory/package/runtime audits,actual arena initialization,bounded full-asset hosting andVehicleMaker field18 fix pass. Native welcome only;no player joined. Actual native delivery/gameplay/persistence remain unfinished. Desktop interaction stopped;owned test processes/keys cleaned up.
 
 ## Current milestone status
+
+- RT-F397: narrow outgoing length/queue acceptance complete on the isolated issue branch;46 canonical packets/60 inert fixtures pass, all baseline defects corrected. [NativeDeliveryChecks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) and [dated issue log](2026-10-14-rt-f397.md) record the two-overload length/queue scope. No native receiver/auth/UI acceptance or desktop use.
 
 - M0/M1 engineering:Complete with historical acceptance.
 - Original tooling/source/export/arena/hosting:scoped completions recorded in master/catalog.

@@ -1,6 +1,6 @@
 # Current continuation — October 13, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:394 feature entries,15 scoped completions,379 open. No commit or push.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:395 feature entries,16 scoped completions,379 open. No commit or push.
 
 ## Accomplished
 
@@ -15,6 +15,8 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 - Native client reached welcome;Start had no confirmed entry. Desktop testing stopped while user played;owned processes/private registry test keys cleaned up.
 
 ## Next
+
+- RT-F397 narrow acceptance complete on `codex/rt-f397-packet-length`: root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. User tests/merges the issue branch. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
 
 - [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
 - [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.

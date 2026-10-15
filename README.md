@@ -1,5 +1,7 @@
 # Rogue Trader 2.0 — First Contact
 
+RT-F397 is isolated on `codex/rt-f397-packet-length` for user testing and merge. The derived two-site outgoing packet length correction passes46 canonical packet checks and60 inert queue fixtures; see [issue evidence](docs/development-log/2026-10-14-rt-f397.md). Desktop interaction is prohibited for this work. Native reception, authentication and UI behavior remain unverified.
+
 Windows / Godot C# flight-and-combat testbed for Milestones 0 and 1 of [the master plan](ROGUE_TRADER_2_PLAN.md). Read [the startup instructions](PROJECT_START.md) first.
 
 The user's target is the gameplay and assets shown in [Cosmic Rift — Chaos Zone](https://www.youtube.com/watch?v=A6u1ljFgQVU), applied to **Rogue Trader mode**. The initial testbed uses original geometric placeholders and provisional tuning. It does not yet reproduce the archived artwork, map, ship catalog or Rogue Trader economy. The [InfantryOnline research](docs/original-research/INFANTRYONLINE.md) records actual recovered files and the next fidelity work.
@@ -59,7 +61,7 @@ Current verified result: 41 unit tests, three native-input/UI smoke phases, six 
 
 ## Current checkpoint
 
-See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md):394 features,15 scoped completions,379 open. The server loads original Rogue Trader data/arena;the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
+See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md):395 features,16 scoped completions,379 open. The server loads original Rogue Trader data/arena;the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
 
 The updated [OriginalContent Windows package](artifacts/windows/OriginalContent-2026-10-13-win-x64.zip) passes standalone inspector input/render checks. Keep the full folder;launchRogueTrader2.exe andpressF2. Rebuild:./scripts/export-windows.ps1 -Mode OriginalContent. The package is a verified asset viewer/provisional flight range;original native gameplay and persistence remain unfinished.
 

@@ -1149,7 +1149,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 
 ### Original feature registry — October 13 checkpoint
 
-394 entries;15 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
+395 entries;16 scoped completions,379 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
 - [ ] RT-F001 - [Asp](docs/original-research/FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](docs/original-research/FEATURE_CATALOG.md#rt-f002)
@@ -1545,6 +1545,9 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [x] RT-F392 - [Bounded original-content native session host](docs/original-research/FEATURE_CATALOG.md#rt-f392)
 - [ ] RT-F393 - [Offline legacy patch announcement guard](docs/original-research/FEATURE_CATALOG.md#rt-f393)
 - [x] RT-F394 - [Authentic shared Soccer engine BLO](docs/original-research/FEATURE_CATALOG.md#rt-f394)
+- [x] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
+
+RT-F397 issue branch: both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. This branch has395 actual catalog entries; IDs395/396 belong to separate pending issue work and are not entries here. Native asset reception and ready handshake remain unverified. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
 
 ## MILESTONE 2 — Rogue Trader core gameplay
 

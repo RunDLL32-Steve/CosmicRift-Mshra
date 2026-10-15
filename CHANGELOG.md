@@ -1,5 +1,9 @@
 # Changelog
 
+## RT-F397 isolated issue branch — October 14, 2026
+
+- Prepare a derived-only correction for full int length accounting in both outgoing byte-array writers, preserving serialized bytes and received-packet parsing. Add canonical cache/packet checks and60 whole/indexed boundary/queue fixtures. Root baseline exposed29 canonical length discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed passes all46 canonical packets/60 fixtures with unchanged wire bytes and originals; native receiver delivery is unverified.
+
 ## Original package and native-route verification — October 13, 2026
 
 - Produce standalone OriginalContent Windows package;source/export nativeUI frame/navigation/remap regression andthree renderedpages pass atworldtick0 withoutSDK/runtime discovery.

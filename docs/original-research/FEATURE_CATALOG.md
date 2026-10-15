@@ -31,6 +31,7 @@ Unchecked entries default to **Not started for exact runtime implementation** un
 | RT-F074–RT-F075 native blit/bank behavior | Investigation | Original metadata and frame observations preserved; original evaluator still unvalidated. |
 | RT-F368–RT-F372 original help dependencies | Investigation | Located all five ancillary files in corroborating pinned Zone-Assets archive; source provenance/compatibility integration pending. |
 
+
 ## Selectable original hulls — RT-F001–RT-F012
 
 Each hull row records its own acceptance, rather than treating twelve visible names as twelve complete ships. Exact records and values are in [RPG/Rogue.rpg][rpg] and [VEH/Rogue.veh][veh].
@@ -500,3 +501,6 @@ Original data remains authoritative; source/audit/hosting completions do not pro
 | <a id="rt-f392"></a>RT-F392 [x] | **Bounded original-content native session host**: One publicRogueTrader arena/all89canonicalBLO plus authenticsharedSoccer,2actual loopback sockets;120s exit0;zero clients/syntheticinputs;allstagedbytes unchanged. Native join/gameplay separate. | Scoped engineering/source evidence; native parity separate | Complete bounded hosting feature | Root/assigned subplan |
 | <a id="rt-f393"></a>RT-F393 [ ] | **Offline legacy patch announcement guard**: Derived login suppresses Sony patch-server announcement under mandatoryofflineflag;compiled and source-hashguarded, nativeCS_Ready runtime acceptance still pending. | Scoped engineering/source evidence; native parity separate | Testing | Root/assigned subplan |
 | <a id="rt-f394"></a>RT-F394 [x] | **Authentic shared Soccer engine BLO**: Existing officialinstaller soccer.blo155450bytes/hash93ec29ba... verified9members/all7cfgrefs;resolves full-asset startup while89canonicalarchives unchanged. | Scoped engineering/source evidence; native parity separate | Complete shared dependency/startup | Root/assigned subplan |
+| <a id="rt-f397"></a>RT-F397 [x] | **Large asset packet length accounting**: Preserve full int outgoing length in both byte-array writers, unchanged wire bytes/receive constructor, and correct reliable versus DataStream queue selection. 46 canonical packets and60 whole/indexed nonzero-offset sentinel/CRC0/4 threshold fixtures pass; baseline29 canonical/24 synthetic length defects and16 wrong queue choices become zero. | Scoped emulator safeguard; native receiver separate | Complete outgoing length/queue only | [NativeDeliveryChecks plan](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) |
+
+Issue branch count:395 actual entries,16 scoped completions,379 open after narrow RT-F397 acceptance. Stable maximum ID397 does not imply contiguous entries; pending separate issues395/396 are absent here.
