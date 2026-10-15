@@ -31,7 +31,8 @@ RT-F397 completed history:46 canonical packets and60 actual inert queue fixtures
 - [ ] **Not started — RT-F387:** verify actual client/server asset delivery including original LVL graphical trailer. Offline roundtrip and local copies do not prove delivery.
 - [ ] **Investigating — RT-F389:** establish and validate authoritative station/range eligibility for the shop path.
 - [ ] **Investigating — RT-F396:** verify purchase fulfillment, overflow and cash ordering; the completed sell fix does not cover buying or durable transaction atomicity.
-- [ ] **Investigating — RT-F386/RT-F391:** establish absent drop-item 66 eligibility and optional administrator PrizeItems.xml policy without invented content/stubs.
+- [ ] **Investigating — RT-F386:** establish absent drop-item 66 eligibility without invented content/stubs.
+- [x] **Complete — RT-F391:** PrizeItems.xml is an optional granted-moderator prize whitelist; absence is by design (fail closed for that command only). No file/stub, no code change. [Evidence](../../docs/development-log/2026-10-15-rt-f391.md).
 - [ ] **Investigating — RT-F069/RT-F021:** resolve remaining dependency/evaluator/native level semantics; preserve Portal/PrizeCrateA, logo and numeric Ball candidates as open.
 - [ ] **Not started:** original native movement/combat/mining/trading/refining/upgrades/rewards/persistence acceptance and safe production shutdown; choose the engine only after measured parity.
 

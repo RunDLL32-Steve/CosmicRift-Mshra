@@ -1,6 +1,6 @@
 # Current continuation — October 14, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,21 scoped completions,376 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
+Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,22 scoped completions,375 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
 
 ## Accomplished
 
@@ -28,6 +28,8 @@ Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the af
 - [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
 - [ ] Not started:add persistent progression;standalone does not save.
 - [ ] Open:multiple native clients and final original playable-package acceptance;engine choice remains open.
+
+- [x] RT-F391 closed as validated optional admin policy (no code/stub); see docs/development-log/2026-10-15-rt-f391.md. Skill-shop location gate (terrain SkillEnabled) deliberately NOT built: the pinned server parses the flag but never enforces it, so a gate would invent a rule.
 
 ## Evidence and rules
 

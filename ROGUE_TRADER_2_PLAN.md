@@ -1149,7 +1149,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 
 ### Original feature registry — October 14 checkpoint
 
-397 entries;21 scoped completions,376 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
+397 entries;22 scoped completions,375 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
 - [ ] RT-F001 - [Asp](docs/original-research/FEATURE_CATALOG.md#rt-f001)
 - [ ] RT-F002 - [Excelsior](docs/original-research/FEATURE_CATALOG.md#rt-f002)
@@ -1541,7 +1541,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [x] RT-F388 - [Shop sell quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f388)
 - [x] RT-F389 - [Server store proximity validation](docs/original-research/FEATURE_CATALOG.md#rt-f389)
 - [x] RT-F390 - [Null-script full-arena join handling](docs/original-research/FEATURE_CATALOG.md#rt-f390)
-- [ ] RT-F391 - [Optional admin-prize whitelist policy](docs/original-research/FEATURE_CATALOG.md#rt-f391)
+- [x] RT-F391 - [Optional admin-prize whitelist policy](docs/original-research/FEATURE_CATALOG.md#rt-f391)
 - [x] RT-F392 - [Bounded original-content native session host](docs/original-research/FEATURE_CATALOG.md#rt-f392)
 - [ ] RT-F393 - [Offline legacy patch announcement guard](docs/original-research/FEATURE_CATALOG.md#rt-f393)
 - [x] RT-F394 - [Authentic shared Soccer engine BLO](docs/original-research/FEATURE_CATALOG.md#rt-f394)

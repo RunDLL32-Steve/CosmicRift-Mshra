@@ -4,7 +4,7 @@ Authority: [master §1.2, §2, §§5–10 and §18 fidelity/M2](../../ROGUE_TRAD
 
 ## Accomplished and evidence
 
-397 stable feature IDs are reconciled with21 scoped completions and376 open. Completed tasks are history, not the active queue:
+397 stable feature IDs are reconciled with22 scoped completions and375 open. Completed tasks are history, not the active queue:
 
 - Canonical provenance/raw index and compiled parser acceptance for CFG/200ITM/30VEH/12RPG/81LIO/1999×1998LVL; originals unchanged.
 - RT-F020/F070–F073: selected11 BLO indexing/decoding/export,231 sprites/36,516 frames,14 focused tests and source inspector/map overview with zero world ticks. [Importer plan](../../scripts/original-assets/IMPLEMENTATION_PLAN.md).
