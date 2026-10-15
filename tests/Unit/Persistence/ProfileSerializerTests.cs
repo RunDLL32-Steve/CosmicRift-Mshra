@@ -66,16 +66,16 @@ public sealed class ProfileSerializerTests
     }
 
     [Fact]
-    public void SaveLoad_ThroughFileRepository_PreservesEverything()
+    public async Task SaveLoad_ThroughFileRepository_PreservesEverything()
     {
         using var dir = new TempDirectory();
         var original = Rich() with { Revision = 0 };
         original = original with { AppliedTransactions = ImmutableList<AppliedTransaction>.Empty, Ledger = ImmutableList<WalletLedgerEntry>.Empty, NextLedgerSequence = 1 };
         using (var repo = FileProfileRepository.Open(dir.Path, Options, NoMigrations))
-            Assert.Equal(ProfileSaveStatus.Saved, repo.CreateAsync(original).GetAwaiter().GetResult().Status);
+            Assert.Equal(ProfileSaveStatus.Saved, (await repo.CreateAsync(original)).Status);
         using (var repo = FileProfileRepository.Open(dir.Path, Options, NoMigrations))
         {
-            var loaded = repo.LoadAsync(Fx.ProfileId).GetAwaiter().GetResult();
+            var loaded = await repo.LoadAsync(Fx.ProfileId);
             ProfileAssert.Equivalent(original, loaded.Profile!);
         }
     }

@@ -38,7 +38,7 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 
 | ID | Task | Where | Run | Depends on | Status |
 |---|---|---|---|---|---|
-| M1 | Persistent save/load and transaction core (wallet, inventory, upgrades, idempotency, atomic file repository) | server/RogueTrader.Persistence | cloud/local | - | CLAIMED claim/m1-persistence-core (local feat/m2-persistence-economy-core) |
+| M1 | Persistent save/load and transaction core (wallet, inventory, upgrades, idempotency, atomic file repository) | server/RogueTrader.Persistence | cloud/local | - | MERGED b2ac2bf (core 00de717, review fixes 1998530) |
 | M2 | Cargo capacity rules and collectible-resource pickup in simulation (data-driven, conservation tests; values come from G4 data, test fixtures labelled NEW) | server/RogueTrader.Simulation | cloud | G2, G4 | OPEN |
 | M3 | Mineral-bearing asteroids and mining equipment extraction rules (generic engine; originals plug in via data) | Simulation + GameData | cloud | G4 | OPEN |
 | M4 | Trading station: buy/sell using the transaction core, proximity/docking predicate, price source | Persistence + Simulation | cloud | M1 merged, G3 | OPEN |
