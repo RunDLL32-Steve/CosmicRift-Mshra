@@ -3,9 +3,14 @@ using System.Collections.Concurrent;
 namespace RogueTrader.Persistence;
 
 /// <summary>Per-profile lock plus the tracked revision used for compare-and-swap, shared by the repository implementations.</summary>
-internal sealed class ProfileCoordinator : IDisposable
+/// <remarks>
+/// <paramref name="lockComparer"/> decides which ids share a lock. The file repository passes
+/// <see cref="StringComparer.OrdinalIgnoreCase"/> because ids differing only in case map to the same files on a
+/// case-insensitive file system; tracked revisions always stay ordinal.
+/// </remarks>
+internal sealed class ProfileCoordinator(StringComparer? lockComparer = null) : IDisposable
 {
-    private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new(lockComparer ?? StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, long> _tracked = new(StringComparer.Ordinal);
 
     public async Task<Releaser> LockAsync(string profileId, CancellationToken ct)

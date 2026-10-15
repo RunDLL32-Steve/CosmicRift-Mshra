@@ -484,7 +484,7 @@ public sealed class FileProfileRepositoryTests
 
         Assert.Equal(ProfileSaveStatus.Invalid, created.Status);
         Assert.Equal(ProfileSaveStatus.Invalid, saved.Status);
-        Assert.Empty(Directory.GetFiles(dir.Path).Where(f => !f.EndsWith(".lock", StringComparison.Ordinal)));
+        Assert.DoesNotContain(Directory.GetFiles(dir.Path), f => !f.EndsWith(".lock", StringComparison.Ordinal));
         Assert.False(Directory.Exists(Path.Combine(dir.Path, "..", "evil")));
     }
 

@@ -25,7 +25,8 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     private static PersistenceOptions Validate(PersistenceOptions? o)
     {
         ArgumentNullException.ThrowIfNull(o);
-        if (o.IdempotencyWindow < 0) throw new ArgumentOutOfRangeException(nameof(options), "IdempotencyWindow must be >= 0.");
+        // A zero window would silently disable duplicate detection (master 9.3-6).
+        if (o.IdempotencyWindow < 1) throw new ArgumentOutOfRangeException(nameof(options), "IdempotencyWindow must be >= 1.");
         if (o.LedgerRetention < 0) throw new ArgumentOutOfRangeException(nameof(options), "LedgerRetention must be >= 0.");
         return o;
     }
@@ -45,6 +46,13 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             {
                 slot.NeedsReload = true;
                 throw;
+            }
+            if (result.Succeeded && !string.Equals(result.Profile?.ProfileId, profileId, StringComparison.Ordinal))
+            {
+                // Defence in depth: never run transactions for one id against another id's state.
+                slot.NeedsReload = true;
+                return new ProfileLoadResult(ProfileLoadStatus.Corrupt, null, result.Diagnostics.Append(new PersistenceDiagnostic(
+                    DiagnosticCode.InvariantViolation, $"The repository returned profile '{result.Profile?.ProfileId}' for '{profileId}'.", null)).ToArray());
             }
             if (result.Succeeded)
             {
@@ -70,7 +78,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     {
         ArgumentNullException.ThrowIfNull(ctx);
         ArgumentNullException.ThrowIfNull(r);
-        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && !string.IsNullOrEmpty(r.ItemId) && r.Quantity > 0;
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.ItemId) && r.Quantity > 0;
         return ExecuteAsync(ctx, new Req(TransactionKind.Buy, r.TransactionId, r.ProfileId, r.StationId, r.ItemId, null, r.Quantity, 0, null, shapeOk), ct);
     }
 
@@ -78,7 +86,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     {
         ArgumentNullException.ThrowIfNull(ctx);
         ArgumentNullException.ThrowIfNull(r);
-        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && !string.IsNullOrEmpty(r.ItemId) && r.Quantity > 0;
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.ItemId) && r.Quantity > 0;
         return ExecuteAsync(ctx, new Req(TransactionKind.Sell, r.TransactionId, r.ProfileId, r.StationId, r.ItemId, null, r.Quantity, 0, null, shapeOk), ct);
     }
 
@@ -86,7 +94,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     {
         ArgumentNullException.ThrowIfNull(ctx);
         ArgumentNullException.ThrowIfNull(r);
-        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && !string.IsNullOrEmpty(r.UpgradeId);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.UpgradeId);
         return ExecuteAsync(ctx, new Req(TransactionKind.BuyUpgrade, r.TransactionId, r.ProfileId, r.StationId, null, r.UpgradeId, 0, 0, null, shapeOk), ct);
     }
 
@@ -94,17 +102,36 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     {
         ArgumentNullException.ThrowIfNull(ctx);
         ArgumentNullException.ThrowIfNull(r);
-        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.SourceId) && r.Currency >= 0 && r.Items is not null
-            && (r.Currency > 0 || r.Items.Count > 0);
+        // Snapshot the caller's dictionary once: shape check, fingerprint and application then see the same items
+        // even if the caller mutates its collection while the request waits for the profile lock.
+        var items = SnapshotItems(r.Items);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.SourceId) && r.Currency >= 0 && items is not null
+            && (r.Currency > 0 || items.Count > 0);
         if (shapeOk)
-            foreach (var (item, qty) in r.Items!)
-                if (string.IsNullOrEmpty(item) || qty <= 0) { shapeOk = false; break; }
-        return ExecuteAsync(ctx, new Req(TransactionKind.GrantReward, r.TransactionId, r.ProfileId, r.SourceId, null, null, 0, r.Currency, r.Items, shapeOk), ct);
+            foreach (var (item, qty) in items!)
+                if (!IdOk(item) || qty <= 0) { shapeOk = false; break; }
+        return ExecuteAsync(ctx, new Req(TransactionKind.GrantReward, r.TransactionId, r.ProfileId, r.SourceId, null, null, 0, r.Currency, items, shapeOk), ct);
+    }
+
+    /// <summary>Ordinal immutable copy; null when absent or when the caller's comparer let two ordinally equal keys in.</summary>
+    private static ImmutableSortedDictionary<string, int>? SnapshotItems(IReadOnlyDictionary<string, int>? source)
+    {
+        if (source is null) return null;
+        var builder = ImmutableSortedDictionary.CreateBuilder<string, int>(StringComparer.Ordinal);
+        foreach (var (item, qty) in source)
+        {
+            if (item is null || builder.ContainsKey(item)) return null;
+            builder.Add(item, qty);
+        }
+        return builder.ToImmutable();
     }
 
     private static bool IdsOk(string? transactionId, string? profileId, string? place) =>
-        !string.IsNullOrEmpty(transactionId) && transactionId.Length <= ProfileInvariants.MaxTransactionIdLength
-        && !string.IsNullOrEmpty(profileId) && !string.IsNullOrEmpty(place);
+        IdOk(transactionId) && transactionId!.Length <= ProfileInvariants.MaxTransactionIdLength
+        && IdOk(profileId) && IdOk(place);
+
+    /// <summary>Non-empty and well-formed UTF-16: ids with unpaired surrogates cannot be persisted verbatim.</summary>
+    private static bool IdOk(string? id) => !string.IsNullOrEmpty(id) && ProfileInvariants.IsWellFormedUtf16(id);
 
     // ---- Pipeline ------------------------------------------------------------------------------------------
 

@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace RogueTrader.Persistence;
 
 /// <summary>In-memory repository with the same compare-and-swap rules as the file repository. For tests and tooling.</summary>
@@ -7,7 +9,8 @@ public sealed class InMemoryProfileRepository(PersistenceOptions? options = null
 
     private readonly PersistenceOptions _options = options ?? new PersistenceOptions();
     private readonly ProfileCoordinator _coordinator = new();
-    private readonly Dictionary<string, PlayerProfile> _store = new(StringComparer.Ordinal);
+    // Concurrent: the per-profile locks serialize one id, but different ids are read and written in parallel.
+    private readonly ConcurrentDictionary<string, PlayerProfile> _store = new(StringComparer.Ordinal);
 
     public async Task<ProfileLoadResult> LoadAsync(string profileId, CancellationToken ct = default)
     {

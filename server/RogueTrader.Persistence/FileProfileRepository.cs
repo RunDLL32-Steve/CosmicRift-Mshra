@@ -15,7 +15,8 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
     private readonly PersistenceOptions _options;
     private readonly IReadOnlyList<IProfileMigration> _migrations;
     private readonly TimeProvider _time;
-    private readonly ProfileCoordinator _coordinator = new();
+    // Ids that differ only in case share files on a case-insensitive file system (Windows), so they share a lock too.
+    private readonly ProfileCoordinator _coordinator = new(StringComparer.OrdinalIgnoreCase);
     private readonly FileStream _lockStream;
     private bool _disposed;
 
@@ -99,6 +100,8 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
             if (decoded.Succeeded)
             {
                 diagnostics.AddRange(WithPath(decoded.Diagnostics, primary));
+                if (IdentityMismatch(decoded.Profile!, id, primary, diagnostics))
+                    return new ProfileLoadResult(ProfileLoadStatus.Corrupt, null, diagnostics);
                 _coordinator.SetTracked(id, decoded.Profile!.Revision);
                 return new ProfileLoadResult(ProfileLoadStatus.Loaded, decoded.Profile, diagnostics);
             }
@@ -120,6 +123,8 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
             if (decoded.Succeeded)
             {
                 var profile = decoded.Profile!;
+                if (IdentityMismatch(profile, id, backup, diagnostics))
+                    return new ProfileLoadResult(ProfileLoadStatus.Corrupt, null, diagnostics);
                 try { WriteAtomic(id, ProfileSerializer.Serialize(profile)); }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -164,6 +169,19 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
                 return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// A readable file whose payload belongs to another profile id (a copied file, or an id that differs only in case
+    /// on a case-insensitive file system) must never be served under the requested id. It is reported and left in
+    /// place: it may be another profile's live save, so it is not quarantined.
+    /// </summary>
+    private static bool IdentityMismatch(PlayerProfile profile, string requestedId, string path, List<PersistenceDiagnostic> diagnostics)
+    {
+        if (string.Equals(profile.ProfileId, requestedId, StringComparison.Ordinal)) return false;
+        diagnostics.Add(new PersistenceDiagnostic(DiagnosticCode.InvariantViolation,
+            $"The file holds profile '{profile.ProfileId}', not '{requestedId}'; it was left untouched.", path));
+        return true;
     }
 
     private ProfileDecodeResult ReadAndDecode(string path) => ProfileSerializer.Decode(File.ReadAllBytes(path), _migrations);
