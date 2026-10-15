@@ -38,20 +38,49 @@ Current user requirements (October13,2026):
 ## Maintained agent qualification and review rule — October 14, 2026
 
 - Use agents for independent work that advances the current project goals. Give each agent a bounded task, file ownership, required context and acceptance criteria; avoid overlapping edits and shared-output builds.
-- Choose and explicitly set each agent's reasoning effort for its task before spawning or assigning follow-up work. Do not let routine work inherit Ultra by default. When the tool requires a fresh context to set effort, supply the necessary context in that assignment.
-- Use **low** for mechanical documentation updates, link/count checks and straightforward read-only audits; **medium** for documentation synthesis, bounded research, simple implementation and focused test work; **high** for complex implementation, architecture, subtle correctness issues or difficult debugging. Use higher settings, including **Ultra**, only when the task's complexity or unresolved evidence warrants them.
-- Reassess effort when an agent's task changes. If follow-up work needs a different effort and the tool cannot change it, assign it to a suitably configured agent instead of silently reusing the previous setting.
+- Choose and explicitly set each agent's model and reasoning effort from the "Model and effort matrix" below before spawning or assigning follow-up work. Do not let routine work inherit the top model or Ultra by default; give the reason when deviating from the matrix. When the tool requires a fresh context to set effort, supply the necessary context in that assignment.
+- Reassess when an agent's task changes; if the tool cannot change effort, assign the follow-up to a suitably configured agent instead of silently reusing the previous setting.
 - The coordinating agent must review every agent's work before accepting or integrating it: inspect the actual changes/findings, verify the relevant evidence and focused checks, and resolve identified defects. An agent's completion claim alone is not acceptance. Record the review outcome with the work's evidence; leave unverified feature checkboxes open.
 - Keep this rule in force across sessions and handoffs unless the user explicitly changes it.
 
-## Agent and branch workflow — October 14, 2026
+## Agent and branch workflow — October 15, 2026
 
-- One scoped branch (and worktree) per issue; inspect existing checkout state first and preserve unrelated uncommitted work.
-- The orchestrating session runs Sonnet 5.5 at medium effort. Set each agent's model and effort to fit its task: do not put a top-tier model on documentation, and do not put a lightweight model on code or review work. Reserve higher effort for complex implementation, architecture and subtle correctness.
-- The coordinator must inspect every agent's actual diff and evidence before accepting it; a completion claim alone is not acceptance. Leave unverified feature checkboxes open.
-- The coordinating CI/CD session reviews and tests each issue branch (`scripts/verify.ps1` plus the relevant compatibility checks) and merges to main only branches that fix their issue. Diagnostic or WIP branches are merged only as clearly labelled tooling and never mark a feature complete.
-- At a usage/checkpoint stop, commit owned issue work first, then record the commit, verified results, incomplete reviews and exact resume point. Preservation commits never imply completed verification.
-- No pushes unless the user asks. No desktop/GUI interaction is authorized without the user present.
+- One scoped branch (and worktree) per issue/feature/fix; inspect existing checkout state first and preserve unrelated uncommitted work.
+- **The author never merges their own work into main.** A different, newly started review agent reviews the branch (diff, intent, tests, conflicts) and merges it only if approved. If not approved, the reviewer states why, may fix the change on that branch and then merge; it must not merge anything it has not itself understood. For code the reviewer re-runs the relevant tests (`scripts/verify.ps1`, `prepare-derived-source.ps1` plus runtime/native-delivery checks as applicable) and judges by the JSON reports (the two compatibility wrappers print a spurious exit failure under Windows PowerShell 5.1).
+- The orchestrating session runs Sonnet 5.5 at medium effort and delegates per the matrix. The coordinator inspects every agent's actual diff and evidence; a completion claim alone is not acceptance. Leave unverified feature checkboxes open. Diagnostic or WIP branches merge only as clearly labelled tooling and never mark a feature complete.
+- At a usage/checkpoint stop, commit owned issue work on its branch first, then record the commit, verified results, incomplete reviews and the exact resume point. Preservation commits never imply completed verification.
+- Pushes only to feature branches and only where the user has authorized it (the cloud routine below); never push main without the user. No desktop/GUI interaction without the user present.
+
+### Model and effort matrix
+
+| Task | Model | Effort |
+|---|---|---|
+| Reconstruct gameplay from recovered files/footage; analyze incomplete binaries, formats, undocumented behavior | Opus 5.5 | High; XHigh only when evidence conflicts or two High attempts failed |
+| Authoritative multiplayer architecture; complex bugs spanning client, server and simulation | Opus 5.5 | XHigh |
+| Complete game architecture; deterministic movement/physics specs; networking, prediction and reconciliation; persistence, progression and transaction design; major refactors | Opus 5.5 | High |
+| Native client Start/entry diagnosis (RT-F380/F384) | Opus 5.5 | High |
+| Format identification and unfamiliar binary parsers; network synchronization and multiplayer testing; critical architecture/security reviews | Opus 5.5 | High |
+| Investigating persistent performance bottlenecks | Opus 5.5 | High/XHigh |
+| Gameplay systems from approved specs (movement, controls, weapons, mining, inventory, upgrades, economy, enemy AI, map rendering/collision, Godot/C#) | Sonnet 5.5 | High |
+| Economy and shop rules (RT-F388/F389/F396 style) | Opus 5.5 designs the rule, Sonnet 5.5 implements and tests | High / High |
+| New gameplay features for Rogue Trader 2.0 | Opus 5.5 plans, Sonnet 5.5 implements | High / High |
+| Multiplayer UI, database CRUD/admin interfaces | Sonnet 5.5 | Medium |
+| Behavioral and integration tests; code reviews for gameplay correctness; performance profiling and optimization | Sonnet 5.5 | High |
+| Merge-conflict resolution; review-and-merge of code branches | Sonnet 5.5 | High (Opus High if the change touches networking, persistence, transactions or security) |
+| Asset conversion scripts and import utilities | Sonnet 5.5 | Medium |
+| Asset inventory and metadata extraction; boilerplate; basic unit-test scaffolding | Haiku 5.5 | Low/Medium |
+| Running CI and reporting results (diagnosis of a failure moves to Sonnet) | Haiku 5.5 | Medium |
+| Documentation updates from verified implementations; review-and-merge of markdown-only branches | Haiku 5.5 | Medium |
+
+Never use a Fable-class or Opus model for routine documentation. Documentation count/status edits must be followed by a mechanical consistency check of the counts across the master checklist, catalog, README, PROJECT_START, CONTINUATION and PROGRESS.
+
+### Cloud routine (unattended, PC off)
+
+- A cloud routine continues the queue in CONTINUATION.md from the latest `origin/main` under every rule above. It works one item per branch named `cloud/<RT-ID or slug>`, commits there and pushes only that branch; it never pushes or merges main.
+- Cloud runs lack the ignored local toolchain (`.tools/` SDKs, Godot, pinned upstream and original assets). Anything a cloud run cannot test is recorded as "not verified in cloud — local CI required" and is not marked complete. Do not fabricate results.
+- Each pushed branch carries an independent cloud reviewer's verdict in `docs/development-log/cloud/<branch>.md` (approved / pushed back with reasons). When the user's PC is back, a local review agent re-tests and merges approved branches into main under the rules above.
+- Stop and write the resume point to the branch log when a task needs desktop interaction, an authentication ticket, a user decision or a toolchain the cloud lacks.
+
 
 ## Current documentation checkpoint — October 13, 2026
 
