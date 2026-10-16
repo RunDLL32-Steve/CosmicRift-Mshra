@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #20, head 638614f)
 
 # cloud/rt-f051-reward-variants
 
