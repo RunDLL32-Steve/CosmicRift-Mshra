@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #31)
 
 # cloud/rt-f054-hyper-warp-items
 
