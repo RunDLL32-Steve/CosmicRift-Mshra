@@ -19,7 +19,7 @@ public static class ItmProjectileFields
     public const int ExplodeItem = 142;
     /// <summary>Highest index read; a row must have more fields than this.</summary>
     public const int MaxTypedField = ExplodeItem;
-    /// <summary>Record type (f[0]) of the projectile layout. Audit of the pinned Rogue_mp.itm: all 92 rows with type 6 and 227 fields carry integers at every field above; the type-8 rows with 145..193 fields do not (for example f[94]="None" on row 42), so they are not given a view.</summary>
+    /// <summary>Record type (f[0]) of the projectile layout. Audit of the pinned Rogue_mp.itm: all 92 rows with type 6 and 227 fields carry integers at every field above; the type-8 rows with 109..193 fields do not (for example f[94]="None" on row 42), so they are not given a view.</summary>
     public const int ProjectileRecordType = 6;
     public const int ProjectileFieldCount = 227;
 }
