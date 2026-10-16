@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED (PR #20 review round 1, senior review 5545814614 on head aaac516: NEEDS BASE FIX #15 only; label review-changes-requested)
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f051-reward-variants
 
@@ -21,3 +21,6 @@ shared/RogueTrader.OriginalData/OriginalRewardConfig.cs, tests/Unit/OriginalRewa
 
 ## Resume point
 Read NWS 195-196 and 384-387 and decide which revision rogue.cfg embodies before interpreting any scale.
+
+## Rework after round 1 (NEEDS BASE FIX cleared; merge gate conflict)
+- Merged origin/main (merge commit, no rebase) after #15 merged and the PR was retargeted to main; auto-merge resolved cleanly. OriginalCfg.cs, OriginalCfgTests.cs, TASK_QUEUE.md, IMPLEMENTATION_PLAN.md and the #15 log equal main; three-dot diff vs main is only OriginalRewardConfig.cs, OriginalRewardConfigTests.cs, plan.d/rt-f051.md and this log.
