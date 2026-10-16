@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #9 review round 3, senior review 5545705486 on head f395478; label review-approved)
 
 # cloud/rt-f043-hull-drops
 
