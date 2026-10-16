@@ -29,6 +29,7 @@ public sealed class OriginalCfgTests
         Assert.Throws<OriginalDataException>(() => OriginalCfg.Parse("x=1\r\n", "t.cfg"));
         Assert.Throws<OriginalDataException>(() => OriginalCfg.Parse("[A]\r\njunk\r\n", "t.cfg"));
         Assert.Throws<OriginalDataException>(() => OriginalCfg.Parse("[A\r\n", "t.cfg"));
+        Assert.Throws<OriginalDataException>(() => OriginalCfg.Parse("[A]x\r\n", "t.cfg"));
         var cfg = OriginalCfg.Parse("[A]\r\nx=zz\r\n[A]\r\n", "t.cfg");
         Assert.Throws<OriginalDataException>(() => cfg.Section("A"));
         Assert.Throws<OriginalDataException>(() => OriginalCfg.Parse("[A]\r\nx=zz\r\n", "t.cfg").Section("A").Int("x"));
@@ -59,7 +60,24 @@ public sealed class OriginalCfgTests
         Assert.Equal(new[] { 0, 9, 15 }, t.Where(x => x.StoreEnabled == 0).Select(x => x.Terrain));
         Assert.Equal(new[] { 0, 9, 10, 15 }, t.Where(x => x.SkillEnabled == 0).Select(x => x.Terrain));
         Assert.Equal(new[] { 0, 9, 15 }, t.Where(x => x.TeamChangeEnabled == 0).Select(x => x.Terrain));
-        Assert.All(t, x => Assert.InRange(x.StoreEnabled + x.SkillEnabled + x.TeamChangeEnabled, 0, 3));
+        Assert.All(t, x =>
+        {
+            Assert.InRange(x.StoreEnabled, 0, 1);
+            Assert.InRange(x.SkillEnabled, 0, 1);
+            Assert.InRange(x.TeamChangeEnabled, 0, 1);
+        });
+    }
+
+    [Fact]
+    public void CfgPinMatchesAssetManifest()
+    {
+        var root = OriginalAssets.RepoRoot();
+        Assert.NotNull(root);
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root!, "docs", "original-research", "ASSET_MANIFEST.json")));
+        var entry = doc.RootElement.GetProperty("assets").EnumerateArray()
+            .Single(a => a.GetProperty("originalPath").GetString() == OriginalCfg.Rogue.RelativePath);
+        Assert.Equal(OriginalCfg.Rogue.Sha256, entry.GetProperty("originalSha256").GetString());
+        Assert.Equal(OriginalCfg.Rogue.Length, entry.GetProperty("originalSizeBytes").GetInt64());
     }
 
     [RequiresOriginalAssetsFact]
