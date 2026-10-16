@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #16 review round 1, senior review 5545507329 on head d34a788; label review-approved)
 
 # cloud/rt-f050-class-change-prune
 
