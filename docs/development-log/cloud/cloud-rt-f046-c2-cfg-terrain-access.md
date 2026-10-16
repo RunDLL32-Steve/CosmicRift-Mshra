@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #15 review round 2, senior review on head daf48ce; label review-approved)
 
 # cloud/rt-f046-c2-cfg-terrain-access
 
