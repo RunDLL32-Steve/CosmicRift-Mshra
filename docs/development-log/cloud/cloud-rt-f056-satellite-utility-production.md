@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #33)
 
 # cloud/rt-f056-satellite-utility-production
 
