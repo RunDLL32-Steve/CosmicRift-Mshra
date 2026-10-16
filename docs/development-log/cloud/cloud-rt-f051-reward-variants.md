@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: CHANGES REQUESTED (PR #20 review round 1, senior review 5545814614 on head aaac516: NEEDS BASE FIX #15 only; label review-changes-requested)
 
 # cloud/rt-f051-reward-variants
 
