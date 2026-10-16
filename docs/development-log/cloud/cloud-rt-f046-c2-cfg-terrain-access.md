@@ -1,4 +1,4 @@
-Review status: APPROVED (PR #15 review round 1, senior review 5545506828 on head f753d3a; label review-approved)
+Review status: CHANGES REQUESTED (PR #15 merge gate after review round 1 APPROVED: conflicts with main in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md; move the plan line to plan.d/rt-f046.md; label review-changes-requested)
 
 # cloud/rt-f046-c2-cfg-terrain-access
 
