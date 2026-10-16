@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #28)
 
 # cloud/rt-f025-cfg-uiart-render
 
