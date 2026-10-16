@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #15 review round 1, senior review 5545506828 on head f753d3a; label review-approved)
 
 # cloud/rt-f046-c2-cfg-terrain-access
 
