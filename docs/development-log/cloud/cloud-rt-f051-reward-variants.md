@@ -1,0 +1,27 @@
+Review status: APPROVED (senior review round 2, PR #20, head 638614f)
+
+# cloud/rt-f051-reward-variants
+
+- Claims: RT-F051 (data clauses only: raw CFG [Bounty], [Cash], [Point] reward keys); gate items 2 and 5 (data). No queue row.
+- Stacked on cloud/rt-f046-c2-cfg-terrain-access (PR #15, review-pending; provides OriginalCfg). Merge that first.
+- Status: done for the scoped data part. No registry box ticked.
+
+## Acceptance clauses
+Done (data): raw typed read of rogue.cfg [Bounty] (line 176: Start=1, PercentToKillerBounty=80, PercentToAssistBounty=20, FixedToKillerBounty=0), [Cash] (234: 0/0/100/1000/75), [Experience] (241: all 0), [Point] (844: 500/250/100/1000/0), checked against an independent read of the pinned file.
+Remaining: choosing the documented operational revision (NWS 195-196 vs 384-387), percent scales, truncation/order, cash/points/bounty and assist semantics, native verification of completed rewards.
+
+## Files
+shared/RogueTrader.OriginalData/OriginalRewardConfig.cs, tests/Unit/OriginalRewardConfigTests.cs, shared/RogueTrader.OriginalData/plan.d/rt-f051.md.
+
+## Verified (cloud)
+- apt dotnet-sdk-8.0 8.0.131 (global.json moved aside, restored), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 219, Failed 0, Skipped 0.
+- python scripts/check-trackers.py -> TRACKERS_CONSISTENT.
+## Not verified in cloud - local CI required
+- Pinned SDK 8.0.419 run; native behaviour.
+
+## Resume point
+Read NWS 195-196 and 384-387 and decide which revision rogue.cfg embodies before interpreting any scale.
+
+## Rework after round 1 (NEEDS BASE FIX cleared; merge gate conflict)
+- Merged origin/main (merge commit, no rebase) after #15 merged and the PR was retargeted to main; auto-merge resolved cleanly. OriginalCfg.cs, OriginalCfgTests.cs, TASK_QUEUE.md, IMPLEMENTATION_PLAN.md and the #15 log equal main; three-dot diff vs main is only OriginalRewardConfig.cs, OriginalRewardConfigTests.cs, plan.d/rt-f051.md and this log.
+- Tests after the merge (NuGet is blocked by this run's egress proxy, so real xunit could not restore): apt dotnet-sdk-8.0 8.0.131 compiled shared/RogueTrader.OriginalData plus tests/Unit/OriginalAssetsFixture.cs, Original*Tests.cs and RawRecordReaderTests.cs against an out-of-tree xunit-API shim run by reflection; pinned assets eb1514ea: 123 passed/0 failed/0 skipped; without assets 42 passed/53 skipped/0 failed. `python scripts/check-trackers.py`: TRACKERS_CONSISTENT. Not verified in cloud - local CI required: real xunit on pinned SDK 8.0.419 and the Simulation/Persistence test projects (unchanged here).
