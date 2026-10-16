@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #4 review round 3, senior review 5545476997 on head 1b766ff; label review-approved)
 
 # cloud/rt-f036-f037-g5-weapon-records
 
