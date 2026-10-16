@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: CHANGES REQUESTED (senior review round 1, PR #28)
 
 # cloud/rt-f025-cfg-uiart-render
 
