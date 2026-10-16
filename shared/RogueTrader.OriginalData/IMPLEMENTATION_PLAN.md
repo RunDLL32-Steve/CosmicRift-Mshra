@@ -19,3 +19,4 @@ Each registry item's status (done vs remaining clauses, branch, evidence) lives 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
+- RT-F045 (data only, cloud/rt-f045-trading-post-credits, review pending): `OriginalTradingPost` resolves the four 14-field trade blocks of VEH id 404 (Tellerium/Krandazite/Wreckage/Alloy) to credit effects 18/17/19/44 and input items 2004/2006/2008/2020; credit rows keep raw f[31]=55/80/300/20. Quantities, scale, eligibility and award flow unvalidated; NWS 20-vs-100 Wreckage conflict open; box stays open.
