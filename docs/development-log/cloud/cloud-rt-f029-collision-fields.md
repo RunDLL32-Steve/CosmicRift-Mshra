@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #25, head f58cc90)
 
 # cloud/rt-f029-collision-fields — RT-F029 collision radius, bounce, point-blank and terrain repel raw-field audit
 
