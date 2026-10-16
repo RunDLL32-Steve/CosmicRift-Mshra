@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #26, head c2ce2d9)
 
 # cloud/rt-f031-shield-energy-fields — RT-F031 shield/energy/hull raw-field audit
 
