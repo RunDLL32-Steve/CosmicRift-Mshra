@@ -29,7 +29,7 @@ Remaining (not done):
 ## Verified (cloud)
 - Independent audit `python3 -I scripts/original-assets/audit_rt_f026.py /tmp/claude-0/keys.txt <assets>` : provenance MATCH, lines=71, sections=5, actions=57, per-action tokens as pinned, CFG line 41 and NWS line 108 text printed.
 - fetch_rogue_keys.py really downloaded from raw.githubusercontent.com into a temp folder and verified all hashes; refuses repo-internal folders and overwrites.
-- Offline xunit-compatible shim, apt SDK 8.0.131 (not the pinned 8.0.419/real xunit): `OriginalKeyListing` filter without env vars: Passed 6, Skipped 5 (+ 1 hash-constant fix before final); with RT_ROGUE_KEYS_TXT and RT_ORIGINAL_ASSETS_ROOT: 12/12 passed. Full suite without env: Passed 305, Failed 0, Skipped 5, Total 310; full suite with both env vars: Passed 310, Failed 0, Skipped 0, Total 310 (main baseline 298).
+- Offline xunit-compatible shim, apt SDK 8.0.131 (not the pinned 8.0.419/real xunit): `OriginalKeyListing` filter without RT_ROGUE_KEYS_TXT: the 5 keys.txt oracle tests Skipped, the rest passed (the CFG/NWS oracle ran because the asset clone was auto-located); with RT_ROGUE_KEYS_TXT and RT_ORIGINAL_ASSETS_ROOT: 12/12 passed. Full suite without env: Passed 305, Failed 0, Skipped 5, Total 310; full suite with both env vars: Passed 310, Failed 0, Skipped 0, Total 310 (main baseline 298).
 - `python3 scripts/check-trackers.py`: TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open; unchanged - no boxes ticked).
 
 ## Not verified in cloud - local CI required
