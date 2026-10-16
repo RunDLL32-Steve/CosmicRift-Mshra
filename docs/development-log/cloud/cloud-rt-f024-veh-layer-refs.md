@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #27)
 
 # cloud/rt-f024-veh-layer-refs
 
