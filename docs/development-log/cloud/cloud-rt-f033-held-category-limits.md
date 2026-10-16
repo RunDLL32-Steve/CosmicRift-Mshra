@@ -8,7 +8,7 @@ Review status: CHANGES REQUESTED (PR #19 review round 1, senior review 554581399
 
 ## Acceptance clauses
 Done (data): raw typed read of rogue.cfg [HeldCategory] (30 Limit/ExtendedLimit pairs, lines 2967-3026; Limit1=500, Limit4..14=1, Limit15=2/Ext50, Limit16=2/Ext25, Limit17=2/Ext50, Limit20=2/Ext35, others 1 or -1) and [Soul] UtilitySlots (10 default, 5 range keys all 10), checked against an independent read of the pinned file.
-Remaining: mapping of category ids 1..30 to the ITM category strings (ITM has 28 distinct strings; no evidence found in ITM fields, docs or NWS that fixes the order), ExtendedLimit semantics, NWS rows 33-34, purchase/install/use restriction enforcement, native verification.
+Remaining: mapping of category ids 1..30 to ITM categories is NOT decided. Candidate evidence (reviewer observation, not proof): ITM f[20] is an integer constant per category for almost every category and lines up with the HeldCategory ids (Cannon 5, Beam 5/6, Energy Bomb 6, Special Weapons 6, Defensive 4, Space Mines 7, Rocket/Missile Systems 9, Hull Armor 11, Power Mods 12, Thruster Mods 13, Engine Mods 14, HyperDrive 18, Computer Mods 22; Resources Tellerium/Refined 15, Wreckage 16, Krandazite/Refined 17, Iron Ore/Alloy 20); only the cargo-resource ids 15/16/17/20 carry ExtendedLimit (50/25/50/35) and Limit11..14 = 1 match one armor/power/thruster/engine mod, ExtendedLimit semantics, NWS rows 33-34, purchase/install/use restriction enforcement, native verification.
 
 ## Files
 shared/RogueTrader.OriginalData/OriginalHeldCategory.cs, tests/Unit/OriginalHeldCategoryTests.cs, shared/RogueTrader.OriginalData/plan.d/rt-f033.md.
