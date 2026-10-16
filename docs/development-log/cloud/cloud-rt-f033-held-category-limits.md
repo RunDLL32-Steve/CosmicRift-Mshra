@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED (PR #19 review round 1, senior review 5545813998 on head e749660: NEEDS BASE FIX #15 plus 1 minor; label review-changes-requested)
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f033-held-category-limits
 
@@ -21,3 +21,7 @@ shared/RogueTrader.OriginalData/OriginalHeldCategory.cs, tests/Unit/OriginalHeld
 
 ## Resume point
 Find evidence for the category id order (e.g. other arena CFG/NWS text or shop UI strings) before any enforcement logic.
+
+## Rework after round 1 follow-up (merge gate: conflict with main after #15 merged)
+- Merged origin/main (merge commit, no rebase); auto-merge resolved cleanly. OriginalCfg.cs, OriginalCfgTests.cs, TASK_QUEUE.md, IMPLEMENTATION_PLAN.md and the #15 log are identical to main; three-dot diff vs main is only OriginalHeldCategory.cs, OriginalHeldCategoryTests.cs, plan.d/rt-f033.md and this log.
+- Major NEEDS BASE FIX: cleared (#15 merged, PR retargeted to main). Minor (ITM f[20] wording): already fixed in 23a2419.
