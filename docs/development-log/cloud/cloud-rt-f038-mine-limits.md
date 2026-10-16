@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #5 review round 3, senior review 5545702819 on head d66d785; label review-approved)
 
 # cloud/rt-f038-mine-limits
 
