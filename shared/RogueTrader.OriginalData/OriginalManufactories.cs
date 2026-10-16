@@ -3,7 +3,7 @@ namespace RogueTrader.OriginalData;
 /// <summary>
 /// One 14-field production block of a player-made Nanobot Manufactory VEH row (RT-F057, data only), same stride as the trade
 /// blocks (first name at f[253]). Layout read from the pinned names ("Produce GunSat 1:25 A"): f = name, f+1 output ITM id,
-/// f+2 output quantity, f+4 raw, f+5 input ITM id, f+6 input quantity. Every value stays raw; the f+6 sentinel -1 on the
+/// f+2 output quantity, f+4 raw, f+5 input ITM id, f+6 input quantity, f+7 raw (0 in all 16 pinned blocks). Every value stays raw; the f+6 sentinel -1 on the
 /// "Biostorm" block contradicts its "1:1" name and is preserved, not corrected. Cost, build time, radius and the production
 /// flow are undecoded.
 /// </summary>
@@ -15,6 +15,7 @@ public sealed record OriginalManufactoryRecipe(
     OriginalInt RawField4,
     OriginalInt InputItemId,
     OriginalInt InputQuantity,
+    OriginalInt RawField7,
     OriginalItem? Output,
     OriginalItem? Input);
 
@@ -70,13 +71,17 @@ public static class OriginalManufactories
                 throw new OriginalDataException($"{item.Record.SourceFile} row {item.RowNumber}: VEH id {link} matches {rows.Count} type-5 v53 rows, expected exactly one.");
             var veh = rows[0];
             var recipes = new List<OriginalManufactoryRecipe>();
-            for (var f = FirstRecipeField; f + 6 < veh.FieldCount && veh.Value(f).Length > 0; f += RecipeStride)
+            for (var f = FirstRecipeField; f + 7 < veh.FieldCount && veh.Value(f).Length > 0; f += RecipeStride)
             {
                 var output = veh.Int(f + 1);
                 var input = veh.Int(f + 5);
-                recipes.Add(new OriginalManufactoryRecipe(veh.Value(f), f, output, veh.Int(f + 2), veh.Int(f + 4), input, veh.Int(f + 6),
+                recipes.Add(new OriginalManufactoryRecipe(veh.Value(f), f, output, veh.Int(f + 2), veh.Int(f + 4), input, veh.Int(f + 6), veh.Int(f + 7),
                     items.Items.FirstOrDefault(i => i.Id == output.Value), items.Items.FirstOrDefault(i => i.Id == input.Value)));
             }
+            // A non-blank block after a gap would otherwise be dropped silently: every later name slot must be empty.
+            for (var g = FirstRecipeField + (recipes.Count + 1) * RecipeStride; g < veh.FieldCount; g += RecipeStride)
+                if (veh.Value(g).Length > 0)
+                    throw new OriginalDataException($"{veh.SourceFile} row {veh.RowNumber}: non-empty block name '{veh.Value(g)}' at f[{g}] after the last recipe block.");
             var computerId = item.Record.Int(RequiredComputerField).Value;
             list.Add(new OriginalManufactory(item, veh, items.Items.FirstOrDefault(i => i.Id == computerId), recipes));
         }

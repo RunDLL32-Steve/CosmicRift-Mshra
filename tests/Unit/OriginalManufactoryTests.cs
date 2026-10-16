@@ -48,6 +48,28 @@ public sealed class OriginalManufactoryTests
         Assert.Null(slugs.Output);
         Assert.Equal(new[] { ("Produce GunSat 1:25 A", 47, 1, 2020, 25), ("Produce BeamSat 1:35 A", 48, 1, 2020, 35) },
             m[2].Recipes.Select(r => (r.Name, r.OutputItemId.Value, r.OutputQuantity.Value, r.InputItemId.Value, r.InputQuantity.Value)));
-        Assert.All(m.SelectMany(x => x.Recipes), r => Assert.Equal(150, r.RawField4.Value));
+        Assert.All(m.SelectMany(x => x.Recipes), r => { Assert.Equal(150, r.RawField4.Value); Assert.Equal(0, r.RawField7.Value); });
+        Assert.Equal(new[] { "Manufactory - Missile", "Manufactory - Munitions", "Manufactory - Defense" }, m.Select(x => x.Vehicle.Value(3)));
+        var all = m.Select(x => x.Recipes.Select(r => (r.Name, r.OutputItemId.Value, r.OutputQuantity.Value, r.InputItemId.Value, r.InputQuantity.Value)).ToArray()).ToArray();
+        Assert.Equal(new[]
+        {
+            ("Produce Bio Missiles 2:1 RT", 2012, 2, 2004, 1), ("Produce Biostorm Missiles 1:1 RT", 2013, 1, 2004, -1),
+            ("Produce Cluster Rockets 1:1 RT", 2001, 1, 2004, 1), ("Produce MIRV Missile 1:1 RT", 2002, 1, 2004, 1),
+            ("Produce Moltor Crystal 1:1 RT", 2010, 1, 2004, 1), ("Produce Moltor Stones 1:1 RT", 2017, 1, 2004, 1),
+            ("Produce Rocket Pod Rockets 5:1 RT", 2018, 5, 2004, 1), ("Produce Shrapnel Missiles 1:1 RT", 2009, 1, 2004, 1),
+            ("Produce Tachyon Rockets 1:1 RT", 2007, 1, 2004, 1),
+        }, all[0]);
+        Assert.Equal(new[]
+        {
+            ("Produce LMD Pellets 500:1 A", 2000, 500, 2020, 1), ("Produce MD Pellets 500:1 A", 2014, 500, 2020, 1),
+            ("Produce HMD Pellets 250:1 A", 2015, 250, 2020, 1), ("Produce Pulse Cannon Slugs 500:1 A", 2021, 500, 2020, 1),
+            ("Produce Moltor Rocks 250:1 T", 2016, 250, 2003, 1),
+        }, all[1]);
+    }
+
+    [RequiresOriginalAssetsFact]
+    public void NoItemIsNamedAdvancedFireControl()
+    {
+        Assert.DoesNotContain(Catalog.Value.Items, i => i.Name == "Advanced Fire Control");
     }
 }
