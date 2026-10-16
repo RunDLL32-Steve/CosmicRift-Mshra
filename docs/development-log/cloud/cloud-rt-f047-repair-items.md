@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #17 review round 1, senior review 5545507927 on head 9cb3f35; label review-approved)
 
 # cloud/rt-f047-repair-items
 
