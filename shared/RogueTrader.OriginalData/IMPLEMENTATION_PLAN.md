@@ -10,13 +10,12 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - `OriginalHull`: name, skill id, vehicle id, category, complete raw RPG and VEH records, and raw typed values with field indexes: hull points f[6], weight f[7], cargo f[47..48], energy f[94..96], all sixteen speed blocks f[202..361] (ten fields each), bounce f[362], hyper energy cost f[373]. No units, scaling or interpretation are applied; negative values are flagged `IsNegativeSentinel` and returned as-is.
 - Tests: [tests/Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md).
 
+## Per-item entries
+
+Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
+
 ## Outstanding
 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
-
-## Projectile field view (G5 part, RT-F036 / RT-F037 data only) — branch cloud/rt-f036-f037-g5-weapon-records
-- `OriginalProjectile` / `ItmProjectileFields`: raw typed view of ITM f[54] fireDelay, f[94] inheritedSpeed, f[101] muzzleVelocity, f[110] aliveTime, f[131], f[135..138], f[142] for the 92 type-6 / 227-field rows; the type-8 rows (145..193 fields, e.g. `None` at f[94]) get no view. Negatives (-550, -65) preserved and flagged.
-- Oracle tests (FIELD_INTERPRETATION table: rows 1, 6, 7, 61, 141, 153, 156) in `tests/Unit/OriginalProjectileTests.cs`. Not done: launcher→ammo→child chain (RT-F040), scale/sentinel semantics, native behaviour; RT-F036/F037 stay unchecked.
-- Mine records (RT-F038 data, branch cloud/rt-f038-mine-limits): oracle tests confirm the seven catalogued mines (rows 13,15,51,56,61,62,160) all carry raw f[94]=0, f[101]=0, f[110]=6000, f[131]=3 and only Shard Mine has an explode child (3011); `Space Mines` category = six rows, Repulsor is "Defensive Weapons". Placement/proximity/arming/expiry semantics, units, acquisition and behaviour undecided; RT-F038 unchecked.

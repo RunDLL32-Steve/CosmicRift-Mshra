@@ -1,4 +1,4 @@
-Review status: APPROVED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f036-f037-g5-weapon-records
 
@@ -42,3 +42,6 @@ Verified by the reviewer (cloud):
 - No canonical asset, .tools/references, client or secret changes in the diff.
 
 Not verified in cloud - local CI required: pinned SDK 8.0.419 run.
+
+## Rework after merge-gate round
+Merge-gate finding: PR not mergeable (conflict at end of OriginalData IMPLEMENTATION_PLAN.md). Fixed: merged origin/main (merge commit ad71a92, no rebase), then moved this branch's two plan lines into shared/RogueTrader.OriginalData/plan.d/rt-f036-f037.md and restored IMPLEMENTATION_PLAN.md to main's version (new per-item rule). check-trackers: TRACKERS_CONSISTENT. dotnet test: not re-run in cloud (no SDK in this sandbox; reviewer previously got 234 passed); no C# changed by this rework.
