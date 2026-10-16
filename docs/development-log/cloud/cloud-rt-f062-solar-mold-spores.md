@@ -23,4 +23,4 @@ Review status: UNREVIEWED
 - Not verified in cloud - local CI required: real xunit `dotnet test tests/Unit` with pinned SDK 8.0.419.
 
 ## Status
-wip/done for the data clause (not committed yet); resume point: LIO reader (queue G6) then rows 80/81 and the spawn/combat behaviour need native or simulation validation.
+done (data clause, c4e4a94); resume point: LIO reader (queue G6) then rows 80/81 and the spawn/combat behaviour need native or simulation validation.
