@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #16, head 514441d)
 
 # cloud/rt-f050-class-change-prune
 
