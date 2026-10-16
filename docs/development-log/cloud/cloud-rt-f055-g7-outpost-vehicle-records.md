@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #32)
 
 # cloud/rt-f055-g7-outpost-vehicle-records
 
