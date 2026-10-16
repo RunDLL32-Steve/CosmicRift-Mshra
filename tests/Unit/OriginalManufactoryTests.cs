@@ -1,0 +1,75 @@
+using RogueTrader.OriginalData;
+
+namespace RogueTrader.UnitTests;
+
+/// <summary>
+/// Oracle: FEATURE_CATALOG.md RT-F057 (VEH15-17 ids 425/426/427; ITM196-198 ids 83/84/85) plus an independent Python audit of the
+/// pinned Rogue_mp.itm and Rogue.veh (eb1514ea). Skipped, never passed, without the assets.
+/// </summary>
+public sealed class OriginalManufactoryTests
+{
+    private static readonly Lazy<OriginalItemCatalog> Catalog = new(() => OriginalItemCatalog.Load(OriginalAssets.Root!));
+
+    private static IReadOnlyList<OriginalManufactory> Load() => OriginalManufactories.Load(OriginalAssets.Root!, Catalog.Value);
+
+    [RequiresOriginalAssetsFact]
+    public void ThreeManufactoriesLinkVehicleRowsAndRequireNanobotControl()
+    {
+        var m = Load();
+        Assert.Equal(new[] { 196, 197, 198 }, m.Select(x => x.Item.RowNumber));
+        Assert.Equal(new[] { 83, 84, 85 }, m.Select(x => x.Item.Id));
+        Assert.Equal(new[] { 15, 16, 17 }, m.Select(x => x.Vehicle.RowNumber));
+        Assert.Equal(new[] { "425", "426", "427" }, m.Select(x => x.Vehicle.Value(2)));
+        Assert.All(m, x =>
+        {
+            Assert.Equal(2023, x.RequiredComputerId.Value);
+            Assert.Equal(1, x.Item.Record.Int(OriginalManufactories.RequiredComputerFlagField).Value);
+            Assert.Equal("Nanobot Control System", x.RequiredComputer!.Name);
+            Assert.Equal(199, x.RequiredComputer.RowNumber);
+        });
+        Assert.Equal(new[] { 1200, 1000, 750 }, m.Select(x => x.Item.Buy.Value));
+        Assert.Equal("!1&!2&!3&!4&!5&!6&!8&!9&!10&!11&!15&!16", m[1].Item.Record.Value(5));
+    }
+
+    [RequiresOriginalAssetsFact]
+    public void RecipeBlocksKeepRawQuantitiesAndVisibleMismatches()
+    {
+        var m = Load();
+        Assert.Equal(new[] { 9, 5, 2 }, m.Select(x => x.Recipes.Count));
+        var bio = m[0].Recipes[0];
+        Assert.Equal(("Produce Bio Missiles 2:1 RT", 2012, 2, 150, 2004, 1), (bio.Name, bio.OutputItemId.Value, bio.OutputQuantity.Value, bio.RawField4.Value, bio.InputItemId.Value, bio.InputQuantity.Value));
+        Assert.Equal("Bio Missiles", bio.Output!.Name);
+        Assert.Equal("Refined Tellerium", bio.Input!.Name);
+        var storm = m[0].Recipes[1];
+        Assert.Equal("Produce Biostorm Missiles 1:1 RT", storm.Name);
+        Assert.Equal(-1, storm.InputQuantity.Value);
+        var slugs = m[1].Recipes.Single(r => r.Name.Contains("Pulse Cannon"));
+        Assert.Equal(2021, slugs.OutputItemId.Value);
+        Assert.Null(slugs.Output);
+        Assert.Equal(new[] { ("Produce GunSat 1:25 A", 47, 1, 2020, 25), ("Produce BeamSat 1:35 A", 48, 1, 2020, 35) },
+            m[2].Recipes.Select(r => (r.Name, r.OutputItemId.Value, r.OutputQuantity.Value, r.InputItemId.Value, r.InputQuantity.Value)));
+        Assert.All(m.SelectMany(x => x.Recipes), r => { Assert.Equal(150, r.RawField4.Value); Assert.Equal(0, r.RawField7.Value); });
+        Assert.Equal(new[] { "Manufactory - Missile", "Manufactory - Munitions", "Manufactory - Defense" }, m.Select(x => x.Vehicle.Value(3)));
+        var all = m.Select(x => x.Recipes.Select(r => (r.Name, r.OutputItemId.Value, r.OutputQuantity.Value, r.InputItemId.Value, r.InputQuantity.Value)).ToArray()).ToArray();
+        Assert.Equal(new[]
+        {
+            ("Produce Bio Missiles 2:1 RT", 2012, 2, 2004, 1), ("Produce Biostorm Missiles 1:1 RT", 2013, 1, 2004, -1),
+            ("Produce Cluster Rockets 1:1 RT", 2001, 1, 2004, 1), ("Produce MIRV Missile 1:1 RT", 2002, 1, 2004, 1),
+            ("Produce Moltor Crystal 1:1 RT", 2010, 1, 2004, 1), ("Produce Moltor Stones 1:1 RT", 2017, 1, 2004, 1),
+            ("Produce Rocket Pod Rockets 5:1 RT", 2018, 5, 2004, 1), ("Produce Shrapnel Missiles 1:1 RT", 2009, 1, 2004, 1),
+            ("Produce Tachyon Rockets 1:1 RT", 2007, 1, 2004, 1),
+        }, all[0]);
+        Assert.Equal(new[]
+        {
+            ("Produce LMD Pellets 500:1 A", 2000, 500, 2020, 1), ("Produce MD Pellets 500:1 A", 2014, 500, 2020, 1),
+            ("Produce HMD Pellets 250:1 A", 2015, 250, 2020, 1), ("Produce Pulse Cannon Slugs 500:1 A", 2021, 500, 2020, 1),
+            ("Produce Moltor Rocks 250:1 T", 2016, 250, 2003, 1),
+        }, all[1]);
+    }
+
+    [RequiresOriginalAssetsFact]
+    public void NoItemIsNamedAdvancedFireControl()
+    {
+        Assert.DoesNotContain(Catalog.Value.Items, i => i.Name == "Advanced Fire Control");
+    }
+}
