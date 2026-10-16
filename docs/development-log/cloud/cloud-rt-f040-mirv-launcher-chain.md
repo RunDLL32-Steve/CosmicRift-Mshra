@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #6 review round 4, senior review 5545703257 on head c8fa35e; label review-approved)
 
 # cloud/rt-f040-mirv-launcher-chain
 
