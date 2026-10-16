@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #8 review round 3, senior review 5545704548 on head 82d285c; label review-approved)
 
 # cloud/rt-f041-armor-records
 
