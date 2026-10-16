@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #24)
 
 # cloud/rt-f027-f028-flight-fields — RT-F027..F028 per-hull flight, strafe, hyper and reverse raw-field audit
 
