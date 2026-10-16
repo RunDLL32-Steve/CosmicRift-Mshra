@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #15 review round 2, senior review on head daf48ce; label review-approved)
 
 # cloud/rt-f046-c2-cfg-terrain-access
 
@@ -21,3 +21,6 @@ shared/RogueTrader.OriginalData/OriginalCfg.cs, tests/Unit/OriginalCfgTests.cs, 
 
 ## Resume point
 RT-F050 (CFG DeleteWeaponsOnClassChange etc.), RT-F051 (CFG Bounty/Cash/Point) and RT-F064 (LOS/Radar) data clauses can now use OriginalCfg.
+
+## Rework after round 1 / merge gate
+Merged origin/main (merge commit); plan line moved to shared/RogueTrader.OriginalData/plan.d/rt-f046.md, IMPLEMENTATION_PLAN.md = main. Reader now throws on text after `]` on a section header (+ synthetic test). Added CfgPinMatchesAssetManifest (CFG pin vs ASSET_MANIFEST.json). Terrain test asserts every flag is 0 or 1. dotnet test tests/Unit (apt SDK 8.0.131, pinned assets): Passed 296, Failed 0, Skipped 0. check-trackers: TRACKERS_CONSISTENT.
