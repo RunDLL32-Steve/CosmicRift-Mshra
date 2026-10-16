@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #34)
 
 # cloud/rt-f057-manufactories-required-computers
 
