@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #10 review round 2, senior review 5545490657 on head 6ea1de6; label review-approved)
 
 # cloud/rt-f049-sell-sentinel-audit
 
