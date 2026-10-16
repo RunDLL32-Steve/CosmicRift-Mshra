@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: CHANGES REQUESTED (senior review round 1, PR #33)
 
 # cloud/rt-f056-satellite-utility-production
 
