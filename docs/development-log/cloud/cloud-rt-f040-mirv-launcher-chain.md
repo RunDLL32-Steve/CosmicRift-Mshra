@@ -1,4 +1,4 @@
-Review status: APPROVED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f040-mirv-launcher-chain
 
@@ -71,3 +71,11 @@ Verified by the reviewer (cloud):
 - No canonical asset, .tools/references, secret or unrelated changes.
 
 Not verified in cloud - local CI required: pinned SDK 8.0.419 run.
+
+## Conflict merge 2026-10-16
+
+- Merged base tip 1b766ff (origin/cloud/rt-f036-f037-g5-weapon-records, which merged origin/main and moved its plan line to plan.d).
+- Conflict: shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md (this branch had appended the RT-F040 chain line under the base's old "Projectile field view" section, which the base removed).
+- Resolution: kept the base's IMPLEMENTATION_PLAN.md unchanged; moved the RT-F040 status line to shared/RogueTrader.OriginalData/plan.d/rt-f040.md. No other conflicts or shared-tail appends.
+- Tests: Passed 258, Failed 0, Skipped 0, Total 258 (offline xunit-compatible shim runner, SDK 8.0.131; pinned SDK 8.0.419 / real xunit not verified in cloud - local CI required).
+- python3 scripts/check-trackers.py: TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open).

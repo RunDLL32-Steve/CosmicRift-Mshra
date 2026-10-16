@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f039-stun-emp-fields
 
@@ -21,3 +21,33 @@ shared/RogueTrader.OriginalData/OriginalDisableEffects.cs, tests/Unit/OriginalDi
 
 ## Resume point
 Next unclaimed registry entry: RT-F041 (damage types/armor, data audit of ITM armor rows 20-23,63,66, rows 151/152).
+
+## Review round 1 (senior review)
+
+Scope understood: RT-F039 data clause only. Expose the raw f[135..138] (AntiRecharge/AntiFire/AntiThrust/AntiRotate) values of the type-6/227 projectile rows, list the rows that carry a non-zero value, and record that Blackout Bomb row 155 carries none. No behavior, no tick. Stacked on cloud/rt-f040-mirv-launcher-chain (APPROVED round 2).
+
+Verdict: APPROVED. No blockers or majors. The work matches its scope, and the registry box correctly stays open.
+
+Findings:
+1. nit - docs/development-log/cloud/cloud-rt-f039-stun-emp-fields.md:7-8. The log has both "Status: wip." and "Status: done ... (replaces wip)". Expected fix: keep one status line (done for the scoped data part).
+2. nit - tests/Unit/OriginalDisableEffectsTests.cs:46. SyntheticItem() returns default! (null), so the record is built with a null OriginalItem. The test passes because IsDisabling never touches Item, but a null in a non-nullable record is fragile. Expected fix: build a real item from RawRecordReader.Parse of a one-line synthetic v57 record, or note in a comment that the item is intentionally unused.
+3. nit - Find scans only the type-6/227 view, as documented. An independent check found that the six type-8 rows with more than 138 fields (42, 43, 44, 89, 101, 115) are all zero at f[135..138], so nothing is missed today. Optional: say this in the log.
+
+Branch name, claims and collisions: the name carries RT-F039 and the log claims RT-F039. No other origin branch (cloud/*, claim/*) names RT-F039. There is no TASK_QUEUE row, which is correct for a registry-only item.
+
+Verified in cloud (this review):
+- apt dotnet-sdk-8.0 8.0.131 in a detached scratch worktree, global.json moved aside and restored (not committed), RT_ORIGINAL_ASSETS_ROOT = pinned fowlmouth/cosmic-rift-assets eb1514eaae7f9b9425307d9cc043c74ecdd15e35 shallow-cloned outside the checkout.
+- dotnet test tests/Unit -> Passed 245, Failed 0, Skipped 0. This matches the log.
+- python scripts/check-trackers.py -> TRACKERS_CONSISTENT.
+- An independent Python audit of Rogue_mp.itm found exactly 92 type-6/227 rows. Ten of them have non-zero f[135..138]: rows 11 Meson Bomb, 17 Tachyon Bomb, 74 DeathOrbCannon, 95 DeathRay and 200 DeathRay v2 (0,0,0,50); 61 Disruptor Mine and 62 Concussion Mine (150 x4); 104 Disruptor Projector (400,0,0,0); 105 BioPulse Bomb (50,0,50,0); 156 Disabler (0,0,300,0). Row 155 Blackout Bomb is 0,0,0,0. All values match the test oracle and the log.
+- The diff touches only the four listed files. No canonical asset, .tools/references, secret or unrelated changes.
+
+Not verified (local CI required): a run with the pinned SDK 8.0.419; the time unit, inhibit-versus-recovery semantics and simulation/native behavior. These remain open by design.
+
+## Conflict merge 2026-10-16
+
+- Merged base tip c8fa35e (origin/cloud/rt-f040-mirv-launcher-chain, updated after its own base conflict merge).
+- Conflict: shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md (this branch had appended its RT-F039 status line there; the base moved the shared lines to plan.d and no longer carries that section).
+- Resolution: kept the base's IMPLEMENTATION_PLAN.md unchanged; moved the RT-F039 status line to shared/RogueTrader.OriginalData/plan.d/rt-f039.md. No other conflicts or shared-tail appends.
+- Tests: Passed 261, Failed 0, Skipped 0, Total 261 (offline xunit-compatible shim runner, SDK 8.0.131; pinned SDK 8.0.419 / real xunit not verified in cloud - local CI required).
+- python3 scripts/check-trackers.py: TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open).
