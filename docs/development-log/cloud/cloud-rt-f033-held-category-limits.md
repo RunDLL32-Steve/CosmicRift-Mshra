@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (senior review round 2, PR #19, head cbffec5)
 
 # cloud/rt-f033-held-category-limits
 
