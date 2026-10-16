@@ -10,7 +10,8 @@ cooked A PR comment (conversation comment, inline review comment or thread reply
        never ends a comment with that word, so its own comments can never summon it.
 
 Transition: a PR that has no BBQ commit anywhere in its history but is labelled review-pending is treated as ready
-(legacy), so work opened before this rule is not stranded.
+(legacy) while it has developer commits that no review covers, so work opened before this rule, and reworks pushed by
+a routine that does not write BBQ commits yet, are not stranded.
 
 Usage (repository root; needs an authenticated `gh`):
     python scripts/review-queue.py                 # human-readable table
@@ -92,11 +93,11 @@ def classify(pr, commits, reviews, comments):
     if bbq_ready and not covers_bbq:
         out["action"] = "REVIEW"
         out["reasons"].append("newest developer commit is BBQ and no review covers it")
-    elif not bbq_anywhere and "review-pending" in labels and last_reviewed is None:
+    elif not bbq_anywhere and "review-pending" in labels and (last_reviewed is None or last_reviewed < newest_dev):
         out["action"] = "REVIEW"
-        out["reasons"].append("legacy PR (no BBQ commit yet), labelled review-pending and never reviewed")
+        out["reasons"].append("legacy PR (no BBQ commit yet), labelled review-pending, with developer commits no review covers")
     elif not bbq_anywhere and "review-pending" in labels and out["action"] == "SKIP":
-        out["reasons"].append("legacy PR already reviewed; waits for BBQ or cooked")
+        out["reasons"].append("legacy PR already reviewed at its newest developer commit; waits for BBQ or cooked")
     if out["action"] == "SKIP" and not out["reasons"]:
         if covers_bbq:
             out["reasons"].append("reviewed at the BBQ commit; nothing new")

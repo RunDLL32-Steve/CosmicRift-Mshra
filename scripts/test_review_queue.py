@@ -120,6 +120,16 @@ class Classify(unittest.TestCase):
         r = self.go(pr(), commits("CLAIM", "work", "REVIEW round 1"), [review(3)])
         self.assertEqual(r["action"], "SKIP")
 
+    def test_legacy_rework_after_review_is_queued_again(self):
+        cs = commits("CLAIM", "work", "REVIEW round 1: CHANGES REQUESTED", "fix findings")
+        r = self.go(pr(("review-pending",)), cs, [review(3)])
+        self.assertEqual(r["action"], "REVIEW")
+
+    def test_legacy_rework_not_queued_while_label_is_changes_requested(self):
+        cs = commits("CLAIM", "work", "REVIEW round 1: CHANGES REQUESTED", "half-done fix")
+        r = self.go(pr(("review-changes-requested",)), cs, [review(3)])
+        self.assertEqual(r["action"], "SKIP")
+
     def test_needs_human_and_draft_never_queue(self):
         cs = commits("CLAIM", "BBQ ready")
         self.assertEqual(self.go(pr(("needs-human",)), cs, (), [comment("x cooked", "2026-10-16T11:00:00Z")])["action"], "SKIP")
