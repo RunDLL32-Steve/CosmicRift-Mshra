@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #30)
 
 # cloud/rt-f052-f053-cfg-team-info
 
