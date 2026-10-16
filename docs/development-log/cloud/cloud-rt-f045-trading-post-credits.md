@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #12 review round 1, senior review 5545504938 on head 8787a9b; label review-approved)
 
 # cloud/rt-f045-trading-post-credits
 
