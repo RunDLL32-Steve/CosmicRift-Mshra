@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #7 review round 3, senior review 5545703716 on head 945df8d; label review-approved)
 
 # cloud/rt-f039-stun-emp-fields
 
