@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED (PR #16 merge gate after review round 1 APPROVED: conflicts with main in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md; move the plan line to plan.d/rt-f050.md; label review-changes-requested)
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f050-class-change-prune
 
@@ -11,7 +11,7 @@ Done (data): pinned rogue.cfg [Arena] DeleteWeaponsOnClassChange=1 (line 72), De
 Remaining: native class/spec/team event order, units of TeamSwitchMinEnergy, NWS 218-220 spectator loss list (unrefined/wreckage/unused nanobots; also CFG Hold1/Hold2 WipeInv lists, not yet modeled), permitted transitions, inventory/score/utility/cash handling, native verification.
 
 ## Files
-shared/RogueTrader.OriginalData/OriginalCfg.cs (record appended), tests/Unit/OriginalClassChangePruneTests.cs, folder plan.
+shared/RogueTrader.OriginalData/OriginalCfg.cs (record appended), tests/Unit/OriginalClassChangePruneTests.cs, shared/RogueTrader.OriginalData/plan.d/rt-f050.md.
 
 ## Verified (cloud)
 - apt dotnet-sdk-8.0 8.0.131 (global.json moved aside, restored), pinned assets eb1514ea: dotnet test tests/Unit -> Passed 217, Failed 0, Skipped 0. Without assets: Passed 189, Skipped 15, Failed 0.
@@ -20,3 +20,7 @@ shared/RogueTrader.OriginalData/OriginalCfg.cs (record appended), tests/Unit/Ori
 
 ## Resume point
 CFG [Hold1]/[Hold2] WipeInv lists are an obvious follow-up for RT-F050 (spectate loss list); RT-F051 (Bounty/Cash/Point) next.
+
+## Rework after round 1 (merge gate: conflict with main)
+- Merged origin/main (merge commit, no rebase). Conflict in shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md resolved by taking main's file unchanged and moving the RT-F050 status line into shared/RogueTrader.OriginalData/plan.d/rt-f050.md (AGENTS.md "One file per item"). OriginalCfg.cs = main's version plus only the `OriginalClassChangePrune` record. Three-dot diff vs main: OriginalCfg.cs, OriginalClassChangePruneTests.cs, plan.d/rt-f050.md and this log.
+- Minor (plan line in shared IMPLEMENTATION_PLAN.md): fixed by the move above.

@@ -77,6 +77,7 @@ public sealed class OriginalCfg
             {
                 var close = raw.IndexOf(']');
                 if (close < 0) throw new OriginalDataException($"{sourceFile} line {no}: unterminated section header.");
+                if (close != raw.Length - 1) throw new OriginalDataException($"{sourceFile} line {no}: text after ']' on a section header.");
                 if (name is not null) sections.Add(new CfgSection(start, name, entries!));
                 name = raw[1..close];
                 start = no;
