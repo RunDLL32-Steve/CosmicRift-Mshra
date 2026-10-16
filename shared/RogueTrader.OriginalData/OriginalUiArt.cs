@@ -14,7 +14,11 @@ public sealed record OriginalArchiveRef(int LineNumber, string Key, string RawVa
 {
     public bool IsEmpty => RawValue.Length == 0;
 
-    /// <summary>Parses a raw value; throws on anything other than empty or exactly two non-empty, whitespace-free tokens.</summary>
+    /// <summary>
+    /// Parses a raw value; throws on anything other than empty or exactly two non-empty, whitespace-free tokens. An empty
+    /// value is accepted for ANY key (the reader does not know which keys may be blank); in the pinned rogue.cfg only
+    /// <c>[Uiart] NotepadBorder=</c> (line 2750) is empty, and the oracle test pins exactly that one entry.
+    /// </summary>
     public static OriginalArchiveRef Parse(CfgEntry entry)
     {
         var v = entry.Value;
@@ -84,8 +88,9 @@ public static class OriginalUiArt
     }
 }
 
-/// <summary>A raw integer CFG value together with its text and line number; the unit and meaning are not interpreted.</summary>
-public readonly record struct OriginalCfgInt(int LineNumber, string Text, int Value);
+/// <summary>A raw integer <c>[Render]</c> value together with its text and line number; the unit and meaning are not interpreted.
+/// (Named apart from main's <see cref="OriginalCfgInt"/>, which wraps a <see cref="CfgEntry"/>.)</summary>
+public readonly record struct OriginalRenderCfgInt(int LineNumber, string Text, int Value);
 
 /// <summary>
 /// The raw <c>[Render]</c> section of CFG/rogue.cfg (RT-F025, data only). Values are kept unscaled and uninterpreted:
@@ -118,12 +123,12 @@ public sealed class OriginalRenderSettings
     /// <summary>Every entry of the section in file order (including any key not named below).</summary>
     public IReadOnlyList<CfgEntry> Entries { get; }
 
-    public OriginalCfgInt Static { get; }
-    public OriginalCfgInt FlattenLights { get; }
-    public OriginalCfgInt TrailsFirst { get; }
-    public OriginalCfgInt VehTrailsFirst { get; }
-    public OriginalCfgInt StarfieldGapNear { get; }
-    public OriginalCfgInt StarfieldGapFar { get; }
+    public OriginalRenderCfgInt Static { get; }
+    public OriginalRenderCfgInt FlattenLights { get; }
+    public OriginalRenderCfgInt TrailsFirst { get; }
+    public OriginalRenderCfgInt VehTrailsFirst { get; }
+    public OriginalRenderCfgInt StarfieldGapNear { get; }
+    public OriginalRenderCfgInt StarfieldGapFar { get; }
     public int BackgroundColorLine { get; }
     public string BackgroundColorText { get; }
     /// <summary>The number written after "0x"; no RGB/BGR split is implied.</summary>
@@ -134,12 +139,12 @@ public sealed class OriginalRenderSettings
     private static CfgEntry Require(CfgSection s, string key) =>
         s.Find(key) ?? throw new OriginalDataException($"CFG [{s.Name}] has no key '{key}'.");
 
-    private static OriginalCfgInt Plain(CfgSection s, string key)
+    private static OriginalRenderCfgInt Plain(CfgSection s, string key)
     {
         var e = Require(s, key);
         if (!int.TryParse(e.Value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var v))
             throw new OriginalDataException($"CFG [{s.Name}] line {e.LineNumber}: '{e.Key}={e.Value}' is not a plain integer.");
-        return new OriginalCfgInt(e.LineNumber, e.Value, v);
+        return new OriginalRenderCfgInt(e.LineNumber, e.Value, v);
     }
 
     private static uint ParseHex(CfgEntry e)

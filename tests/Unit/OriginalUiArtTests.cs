@@ -50,7 +50,7 @@ public sealed class OriginalUiArtTests
         Assert.Equal("0x00FF10", r.BackgroundColorText);
         Assert.Equal(0x00FF10u, r.BackgroundColorHex);
         Assert.Equal(3, r.BackgroundColorLine);
-        Assert.Equal(new OriginalCfgInt(7, "2", 2), r.StarfieldGapNear);
+        Assert.Equal(new OriginalRenderCfgInt(7, "2", 2), r.StarfieldGapNear);
         Assert.Equal(7, r.Entries.Count);
         Assert.Throws<OriginalDataException>(() => OriginalRenderSettings.Read(OriginalCfg.Parse(ok.Replace("0x00FF10", "00FF10"), "t.cfg")));
         Assert.Throws<OriginalDataException>(() => OriginalRenderSettings.Read(OriginalCfg.Parse(ok.Replace("0x00FF10", "0xZZ"), "t.cfg")));
@@ -111,13 +111,13 @@ public sealed class OriginalUiArtTests
         Assert.Equal(
             new[] { "Static", "BackgroundColor", "FlattenLights", "TrailsFirst", "VehTrailsFirst", "StarfieldGapNear", "StarfieldGapFar" },
             r.Entries.Select(e => e.Key));
-        Assert.Equal(new OriginalCfgInt(2185, "0", 0), r.Static);
+        Assert.Equal(new OriginalRenderCfgInt(2185, "0", 0), r.Static);
         Assert.Equal(("0x000000", 0u, 2186), (r.BackgroundColorText, r.BackgroundColorHex, r.BackgroundColorLine));
-        Assert.Equal(new OriginalCfgInt(2187, "0", 0), r.FlattenLights);
-        Assert.Equal(new OriginalCfgInt(2188, "1", 1), r.TrailsFirst);
-        Assert.Equal(new OriginalCfgInt(2189, "1", 1), r.VehTrailsFirst);
-        Assert.Equal(new OriginalCfgInt(2190, "250", 250), r.StarfieldGapNear);
-        Assert.Equal(new OriginalCfgInt(2191, "350", 350), r.StarfieldGapFar);
+        Assert.Equal(new OriginalRenderCfgInt(2187, "0", 0), r.FlattenLights);
+        Assert.Equal(new OriginalRenderCfgInt(2188, "1", 1), r.TrailsFirst);
+        Assert.Equal(new OriginalRenderCfgInt(2189, "1", 1), r.VehTrailsFirst);
+        Assert.Equal(new OriginalRenderCfgInt(2190, "250", 250), r.StarfieldGapNear);
+        Assert.Equal(new OriginalRenderCfgInt(2191, "350", 350), r.StarfieldGapFar);
     }
 
     [RequiresOriginalAssetsFact]

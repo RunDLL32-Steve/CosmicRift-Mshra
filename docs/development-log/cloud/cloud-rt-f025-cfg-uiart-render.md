@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f025-cfg-uiart-render
 
@@ -37,3 +37,8 @@ Decode the `cruiart` BLO records referenced by `[Uiart]` once BLO content is ava
 
 ## Coordinator review (development run 2026-10-16 14:20 UTC)
 Implementation delegated to a Sonnet 5.5 High agent (matrix: data loaders from approved specs). The coordinator read the full diff, spot-checked the pinned values with its own Python read of the pinned files, re-ran the branch's audit script (exit 0) and re-ran the whole unit suite: offline xunit-compatible shim, apt SDK 8.0.131, RT_ORIGINAL_ASSETS_ROOT = pinned clone eb1514ea -> Passed 311, Failed 0, Skipped 0 (main baseline 298). check-trackers: TRACKERS_CONSISTENT. Accepted for senior review; no registry box ticked. The real xunit run on the pinned SDK 8.0.419 is not verified in cloud - local CI required (nuget.org is blocked here).
+
+## Rework after round 1
+- blocker (OriginalUiArt.cs:88, duplicate `OriginalCfgInt` vs main's OriginalCollisionFields.cs from #25): merged origin/main 47a3428 (merge commit) and renamed this struct to `OriginalRenderCfgInt` in OriginalUiArt.cs and OriginalUiArtTests.cs; main's `OriginalCfgInt` untouched.
+- minor (OriginalUiArt.cs:21, empty value accepted for any key): documented on `OriginalArchiveRef.Parse` that empty is accepted generally and that the pinned file has exactly one empty entry (line 2750, pinned by the oracle test). Behaviour unchanged (restricting by key would invent a rule).
+- Verified on the merged tree: offline xunit-compatible shim, apt SDK 8.0.131, pinned assets eb1514ea -> Passed 330, Failed 0, Skipped 0. check-trackers: TRACKERS_CONSISTENT. Real xunit on pinned SDK 8.0.419: not verified in cloud - local CI required.
