@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #21 review round 1, senior review 5545815143 on head bb4fccb; label review-approved)
 
 # cloud/rt-f032-energy-defaults — RT-F032 energy defaults and power-mod rows (evidence audit)
 
