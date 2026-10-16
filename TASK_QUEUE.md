@@ -29,7 +29,7 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 | G4 | Original resource records (7: Tellerium, Refined Tellerium, Krandazite, Refined Krandazite, Wreckage, Iron Ore, Alloy; RT-F013..F019) from ITM with categories | OriginalData | cloud | G3 | REVIEW cloud/rt-f013-f019-g3-g4-itm-resources |
 | G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | REVIEW cloud/rt-f036-f037-g5-weapon-records (projectile view) + cloud/rt-f040-mirv-launcher-chain (launcher/ammo/child chain; value audit of ammo records and remaining weapons still open) |
 | G6 | Original LVL/LIO reader and collision grid (RT-F021/F022 data only) | shared/RogueTrader.OriginalLevel | cloud/local | - | CLAIMED claim/g6-level-reader (local feat/original-level-reader) |
-| G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | OPEN |
+| G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | CLAIMED cloud/rt-f055-g7-outpost-vehicle-records |
 | G8 | Validate field scaling/sentinels: native flight constants vs recorded evidence, produce an evidence table (no gameplay change) | docs + OriginalData tests | local | G2, G3 | OPEN |
 | G9 | BLO archive member identity and dependency closure recompute (RT-F069) | scripts/original-assets | local | - | OPEN |
 | G10 | Original flight/weapons/controls/HUD validation against evidence | client + simulation | local | G2, G3, G6 | OPEN |
