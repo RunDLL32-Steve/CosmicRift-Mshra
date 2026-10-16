@@ -10,9 +10,14 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - `OriginalHull`: name, skill id, vehicle id, category, complete raw RPG and VEH records, and raw typed values with field indexes: hull points f[6], weight f[7], cargo f[47..48], energy f[94..96], all sixteen speed blocks f[202..361] (ten fields each), bounce f[362], hyper energy cost f[373]. No units, scaling or interpretation are applied; negative values are flagged `IsNegativeSentinel` and returned as-is.
 - Tests: [tests/Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md).
 
+## Per-item entries
+
+Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
+
 ## Outstanding
 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
 - [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
-- RT-F047 (data only, cloud/rt-f047-repair-items, review pending): `OriginalRepairItems.Resolve` lists Minor/Major/Full Repair (rows 149/150/162, ids 39/40/43) with raw unscaled f[33] = 5/10/50, buy 0, sell 0; they are the only type-1 rows using f[33] (credit effects ids 17/18/19/44 use f[31] = 80/55/300/20 with sell -1). Unit/cost/dock-range semantics undecoded; box stays open.
+- RT-F045 (data only, cloud/rt-f045-trading-post-credits, review pending): `OriginalTradingPost` resolves the four 14-field trade blocks of VEH id 404 (Tellerium/Krandazite/Wreckage/Alloy) to credit effects 18/17/19/44 and input items 2004/2006/2008/2020; credit rows keep raw f[31]=55/80/300/20. Quantities, scale, eligibility and award flow unvalidated; NWS 20-vs-100 Wreckage conflict open; box stays open.
+- RT-F044 (data only, cloud/rt-f044-public-refinery, review pending): `OriginalRefinery` resolves the three refine blocks of VEH id 400 (Tellerium->Refined Tellerium, Krandazite->Refined Krandazite, Iron Ore->Alloy). The catalog's NWS "wreckage->Alloy" is not in the pinned record. Quantities/radius/conditions/flow unvalidated; LIO 13/14 placement open; box stays open.
