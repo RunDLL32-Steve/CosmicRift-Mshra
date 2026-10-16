@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f048-upgrade-families
 
@@ -20,3 +20,11 @@ shared/RogueTrader.OriginalData/OriginalUpgrade.cs, tests/Unit/OriginalUpgradeTe
 
 ## Resume point
 RT-F046 (SpaceDock store: needs LIO/CFG readers) and RT-F050+ (CFG-heavy; C2 CFG reader unclaimed prerequisite) are next.
+
+## Conflict merge 2026-10-16
+
+- Merged base tip 82d285c (origin/cloud/rt-f041-armor-records, updated after its own base conflict merge).
+- Conflict: shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md (this branch had appended its RT-F048 status line there; the base moved the shared lines to plan.d and no longer carries that section).
+- Resolution: kept the base's IMPLEMENTATION_PLAN.md unchanged; moved the RT-F048 status line to shared/RogueTrader.OriginalData/plan.d/rt-f048.md. No other conflicts or shared-tail appends.
+- Tests: Passed 269, Failed 0, Skipped 0, Total 269 (offline xunit-compatible shim runner, SDK 8.0.131; pinned SDK 8.0.419 / real xunit not verified in cloud - local CI required).
+- python3 scripts/check-trackers.py: TRACKERS_CONSISTENT (397 entries, 22 complete, 375 open).
