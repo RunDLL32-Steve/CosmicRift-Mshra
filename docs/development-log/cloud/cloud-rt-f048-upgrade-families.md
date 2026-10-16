@@ -1,4 +1,4 @@
-Review status: READY FOR RE-REVIEW
+Review status: APPROVED (PR #14 review round 2, senior review 5545706376 on head bd0c415; label review-approved)
 
 # cloud/rt-f048-upgrade-families
 
