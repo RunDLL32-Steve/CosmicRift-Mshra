@@ -1,13 +1,13 @@
 namespace RogueTrader.OriginalData;
 
 /// <summary>A raw CFG integer with its source line (no unit, scale or default applied).</summary>
-public readonly record struct OriginalCfgInt(int Line, string Key, int Value)
+public readonly record struct OriginalCfgRawInt(int Line, string Key, int Value)
 {
     public bool IsNegativeSentinel => Value < 0;
 }
 
 /// <summary>Raw <c>[TerrainN]</c> EnergyRate, HealthRate and RepairRate (RT-F031 data only; semantics and units unresolved).</summary>
-public sealed record OriginalTerrainEnergyRates(int Terrain, OriginalCfgInt EnergyRate, OriginalCfgInt HealthRate, OriginalCfgInt RepairRate);
+public sealed record OriginalTerrainEnergyRates(int Terrain, OriginalCfgRawInt EnergyRate, OriginalCfgRawInt HealthRate, OriginalCfgRawInt RepairRate);
 
 /// <summary>Raw per-hull VEH HullPoints f[6] and EnergyMax/EnergyRate/EnergyMin f[94..96] with row number and field indices.</summary>
 public sealed record OriginalHullShieldEnergy(string Name, int VehRow, OriginalInt HullPoints, OriginalInt EnergyMax, OriginalInt EnergyRate, OriginalInt EnergyMin);
@@ -21,7 +21,7 @@ public sealed record OriginalHullShieldEnergy(string Name, int VehRow, OriginalI
 public sealed class OriginalShieldEnergy
 {
     private OriginalShieldEnergy(
-        OriginalCfgInt shieldMode, OriginalCfgInt defaultStart, OriginalCfgInt defaultMax, OriginalCfgInt defaultRate,
+        OriginalCfgRawInt shieldMode, OriginalCfgRawInt defaultStart, OriginalCfgRawInt defaultMax, OriginalCfgRawInt defaultRate,
         IReadOnlyList<OriginalTerrainEnergyRates> terrains, IReadOnlyList<OriginalHullShieldEnergy> hulls)
     {
         EnergyShieldMode = shieldMode;
@@ -32,10 +32,10 @@ public sealed class OriginalShieldEnergy
         Hulls = hulls;
     }
 
-    public OriginalCfgInt EnergyShieldMode { get; }
-    public OriginalCfgInt EnergyDefaultStart { get; }
-    public OriginalCfgInt EnergyDefaultMax { get; }
-    public OriginalCfgInt EnergyDefaultRate { get; }
+    public OriginalCfgRawInt EnergyShieldMode { get; }
+    public OriginalCfgRawInt EnergyDefaultStart { get; }
+    public OriginalCfgRawInt EnergyDefaultMax { get; }
+    public OriginalCfgRawInt EnergyDefaultRate { get; }
     public IReadOnlyList<OriginalTerrainEnergyRates> Terrains { get; }
     public IReadOnlyList<OriginalHullShieldEnergy> Hulls { get; }
 
@@ -59,9 +59,9 @@ public sealed class OriginalShieldEnergy
             terrains, rows);
     }
 
-    private static OriginalCfgInt Read(CfgSection section, string key)
+    private static OriginalCfgRawInt Read(CfgSection section, string key)
     {
         var entry = section.Find(key) ?? throw new OriginalDataException($"CFG [{section.Name}] has no key '{key}'.");
-        return new OriginalCfgInt(entry.LineNumber, entry.Key, section.Int(key));
+        return new OriginalCfgRawInt(entry.LineNumber, entry.Key, section.Int(key));
     }
 }

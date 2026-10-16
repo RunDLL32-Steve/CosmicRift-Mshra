@@ -23,11 +23,11 @@ public sealed class OriginalShieldEnergyTests
     public void SoulKeysMatchTheAudit()
     {
         var d = Data.Value;
-        Assert.Equal(new OriginalCfgInt(100, "EnergyShieldMode", 2), d.EnergyShieldMode);
-        Assert.Equal(new OriginalCfgInt(108, "EnergyDefaultStart", -1), d.EnergyDefaultStart);
+        Assert.Equal(new OriginalCfgRawInt(100, "EnergyShieldMode", 2), d.EnergyShieldMode);
+        Assert.Equal(new OriginalCfgRawInt(108, "EnergyDefaultStart", -1), d.EnergyDefaultStart);
         Assert.True(d.EnergyDefaultStart.IsNegativeSentinel);
-        Assert.Equal(new OriginalCfgInt(97, "EnergyDefaultMax", 1700000), d.EnergyDefaultMax);
-        Assert.Equal(new OriginalCfgInt(98, "EnergyDefaultRate", 250), d.EnergyDefaultRate);
+        Assert.Equal(new OriginalCfgRawInt(97, "EnergyDefaultMax", 1700000), d.EnergyDefaultMax);
+        Assert.Equal(new OriginalCfgRawInt(98, "EnergyDefaultRate", 250), d.EnergyDefaultRate);
     }
 
     [RequiresOriginalAssetsFact]

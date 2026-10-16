@@ -39,3 +39,6 @@ Remaining (open, unverified): native meaning of EnergyShieldMode=2, hit ordering
 
 ## Resume point
 Awaiting review. Next for RT-F031: behavior clauses (hit order, overflow, recharge, death, units) need native evidence; do not tick until verified.
+
+## Coordinator review (this run)
+- Renamed the raw CFG integer record to `OriginalCfgRawInt`: cloud/rt-f029-collision-fields (opened in parallel) declares a different `OriginalCfgInt` record in the same namespace, so the two branches would not compile together after both merge. Shim harness after the rename: with assets 124 passed / 0 failed / 0 skipped; without assets 41 passed / 55 skipped / 0 failed.
