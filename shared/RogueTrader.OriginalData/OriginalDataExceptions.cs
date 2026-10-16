@@ -30,6 +30,8 @@ public enum AssetIntegrityFailure
     Missing,
     LengthMismatch,
     Sha256Mismatch,
+    /// <summary>The git blob SHA-1 (sha1("blob &lt;length&gt;\0" + bytes)) differs from the pinned value (used for files pinned by a git blob id, e.g. the archived keys.txt).</summary>
+    GitBlobSha1Mismatch,
 }
 
 /// <summary>Malformed CSV text or a field that cannot be read as the requested type.</summary>
