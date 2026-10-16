@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (PR #22 review round 1, senior review 5545872002 on head 4c298df; label review-approved)
 
 # cloud/rt-f030-cargo-weights — RT-F030 cargo weight data audit
 
