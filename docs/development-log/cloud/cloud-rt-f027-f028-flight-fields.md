@@ -1,4 +1,4 @@
-Review status: CHANGES REQUESTED (senior review round 1 APPROVED at a1b964e; merge gate: conflict with main after #25, PR #24)
+Review status: READY FOR RE-REVIEW
 
 # cloud/rt-f027-f028-flight-fields — RT-F027..F028 per-hull flight, strafe, hyper and reverse raw-field audit
 
@@ -41,3 +41,8 @@ Remaining (open, unchecked):
 
 ## Resume point
 Next: native evidence for units/timestep and the -1 reverse semantics (RT-F027/RT-F028 acceptance), then a flight feature reading these raw fields, verified against the client.
+
+## Rework after round 1 (merge gate: conflict with main after #25/#26)
+- Merged origin/main (merge commit, no rebase/force-push). Only conflict: FEATURE_CATALOG.md rows rt-f027..rt-f029 (adjacent lines). Resolved by keeping this branch's rt-f027/rt-f028 rows and main's rt-f029 row (from #25) unchanged; no other file changed by the merge. Three-dot diff vs main is the same six files as the approved head a1b964e.
+- Nit (NonZeroTerrainIndexes): not carried; a bare base merge carries no nits (it rides the next code push to OriginalFlightProfile.cs, if any).
+- Tests after the merge (xunit-API shim, apt SDK 8.0.131; OriginalData tests incl. #25/#26 now on main): with pinned assets 164 passed / 0 failed / 0 skipped; without assets 47 passed / 67 skipped / 0 failed. check-trackers: TRACKERS_CONSISTENT.
