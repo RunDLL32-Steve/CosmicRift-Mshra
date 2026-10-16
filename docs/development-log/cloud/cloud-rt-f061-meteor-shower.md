@@ -23,4 +23,4 @@ Review status: UNREVIEWED
 - Not verified in cloud - local CI required: real xunit `dotnet test tests/Unit` with pinned SDK 8.0.419, scripts/verify.ps1.
 
 ## Status
-wip (data clause implemented, uncommitted); resume point: LIO rows 18/49/52/57 once the G6 LIO reader exists, then the native trap event and meteor behaviour (desktop/native evidence).
+done (data clause, a4feb69); resume point: LIO rows 18/49/52/57 once the G6 LIO reader exists, then the native trap event and meteor behaviour (desktop/native evidence).
