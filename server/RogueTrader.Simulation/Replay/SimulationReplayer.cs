@@ -14,8 +14,18 @@ public static class SimulationReplayer
     public static ReplayResult Replay(GameCatalog catalog, SimulationRecording recording)
     {
         ArgumentNullException.ThrowIfNull(catalog);
+        return Replay(() => new WorldSimulation(catalog), recording);
+    }
+
+    /// <summary>Replays on the world built by <paramref name="createWorld"/>, which must reproduce the recorded run's initial
+    /// world exactly (same catalog, cargo rules, collectible piles and starting cargo) at tick 0.</summary>
+    public static ReplayResult Replay(Func<WorldSimulation> createWorld, SimulationRecording recording)
+    {
+        ArgumentNullException.ThrowIfNull(createWorld);
         ArgumentNullException.ThrowIfNull(recording);
-        var world = new WorldSimulation(catalog);
+        var world = createWorld();
+        if (world.TickNumber != 0)
+            throw new ArgumentException("The replay world must be at tick 0.", nameof(createWorld));
         long? mismatch = null;
         var next = 0;
         foreach (var input in recording.Inputs)

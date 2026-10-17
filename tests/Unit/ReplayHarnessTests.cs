@@ -223,4 +223,40 @@ public sealed class ReplayHarnessTests
         Assert.True(result.Matched);
         Assert.Equal(0, result.World.TickNumber);
     }
+
+    // Review addition: cargo contents and collectible piles (queue M2) are authoritative state, so they must be digested and replayable.
+    [Fact]
+    public void CargoAndCollectibleStateIsHashedAndReplayedThroughAWorldFactory()
+    {
+        // NEW provisional fixture: one pile 60 units ahead of the default ship (heading up, at rest), capacity for 3 of 5 units.
+        CargoCatalog Cargo() => new(30, [new CargoItemDefinition("fixture-ore", 10)],
+            [new CollectibleSpawn("pile", "fixture-ore", 5, 0, -60, 10)]);
+        WorldSimulation Create() => new(TestWorld.ExternalCatalog(), Cargo());
+        var inputs = Enumerable.Repeat(new ShipInput(1, 0, false), 120).ToArray();
+        var recorder = new SimulationRecorder(Create(), 30);
+        var emptyHash = WorldStateHasher.Hash(Create());
+        foreach (var input in inputs)
+            recorder.Tick(input);
+        Assert.Equal(3, recorder.World.Cargo.Quantity("fixture-ore"));
+        Assert.Equal(2, recorder.World.Collectibles.Single().Quantity);
+        var recording = recorder.Finish();
+        Assert.NotEqual(emptyHash, recording.FinalHash);
+
+        Assert.True(SimulationReplayer.Replay(Create, recording).Matched);
+
+        // Same inputs against a world without the pile diverge only through cargo/pile state at some checkpoint.
+        var withoutCargo = SimulationReplayer.Replay(TestWorld.ExternalCatalog(), recording);
+        Assert.False(withoutCargo.Matched);
+
+        // Changing only a pile quantity or the hold contents changes the digest.
+        var changedPile = new WorldSimulation(TestWorld.ExternalCatalog(), new CargoCatalog(30,
+            [new CargoItemDefinition("fixture-ore", 10)], [new CollectibleSpawn("pile", "fixture-ore", 4, 0, -60, 10)]));
+        Assert.NotEqual(WorldStateHasher.Hash(Create()), WorldStateHasher.Hash(changedPile));
+        var changedHold = new WorldSimulation(TestWorld.ExternalCatalog(), Cargo(), [new("fixture-ore", 1)]);
+        Assert.NotEqual(WorldStateHasher.Hash(Create()), WorldStateHasher.Hash(changedHold));
+
+        var started = Create();
+        started.Tick(default);
+        Assert.Throws<ArgumentException>(() => SimulationReplayer.Replay(() => started, recording));
+    }
 }

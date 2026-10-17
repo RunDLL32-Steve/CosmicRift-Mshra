@@ -39,6 +39,21 @@ public static class WorldStateHasher
             hash = Add(hash, projectile.AgeTicks);
             hash = Add(hash, projectile.LifetimeTicks);
         }
+        // Cargo contents and the piles still in space are authoritative since queue M2; Items is in ordinal id order.
+        hash = Add(hash, world.Cargo.TotalWeight);
+        hash = Add(hash, world.Cargo.Items.Count);
+        foreach (var (itemId, quantity) in world.Cargo.Items)
+        {
+            hash = Add(hash, itemId);
+            hash = Add(hash, quantity);
+        }
+        hash = Add(hash, world.Collectibles.Count);
+        foreach (var pile in world.Collectibles)
+        {
+            hash = Add(hash, pile.Id);
+            hash = Add(hash, pile.ItemId);
+            hash = Add(hash, pile.Quantity);
+        }
         return hash;
     }
 
