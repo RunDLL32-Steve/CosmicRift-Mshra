@@ -2,7 +2,7 @@
 
 Status authority: [master §12.1 initial NPC](../../ROGUE_TRADER_2_PLAN.md#121-initial-npc-pirate), [§12.2 states](../../ROGUE_TRADER_2_PLAN.md#122-ai-states), [M2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--rogue-trader-core-gameplay), and [M3 shared NPCs](../../ROGUE_TRADER_2_PLAN.md#milestone-3--dedicated-multiplayer). Reconcile with [canonical feature catalog](../../docs/original-research/FEATURE_CATALOG.md), [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md), [simulation plan](../RogueTrader.Simulation/IMPLEMENTATION_PLAN.md), and [project progress](../../docs/development-log/PROGRESS.md). Reviewed October 13, 2026; no AI simulations.
 
-Module status: **Not started**. Stationary M1 targets have no AI. M0/M1 engineering acceptance is complete; validated original actor/controller dependencies precede the M2 enemy loop.
+Module status: **Provisional NEW pirate controller present (TASK_QUEUE M6, awaiting independent review; see [plan.d/m6.md](plan.d/m6.md)); no original AI feature complete**. Stationary M1 targets have no AI. M0/M1 engineering acceptance is complete; validated original actor/controller dependencies precede the M2 enemy loop.
 
 ## Outstanding work
 

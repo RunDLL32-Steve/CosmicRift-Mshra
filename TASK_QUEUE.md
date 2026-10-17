@@ -43,7 +43,7 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 | M3 | Mineral-bearing asteroids and mining equipment extraction rules (generic engine; originals plug in via data) | Simulation + GameData | cloud | G4 | OPEN |
 | M4 | Trading station: buy/sell using the transaction core, proximity/docking predicate, price source | Persistence + Simulation | cloud | M1 merged, G3 | OPEN |
 | M5 | Basic repairs and six equipment upgrades applied through the transaction core | Persistence + GameData | cloud | M1 merged, G3 | OPEN |
-| M6 | Initial NPC pirate AI (plan section 12.1/12.2 state machine, deterministic tests) | server/RogueTrader.AI | cloud | - | OPEN |
+| M6 | Initial NPC pirate AI (plan section 12.1/12.2 state machine, deterministic tests) | server/RogueTrader.AI | cloud | - | DONE on local/m6-pirate-ai, awaiting independent review |
 | M7 | Initial reward system (kill/mining rewards through idempotent GrantReward) | Simulation + Persistence | cloud | M1 merged, M6 | OPEN |
 | M8 | Client integration: HUD for cargo/currency, station UI, save/load flow in the Godot client | client | local (Godot) | M1, M2, M4, M5 | OPEN |
 | M9 | Persisted progression across exit/relaunch acceptance test (M2 acceptance criteria) | tests/Integration | local | M1..M8 | OPEN |
