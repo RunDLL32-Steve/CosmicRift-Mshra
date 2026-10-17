@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #36)
 
 # cloud/rt-f067-event-mini-language
 
