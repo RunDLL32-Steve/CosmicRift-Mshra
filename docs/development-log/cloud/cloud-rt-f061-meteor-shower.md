@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #39)
 
 # cloud/rt-f061-meteor-shower
 
