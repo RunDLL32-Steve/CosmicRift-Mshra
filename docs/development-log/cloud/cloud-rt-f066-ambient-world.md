@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, head ed449c0; 0 blocker, 0 major, 1 minor, 1 nit)
 
 # cloud/rt-f066-ambient-world — RT-F066 ambient/decorative world data audit
 
