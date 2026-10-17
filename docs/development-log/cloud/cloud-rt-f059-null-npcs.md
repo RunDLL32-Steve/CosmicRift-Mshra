@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #37)
 
 # cloud/rt-f059-null-npcs
 
