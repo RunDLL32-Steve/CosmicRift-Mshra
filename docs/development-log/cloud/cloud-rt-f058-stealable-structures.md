@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #35)
 
 # cloud/rt-f058-stealable-structures
 
