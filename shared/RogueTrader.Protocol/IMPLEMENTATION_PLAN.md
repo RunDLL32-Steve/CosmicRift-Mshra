@@ -2,7 +2,7 @@
 
 Status authority: [master §13 multiplayer](../../ROGUE_TRADER_2_PLAN.md#13-multiplayer-architecture), [§13.5 validation](../../ROGUE_TRADER_2_PLAN.md#135-anti-cheat-principles), [M3](../../ROGUE_TRADER_2_PLAN.md#milestone-3--dedicated-multiplayer), and [§20.3 QA](../../ROGUE_TRADER_2_PLAN.md#203-multiplayer-tests). Reconcile with [canonical feature catalog](../../docs/original-research/FEATURE_CATALOG.md), [engine evaluation](../../docs/architecture/ENGINE_EVALUATION.md), and [project progress](../../docs/development-log/PROGRESS.md). Reviewed October 13, 2026; no network runs.
 
-Module status: **Not started**. This is a reserved plan, not a wire implementation. M0/M1 engineering acceptance is complete; original fidelity and M2 remain earlier dependencies. Separate parser execution is not session/network acceptance.
+Module status: **Not started** for M3 acceptance; a NEW/provisional message codec exists (see [plan.d/c5.md](plan.d/c5.md), TASK_QUEUE C5, merged) but no transport/session behavior. M0/M1 engineering acceptance is complete; original fidelity and M2 remain earlier dependencies. Separate parser execution is not session/network acceptance.
 
 ## Outstanding work
 
