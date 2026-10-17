@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review, local)
 
 # cloud/rt-f064-los-radar-fields
 
