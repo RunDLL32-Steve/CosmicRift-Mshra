@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, head 43af34e)
 
 # cloud/rt-f082-plasma-bomb-item
 
