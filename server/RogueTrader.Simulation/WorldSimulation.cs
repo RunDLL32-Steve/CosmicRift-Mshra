@@ -9,6 +9,7 @@ public sealed class WorldSimulation
     public const int TickRate = 60;
     public const float TickDuration = 1f / TickRate;
     private readonly List<ProjectileState> _projectiles = [];
+    private readonly List<CollectibleState> _collectibles;
     private long _nextProjectileId;
 
     public GameCatalog Catalog { get; }
@@ -16,15 +17,25 @@ public sealed class WorldSimulation
     public IReadOnlyList<ShipState> Targets { get; }
     public IReadOnlyList<AsteroidState> Asteroids { get; }
     public IReadOnlyList<ProjectileState> Projectiles { get; }
+    /// <summary>Piles still lying in space, in catalog order.</summary>
+    public IReadOnlyList<CollectibleState> Collectibles { get; }
+    public CargoHold Cargo { get; }
     public long TickNumber { get; private set; }
     public int DestroyedTargets { get; private set; }
     public int AsteroidCollisions { get; private set; }
     public long ShotsFired { get; private set; }
 
-    public WorldSimulation(GameCatalog catalog)
+    /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
+    /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
+    public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
+        IEnumerable<KeyValuePair<string, int>>? initialCargo = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
+        cargo ??= new CargoCatalog(0, []);
+        Cargo = new CargoHold(cargo, initialCargo);
+        _collectibles = cargo.Collectibles.Select(spawn => new CollectibleState(spawn)).ToList();
+        Collectibles = _collectibles.AsReadOnly();
         var spawn = catalog.Sector.PlayerSpawn;
         Player = new ShipState("player", catalog.Ship, catalog.Weapon, new Vector2(spawn.X, spawn.Y), spawn.Heading)
         {
@@ -45,7 +56,9 @@ public sealed class WorldSimulation
         TickNumber++;
         if (!Player.IsDestroyed)
         {
+            var previous = Player.Position;
             MovePlayer(input);
+            CollectPickups(previous);
             Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
                 Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
             if (input.Fire)
@@ -64,6 +77,22 @@ public sealed class WorldSimulation
         Player.Velocity = ClampSpeed(Player.Velocity + Direction(Player.Heading) * (force / physics.Mass * TickDuration),
             physics.MaximumSpeed);
         AsteroidCollisions += CircleCollision.MoveShip(Player, Asteroids, TickDuration);
+    }
+
+    // Piles are visited in catalog order and the swept ship path catches piles passed between ticks. A pile the hold cannot
+    // fully take keeps its remainder, so units on the ground plus units in the hold never change.
+    private void CollectPickups(Vector2 previous)
+    {
+        for (var index = 0; index < _collectibles.Count;)
+        {
+            var pile = _collectibles[index];
+            if (CircleCollision.Sweep(previous, Player.Position, pile.Position, Player.Radius + pile.Radius, out _))
+                pile.Quantity -= Cargo.Add(pile.ItemId, pile.Quantity).Accepted;
+            if (pile.Quantity == 0)
+                _collectibles.RemoveAt(index);
+            else
+                index++;
+        }
     }
 
     private void TryFire()
