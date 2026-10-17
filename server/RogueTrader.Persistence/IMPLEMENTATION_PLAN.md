@@ -16,8 +16,6 @@ Module status: **Engine-side persistence core implemented and unit-tested (Octob
 
 Completion history: no gameplay persistence feature is complete. Prior [prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) verifies local flight/combat only. Documentation review reran no simulations/tests.
 
-- Trading-station composition (M4 queue item, October 16, 2026): `IPriceSource`, `ICargoPolicy` and the station-access flag are now supplied by [server/RogueTrader.Trading](../RogueTrader.Trading/IMPLEMENTATION_PLAN.md); this project is unchanged and still data-agnostic. Original retention and price semantics stay open (RT-F049/RT-F068).
-
 ## Current reconciliation — October 13, 2026
 
 Documentation-only source/saved-log review; no new build/test/GUI/simulation. Master registry: **394 IDs, 15 narrowly completed scopes, 379 open**. Completed prototype work above is history; original parity remains open unless its exact catalog acceptance passed.

@@ -27,10 +27,14 @@ public sealed class StationPriceTable : IPriceSource
         var stations = stationIds.ToArray();
         if (stations.Any(string.IsNullOrEmpty))
             throw new ArgumentException("A station needs an id.", nameof(stationIds));
+        var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (item, buy, sell) in prices.ToArray())
         {
             if (string.IsNullOrEmpty(item))
                 throw new ArgumentException("A price needs an item id.", nameof(prices));
+            // A repeated item would silently overwrite (or half-merge) an earlier price: refuse it instead.
+            if (!seen.Add(item))
+                throw new ArgumentException($"Duplicate price entry for '{item}'.", nameof(prices));
             if (buy < 0 || sell < 0)
                 throw new ArgumentException($"Negative price for '{item}'.", nameof(prices));
             foreach (var station in stations)

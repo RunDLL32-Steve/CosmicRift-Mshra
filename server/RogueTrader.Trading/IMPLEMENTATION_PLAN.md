@@ -9,7 +9,7 @@ A small .NET 8 composition project that lets a docked ship buy and sell through 
 | Piece | Role |
 |---|---|
 | `StationSite`, `Docking`, `StationDirectory` | Station position and dock radius in world units; inclusive, double-precision distance test; unknown ids and non-finite positions are not docked. |
-| `StationPriceTable` | `IPriceSource`: explicit tables, or a provisional binding of the original ITM buy (f[8]) / sell (f[15]) fields. Raw values are kept in `RawPrices`; sentinel -1 (34 rows) and raw 0 are "not traded" in this provisional rule only. |
+| `StationPriceTable` | `IPriceSource`: explicit tables (a repeated item id is refused, never silently overwritten), or a provisional binding of the original ITM buy (f[8]) / sell (f[15]) fields. Raw values are kept in `RawPrices`; sentinel -1 (34 rows) and raw 0 are "not traded" in this provisional rule only. |
 | `CatalogCargoPolicy` | Production `ICargoPolicy` over `CargoCatalog.Fits` (unknown items refused). |
 | `TradingService` | Computes the docking verdict from the authoritative ship position and calls `BuyAsync`/`SellAsync`. The processor is always called so an already applied transaction id replays even after the ship moved away. |
 

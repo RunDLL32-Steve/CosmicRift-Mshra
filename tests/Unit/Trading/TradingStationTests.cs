@@ -399,6 +399,7 @@ public sealed class TradingStationTests
         Assert.Throws<ArgumentException>(() => new StationPriceTable("s", [("a", -1L, null)]));
         Assert.Throws<ArgumentException>(() => new StationPriceTable("s", [("", 1L, null)]));
         Assert.Throws<ArgumentException>(() => new StationPriceTable([""], [("a", 1L, null)]));
+        Assert.Throws<ArgumentException>(() => new StationPriceTable("s", [("a", 1L, null), ("a", null, 2L)])); // no silent overwrite
     }
 
     [Fact]

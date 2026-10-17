@@ -15,10 +15,6 @@ Status authority: [master M1 engineering acceptance/fidelity gate](../../ROGUE_T
 
 The test data copies the same provisional JSON consumed by the client. Heavy fixtures do not add original playable ships. No original parity, M2 economy, AI or M3 network tests are claimed complete.
 
-## Trading station tests - October 16, 2026
-
-[Trading/TradingStationTests.cs](Trading/TradingStationTests.cs) adds 28 cases (553 total: 548 passed, 5 pre-existing skips in OriginalKeyListingTests; the pinned-ITM case ran): buy/sell success, insufficient funds, cargo full (all-or-nothing, exact fit, selling never blocked), out of range (inclusive boundary, unknown station, non-finite position), idempotent replay (including after undocking, and a reused id with another payload), atomicity under injected persistence faults, conservation (a round trip loses exactly the spread; a seeded 400-step random sequence checks wallet, items, ledger and capacity), the price binding with raw sentinels kept and the production cargo-policy adapter. All numbers are NEW fixtures. They do not validate original shop eligibility, units or prices (RT-F045/RT-F049).
-
 ## Cargo and pickup tests - October 16, 2026
 
 [CargoPickupTests.cs](CargoPickupTests.cs) adds 19 NEW-fixture cases (525 total, 5 pre-existing skips in OriginalKeyListingTests; the original-asset case ran): capacity edges, partial/refused pickup, conservation each tick, seeded random add invariants, replay and 30 Hz fixed-step determinism, JSON loading, `ICargoPolicy` equivalence and original Resources masses as unit weights. They do not validate the native cargo formula (RT-F030) or original resource spawns (RT-F042).
