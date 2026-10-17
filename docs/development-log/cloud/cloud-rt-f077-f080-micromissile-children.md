@@ -21,7 +21,7 @@ Remaining (boxes stay OPEN): the original child behaviour (spawn offsets/angles,
 ## Visible mismatches
 - ITM names archive `TerranWeapons`; the package file is `BLO/terranweapons.blo` (lower case). Case-insensitive match only; exact-case lookup fails on a case-sensitive file system (the C# test therefore locates it case-insensitively). The other archives (ExplosionEffects, WeaponSounds) match exactly. Probably harmless on Windows; not asserted as native behaviour.
 - The catalog says only mass/buy/sell/logic; it does not mention f[20]=0, f[31]/f[142]=0, the 5 non-None asset pairs, the type-8 parent or the case mismatch (all additional).
-- Catalog cell for the "ChildProjectiles" category holds 27 rows in the pinned file; only these four are rows 2..5.
+- The ChildProjectiles category holds 27 rows in the pinned file; only these four are rows 2..5 (first four of the category).
 
 ## Files
 - tests/Unit/OriginalMicroMissileChildTests.cs
