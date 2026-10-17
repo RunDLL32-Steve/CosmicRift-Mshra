@@ -7,6 +7,7 @@ Reviewed October 13, 2026; documentation/source/evidence inspection only. Master
 | Folder | Current code and status | Next |
 |---|---|---|
 | [Simulation](RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) | Complete provisional .NET 8 fixed-60-Hz flight/combat; historical 41-case acceptance. | Investigating original units/physics/evaluators; original gameplay remains open. |
+| [Trading](RogueTrader.Trading/IMPLEMENTATION_PLAN.md) | Small .NET 8 composition project (M4 queue item): docking predicate, price table over original ITM data, production cargo policy and a buy/sell service over the Persistence transaction core; 28 NEW-fixture unit cases; not wired into the client or the original shop flow. | Original station inventories, units and proximity; M5 upgrades/repairs. |
 | [Server](RogueTrader.Server/IMPLEMENTATION_PLAN.md) | Reserved plan; no dedicated source service here. | Investigating selected engine route and native entry. |
 | [Persistence](RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) | .NET 8 persistence/transaction core (file + in-memory repositories, idempotent CAS transaction processor); 129 unit cases pass; not wired into gameplay. | Original retention policy and actual durable progression. |
 | [AI](RogueTrader.AI/IMPLEMENTATION_PLAN.md) | Reserved plan; stationary prototype targets have no AI. | Validate original actor/controllers through selected engine. |

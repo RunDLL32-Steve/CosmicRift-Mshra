@@ -1,0 +1,11 @@
+# M4 trading station buy/sell — October 16, 2026
+
+Branch `feat/m4-trading-station` (worktree `.tools/issue-worktrees/m4-trading-station`, from main 2b94edc), queue item M4. Scope: server-side composition of the M1 transaction core with a docking predicate, a price source and the M2 cargo capacity; no client, no original shop flow.
+
+- Decision: new small project `server/RogueTrader.Trading` (references Persistence, Simulation, OriginalData). Unavoidable because Persistence and Simulation are independent; no existing project gained a dependency. Added to `RogueTrader2.sln` and the unit-test project.
+- Reused: `TransactionProcessor` (atomic, idempotent, CAS-protected buy/sell, `StationAccessVerified` flag), `ICargoPolicy`/`IPriceSource` contracts, `CargoCatalog.Fits`, `OriginalItemCatalog` buy/sell fields (G3 ITM, RT-F049 audit: 34 sell -1 rows all with buy 0). RT-F045 trading-post recipes and RT-F044 refinery recipes are credit/conversion recipes, not buy/sell prices, so they are not used.
+- Rules: docked when ship centre is within the dock radius of the station centre (inclusive, world units). Out-of-range returns `StationAccessDenied` only after the core's duplicate lookup, so a lost-ack retry still gets its original result. Cargo is checked all-or-nothing on any quantity increase; sells are never blocked by cargo.
+- NEW/provisional: every dock radius, capacity, weight and price in tests; the rule that raw ITM buy/sell greater than zero means traded, with -1 and 0 untraded; every station trading every priced item. Raw values stay in `StationPriceTable.RawPrices`.
+- Not claimed: RT-F044, RT-F045, RT-F049 (units, sentinel meaning, station inventories), RT-F030/F042, client UI (M8), upgrades (M5). No checkbox ticked.
+- Verified: `dotnet test tests/Unit` 548 passed, 5 skipped (pre-existing OriginalKeyListingTests), 0 failed; the 28 new cases passed including the pinned-ITM case. `python scripts/check-trackers.py` run after the doc edits. Skipped: Godot smoke, derived-source, runtime and native-delivery checks (nothing there changed).
+- Review: authored by the implementing agent; awaiting an independent reviewer per the branch workflow.

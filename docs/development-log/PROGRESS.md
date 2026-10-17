@@ -6,6 +6,8 @@ Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Cu
 
 ## Current milestone status
 
+- M4 queue item (trading station buy/sell, new `server/RogueTrader.Trading`): implemented on branch feat/m4-trading-station with 28 NEW-fixture unit tests (553 total, `dotnet test tests/Unit` only); awaiting independent review. RT-F044/RT-F045/RT-F049 remain open. [Dated log](2026-10-16-m4-trading-station.md).
+
 - M2 queue item (cargo capacity and collectible pickup, simulation engine): implemented on branch feat/m2-cargo-pickup with 19 NEW-fixture unit tests (525 total, `dotnet test tests/Unit` only); awaiting independent review. RT-F030/RT-F042 remain open. [Dated log](2026-10-16-m2-cargo-pickup.md).
 
 - RT-F397: narrow outgoing length/queue acceptance complete on the isolated issue branch;46 canonical packets/60 inert fixtures pass, all baseline defects corrected. [NativeDeliveryChecks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) and [dated issue log](2026-10-14-rt-f397.md) record the two-overload length/queue scope. No native receiver/auth/UI acceptance or desktop use.

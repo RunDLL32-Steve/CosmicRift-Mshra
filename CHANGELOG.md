@@ -1,5 +1,10 @@
 # Changelog
 
+## Trading station buy/sell - October 16, 2026
+
+- Add `server/RogueTrader.Trading` (queue item M4): a dock-radius proximity predicate in world units, a `StationPriceTable` price source (explicit tables or a provisional binding of the original ITM buy/sell fields with sentinels kept raw), `CatalogCargoPolicy` (the production `ICargoPolicy` over the simulation `CargoCatalog`) and `TradingService`, which passes the server-side docking verdict to the Persistence transaction core. Selling credits and removes atomically, buying checks wallet and cargo capacity, and replays stay idempotent. A new small project was unavoidable because Persistence and Simulation do not reference each other.
+- 28 new unit tests (553 total, 5 pre-existing skips) cover success, insufficient funds, cargo full, out of range, replay, atomicity under injected faults and conservation. Every dock radius, capacity and price is NEW/provisional; the raw ITM sell value -1 is treated as not traded only in this provisional rule. RT-F044, RT-F045 and RT-F049 stay open (original station inventories, units and proximity are unresolved); nothing is wired into the client.
+
 ## Generic cargo capacity and collectible pickup - October 16, 2026
 
 - Add `CargoCatalog`/`CargoHold` to `server/RogueTrader.Simulation`: data-driven (JSON or code) hard weight capacity and per-item unit weights; pickup adds as many units as fit, refuses the rest, never creates or destroys units. `WorldSimulation` collects `CollectibleState` piles along the swept ship path each fixed tick, in catalog order, leaving any remainder in space; an optional initial inventory seeds the hold from a persisted profile.

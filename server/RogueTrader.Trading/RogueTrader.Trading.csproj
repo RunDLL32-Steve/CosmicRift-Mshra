@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>RogueTrader.Trading</RootNamespace>
+    <AssemblyName>RogueTrader.Trading</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RogueTrader.Persistence/RogueTrader.Persistence.csproj" />
+    <ProjectReference Include="../RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+    <ProjectReference Include="../../shared/RogueTrader.OriginalData/RogueTrader.OriginalData.csproj" />
+  </ItemGroup>
+</Project>
