@@ -39,7 +39,7 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 | ID | Task | Where | Run | Depends on | Status |
 |---|---|---|---|---|---|
 | M1 | Persistent save/load and transaction core (wallet, inventory, upgrades, idempotency, atomic file repository) | server/RogueTrader.Persistence | cloud/local | - | MERGED b2ac2bf (core 00de717, review fixes 1998530) |
-| M2 | Cargo capacity rules and collectible-resource pickup in simulation (data-driven, conservation tests; values come from G4 data, test fixtures labelled NEW) | server/RogueTrader.Simulation | cloud | G2, G4 | OPEN |
+| M2 | Cargo capacity rules and collectible-resource pickup in simulation (data-driven, conservation tests; values come from G4 data, test fixtures labelled NEW) | server/RogueTrader.Simulation | cloud | G2, G4 | REVIEW feat/m2-cargo-pickup (local, not pushed; generic engine slice only, RT-F030/F042 stay open) |
 | M3 | Mineral-bearing asteroids and mining equipment extraction rules (generic engine; originals plug in via data) | Simulation + GameData | cloud | G4 | OPEN |
 | M4 | Trading station: buy/sell using the transaction core, proximity/docking predicate, price source | Persistence + Simulation | cloud | M1 merged, G3 | OPEN |
 | M5 | Basic repairs and six equipment upgrades applied through the transaction core | Persistence + GameData | cloud | M1 merged, G3 | OPEN |

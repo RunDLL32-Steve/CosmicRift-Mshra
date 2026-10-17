@@ -1,5 +1,10 @@
 # Changelog
 
+## Generic cargo capacity and collectible pickup - October 16, 2026
+
+- Add `CargoCatalog`/`CargoHold` to `server/RogueTrader.Simulation`: data-driven (JSON or code) hard weight capacity and per-item unit weights; pickup adds as many units as fit, refuses the rest, never creates or destroys units. `WorldSimulation` collects `CollectibleState` piles along the swept ship path each fixed tick, in catalog order, leaving any remainder in space; an optional initial inventory seeds the hold from a persisted profile.
+- 19 new unit tests (525 total) cover capacity edges, partial/refused pickup, per-tick conservation, seeded random invariants, replay and 30 Hz determinism, JSON validation, `ICargoPolicy` equivalence and the seven original Resources masses. All capacities, quantities and radii are NEW/provisional. RT-F030 and RT-F042 stay open: the native threshold/overload formula, pickup range and LIO spawn semantics are unresolved, and nothing is wired into the client or transaction processor yet.
+
 ## Original hull raw-data loader - October 15, 2026
 
 - Add `shared/RogueTrader.OriginalData`: raw CSV record reader (every field by index, source file, 1-based row, version token), SHA-256/length guard for RPG/Rogue.rpg, VEH/Rogue.veh and ITM/Rogue_mp.itm, and a loader that links the twelve RPG hull rows to VEH Car rows by vehicle id. Typed accessors return raw unscaled values with their field index; negative values are flagged, never replaced; all sixteen terrain speed blocks stay available.

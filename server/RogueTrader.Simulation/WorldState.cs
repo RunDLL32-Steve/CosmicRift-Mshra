@@ -72,3 +72,22 @@ public sealed class ProjectileState
         LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(owner.Weapon.LifetimeSeconds * WorldSimulation.TickRate));
     }
 }
+
+/// <summary>A pile of one item in space. Quantity falls as the player collects it; the pile is removed at zero.</summary>
+public sealed class CollectibleState
+{
+    public string Id { get; }
+    public string ItemId { get; }
+    public int Quantity { get; internal set; }
+    public Vector2 Position { get; }
+    public float Radius { get; }
+
+    internal CollectibleState(CollectibleSpawn spawn)
+    {
+        Id = spawn.Id;
+        ItemId = spawn.ItemId;
+        Quantity = spawn.Quantity;
+        Position = new Vector2(spawn.X, spawn.Y);
+        Radius = spawn.Radius;
+    }
+}

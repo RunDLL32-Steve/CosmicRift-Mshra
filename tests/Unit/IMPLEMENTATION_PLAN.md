@@ -15,6 +15,10 @@ Status authority: [master M1 engineering acceptance/fidelity gate](../../ROGUE_T
 
 The test data copies the same provisional JSON consumed by the client. Heavy fixtures do not add original playable ships. No original parity, M2 economy, AI or M3 network tests are claimed complete.
 
+## Cargo and pickup tests - October 16, 2026
+
+[CargoPickupTests.cs](CargoPickupTests.cs) adds 19 NEW-fixture cases (525 total, 5 pre-existing skips in OriginalKeyListingTests; the original-asset case ran): capacity edges, partial/refused pickup, conservation each tick, seeded random add invariants, replay and 30 Hz fixed-step determinism, JSON loading, `ICargoPolicy` equivalence and original Resources masses as unit weights. They do not validate the native cargo formula (RT-F030) or original resource spawns (RT-F042).
+
 ## Original raw-data loader tests - October 15, 2026
 
 [OriginalHullCatalogTests.cs](OriginalHullCatalogTests.cs), [RawRecordReaderTests.cs](RawRecordReaderTests.cs) and [AssetIntegrityTests.cs](AssetIntegrityTests.cs) add 40 tests (81 total with the 41 above): twelve hulls with names, skill/vehicle ids, RPG/VEH rows, hull points, cargo and ten speed values asserted against the RT-F001-RT-F012 catalog rows, Asp raw values from FIELD_INTERPRETATION, sentinel preservation, all sixteen terrain blocks, reader edge cases on inline fixtures, hash guard on tampered copies, and original files unchanged. Asset-dependent tests find the assets via `RT_ORIGINAL_ASSETS_ROOT`, a walk up for `.tools/references/cosmic-rift-assets`, or `git rev-parse --git-common-dir`; if not found they report as **Skipped** with a reason, never as passed. These prove data availability only and complete no hull feature.
