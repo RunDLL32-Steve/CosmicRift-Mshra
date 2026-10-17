@@ -25,7 +25,7 @@ Remaining (box stays OPEN): firing behaviour, missile spawn/flight/damage, prese
 - `python3 scripts/check-trackers.py`: see below.
 
 ## Not verified in cloud - local CI required
-- The .NET SDK cannot be downloaded in this cloud sandbox (builds.dotnet.microsoft.com refused by the proxy), so `OriginalMirvLauncherTests` has NOT been compiled or run here; it mirrors the compiling RT-F076/F077 tests. GitHub Actions `Build and validate First Contact` is the first compile; scripts/verify.ps1; native behaviour.
+- The .NET SDK cannot be downloaded in this cloud sandbox, so the test was not run locally; GitHub Actions job `windows` on d891d74 concluded success (it compiles the test; asset-dependent tests SKIP in CI because CI has no original assets). The asset assertions were therefore checked only against the Python audit output, not by executing the C# test. Still local: scripts/verify.ps1 with assets; native behaviour.
 
 ## Status
 wip -> ready once CI is green. Resume: fix any compile/assert failure shown by CI; next entry RT-F082 Plasma Bomb (same resolver).
