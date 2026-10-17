@@ -25,11 +25,11 @@ The cloud only sees `origin`. A claim therefore has to exist on origin before wo
 |---|---|---|---|---|---|
 | G1 | Spike: isolated original-client/emulator compatibility and production-engine choice | native client | local (desktop) | - | BLOCKED needs user present (RT-F380/F384/F387/F393) |
 | G2 | Original hull records: raw loader, integrity guard (RT-F001..F012 data only) | shared/RogueTrader.OriginalData | cloud/local | - | MERGED 2e76140 (loader fe879b1) |
-| G3 | Original ITM item loader: all 200 records raw-preserving, typed accessors only for confirmed fields, sentinels kept | shared/RogueTrader.OriginalData | cloud | G2 merged | REVIEW cloud/rt-f013-f019-g3-g4-itm-resources |
-| G4 | Original resource records (7: Tellerium, Refined Tellerium, Krandazite, Refined Krandazite, Wreckage, Iron Ore, Alloy; RT-F013..F019) from ITM with categories | OriginalData | cloud | G3 | REVIEW cloud/rt-f013-f019-g3-g4-itm-resources |
-| G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | REVIEW cloud/rt-f036-f037-g5-weapon-records (projectile view) + cloud/rt-f040-mirv-launcher-chain (launcher/ammo/child chain; value audit of ammo records and remaining weapons still open) |
+| G3 | Original ITM item loader: all 200 records raw-preserving, typed accessors only for confirmed fields, sentinels kept | shared/RogueTrader.OriginalData | cloud | G2 merged | MERGED 7ed3648 (PR #2, branch cloud/rt-f013-f019-g3-g4-itm-resources; data clauses only, features unchecked) |
+| G4 | Original resource records (7: Tellerium, Refined Tellerium, Krandazite, Refined Krandazite, Wreckage, Iron Ore, Alloy; RT-F013..F019) from ITM with categories | OriginalData | cloud | G3 | MERGED 7ed3648 (PR #2, bundled with G3; RT-F013..F019 data clauses only, features unchecked) |
+| G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | OPEN (partly merged: RT-F036/F037 projectile view MERGED 2f8bc1f PR #4; RT-F040 launcher/ammo/child chain MERGED eb21c90 PR #6; open remainder: value audit of ammo records and remaining weapon fields, meaning of -550 inheritance and -65 lifetime, launch/expiry/trigger modes, collision shape, type-8 entry field meanings and offset units) |
 | G6 | Original LVL/LIO reader and collision grid (RT-F021/F022 data only) | shared/RogueTrader.OriginalLevel | cloud/local | - | CLAIMED claim/g6-level-reader (local feat/original-level-reader) |
-| G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | REVIEW cloud/rt-f055-g7-outpost-vehicle-records |
+| G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | MERGED 3f2ae03 (PR #32, branch cloud/rt-f055-g7-outpost-vehicle-records; raw loader of all 30 VEH rows, 18 non-hull rows exposed; RT-F055 clauses stay open) |
 | G8 | Validate field scaling/sentinels: native flight constants vs recorded evidence, produce an evidence table (no gameplay change) | docs + OriginalData tests | local | G2, G3 | OPEN |
 | G9 | BLO archive member identity and dependency closure recompute (RT-F069) | scripts/original-assets | local | - | OPEN |
 | G10 | Original flight/weapons/controls/HUD validation against evidence | client + simulation | local | G2, G3, G6 | OPEN |
@@ -55,7 +55,7 @@ These advance later plan milestones with code and tests that need no desktop, Go
 | ID | Task | Where | Run | Depends on | Status |
 |---|---|---|---|---|---|
 | C1 | Original BLO archive directory/member reader (89 archives, 1,262 members, hash guard, raw bytes preserved; no pixel interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | OPEN |
-| C2 | Original CFG reader: raw-preserving sections/keys including the 16 terrain blocks and Rogue arena settings (no interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | REVIEW cloud/rt-f046-c2-cfg-terrain-access |
+| C2 | Original CFG reader: raw-preserving sections/keys including the 16 terrain blocks and Rogue arena settings (no interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | MERGED 8f66688 (PR #15, branch cloud/rt-f046-c2-cfg-terrain-access; rogue.cfg only, other-arena CFG files not pinned) |
 | C3 | Deterministic simulation replay harness: record inputs per tick, replay, state-hash equality tests (plan 20.1) | server/RogueTrader.Simulation + tests | cloud | - | OPEN |
 | C4 | Simulation tick performance benchmark harness (Stopwatch based, no new packages; plan 20.4 targets as documented thresholds, results recorded not asserted) | tests/LoadTests | cloud | C3 | OPEN |
 | C5 | Network protocol messages and binary serialization (input, snapshot, transaction request/response) with round-trip, truncation and fuzz tests (plan 13) | shared/RogueTrader.Protocol | cloud | - | OPEN |
@@ -68,6 +68,24 @@ These advance later plan milestones with code and tests that need no desktop, Go
 Caveat for asset-dependent rows (G3-G5, G7, C1, C2): the pinned asset repo's `.gitattributes` tracks only `*.blo`, `*.lvl` and `*.bmp` with Git LFS, so a shallow clone can yield LFS pointer files for those types only (C1 reads BLO; G6 reads LVL). The ITM, VEH and CFG files these rows read are plain files. If LFS pointer files appear, run `git lfs pull` if available; otherwise the asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required" so the owner's local session re-runs them.
 
 Gap: plan section 18 gate item "Decode original assets ... preserve their original appearance/behavior" (RT-F023, RT-F025) has no row. G6 covers only map and collision. Add a G row when that work is scoped; do not infer one here.
+
+## Open PRs awaiting review (unmerged origin branches)
+
+These branches are not on origin/main. Each claims the listed IDs under the claim rules above, so cloud runs skip them until they merge or are released. Their rows above stay as they are; no row is marked MERGED from these branches. Owner PR numbers #23 and #41-#46 were given by the owner; they are not mapped to branches here.
+
+- `claim/c1-blo-reader`: C1 (BLO archive reader, with RT-F023 reference resolution as data only).
+- `claim/g11-hull-reference-resolution`: G11 (resolve RT-F001..F012 hull references). No G11 row exists; ambiguous, left unrowed.
+- `claim/g2-original-hulls`: G2 raw hull loader. G2 is already MERGED 2e76140 on origin/main, so this claim is unreconciled and ambiguous; left as is.
+- `claim/g6-level-reader`: G6 (RT-F021/F022 data only). Matches the CLAIMED G6 row.
+- `claim/g8a-format-audit`: G8a (format audit, evidence only), part of G8. G8 stays OPEN.
+- `claim/m1-persistence-core`: M1 persistence core. M1 is already MERGED b2ac2bf on origin/main; this claim is unreconciled and ambiguous; left as is.
+- `cloud/rt-f063-space-storm-audit`: RT-F063.
+- `cloud/rt-f064-los-radar-fields`: RT-F064.
+- `cloud/rt-f065-safe-zone-docking`: RT-F065.
+- `cloud/rt-f068-progression-contract`: RT-F068.
+- `cloud/rt-f076-plasma-cannon-item`: RT-F076 (reusable ITM reference resolver).
+- `cloud/rt-f077-f080-micromissile-children`: RT-F077..F080 (stacked on the RT-F076 commits).
+- `local/bbq-cooked-workflow`: workflow tooling, no RT-ID claimed.
 
 ## D. Closed decisions (do not redo)
 
