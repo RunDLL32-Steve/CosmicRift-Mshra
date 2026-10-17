@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>RogueTrader.AI</RootNamespace>
+    <AssemblyName>RogueTrader.AI</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+  </ItemGroup>
+</Project>
