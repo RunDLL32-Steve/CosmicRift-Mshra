@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, head 4953f8f; 0 blocker, 0 major, 1 minor, 1 nit)
 
 # cloud/rt-f042-mineral-spawns — RT-F042 mineral spawn data audit
 
