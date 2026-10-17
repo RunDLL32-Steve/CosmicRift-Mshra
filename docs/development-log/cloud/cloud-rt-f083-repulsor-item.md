@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, head 16eeba3)
 
 # cloud/rt-f083-repulsor-item
 
