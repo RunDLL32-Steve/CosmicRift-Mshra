@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #40)
 
 # cloud/rt-f062-solar-mold-spores
 
