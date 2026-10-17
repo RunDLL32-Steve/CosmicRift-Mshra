@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="../../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
     <ProjectReference Include="../../shared/RogueTrader.OriginalData/RogueTrader.OriginalData.csproj" />
+    <ProjectReference Include="../../shared/RogueTrader.Protocol/RogueTrader.Protocol.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Persistence/RogueTrader.Persistence.csproj" />
     <Content Include="../../data/**/*.json" Link="data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Using Include="Xunit" />

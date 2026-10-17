@@ -58,7 +58,7 @@ These advance later plan milestones with code and tests that need no desktop, Go
 | C2 | Original CFG reader: raw-preserving sections/keys including the 16 terrain blocks and Rogue arena settings (no interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | REVIEW cloud/rt-f046-c2-cfg-terrain-access |
 | C3 | Deterministic simulation replay harness: record inputs per tick, replay, state-hash equality tests (plan 20.1) | server/RogueTrader.Simulation + tests | cloud | - | OPEN |
 | C4 | Simulation tick performance benchmark harness (Stopwatch based, no new packages; plan 20.4 targets as documented thresholds, results recorded not asserted) | tests/LoadTests | cloud | C3 | OPEN |
-| C5 | Network protocol messages and binary serialization (input, snapshot, transaction request/response) with round-trip, truncation and fuzz tests (plan 13) | shared/RogueTrader.Protocol | cloud | - | OPEN |
+| C5 | Network protocol messages and binary serialization (input, snapshot, transaction request/response) with round-trip, truncation and fuzz tests (plan 13) | shared/RogueTrader.Protocol | cloud | - | DONE on local/c5-protocol, awaiting independent review |
 | C6 | Authoritative server tick loop and input queue, headless (plan 13.2, no sockets yet) | server/RogueTrader.Server | cloud | C3, C5 | OPEN |
 | C7 | Client prediction and reconciliation as a pure library with simulated latency/loss tests (plan 13.3) | shared + tests | cloud | C5, C6 | OPEN |
 | C8 | Anti-cheat input validation layer: speed/rate/teleport sanity (plan 13.5) | server/RogueTrader.Server | cloud | C5 | OPEN |
