@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (senior review round 1, PR #38)
 
 # cloud/rt-f060-pirate-station
 
