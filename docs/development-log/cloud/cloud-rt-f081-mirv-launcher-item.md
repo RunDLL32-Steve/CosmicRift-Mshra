@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review of 76d29fe; PR #54 review 5557463119)
 
 # cloud/rt-f081-mirv-launcher-item
 
