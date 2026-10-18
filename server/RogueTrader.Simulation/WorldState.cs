@@ -40,6 +40,9 @@ public sealed class AsteroidState
     public Vector2 Position { get; }
     public float Radius { get; }
 
+    public string? ResourceItemId { get; internal set; }
+    public int ResourceQuantity { get; internal set; }
+
     internal AsteroidState(AsteroidDefinition definition)
     {
         Id = definition.Id;
@@ -91,3 +94,4 @@ public sealed class CollectibleState
         Radius = spawn.Radius;
     }
 }
+

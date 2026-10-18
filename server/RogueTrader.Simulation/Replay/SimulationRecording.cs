@@ -12,11 +12,11 @@ public readonly record struct StateCheckpoint(long Tick, ulong Hash);
 /// </summary>
 public sealed class SimulationRecording
 {
-    public const int FormatVersion = 1;
+    public const int FormatVersion = 2;
     // NEW/provisional: default digest cadence of once per simulated second; no original value exists.
     public const int DefaultCheckpointInterval = WorldSimulation.TickRate;
     private static readonly byte[] Magic = "RTRP"u8.ToArray();
-    private const int InputBytes = 9;
+    private const int InputBytes = 10;
     private const int CheckpointBytes = 16;
 
     public int CheckpointInterval { get; }
@@ -53,6 +53,7 @@ public sealed class SimulationRecording
                 writer.Write(input.Thrust);
                 writer.Write(input.Turn);
                 writer.Write(input.Fire ? (byte)1 : (byte)0);
+                writer.Write(input.Mine ? (byte)1 : (byte)0);
             }
             writer.Write(Checkpoints.Count);
             foreach (var checkpoint in Checkpoints)
@@ -65,7 +66,7 @@ public sealed class SimulationRecording
         return stream.ToArray();
     }
 
-    /// <exception cref="InvalidDataException">The bytes are truncated, oversized or not a version-1 recording.</exception>
+    /// <exception cref="InvalidDataException">The bytes are truncated, oversized or not a version-2 recording.</exception>
     public static SimulationRecording FromBytes(ReadOnlySpan<byte> bytes)
     {
         using var stream = new MemoryStream(bytes.ToArray(), writable: false);
@@ -91,7 +92,9 @@ public sealed class SimulationRecording
                 var fire = reader.ReadByte();
                 if (fire > 1)
                     throw new InvalidDataException("Invalid fire flag.");
-                inputs[index] = new ShipInput(thrust, turn, fire == 1);
+                var mine = reader.ReadByte();
+                if (mine > 1) throw new InvalidDataException("Invalid mine flag.");
+                inputs[index] = new ShipInput(thrust, turn, fire == 1, mine == 1);
             }
             var checkpointCount = reader.ReadInt32();
             RequireRemaining(stream, checkpointCount, CheckpointBytes);
@@ -115,3 +118,4 @@ public sealed class SimulationRecording
             throw new InvalidDataException("Recording count exceeds the available data.");
     }
 }
+
