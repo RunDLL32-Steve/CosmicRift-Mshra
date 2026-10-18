@@ -11,6 +11,7 @@ Authority: [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). C
 | Raw original data | RPG/VEH/ITM/CFG readers, LIO field/reference views, field audits and original-ID progression evidence | Correct native units/effects/lifecycle and full original acceptance |
 | Persistence (queue M1) | Repositories, idempotent/CAS transactions and optional original-ID membership validator | Client save flow, historical retention rules and exit/relaunch progression |
 | Cargo (queue M2) | Generic capacity and swept-path collectible pickup, merged `7684b05` | Original masses/thresholds/pickup/spawn behavior; client integration |
+| Mining (queue M3) | Optional generic finite deposits/equipment, deterministic extraction/pickup and replay v2; review pending on `claim/m3-mining-extraction` ([evidence](2026-10-18-m3-mining.md)) | Original RT-F042 generation/traps/equipment/beam semantics, M8 client and transport integration |
 | Trading (queue M4) | Generic docking/price/cargo/transaction service, merged `3e29142` | Original station rules, repairs/upgrades and client UI |
 | AI (queue M6) | NEW/provisional PirateController, merged `759a66a` | NPC integration, damage/rewards and original pirates |
 | Replay (queue C3) | Same-runtime recording/state-digest harness, merged `952d29d` | Cross-machine determinism and original physics |

@@ -1,5 +1,10 @@
 # Changelog
 
+## Generic mining extraction — October 18, 2026
+
+- Queue M3: optional external deposit/equipment definitions, deterministic surface-range extraction, finite asteroid depletion and collectible-to-cargo capacity handling. All extraction tuning and rules are NEW/provisional. Existing clients omit mining definitions and keep their current behavior.
+- Replay format v2 records Mine input and hashes deposits, cooldown, generated-pile sequence and pile geometry; v1 is explicitly rejected. [Local evidence and remaining fidelity limits](docs/development-log/2026-10-18-m3-mining.md). RT-F042 and original Milestone 2 acceptance remain unchecked; registry counts unchanged.
+
 ## Documentation and task organization — October 17, 2026
 
 - Reconcile active source/module, merge-state, compatibility-check and parity-limit descriptions against `d14df02`; distinguish dated runs from current source and full original acceptance. Correct the BallGraphic archive/member interpretation and one vehicle-loader XML field-count comment using preserved source evidence. No executable behavior or canonical content changes.

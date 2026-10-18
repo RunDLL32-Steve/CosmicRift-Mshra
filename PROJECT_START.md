@@ -4,7 +4,7 @@ Read the complete [ROGUE_TRADER_2_PLAN.md](ROGUE_TRADER_2_PLAN.md), [AGENTS.md](
 
 The target is exact original Cosmic Rift Rogue Trader reproduction. Original bytes, names, values and appearance at the pinned [manifest](docs/original-research/ASSET_MANIFEST.json) commit take precedence over provisional proposals. Derived adaptations remain separate.
 
-Current registry: **397 feature entries, 22 scoped completions, 375 open**. M0/M1 engineering acceptance is historical. Current source includes generic cargo, persistence, trading, replay, protocol and provisional AI modules; these do not complete original gameplay or the client loop. Native playable entry, actual native delivery, original evaluator semantics, production engine choice and durable gameplay progression remain unverified.
+Current registry: **397 feature entries, 22 scoped completions, 375 open**. M0/M1 engineering acceptance is historical. Current source includes generic cargo, optional mining extraction, persistence, trading, replay, protocol and provisional AI modules; these do not complete original gameplay or the client loop. Native playable entry, actual native delivery, original evaluator semantics, production engine choice and durable gameplay progression remain unverified.
 
 Use [docs/README.md](docs/README.md) for navigation. Use one file per task in `docs/tasks/`, with exact source/test references, dependencies, acceptance and focused verification. Prefer lower-cost execution for bounded approved work; preserve the full scope and escalate uncertain semantics according to AGENTS.md. Update the item's own `plan.d` file rather than appending to shared plans.
 

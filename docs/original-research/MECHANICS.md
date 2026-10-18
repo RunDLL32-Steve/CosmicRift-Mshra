@@ -96,7 +96,7 @@ Final prototype validation reported by the lead agent: integrated build, 41 unit
 |---|---|---|
 | Fixed simulation rate and equations | NEW; [master §5.2–5.3](../../ROGUE_TRADER_2_PLAN.md#5-spacecraft-movement-and-physics) | Preserve momentum and test repeatable inputs. Do not claim the original ran this integrator or rate. |
 | Interceptor; earlier Vanguard/Prospector proposals | NEW; master §6 | Only Interceptor is implemented. Other proposals are superseded/deferred until original parity. |
-| Plasma baseline and mining beam | NEW; master §7.3 | Initial practical weapons; modern comparison [E][source-e] is not original evidence. |
+| Plasma baseline and generic mining extraction | NEW; master §§7.3/8.1–8.4 | Optional queue M3 uses NEW finite deposits, surface-gap range, catalog-order targeting, cycle/yield and facing-surface drops. No beam semantics are inferred. [Source access, local evidence and original-rule gaps](../development-log/2026-10-18-m3-mining.md); modern comparison [E][source-e] is not original evidence. |
 | Ferrite, Copperite, Iridium and resource rarity | NEW; master §8.2 | Superseded/deferred proposals, not implemented resource records. Canonical seven-resource catalog controls reproduction; Kran nickname handled in H19. |
 | Prototype shield overflow, circular collisions, cooldown and lifetime | NEW; master §§5–7 implementation choices | Broad shield/hull separation is now primary supported in M; exact hit rules and numeric tuning remain NEW. |
 | Station respawn, currency retention, cargo penalties | NEW; master §7.5 | Full progression/death policies belong to later milestones. |
