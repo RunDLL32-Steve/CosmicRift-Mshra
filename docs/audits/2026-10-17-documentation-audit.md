@@ -1,6 +1,6 @@
 # Documentation audit — October 17, 2026
 
-Review status: pending independent review. Started October 17; completion/review continued October 18 (America/Chicago). Scope: current documentation truthfulness, root organization and actionable task briefs. Baseline: `origin/main` `d14df02836585c76c695839f031a399f6e28e02d`. Work is isolated on `codex/docs-truth-audit`; the existing local checkout and other worktrees were preserved. User authorized a feature-branch push and PR; this work does not authorize a main push or automatic merge.
+PR review status: needs-human. Independent content review: passed, with final mechanical reconciliation confirmed separately below. Started October 17; completion/review continued October 18 (America/Chicago). Scope: current documentation truthfulness, root organization and actionable task briefs. Baseline: `origin/main` `d14df02836585c76c695839f031a399f6e28e02d`. Work is isolated on `codex/docs-truth-audit`; the existing local checkout and other worktrees were preserved. User authorized a feature-branch push and PR; this work does not authorize a main push or automatic merge.
 
 ## Results
 
@@ -39,6 +39,6 @@ GitHub rejected the first feature-branch push because the current token lacks `w
 
 ## Final verification record
 
-Coordinator checks: `python scripts/check-trackers.py` printed `TRACKERS_CONSISTENT` (397/22/375). `git diff --check` passed. Read-only reference inspection covered 227 Markdown documents and 2,694 relative targets: zero missing tracked paths, zero unresolved Markdown anchors; 131 references point to absent ignored artifacts/generated assets and remain explicitly scoped historical/local evidence. Master/catalog/checklist checkbox-marker sequences match baseline exactly. The C# diff contains only the two XML-summary lines; historical startup text matches its original blob byte-for-byte. Inventory totals will be refreshed after the independent review report is added.
+Coordinator checks: `python scripts/check-trackers.py` printed `TRACKERS_CONSISTENT` (397/22/375). `git diff --check` passed. Read-only reference inspection covered 229 Markdown documents and 2,712 relative targets: zero missing tracked paths, zero unresolved Markdown anchors; 131 references point to absent ignored artifacts/generated assets and remain explicitly scoped historical/local evidence. Master/catalog/checklist checkbox-marker sequences match baseline exactly. The C# diff contains only the two XML-summary lines; historical startup text matches its original blob byte-for-byte. The inventory includes the independent review and current CI plan; the old workflow-folder plan is explicitly classified as superseded.
 
-Independent review is pending final confirmation. No gameplay feature completed in this branch.
+[Fresh independent review](2026-10-17-independent-review.md) inspected the diff, source/status claims and fixes. Findings addressed: missing inventory, moved handoff links, C7's incorrect dependency status, new-file whitespace, and the CI-plan/inventory classification after GitHub rejected the initial push. Final review confirmation covers the final content/reconciliation; owner merge review and this PR's CI remain separate. Completed October 18, 2026 (America/Chicago). No gameplay feature completed in this branch.

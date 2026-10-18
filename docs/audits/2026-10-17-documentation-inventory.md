@@ -2,23 +2,24 @@
 
 Baseline: `d14df02`. This inventory covers version-controlled Markdown plus new documentation in this change, excluding ignored worktrees/tools/outputs. Deleted old paths are represented at their archive destinations. Classification records the audit boundary, not a claim that every historical result was rerun. See [main audit](2026-10-17-documentation-audit.md), [source audit](2026-10-17-source-docs.md), [compatibility audit](2026-10-17-compat-docs.md) and [task audit](2026-10-17-task-docs.md).
 
-Inventoried Markdown documents: **227**. Root Markdown entry points: **9** (previously 14). Historical startup text is additionally preserved byte-for-byte under archive.
+Inventoried Markdown documents: **229**. Root Markdown entry points: **9** (previously 14). Historical startup text is additionally preserved byte-for-byte under archive. The baseline CI plan under `.github/workflows/` is retained unchanged and superseded by the current [CI plan](../architecture/CI_PLAN.md); see the main audit for the token-scope publication constraint.
 
 | Disposition | Documents |
 |---|---:|
-| Audit method/evidence/limits; mechanical references checked | 5 |
-| Compatibility/research audit; current claims compared with source | 38 |
-| Coordinator audit; navigation, status, policy or provenance inspected | 14 |
+| Audit method/evidence/limits; mechanical references checked | 6 |
+| Compatibility/research audit; current claims compared with source | 39 |
+| Coordinator audit; navigation, status, policy or provenance inspected | 13 |
 | Dated evidence; prior results retained, not rerun | 58 |
 | Historical snapshot; superseded instructions labeled; links relocated | 7 |
 | Module audit; source/projects/tests compared with current claims | 33 |
 | Per-item source/evidence record; dated results retained | 51 |
+| Superseded historical CI plan; current plan is docs/architecture/CI_PLAN.md | 1 |
 | Task index/brief/template; code paths and dependencies inspected | 21 |
 
 | Document | Audit disposition |
 |---|---|
 | [.github/IMPLEMENTATION_PLAN.md](../../.github/IMPLEMENTATION_PLAN.md) | Coordinator audit; navigation, status, policy or provenance inspected |
-| [.github/workflows/IMPLEMENTATION_PLAN.md](../../.github/workflows/IMPLEMENTATION_PLAN.md) | Coordinator audit; navigation, status, policy or provenance inspected |
+| [.github/workflows/IMPLEMENTATION_PLAN.md](../../.github/workflows/IMPLEMENTATION_PLAN.md) | Superseded historical CI plan; current plan is docs/architecture/CI_PLAN.md |
 | [AGENTS.md](../../AGENTS.md) | Coordinator audit; navigation, status, policy or provenance inspected |
 | [CHANGELOG.md](../../CHANGELOG.md) | Coordinator audit; navigation, status, policy or provenance inspected |
 | [CONTINUATION.md](../../CONTINUATION.md) | Coordinator audit; navigation, status, policy or provenance inspected |
@@ -51,6 +52,7 @@ Inventoried Markdown documents: **227**. Root Markdown entry points: **9** (prev
 | [data/weapons/IMPLEMENTATION_PLAN.md](../../data/weapons/IMPLEMENTATION_PLAN.md) | Module audit; source/projects/tests compared with current claims |
 | [docs/IMPLEMENTATION_PLAN.md](../../docs/IMPLEMENTATION_PLAN.md) | Coordinator audit; navigation, status, policy or provenance inspected |
 | [docs/README.md](../../docs/README.md) | Coordinator audit; navigation, status, policy or provenance inspected |
+| [docs/architecture/CI_PLAN.md](../../docs/architecture/CI_PLAN.md) | Compatibility/research audit; current claims compared with source |
 | [docs/architecture/ENGINE_EVALUATION.md](../../docs/architecture/ENGINE_EVALUATION.md) | Compatibility/research audit; current claims compared with source |
 | [docs/architecture/IMPLEMENTATION_PLAN.md](../../docs/architecture/IMPLEMENTATION_PLAN.md) | Compatibility/research audit; current claims compared with source |
 | [docs/architecture/LEGACY_COMPATIBILITY_PLAN.md](../../docs/architecture/LEGACY_COMPATIBILITY_PLAN.md) | Compatibility/research audit; current claims compared with source |
@@ -69,6 +71,7 @@ Inventoried Markdown documents: **227**. Root Markdown entry points: **9** (prev
 | [docs/audits/2026-10-17-compat-docs.md](../../docs/audits/2026-10-17-compat-docs.md) | Audit method/evidence/limits; mechanical references checked |
 | [docs/audits/2026-10-17-documentation-audit.md](../../docs/audits/2026-10-17-documentation-audit.md) | Audit method/evidence/limits; mechanical references checked |
 | [docs/audits/2026-10-17-documentation-inventory.md](../../docs/audits/2026-10-17-documentation-inventory.md) | Audit method/evidence/limits; mechanical references checked |
+| [docs/audits/2026-10-17-independent-review.md](../../docs/audits/2026-10-17-independent-review.md) | Audit method/evidence/limits; mechanical references checked |
 | [docs/audits/2026-10-17-source-docs.md](../../docs/audits/2026-10-17-source-docs.md) | Audit method/evidence/limits; mechanical references checked |
 | [docs/audits/2026-10-17-task-docs.md](../../docs/audits/2026-10-17-task-docs.md) | Audit method/evidence/limits; mechanical references checked |
 | [docs/balance/IMPLEMENTATION_PLAN.md](../../docs/balance/IMPLEMENTATION_PLAN.md) | Module audit; source/projects/tests compared with current claims |
