@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review local, head f4dc05f)
 
 # cloud/rt-f084-light-mass-driver-pellets
 
