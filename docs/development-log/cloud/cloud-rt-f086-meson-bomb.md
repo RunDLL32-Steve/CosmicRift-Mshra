@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review local, head 471dd78)
 
 # cloud/rt-f086-meson-bomb
 
