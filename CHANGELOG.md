@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 BallGraphic source applicability — October 18, 2026
+
+- Document the pinned C# string/archive-access boundary and nearby sprite-reader/version contexts without treating a seven-token shape as CFG grammar evidence. [Source table and limits](docs/development-log/2026-10-18-g9-ballgraphic-source.md). Markdown only; no parser/runtime rerun, original value change or acceptance/count change. G9/RT-F069/RT-F379 remain open.
+
 ## G9 bounded maker/death diagnostic — October 18, 2026
 
 - Trace pinned VehicleMaker83/84/85 → Computer425/426/427 sources and add nine actual-handler diagnostics to existing RuntimeChecks. Isolated packet/action/factory/death/veto controls pass within70 checks, retaining canonical bytes/values and Nanobot2023; no native client, poll or physics ticks. [Evidence and limitations](docs/development-log/2026-10-18-g9-creation-source.md). G9/RT-F069/RT-F386 remain open; no production rule or original completion claim.
