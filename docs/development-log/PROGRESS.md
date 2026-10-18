@@ -1,65 +1,54 @@
-# Development progress — October 14, 2026
+# Development progress — October 17, 2026
 
-Authority:[master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff:[CONTINUATION.md](../../CONTINUATION.md).
+Authority: [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff: [CONTINUATION.md](../../CONTINUATION.md). **397 feature entries, 22 scoped completions, 375 open.** No original feature or milestone acceptance flag changed in this documentation audit.
 
-**397 feature entries;22 scoped completions;375 open.** M0/M1 prototype, original viewer/export, inventory/package/runtime audits, actual arena initialization, bounded full-asset hosting and VehicleMaker field18 fix pass. October 14 adds scoped sell validation, null-script capacity and host radar safeguards: 35/35 focused checks and a clean 10-second headless host. Native welcome only; no player joined. Actual native delivery/gameplay/persistence remain unfinished. No desktop interaction occurred in this slice.
+## Current source versus accepted gameplay
 
-## Current milestone status
+| Area | Existing source / recorded scope | Remaining acceptance |
+|---|---|---|
+| M0/M1 engineering prototype | Historical October 12 flight/combat source/export/input/world acceptance; 41 tests at that revision | Original movement, controls, combat, visuals and values |
+| Original content tooling | Viewer/export; archive/package/source-runtime audits; actual arena initialization and bounded hosting; scoped derived safeguards | Native playable entry, full native delivery, complete dependencies, original evaluators and engine decision |
+| Raw original data | RPG/VEH/ITM/CFG readers, LIO field/reference views, field audits and original-ID progression evidence | Correct native units/effects/lifecycle and full original acceptance |
+| Persistence (queue M1) | Repositories, idempotent/CAS transactions and optional original-ID membership validator | Client save flow, historical retention rules and exit/relaunch progression |
+| Cargo (queue M2) | Generic capacity and swept-path collectible pickup, merged `7684b05` | Original masses/thresholds/pickup/spawn behavior; client integration |
+| Trading (queue M4) | Generic docking/price/cargo/transaction service, merged `3e29142` | Original station rules, repairs/upgrades and client UI |
+| AI (queue M6) | NEW/provisional PirateController, merged `759a66a` | NPC integration, damage/rewards and original pirates |
+| Replay (queue C3) | Same-runtime recording/state-digest harness, merged `952d29d` | Cross-machine determinism and original physics |
+| Protocol (queue C5) | NEW bounded binary codec, merged `403499f` | Transport/authentication/server/client integration and multiplayer |
+| Dedicated production server | Plan-only module | Master M3 independent-client/persistent-service acceptance |
 
-- M4 queue item (trading station buy/sell, new `server/RogueTrader.Trading`): implemented on branch feat/m4-trading-station with 28 NEW-fixture unit tests (553 total, `dotnet test tests/Unit` only); awaiting independent review. RT-F044/RT-F045/RT-F049 remain open. [Dated log](2026-10-16-m4-trading-station.md).
-
-- M2 queue item (cargo capacity and collectible pickup, simulation engine): implemented on branch feat/m2-cargo-pickup with 19 NEW-fixture unit tests (525 total, `dotnet test tests/Unit` only); awaiting independent review. RT-F030/RT-F042 remain open. [Dated log](2026-10-16-m2-cargo-pickup.md).
-
-- RT-F397: narrow outgoing length/queue acceptance complete on the isolated issue branch;46 canonical packets/60 inert fixtures pass, all baseline defects corrected. [NativeDeliveryChecks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) and [dated issue log](2026-10-14-rt-f397.md) record the two-overload length/queue scope. No native receiver/auth/UI acceptance or desktop use.
-
-- M0/M1 engineering:Complete with historical acceptance.
-- Original tooling/source/export/arena/hosting:scoped completions recorded in master/catalog.
-- Native playable reproduction:In progress/unverified.
-- M2 original gameplay loop/persistence:Not accepted;generic handlers exist but require runtime validation.
-- M3 multiple-player/persistent service:Not accepted;bounded loopback hosting is narrower proof.
-- Later additions:Deferred until original parity.
+Queue IDs name scoped work items; they are not master milestone numbers. Earlier descriptions saying cargo/trading awaited review, RT-F397 awaited merge, or Protocol/AI/Persistence were empty reserved folders are superseded by the current source inventory. The client still runs the provisional range, not a complete Rogue Trader loop.
 
 ## Subplan index
 
-Every path below is an implementation checklist with a reciprocal reference to the master. Checkboxes describe actual completed work; deferred work remains unchecked.
-
-| Folder / subplan | Master scope |
+| Area | Plan |
 |---|---|
-| [Client](../../client/IMPLEMENTATION_PLAN.md) | M1 / §19 slices A–E, input, HUD, camera and standalone client |
-| [Simulation](../../server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) | M0/M1, §§5/7, flight and combat |
-| [Game data](../../shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md) | M0/M1, §6.1 external validated definitions |
-| [Data catalog](../../data/IMPLEMENTATION_PLAN.md) | M0/M1, provisional ships/weapons/sector |
-| [Unit tests](../../tests/Unit/IMPLEMENTATION_PLAN.md) | M1 / §20.1 physics and combat |
-| [Original content index](../../scripts/ORIGINAL_CONTENT_INDEX_PLAN.md) | §1.2 fidelity gate / original raw records and candidate dependencies |
-| [Build and export](../../scripts/IMPLEMENTATION_PLAN.md) | M0/M1, reproducible tools and Windows artifact |
-| [CI workflow](../../.github/workflows/IMPLEMENTATION_PLAN.md) | M0 automated build; hosted run unobserved |
-| [Historical research](../original-research/IMPLEMENTATION_PLAN.md) | M0 / §§2/22 plus user-supplied archives/video |
-| [Balance ledger](../balance/IMPLEMENTATION_PLAN.md) | M0 / §§5–8 provisional values and recovered raw values |
-| [First Contact design](../game-design/IMPLEMENTATION_PLAN.md) | M1 slices A–E and fidelity acceptance |
-| [Development log](IMPLEMENTATION_PLAN.md) | M0/M1 / §21 maintenance and reconciliation |
-| [Runtime checks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md) | Fidelity prerequisites RT-F388/RT-F390/RT-F395; purchase safety RT-F396 remains open |
-| [Architecture](../architecture/IMPLEMENTATION_PLAN.md) | M0/M1 / §§5.3/13/17/21 |
-| [Server](../../server/RogueTrader.Server/IMPLEMENTATION_PLAN.md) | Deferred M3 |
-| [Persistence](../../server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) | Deferred M2/M3 |
-| [AI](../../server/RogueTrader.AI/IMPLEMENTATION_PLAN.md) | Deferred M2 |
-| [Protocol](../../shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md) | Deferred M3 |
-| [Integration](../../tests/Integration/IMPLEMENTATION_PLAN.md) | Deferred M2/M3 |
-| [Network](../../tests/Network/IMPLEMENTATION_PLAN.md) | Deferred M3 |
-| [Load tests](../../tests/LoadTests/IMPLEMENTATION_PLAN.md) | Deferred M5 |
+| Client, input/rendering/inspector | [Client](../../client/IMPLEMENTATION_PLAN.md), [inspector](../../client/ORIGINAL_INSPECTOR_PLAN.md) |
+| Simulation, cargo and replay | [Simulation](../../server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) |
+| Original records and provisional definitions | [OriginalData](../../shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md), [GameData](../../shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](../../data/IMPLEMENTATION_PLAN.md) |
+| Persistence, trading and AI | [Persistence](../../server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md), [Trading](../../server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md), [AI](../../server/RogueTrader.AI/IMPLEMENTATION_PLAN.md) |
+| Protocol and production server | [Protocol](../../shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md), [Server](../../server/RogueTrader.Server/IMPLEMENTATION_PLAN.md) |
+| Tests | [Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md), [Integration](../../tests/Integration/IMPLEMENTATION_PLAN.md), [Network](../../tests/Network/IMPLEMENTATION_PLAN.md), [Load](../../tests/LoadTests/IMPLEMENTATION_PLAN.md) |
+| Original import/dependencies | [Importer](../../scripts/original-assets/IMPLEMENTATION_PLAN.md), [dependencies](../../scripts/original-assets/DEPENDENCY_PLAN.md) |
+| Compatibility and focused runtime checks | [Compatibility](../../scripts/compatibility/IMPLEMENTATION_PLAN.md), [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md), [NativeDeliveryChecks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) |
+| Architecture and research | [Architecture](../architecture/IMPLEMENTATION_PLAN.md), [research](../original-research/IMPLEMENTATION_PLAN.md) |
+| Build/export and CI | [Scripts](../../scripts/IMPLEMENTATION_PLAN.md), [workflow](../../.github/workflows/IMPLEMENTATION_PLAN.md) |
+| Design/balance/documentation | [Design](../game-design/IMPLEMENTATION_PLAN.md), [balance](../balance/IMPLEMENTATION_PLAN.md), [docs](../IMPLEMENTATION_PLAN.md) |
 
+<a id="final-validation-evidence"></a>
 
-## Current plans and evidence
+## Verification evidence
 
-Additional scoped plans:client/ORIGINAL_INSPECTOR_PLAN.md;scripts/original-assets/DEPENDENCY_PLAN.md;docs/architecture/NATIVE_CLIENT_PLAN.md,ROGUE_RUNTIME_PLAN.md,ROGUE_PACKAGE_AUDIT_PLAN.md;data/original domain queues. Each meaningful source folder records accomplished/next/parity status in its implementation plan or linked parent.
+Historical prototype and original-viewer runs remain in [October 12](2026-10-12.md), [October 13](2026-10-13.md) and the [changelog](../../CHANGELOG.md). Historical handler/host acceptance is in [October 14](2026-10-14.md) and [RT-F397](2026-10-14-rt-f397.md). Generic cargo/trading results are in their October 16 logs; later raw-data audit evidence is in the corresponding `plan.d` and cloud logs. Those totals are revision-specific, not today's suite size.
 
-Evidence:artifacts/qa/OriginalContent;artifacts/rogue-package-audit;.tools/compatibility/reports;.tools/compatibility/local-working/session-host/reports;native-test-cleanup.json. Initializer25 computers and host-ready26 initial vehicles are distinct observations. Full LVL graphical trailer must remain intact for native delivery.
+The recorded initializer's 25 computers and the separate host-ready report's 26 vehicles are distinct. Native Welcome did not prove Start/arena entry. Reported historical cleanup is not a current process inventory. Ignored artifact/report paths may be absent in a clean checkout.
 
-## Final validation evidence
+Source inspection found current RuntimeChecks has 15 Buy.* checks. The parent fixed report records Accepted=true with 61 checks and zero failures; the earlier 35- and 50-check reports describe narrower historical revisions. The two PowerShell wrappers now cache process handles and check exit codes; a blank/non-zero exit is a failure.
 
-Historical41 unit/prototype input/world checks are preserved in October12 log/master/changelog;they were not repeated for assets/documentation. Updated OriginalContent source/standalone input/render checks pass atworldtick0. Runtime/package/helper proofs are scoped;native entry remains unchecked.
+Hosted CI was observed read-only for baseline `d14df02`: the [Windows check](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/actions/runs/39051255053/job/117450136234) concluded success. That does not establish the result of this PR's later head, asset-dependent oracle execution, or native acceptance.
 
-October 14: [baseline](../../artifacts/rogue-runtime-checks/baseline.json) reproduces 16 defects across 35 actual-handler checks; [fixed](../../artifacts/rogue-runtime-checks/fixed.json) passes all 35. [Actual host](../../artifacts/rogue-runtime-checks/host/exit.json) exits 0 after 10.25 seconds, zero logged exceptions/clients, unchanged originals; invalid routing configuration exits 2 before readiness. Details: [dated log](2026-10-14.md). No baseline movement/combat simulations or native UI launches.
+This documentation audit ran tracker/local-reference checks and source/evidence inspection; it did not launch builds, gameplay simulations or desktop/native clients. See [audit and review record](../audits/2026-10-17-documentation-audit.md) for exact results and remaining evidence limits.
 
-## Reconciliation rules
+## Next work
 
-Update current stages and evidence with code changes. Master/catalog/projection IDs/checkmarks must match. Completed work leaves active queues and remains in history/CHANGELOG. Documentation-only checks do not launch builds, GUI or simulations.
+Use [TASK_QUEUE.md](../../TASK_QUEUE.md) and its separate briefs, checking live claims before starting. Preserve all unchecked master/catalog scope; do not repeat merged generic slices. Select focused checks only after the relevant implementation is complete. New verification must identify its revision, acceptance clause, result, skips and independent review.

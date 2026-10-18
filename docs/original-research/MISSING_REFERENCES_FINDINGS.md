@@ -1,6 +1,6 @@
 # Missing References Investigation Findings
 
-Date: 2026-10-14. Four data-level gaps in `data/original/` that blocked accurate arena initialization. No invented replacements. No canonical values modified.
+Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pinned parser. These are unresolved source-reference/field questions, not demonstrated blockers to the already verified arena initializer. No invented replacements or canonical value changes.
 
 ## Summary
 
@@ -8,7 +8,7 @@ Date: 2026-10-14. Four data-level gaps in `data/original/` that blocked accurate
 |-----------|----------|--------|---------|
 | Portal/PrizeCrateA | RT-F377 | ITM/Rogue_mp.itm:112 | Genuinely absent from UtilityEffects.blo |
 | Uiart/logo | RT-F378 | CFG/rogue.cfg:2752 | Genuinely absent from cruiart.blo |
-| BallGraphic (numeric) | RT-F379 | CFG/rogue.cfg:2107 | Ordinal 0 = GameBall.cfs; interpretation unproven |
+| BallGraphic trailing numeric fields | RT-F379 | CFG/rogue.cfg:2107 | `Soccer,Ball,0,0,0,0,35`; refers to supplemental Soccer/Ball, not canonical ball.blo |
 | Computer DropItemId66 | RT-F386 | VEH records 425/426/427 | Item 66 absent from ITM catalog |
 
 ---
@@ -60,18 +60,11 @@ Date: 2026-10-14. Four data-level gaps in `data/original/` that blocked accurate
 **Source**: CFG/rogue.cfg row 2107, Soccer section, BallGraphic field.
 **Raw token**: `Soccer,Ball,0,0,0,0,35`
 
-**Investigation**: Examination of `ball.blo` members (objectId 0-1).
+**Correction**: The full canonical token names archive `Soccer` and member `Ball`. Inspecting canonical `ball.blo` ordinal 0 (`GameBall.cfs`) does not establish a mapping for that different archive/member pair. The former ordinal-reference conclusion was unsupported and is withdrawn.
 
-**Archive contents** (2 members):
-- objectId 0: GameBall.cfs
-- objectId 1: GameBallTrail.cfs
+Pinned `CfgInfo.Soccer.cs` reads `BallGraphic` as a string and registers the archive through `Parser.GetBlob`; it also registers Trail/Shadow/Catch/Throw/Bounce/Request unconditionally despite `BallCount=0`. The separately recovered authentic `soccer.blo` has the required named members and passed bounded full-asset startup (RT-F394), as documented in [NATIVE_CLIENT_PLAN.md](../architecture/NATIVE_CLIENT_PLAN.md#authentic-shared-engine-dependency--rt-f394-complete).
 
-**Conclusion**: The `,0` in the BallGraphic field corresponds to objectId 0 (`GameBall.cfs`), supporting the hypothesis that the numeric field is a BLO ordinal reference. However, this interpretation remains `numeric_member_role_unknown` at the data level because:
-- The mapping is circumstantial (ordinal 0 happens to be the main ball graphic).
-- No other CFG field has been verified to use the same ordinal-reference pattern.
-- The role of the remaining numeric fields (`,0,0,0,0,35`) is uninterpreted.
-
-**Implication**: The data supports but does not prove the ordinal-reference hypothesis. Runtime validation or cross-referencing with additional CFG sections is needed for confirmation.
+**Remaining acceptance**: establish the trailing numeric fields and native graphical/evaluator behavior from matching evidence. Inventory's `numeric_member_role_unknown` is a raw-scanning classification, not proof that a numeric field is a BLO ordinal. RT-F379 remains open; neither GameBall substitution nor an invented sprite is justified.
 
 ---
 
@@ -90,7 +83,7 @@ Date: 2026-10-14. Four data-level gaps in `data/original/` that blocked accurate
 | 426 | 66 | `missing` |
 | 427 | 66 | `missing` |
 
-All three manufactory vehicles reference ITM ID 66 as their DropItemId. Item 66 does not exist in the Rogue_mp.itm catalog (which contains 200 items, IDs 1-200, but item 66 is absent per the audit's `missing` status).
+All three manufactory vehicles reference ITM ID 66 as their DropItemId. Item 66 does not exist among the 200 Rogue_mp.itm records. Record count is not an ID range: IDs are sparse and include values such as 1004 and 2008.
 
 **Corroborating pattern**: Other VEH records show a consistent DropItemId pattern:
 - VEH 400: DropItemId=0 (sentinel/default)
@@ -101,11 +94,11 @@ All three manufactory vehicles reference ITM ID 66 as their DropItemId. Item 66 
 - VEH 405: DropItemId=2008 (present)
 - VEH 407: DropItemId=0 (sentinel/default)
 
-VEH 425/426/427 are unique in referencing ID 66, which is not a sentinel value (0) and not a present item.
+VEH 425/426/427 share positive reference 66; it is absent from the item catalog. That static fact does not establish whether or when the native/emulator lifecycle evaluates it.
 
 **Conclusion**: Item 66 is genuinely missing from the ITM catalog. This is not a default/sentinel value — it is a positive reference to a non-existent item. The manufactory vehicles expect to drop an item that has no definition in the item catalog.
 
-**Implication**: Arena initialization cannot resolve the drop-item behavior for manufactory vehicles without either defining item 66 (which requires original data, not invention) or implementing a fallback for missing drop targets.
+**Implication**: Trace the actual destruction/drop path for these manufactory types before proposing any change. RT-F383 arena initialization already passed, and that result does not evaluate every eventual drop path. Preserve the unresolved reference; add no invented item or fallback.
 
 ---
 
@@ -116,4 +109,4 @@ VEH 425/426/427 are unique in referencing ID 66, which is not a sentinel value (
 - [Runtime Plan](../architecture/ROGUE_RUNTIME_PLAN.md) — RT-F382/F383/F392/F394 runtime source
 - [Actor Domain Queue](../../data/original/actors/IMPLEMENTATION_PLAN.md) — RT-F386 investigation
 - [Feature Catalog](FEATURE_CATALOG.md) — RT-F377 through RT-F386 definitions
-- [Handoff](../QWEN_HANDOFF.md) — Verified vs uncertain state tables
+- [Handoff](../archive/2026-10/qwen-handoff.md) — Verified vs uncertain state tables

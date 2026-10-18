@@ -1,3 +1,5 @@
+> Historical snapshot. Preserved for dated evidence; its instructions, counts, branch state and next steps may be superseded. Use [current continuation](../../../CONTINUATION.md), [task queue](../../../TASK_QUEUE.md) and [documentation index](../../README.md) for current work.
+
 # Qwen Handoff — October 14, 2026
 
 Model: qwen3.6:27b-coding. This document summarizes state for any successor session.

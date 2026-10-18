@@ -1,11 +1,11 @@
 # Repository implementation index
 
-Authority:ROGUE_TRADER_2_PLAN.md. Start atPROJECT_START.md,AGENTS.md andCONTINUATION.md. Current code/checkpoint:397 features;22 scoped completions;375 open.
+Authority: [master §18](ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Startup: [PROJECT_START.md](PROJECT_START.md), [AGENTS.md](AGENTS.md), [CONTINUATION.md](CONTINUATION.md). Current registry: **397 feature entries, 22 scoped completions, 375 open**.
 
-Folders:client,shared,server,data,tests,scripts,docs and.github/workflows each have purpose/accomplishments/next/parity documentation. The master/catalog keep audit checkmarks;active folder queues keep outstanding work.
+Purpose: index implemented source and its acceptance boundaries. Use [docs/README.md](docs/README.md) to navigate architecture, research, current evidence and archives; use [TASK_QUEUE.md](TASK_QUEUE.md) for separate task briefs.
 
-Complete:prototype engineering;original viewer/export;directory/package/runtime audits;actual original arena andboundedhosting;VehicleMaker field18 fix;bounded sale/capacity/radar safeguards. Next:native Start/entry/asset transfer,shop purchase/store eligibility,original gameplay/persistence andproduction shutdown. Preserve canonical originals anddefer expansion untiloriginalparity.
+The provisional prototype and original viewer have historical engineering acceptance. Raw original-data readers, generic cargo, persistence/transactions, trading, replay, protocol codec and provisional AI exist in source. Production server/transport, native playable entry and the full original gameplay/progression loop are not accepted. Completed queue slices do not check off full original features.
 
-Earlier documentation reconciliation is complete;its agent reports list edited folders and checks. That documentation-only work required no builds,GUI orsimulation.
+Folder plans: [client](client/IMPLEMENTATION_PLAN.md), [shared](shared/IMPLEMENTATION_PLAN.md), [server](server/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md), [tests](tests/IMPLEMENTATION_PLAN.md), [scripts](scripts/IMPLEMENTATION_PLAN.md), [docs](docs/IMPLEMENTATION_PLAN.md) and [CI](.github/workflows/IMPLEMENTATION_PLAN.md). Item-specific changes/evidence belong in each folder's `plan.d/` file.
 
-October14 implementation/checks: [runtime safeguards log](docs/development-log/2026-10-14.md), 35/35 focused checks, clean 10-second backend host; no desktop UI or baseline gameplay simulations. Native entry/production engine choice remain open.
+Current documentation audit: [October 17 coverage and review](docs/audits/2026-10-17-documentation-audit.md). No source, asset, build or gameplay acceptance changed. Next work remains the unchecked original-fidelity dependencies in the task index and master.

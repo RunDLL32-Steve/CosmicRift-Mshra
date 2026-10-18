@@ -27,8 +27,8 @@ The native test reached welcome only. Start produced no confirmed arena entry; o
 | [ ] Native movement, reverse/strafe/hyper, energy, cargo, weapon scales/sentinels and event/skill grammar | Investigating | F027–F041/F067; [FIELD_INTERPRETATION.md](FIELD_INTERPRETATION.md) |
 | [ ] Native palette/HSV/shadow/blit/bank/timing/HUD/audio and original help binding/menu behavior | Investigating | F023–F026/F074/F075/F368–F372 |
 | [ ] Original mineral/refinery/trade/repair/upgrade/death/reward execution | Not started for exact native acceptance | F013–F019/F042–F051; dated source/emulator revisions remain distinct |
-| [ ] Original store eligibility/proximity and purchase quantity/credit ordering | Investigating | F389/F396; bounded sell/capacity checks are completed history |
-| [ ] Durable original progression and production shutdown | Not started | F068/M2; standalone has no saves, bounded exit is not upstream shutdown fix |
+| [ ] Connected native store/purchase behavior and durable transaction integration | Native acceptance open after bounded safeguards | F389/F396 handler fixes are complete; [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md) records their scope |
+| [ ] Durable original progression integration and production shutdown | Core/binding exist; native/M2 integration open | F068/M2; [original-ID fixture evidence](../development-log/cloud/cloud-rt-f068-progression-contract.md), standalone has no saves, bounded exit is not upstream shutdown fix |
 | [ ] Additional timestamped video/RT UI comparison and release provenance | Not started / Investigating | [VIDEO_REFERENCE.md](VIDEO_REFERENCE.md), [MECHANICS.md](MECHANICS.md); only0:25 frame observed |
 
 ## Domain ownership

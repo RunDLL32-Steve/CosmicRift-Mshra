@@ -55,6 +55,10 @@ Collision design uses swept circles for projectile contacts and deterministic as
 
 The Godot renderer uses approximately one screen pixel per world unit at its normal view, with a follow camera. This is a NEW presentation scale. The [supplied video parity checklist](../original-research/VIDEO_REFERENCE.md) tracks original presentation fidelity separately.
 
+## Additional engine fixtures — source audit October 17, 2026
+
+`data/ai/pirate_ai.json` is also NEW/provisional tuning; [its plan](../../data/ai/IMPLEMENTATION_PLAN.md) describes units and health thresholds. `PirateAiConfig` loads it for the standalone controller/tests; GameClient does not construct a controller. Generic cargo/pickup and station tests supply NEW capacities, pile quantities/radii, dock radii and prices through their own fixtures. `StationPriceTable.FromOriginalItems` offers a provisional raw ITM price binding (positive raw fields traded, zero and negative fields omitted); this is not a validated original pricing or eligibility rule. `OriginalProgressionIds` uses a NEW decimal-string profile-id contract; it does not recover historical storage. Exact source references and limits are in the [source audit](../audits/2026-10-17-source-docs.md). No new tuning or gameplay verification was performed.
+
 ## Accepted prototype verification scope
 
 - Release thrust after acceleration: speed should persist in open space.

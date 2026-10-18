@@ -1,94 +1,83 @@
-# Task queue (ordered; single source for "what next")
+# Task queue: ordered active index
 
-Order follows ROGUE_TRADER_2_PLAN.md section 18: the exact-reproduction fidelity gate first, then Milestone 2. The plan's Milestone 2 list is unordered, so section B is sequenced by dependency. Unattended cloud runs and local sessions both pick from this file. Rules: AGENTS.md ("Agent and branch workflow", "Model and effort matrix", "Test selection and marking off work", "Cloud routines").
+This file schedules unfinished queue items. Each active row links to one actionable brief in [docs/tasks/README.md](docs/tasks/README.md). The complete feature catalog remains in [ROGUE_TRADER_2_PLAN.md §18](ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Queue IDs G/M/C are scheduling identifiers; queue M1 is not master Milestone 1.
 
-## How to use
+## How to select work
 
-- **Status** is one of `OPEN`, `CLAIMED <branch>` (a branch exists, see its log), `REVIEW <branch>` (pushed, under senior review), `MERGED <commit>`, `BLOCKED <why>`. Update the row on your branch in the same commit that finishes the work, together with the checklist/catalog/plan/CONTINUATION mark-off. `python scripts/check-trackers.py` must pass.
-- **Cloud runs** take the first `OPEN` row marked `cloud` whose dependencies are `MERGED` on `origin/main`, skipping anything claimed under the claim rules below. A status beginning with `OPEN` counts as `OPEN`. Branch name: `cloud/<rt-id-or-q-id>-<slug>`.
-- **Local only** rows need the ignored local toolchain (`.tools/`, Godot, pinned upstream, native client) or the desktop.
-- Original data comes from the pinned public repo fowlmouth/cosmic-rift-assets commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35` (hashes in docs/original-research/ASSET_MANIFEST.json). A cloud run may shallow-clone it into a temp folder OUTSIDE the checkout if the network allows; if it cannot, asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required". Never modify canonical files. No invented balance, units or art: unknown meaning stays a raw field.
+- Process section A before B, then C, following the master fidelity gate and dependencies. A cloud run takes the first OPEN eligible row, skipping rows claimed by any non-main origin branch or whose dependencies are not MERGED on origin/main. Local-only rows require the listed tools/assets/desktop.
+- Before work, inspect current origin/main, branches, PRs and the item log. Table status is a repository snapshot, not live GitHub state. A row is eligible only when OPEN on current origin/main and every dependency is MERGED there.
+- Any non-main origin branch containing the queue ID or RT-ID in its name, commits or log claims that item, except when its newest commit starts RELEASE under the release procedure below. Claims never expire. Do not take over another owner's claim.
+- Claim before starting: local work creates `claim/<id>-<slug>` with an empty `CLAIM <id> <task> by local` commit, pushes only when authorized, and confirms it with `git ls-remote` before implementation. Cloud work uses its `cloud/<id>-<slug>` branch as the origin-visible claim. A conflicting branch/PR claim means the item is taken. Follow AGENTS.md for push authorization and PR review; without required authorization, stop before scoped work.
+- To release an abandoned claim, only its owner may arrange a reviewed update of the main row to OPEN (claim abandoned: reason) and push a claim-branch commit beginning RELEASE; this is not a timeout or transfer of ownership.
+- Do not push main from a task branch. Branch push, PR, review and merge permissions follow AGENTS.md and the user's current authorization. Do not infer standing authorization from this index.
+- Preserve canonical originals byte-for-byte; put derived results elsewhere. Keep unknown meanings visible; mark invented fixtures NEW. Narrow parsers, generic systems and renderers do not complete original gameplay parity.
+- Run only the focused checks in the brief, following AGENTS.md. Markdown-only changes use python scripts/check-trackers.py.
 
-## Claims: how local and cloud work never collide
+## A. Fidelity gate
 
-The cloud only sees `origin`. A claim therefore has to exist on origin before work starts, and must stay there.
+| ID | Task | Where | Run | Depends on | Status snapshot | Brief |
+|---|---|---|---|---|---|---|
+| G1 | Isolated original-client/emulator compatibility and production-engine choice | Native client | Local (desktop) | — | BLOCKED: user must be present (RT-F380/F384/F387/F393) | [G1](docs/tasks/g1.md) |
+| G5 | Original weapon/ammo records and child-chain value audit; no firing | OriginalData | Cloud/local | G3 MERGED | OPEN; partial RT-F036/F037/F040 scopes merged, remainder listed in brief | [G5](docs/tasks/g5.md) |
+| G6 | Original LVL/LIO reader and collision grid, RT-F021/F022 data only | OriginalData (reader not implemented) | Cloud/local | — | CLAIMED in prior queue snapshot; verify live | [G6](docs/tasks/g6.md) |
+| G8 | Validate flight scaling/sentinels against recorded evidence; no gameplay change | Docs + OriginalData tests | Local | G2, G3 MERGED | OPEN | [G8](docs/tasks/g8.md) |
+| G9 | BLO member identity and dependency closure recompute, RT-F069 | original-assets tools | Local | — | OPEN | [G9](docs/tasks/g9.md) |
+| G10 | Original flight/weapons/controls/HUD validation against evidence | Client + simulation | Local | G2, G3 MERGED; G6 must be resolved | OPEN | [G10](docs/tasks/g10.md) |
 
-1. **Claim before starting (local or cloud).** Push a claim branch named `claim/<queue-id lowercase>-<slug>` (a single empty commit "CLAIM <id> <task> by <local|cloud>") to origin, and confirm with `git ls-remote` that it is there before any work starts. Cloud runs push their `cloud/<id>-<slug>` branch as the claim. A push rejected because the name exists, or any other origin branch already names that ID, means the item is taken: back off. Never delete a claim branch.
-2. **Anything on origin that is not `main` is a claim.** A cloud run must skip every queue ID or RT-ID that appears in the name, commit messages or log of ANY non-main origin branch (`claim/*`, `cloud/*`, `local/*`, `feat/*`, `fix/*`), except a branch whose newest commit starts with `RELEASE` (rule 4). It must also skip every row that is not `OPEN` on origin/main.
-3. **Finishing locally.** Before the reviewed merge, push the work commits to the claim branch, so unmerged work survives a lost machine. After the merge, set the row to `MERGED <commit>`, mark off the trackers (AGENTS.md "marking off"), and push main (the owner's standing authorization is required for main pushes). Until origin/main shows that MERGED row, the claim branch keeps blocking the cloud from repeating the work, and rows depending on this item stay blocked for cloud runs.
-4. **Abandoning.** Only the claim's owner releases a claim, and only once the owner has stopped working on it. Set the row on main to `OPEN (claim abandoned: reason)` and push a commit whose message starts `RELEASE` to the claim branch. Cloud runs see the release only once origin/main shows that row, so both steps are required.
-5. **No expiry.** A claim never times out, and a cloud run never takes over another claim however old it looks. A claim whose owner has gone stays blocked until its owner releases it under rule 4.
+## B. Milestone 2 loop
 
-## A. Fidelity gate (plan section 18, in order)
+| ID | Task | Where | Run | Depends on | Status snapshot | Brief |
+|---|---|---|---|---|---|---|
+| M3 | Mineral-bearing asteroids and mining-equipment extraction rules; generic engine, originals plug in via data | Simulation + GameData | Cloud | G4 MERGED | OPEN | [M3](docs/tasks/m3.md) |
+| M5 | Basic repairs and six equipment upgrades through transaction core | Persistence + GameData | Cloud | M1, G3 MERGED | OPEN | [M5](docs/tasks/m5.md) |
+| M7 | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED | OPEN | [M7](docs/tasks/m7.md) |
+| M8 | Godot HUD for cargo/currency, station UI, save/load flow | Client | Local (Godot) | M1, M2, M4 MERGED; M5 OPEN | OPEN | [M8](docs/tasks/m8.md) |
+| M9 | Persisted progression across exit/relaunch acceptance test | Integration tests | Local | M1–M8; do not start until all are MERGED | OPEN | [M9](docs/tasks/m9.md) |
 
-| ID | Task | Where | Run | Depends on | Status |
-|---|---|---|---|---|---|
-| G1 | Spike: isolated original-client/emulator compatibility and production-engine choice | native client | local (desktop) | - | BLOCKED needs user present (RT-F380/F384/F387/F393) |
-| G2 | Original hull records: raw loader, integrity guard (RT-F001..F012 data only) | shared/RogueTrader.OriginalData | cloud/local | - | MERGED 2e76140 (loader fe879b1) |
-| G3 | Original ITM item loader: all 200 records raw-preserving, typed accessors only for confirmed fields, sentinels kept | shared/RogueTrader.OriginalData | cloud | G2 merged | MERGED 7ed3648 (PR #2, branch cloud/rt-f013-f019-g3-g4-itm-resources; data clauses only, features unchecked) |
-| G4 | Original resource records (7: Tellerium, Refined Tellerium, Krandazite, Refined Krandazite, Wreckage, Iron Ore, Alloy; RT-F013..F019) from ITM with categories | OriginalData | cloud | G3 | MERGED 7ed3648 (PR #2, bundled with G3; RT-F013..F019 data clauses only, features unchecked) |
-| G5 | Original weapon/ammo item records and child chains (value audit, no firing) | OriginalData | cloud | G3 | OPEN (partly merged: RT-F036/F037 projectile view MERGED 2f8bc1f PR #4; RT-F040 launcher/ammo/child chain MERGED eb21c90 PR #6; open remainder: value audit of ammo records and remaining weapon fields, meaning of -550 inheritance and -65 lifetime, launch/expiry/trigger modes, collision shape, type-8 entry field meanings and offset units) |
-| G6 | Original LVL/LIO reader and collision grid (RT-F021/F022 data only) | shared/RogueTrader.OriginalLevel | cloud/local | - | CLAIMED claim/g6-level-reader (local feat/original-level-reader) |
-| G7 | Original VEH/RPG remaining 18 vehicle records (computers/bots) raw loader | OriginalData | cloud | G2 merged | MERGED 3f2ae03 (PR #32, branch cloud/rt-f055-g7-outpost-vehicle-records; raw loader of all 30 VEH rows, 18 non-hull rows exposed; RT-F055 clauses stay open) |
-| G8 | Validate field scaling/sentinels: native flight constants vs recorded evidence, produce an evidence table (no gameplay change) | docs + OriginalData tests | local | G2, G3 | OPEN |
-| G9 | BLO archive member identity and dependency closure recompute (RT-F069) | scripts/original-assets | local | - | OPEN |
-| G10 | Original flight/weapons/controls/HUD validation against evidence | client + simulation | local | G2, G3, G6 | OPEN |
+## C. Additional groundwork
 
-## B. Milestone 2 loop (plan section 18, M2 task list)
+Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-| ID | Task | Where | Run | Depends on | Status |
-|---|---|---|---|---|---|
-| M1 | Persistent save/load and transaction core (wallet, inventory, upgrades, idempotency, atomic file repository) | server/RogueTrader.Persistence | cloud/local | - | MERGED b2ac2bf (core 00de717, review fixes 1998530) |
-| M2 | Cargo capacity rules and collectible-resource pickup in simulation (data-driven, conservation tests; values come from G4 data, test fixtures labelled NEW) | server/RogueTrader.Simulation | cloud | G2, G4 | MERGED 7684b05 (generic engine slice only; RT-F030/F042 stay open) |
-| M3 | Mineral-bearing asteroids and mining equipment extraction rules (generic engine; originals plug in via data) | Simulation + GameData | cloud | G4 | OPEN |
-| M4 | Trading station: buy/sell using the transaction core, proximity/docking predicate, price source | Persistence + Simulation | cloud | M1 merged, G3 | MERGED 3e29142 (new server/RogueTrader.Trading, generic engine slice; core 0dbfff9, review fixes 32cd3ee; RT-F044/F045/F049 stay open) |
-| M5 | Basic repairs and six equipment upgrades applied through the transaction core | Persistence + GameData | cloud | M1 merged, G3 | OPEN |
-| M6 | Initial NPC pirate AI (plan section 12.1/12.2 state machine, deterministic tests) | server/RogueTrader.AI | cloud | - | MERGED 759a66a (branch 921bdbf; NEW provisional pirate state machine, not wired into WorldSimulation; RT-F060/F272/F306 stay open) |
-| M7 | Initial reward system (kill/mining rewards through idempotent GrantReward) | Simulation + Persistence | cloud | M1 merged, M6 | OPEN |
-| M8 | Client integration: HUD for cargo/currency, station UI, save/load flow in the Godot client | client | local (Godot) | M1, M2, M4, M5 | OPEN |
-| M9 | Persisted progression across exit/relaunch acceptance test (M2 acceptance criteria) | tests/Integration | local | M1..M8 | OPEN |
+| ID | Task | Where | Run | Depends on | Status snapshot | Brief |
+|---|---|---|---|---|---|---|
+| C1 | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData | Cloud | G2 MERGED | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md) |
+| C4 | Stopwatch simulation tick benchmark; no new packages; report thresholds, do not assert them | LoadTests | Cloud | C3 MERGED | OPEN | [C4](docs/tasks/c4.md) |
+| C6 | Headless authoritative tick loop and input queue; no sockets | RogueTrader.Server | Cloud | C3, C5 MERGED | OPEN | [C6](docs/tasks/c6.md) |
+| C7 | Pure client prediction/reconciliation with simulated latency/loss tests | Shared + tests | Cloud | C5 MERGED; C6 OPEN (hard dependency) | OPEN | [C7](docs/tasks/c7.md) |
+| C8 | Input speed/rate/teleport validation | RogueTrader.Server | Cloud | C5 MERGED | OPEN | [C8](docs/tasks/c8.md) |
+| C9 | Data-driven bounty/reputation rules persisted through transaction core | Server | Cloud | M1 MERGED | OPEN | [C9](docs/tasks/c9.md) |
+| C10 | Recoverable sector transition and transfer model | Persistence + Simulation | Cloud | M1 MERGED | OPEN | [C10](docs/tasks/c10.md) |
 
-## C. Additional cloud-ready work (plan Milestones 2-4 groundwork; take only after every earlier cloud-eligible row is claimed, merged or blocked)
+## Completed queue history (not active work)
 
-These advance later plan milestones with code and tests that need no desktop, Godot or ignored local toolchain. They keep a long unattended session busy. Stacking on an approved or same-run dependency is allowed (see AGENTS.md "Cloud routines").
+- G2 — merged 2e76140 (loader fe879b1): 12 raw hull records and integrity guard; native ship choice/loadout/movement and field meaning remain open.
+- G3 — merged 7ed3648: 200 raw-preserving ITM records; feature-specific interpretations remain open.
+- G4 — merged 7ed3648 with G3: seven resource records/categories; gameplay rules remain open.
+- G7 — merged 3f2ae03: 30 VEH rows and 18 non-hull rows; RT-F055 clauses remain open.
+- M1 — merged b2ac2bf: generic persistence/transaction core; full original lifecycle binding and M2 acceptance remain open.
+- M2 — merged 7684b05: generic cargo/pickup engine slice; RT-F030/F042 remain open.
+- M4 — merged 3e29142: generic trading engine slice; RT-F044/F045/F049 remain open.
+- M6 — merged 759a66a: NEW provisional pirate state machine, not wired into WorldSimulation; RT-F060/F272/F306 remain open.
+- C2 — merged 8f66688: rogue.cfg only; other arena CFGs were not pinned.
+- C3 — merged 952d29d: same-runtime replay digests; does not establish cross-runtime determinism.
+- C5 — merged 403499f: NEW provisional wire format v1, round-trip/truncation/fuzz checks, no transport; original RT features untouched.
 
-| ID | Task | Where | Run | Depends on | Status |
-|---|---|---|---|---|---|
-| C1 | Original BLO archive directory/member reader (89 archives, 1,262 members, hash guard, raw bytes preserved; no pixel interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | OPEN |
-| C2 | Original CFG reader: raw-preserving sections/keys including the 16 terrain blocks and Rogue arena settings (no interpretation) | shared/RogueTrader.OriginalData | cloud | G2 merged | MERGED 8f66688 (PR #15, branch cloud/rt-f046-c2-cfg-terrain-access; rogue.cfg only, other-arena CFG files not pinned) |
-| C3 | Deterministic simulation replay harness: record inputs per tick, replay, state-hash equality tests (plan 20.1) | server/RogueTrader.Simulation + tests | cloud | - | MERGED 952d29d (harness e236706, merge b1cc507; same-runtime digests only; hash covers cargo and piles via review fix) |
-| C4 | Simulation tick performance benchmark harness (Stopwatch based, no new packages; plan 20.4 targets as documented thresholds, results recorded not asserted) | tests/LoadTests | cloud | C3 | OPEN |
-| C5 | Network protocol messages and binary serialization (input, snapshot, transaction request/response) with round-trip, truncation and fuzz tests (plan 13) | shared/RogueTrader.Protocol | cloud | - | MERGED 403499f (branch 9fe7666; NEW provisional wire format v1, no transport; RT features untouched) |
-| C6 | Authoritative server tick loop and input queue, headless (plan 13.2, no sockets yet) | server/RogueTrader.Server | cloud | C3, C5 | OPEN |
-| C7 | Client prediction and reconciliation as a pure library with simulated latency/loss tests (plan 13.3) | shared + tests | cloud | C5, C6 | OPEN |
-| C8 | Anti-cheat input validation layer: speed/rate/teleport sanity (plan 13.5) | server/RogueTrader.Server | cloud | C5 | OPEN |
-| C9 | Bounty and reputation rules engine (plan 10), data-driven, persisted through the transaction core | server | cloud | M1 merged | OPEN |
-| C10 | Sector transition model and recoverable transfer protocol (plan 11.3 and 14.1) | server/RogueTrader.Persistence + Simulation | cloud | M1 merged | OPEN |
+## Historical claim notes (not live claims)
 
-Caveat for asset-dependent rows (G3-G5, G7, C1, C2): the pinned asset repo's `.gitattributes` tracks only `*.blo`, `*.lvl` and `*.bmp` with Git LFS, so a shallow clone can yield LFS pointer files for those types only (C1 reads BLO; G6 reads LVL). The ITM, VEH and CFG files these rows read are plain files. If LFS pointer files appear, run `git lfs pull` if available; otherwise the asset-dependent tests must report SKIPPED and the work is recorded "not verified in cloud - local CI required" so the owner's local session re-runs them.
+The prior queue contained the following branch/PR notes. Its observation time was not recorded, so none is asserted current. Check `git ls-remote`, current branch logs and open PRs before selecting an item. Old names are preserved here only to prevent accidental claim loss:
 
-Gap: plan section 18 gate item "Decode original assets ... preserve their original appearance/behavior" (RT-F023, RT-F025) has no row. G6 covers only map and collision. Add a G row when that work is scoped; do not infer one here.
-
-## Open PRs awaiting review (unmerged origin branches)
-
-These branches are not on origin/main. Each claims the listed IDs under the claim rules above, so cloud runs skip them until they merge or are released. Their rows above stay as they are; no row is marked MERGED from these branches. Owner PR numbers #23 and #41-#46 were given by the owner; they are not mapped to branches here.
-
-- `claim/c1-blo-reader`: C1 (BLO archive reader, with RT-F023 reference resolution as data only).
-- `claim/g11-hull-reference-resolution`: G11 (resolve RT-F001..F012 hull references). No G11 row exists; ambiguous, left unrowed.
-- `claim/g2-original-hulls`: G2 raw hull loader. G2 is already MERGED 2e76140 on origin/main, so this claim is unreconciled and ambiguous; left as is.
-- `claim/g6-level-reader`: G6 (RT-F021/F022 data only). Matches the CLAIMED G6 row.
-- `claim/g8a-format-audit`: G8a (format audit, evidence only), part of G8. G8 stays OPEN.
-- `claim/m1-persistence-core`: M1 persistence core. M1 is already MERGED b2ac2bf on origin/main; this claim is unreconciled and ambiguous; left as is.
-- `cloud/rt-f063-space-storm-audit`: RT-F063.
-- `cloud/rt-f064-los-radar-fields`: RT-F064.
-- `cloud/rt-f065-safe-zone-docking`: RT-F065.
-- `cloud/rt-f068-progression-contract`: RT-F068.
-- `cloud/rt-f076-plasma-cannon-item`: RT-F076 (reusable ITM reference resolver).
-- `cloud/rt-f077-f080-micromissile-children`: RT-F077..F080 (stacked on the RT-F076 commits).
-- `local/bbq-cooked-workflow`: workflow tooling, no RT-ID claimed.
+- `claim/c1-blo-reader` (C1); `claim/g6-level-reader` (G6); `claim/g8a-format-audit` (subscope of G8); `claim/g11-hull-reference-resolution` (unrowed G11, ambiguous).
+- `claim/g2-original-hulls` and `claim/m1-persistence-core` conflicted with already-merged queue rows in that old snapshot; reconcile with current main.
+- `cloud/rt-f063-space-storm-audit`, `cloud/rt-f064-los-radar-fields`, `cloud/rt-f065-safe-zone-docking`, `cloud/rt-f068-progression-contract`, `cloud/rt-f076-plasma-cannon-item`, and `cloud/rt-f077-f080-micromissile-children` were listed as claims; inspect live status before touching any related ID.
+- `local/bbq-cooked-workflow` was listed as workflow tooling with no RT-ID.
+- Prior owner PR numbers #23 and #41–#46 were not mapped to branches. No current PR association is implied.
 
 ## D. Closed decisions (do not redo)
 
-- RT-F391 closed: PrizeItems.xml is an optional granted-moderator whitelist, no file or stub (docs/development-log/2026-10-15-rt-f391.md).
-- Skill-shop location gate NOT built: the pinned server never reads terrain SkillEnabled; a gate would invent a rule.
-- RT-F388/F389/F390/F395/F396/F397 complete (derived emulator safeguards; see catalog).
+- RT-F391 is closed as validated optional admin policy: PrizeItems.xml is an optional granted-moderator whitelist; no file or stub. See [2026-10-15 log](docs/development-log/2026-10-15-rt-f391.md).
+- Do not build a skill-shop location gate: the pinned server parses terrain SkillEnabled but never enforces it; adding a gate invents a rule.
+- RT-F388/F389/F390/F395/F396/F397 are complete narrow derived-emulator safeguards. They do not close broader original feature entries; see the feature catalog and their logs.
+
+## Scope not yet queued
+
+The prior index noted master §18 work for original asset appearance/behavior (RT-F023/RT-F025) without a dedicated row. This index does not invent or schedule a new task; reconcile it with the current master/catalog before assigning work. For asset-dependent tasks, Git LFS pointers are not source data: if originals cannot be hydrated, report checks SKIPPED and local verification required.

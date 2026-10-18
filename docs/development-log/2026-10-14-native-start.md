@@ -1,6 +1,6 @@
 # Native Start/profile issue — October 14, 2026
 
-Branch `codex/native-start-profile`, base `626a09f`; isolated worktree `.tools/issue-worktrees/native-start-profile`. See [issue handoff](../../NATIVE_START_HANDOFF.md) for exact paths, command and resume instructions.
+Branch `codex/native-start-profile`, base `626a09f`; isolated worktree `.tools/issue-worktrees/native-start-profile`. See [issue handoff](../archive/2026-10/native-start-handoff.md) for exact paths, command and resume instructions.
 
 Investigation found both available vendor engines share Welcome dialog102, enabled Start Playing ID1, default Quit ID2 and readonly welcome text; both also contain LaunchPad/ticket/name strings. These observations do not prove a missing-ticket cause or a compatible replacement engine. The pinned installer manifest still mismatches the unchanged extracted source engine.
 
