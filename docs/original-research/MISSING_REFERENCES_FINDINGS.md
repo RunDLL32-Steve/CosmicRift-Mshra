@@ -64,7 +64,9 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 
 Pinned `CfgInfo.Soccer.cs` reads `BallGraphic` as a string and registers the archive through `Parser.GetBlob`; it also registers Trail/Shadow/Catch/Throw/Bounce/Request unconditionally despite `BallCount=0`. The separately recovered authentic `soccer.blo` has the required named members and passed bounded full-asset startup (RT-F394), as documented in [NATIVE_CLIENT_PLAN.md](../architecture/NATIVE_CLIENT_PLAN.md#authentic-shared-engine-dependency--rt-f394-complete).
 
-**Remaining acceptance**: establish the trailing numeric fields and native graphical/evaluator behavior from matching evidence. Inventory's `numeric_member_role_unknown` is a raw-scanning classification, not proof that a numeric field is a BLO ordinal. RT-F379 remains open; neither GameBall substitution nor an invented sprite is justified.
+**October18 source applicability**: The [bounded pinned-source checkpoint](../development-log/2026-10-18-g9-ballgraphic-source.md) finds only declaration/string assignment/archive registration in the tracked-C# BallGraphic search. Nearby SpriteBlob field orders and VEH-version dispatches have no demonstrated CFG join; a conditional seven-token comparison under CsvFile.LineParser is source inference, not an executed parser test or CFG validation. Neither35 nor another trailing field acquires HSV/animation/ordinal meaning from shape.
+
+**Remaining acceptance**: establish the matching original CFG consumer, its selected grammar/version/evaluator, then the trailing numeric fields and native graphical/evaluator behavior from matching evidence. Inventory's `numeric_member_role_unknown` is a raw-scanning classification, not proof that a numeric field is a BLO ordinal. RT-F379 remains open; neither GameBall substitution nor an invented sprite is justified.
 
 ---
 
