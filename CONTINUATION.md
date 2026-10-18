@@ -23,7 +23,7 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 ## Next
 
-Queue M3 generic mining is implemented on `claim/m3-mining-extraction` and awaiting independent review; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). Do not repeat it while claimed. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
+Queue M3 generic mining is implemented on `claim/m3-mining-extraction` and independently approved for its generic scope, pending the standing review/CI merge gate; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). Do not repeat it while claimed. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
 
 Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its separate brief under [docs/tasks](docs/tasks/README.md). Check live PR/branch claims before implementation. Generic queue work items already present in source are history, with their original-parity gaps retained.
 
