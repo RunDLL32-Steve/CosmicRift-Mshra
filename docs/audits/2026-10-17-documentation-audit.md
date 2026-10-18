@@ -31,7 +31,11 @@ Mechanical tracker/local-reference checks and final independent review are recor
 
 This audit verifies descriptions against inspected source and explicitly scoped prior evidence. It does not freshly reproduce every historical test total, externally re-research every historical reference, establish all numeric original oracles, certify licenses, or establish full original gameplay parity. Dated logs and archived handoffs retain historical content and are clearly separated from current assignments. Missing ignored reports/assets are not converted into passing acceptance.
 
-Merge policy requires owner attention because the documentation diff includes `AGENTS.md`, `.github/` documentation and Markdown plans under `data/original/`. The PR must use `documentation` and exactly one review-status label, `needs-human`; a local review does not bypass that protected-path gate.
+Merge policy requires owner attention because the documentation diff includes `AGENTS.md` and Markdown plans under `data/original/`. The PR must use `documentation` and exactly one review-status label, `needs-human`; a local review does not bypass that protected-path gate.
+
+## GitHub publication constraint
+
+GitHub rejected the first feature-branch push because the current token lacks `workflow` scope, including for Markdown under `.github/workflows/`. The baseline workflow-folder plan is preserved byte-for-byte, and the corrected [current CI plan](../architecture/CI_PLAN.md) is published outside that folder. Current navigation routes there; the inventory classifies the old workflow-folder plan as superseded historical material. No workflow, token permission or authentication changes were made.
 
 ## Final verification record
 

@@ -32,7 +32,7 @@ Queue IDs name scoped work items; they are not master milestone numbers. Earlier
 | Original import/dependencies | [Importer](../../scripts/original-assets/IMPLEMENTATION_PLAN.md), [dependencies](../../scripts/original-assets/DEPENDENCY_PLAN.md) |
 | Compatibility and focused runtime checks | [Compatibility](../../scripts/compatibility/IMPLEMENTATION_PLAN.md), [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md), [NativeDeliveryChecks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md) |
 | Architecture and research | [Architecture](../architecture/IMPLEMENTATION_PLAN.md), [research](../original-research/IMPLEMENTATION_PLAN.md) |
-| Build/export and CI | [Scripts](../../scripts/IMPLEMENTATION_PLAN.md), [workflow](../../.github/workflows/IMPLEMENTATION_PLAN.md) |
+| Build/export and CI | [Scripts](../../scripts/IMPLEMENTATION_PLAN.md), [workflow](../architecture/CI_PLAN.md) |
 | Design/balance/documentation | [Design](../game-design/IMPLEMENTATION_PLAN.md), [balance](../balance/IMPLEMENTATION_PLAN.md), [docs](../IMPLEMENTATION_PLAN.md) |
 
 <a id="final-validation-evidence"></a>

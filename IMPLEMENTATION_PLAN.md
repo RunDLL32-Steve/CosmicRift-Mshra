@@ -6,6 +6,6 @@ Purpose: index implemented source and its acceptance boundaries. Use [docs/READM
 
 The provisional prototype and original viewer have historical engineering acceptance. Raw original-data readers, generic cargo, persistence/transactions, trading, replay, protocol codec and provisional AI exist in source. Production server/transport, native playable entry and the full original gameplay/progression loop are not accepted. Completed queue slices do not check off full original features.
 
-Folder plans: [client](client/IMPLEMENTATION_PLAN.md), [shared](shared/IMPLEMENTATION_PLAN.md), [server](server/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md), [tests](tests/IMPLEMENTATION_PLAN.md), [scripts](scripts/IMPLEMENTATION_PLAN.md), [docs](docs/IMPLEMENTATION_PLAN.md) and [CI](.github/workflows/IMPLEMENTATION_PLAN.md). Item-specific changes/evidence belong in each folder's `plan.d/` file.
+Folder plans: [client](client/IMPLEMENTATION_PLAN.md), [shared](shared/IMPLEMENTATION_PLAN.md), [server](server/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md), [tests](tests/IMPLEMENTATION_PLAN.md), [scripts](scripts/IMPLEMENTATION_PLAN.md), [docs](docs/IMPLEMENTATION_PLAN.md) and [CI](docs/architecture/CI_PLAN.md). Item-specific changes/evidence belong in each folder's `plan.d/` file.
 
 Current documentation audit: [October 17 coverage and review](docs/audits/2026-10-17-documentation-audit.md). No source, asset, build or gameplay acceptance changed. Next work remains the unchecked original-fidelity dependencies in the task index and master.
