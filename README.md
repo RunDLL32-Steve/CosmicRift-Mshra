@@ -23,7 +23,7 @@ Default export produces `artifacts/windows/FirstContact/RogueTrader2.exe` and `F
 
 The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, A/Left and D/Right rotate, Space fire, Escape pause/settings, R reset. The settings panel remaps these controls and saves bindings in Godot's `user://` location. F2 opens the original-content inspector when staged assets are available. Native historical controls remain a separate fidelity task.
 
-The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
+The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, optional generic mining extraction, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. [Queue M3 mining](docs/development-log/2026-10-18-m3-mining.md) uses explicitly NEW deposit/equipment definitions, finite authoritative quantities and collectible drops; original mining rules remain open. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
 
 ## Code map
 

@@ -21,6 +21,15 @@ public static class WorldStateHasher
         hash = Add(hash, world.AsteroidCollisions);
         hash = Add(hash, world.ShotsFired);
         hash = AddShip(hash, world.Player);
+        hash = Add(hash, world.NextMineTick);
+        hash = Add(hash, world.NextMiningPileId);
+        hash = Add(hash, world.Asteroids.Count);
+        foreach (var asteroid in world.Asteroids)
+        {
+            hash = Add(hash, asteroid.Id);
+            hash = Add(hash, asteroid.ResourceItemId);
+            hash = Add(hash, asteroid.ResourceQuantity);
+        }
         hash = Add(hash, world.Targets.Count);
         foreach (var target in world.Targets)
             hash = AddShip(hash, target);
@@ -53,6 +62,9 @@ public static class WorldStateHasher
             hash = Add(hash, pile.Id);
             hash = Add(hash, pile.ItemId);
             hash = Add(hash, pile.Quantity);
+            hash = Add(hash, pile.Position.X);
+            hash = Add(hash, pile.Position.Y);
+            hash = Add(hash, pile.Radius);
         }
         return hash;
     }
@@ -98,3 +110,4 @@ public static class WorldStateHasher
         return hash;
     }
 }
+

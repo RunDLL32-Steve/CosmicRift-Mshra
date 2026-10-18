@@ -4,7 +4,7 @@ using RogueTrader.GameData;
 namespace RogueTrader.Simulation;
 
 /// <summary>Pure C# world authority. One Tick always advances exactly 1/60 of a second.</summary>
-public sealed class WorldSimulation
+public sealed partial class WorldSimulation
 {
     public const int TickRate = 60;
     public const float TickDuration = 1f / TickRate;
@@ -17,7 +17,7 @@ public sealed class WorldSimulation
     public IReadOnlyList<ShipState> Targets { get; }
     public IReadOnlyList<AsteroidState> Asteroids { get; }
     public IReadOnlyList<ProjectileState> Projectiles { get; }
-    /// <summary>Piles still lying in space, in catalog order.</summary>
+    /// <summary>Piles still lying in space: configured catalog order, then mining creation order.</summary>
     public IReadOnlyList<CollectibleState> Collectibles { get; }
     public CargoHold Cargo { get; }
     public long TickNumber { get; private set; }
@@ -28,7 +28,7 @@ public sealed class WorldSimulation
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
-        IEnumerable<KeyValuePair<string, int>>? initialCargo = null)
+        IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
@@ -49,6 +49,9 @@ public sealed class WorldSimulation
             }, catalog.Weapon, new Vector2(target.X, target.Y), target.Heading)).ToArray());
         Asteroids = Array.AsReadOnly(catalog.Sector.Asteroids.Select(asteroid => new AsteroidState(asteroid)).ToArray());
         Projectiles = _projectiles.AsReadOnly();
+        foreach (var pile in _collectibles) _collectibleIds.Add(pile.Id);
+        if (mining is not null) ValidateMining(mining, cargo);
+        _miningEquipment = mining?.Equipment;
     }
 
     public void Tick(ShipInput input)
@@ -59,6 +62,8 @@ public sealed class WorldSimulation
             var previous = Player.Position;
             MovePlayer(input);
             CollectPickups(previous);
+            // Existing swept pickups precede extraction; new drops use only the current position.
+            if (input.Mine && TryMine()) CollectPickups(Player.Position);
             Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
                 Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
             if (input.Fire)
@@ -174,3 +179,5 @@ public sealed class WorldSimulation
             ? Vector2.Normalize(velocity) * maximumSpeed
             : velocity;
 }
+
+

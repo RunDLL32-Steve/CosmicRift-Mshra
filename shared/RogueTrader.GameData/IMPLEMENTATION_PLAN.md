@@ -10,7 +10,7 @@ Status authority: [master M0](../../ROGUE_TRADER_2_PLAN.md#milestone-0--reposito
 | Godot-independent JSON loading and validation | **Complete with evidence** — [GameCatalog.cs](GameCatalog.cs) rejects unknown fields, invalid/nonfinite values, duplicate IDs and derived acceleration/squared-magnitude overflow. |
 | Prototype data acceptance | **Complete with evidence** — prior [41-case result](../../artifacts/test-results/unit.trx): 41 passed, zero failed/not executed on October 12, 2026; [dated acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) records build/client/export gates. No tests rerun for this review. |
 
-This GameData project contains no original-content runtime adapter or installed-equipment implementation. Generic cargo/pickup now exists in Simulation, with Persistence/Trading composition in separate projects; those do not extend this ship/weapon/sector JSON schema. They do not complete any original hull/item.
+This GameData project contains no original-content runtime adapter. Its optional [generic mining capability/deposit schema](plan.d/m3.md) is NEW/provisional and does not implement native equipment installation or evaluator rules. Generic cargo/pickup now exists in Simulation, with Persistence/Trading composition in separate projects; those do not extend this ship/weapon/sector JSON schema. They do not complete any original hull/item.
 
 ## Outstanding original data work
 

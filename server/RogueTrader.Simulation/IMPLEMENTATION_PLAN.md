@@ -14,6 +14,8 @@ Status authority: [master §5 flight](../../ROGUE_TRADER_2_PLAN.md#5-spacecraft-
 
 The prototype uses explicit world units, seconds and radians from the [NEW/provisional ledger](../../docs/balance/PROVISIONAL_VALUES.md); positive rotation is clockwise. Each tick moves, regenerates energy, fires if eligible, then sweeps projectiles. Cooldown/lifetime round up to ticks; the firing tick counts toward lifetime. Asteroid collisions cause no hull damage, targets are stationary, and shield/energy pools are separate. Replay is verified on the pinned runtime; cross-platform bitwise equivalence is not promised. These engineering choices do not establish original behavior.
 
+Queue M3 generic extraction and its local verification/review status are recorded in [plan.d/m3.md](plan.d/m3.md); it does not complete original mining.
+
 ## Outstanding original behavior work
 
 - [ ] **Investigating** — RT-F001–RT-F012/RT-F027: native per-hull mass, thrust, friction, yaw, speed, terrain and units. [GameData](../../shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md) preserves raw originals rather than substituting Interceptor tuning.

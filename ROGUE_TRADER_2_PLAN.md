@@ -1559,6 +1559,8 @@ RT-F397 (merged to main): both outgoing byte-array length casts are removed and 
 
 Source baseline `d14df02` includes raw original-data views, generic cargo/pickup, persistence/transactions, trading, replay, a provisional message codec and NEW pirate AI. These completed queue slices are recorded in [TASK_QUEUE.md](TASK_QUEUE.md) and [PROGRESS.md](docs/development-log/PROGRESS.md). Queue IDs M1/M4/M6 are work-item names, not acceptance of master Milestones 1/4/6. The running client does not integrate them into the required original loop, so the original feature and M2/M3 checkboxes below remain unchanged.
 
+Queue M3 now provides optional generic finite-deposit mining extraction, locally verified and independently approved for its generic scope on October 18, pending the standing review/CI merge gate; see [scope/evidence](docs/development-log/2026-10-18-m3-mining.md). NEW capability, range/cycle/yield and drop rules do not establish original RT-F042 or the client-integrated M2 loop. All original feature/milestone checkboxes remain unchanged.
+
 The [October 17 documentation audit](docs/audits/2026-10-17-documentation-audit.md) checks current descriptions against source and recorded evidence; it does not establish new gameplay, native reception, or export acceptance. [Separate task briefs](docs/tasks/README.md) retain dependencies, code references and focused acceptance without reducing the full master/catalog scope.
 
 ## MILESTONE 2 — Rogue Trader core gameplay

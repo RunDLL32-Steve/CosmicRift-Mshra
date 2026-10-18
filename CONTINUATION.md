@@ -6,7 +6,7 @@ Read [PROJECT_START.md](PROJECT_START.md), [AGENTS.md](AGENTS.md), the complete 
 
 - The Godot client still runs the provisional flight/combat range and the original-content inspector. It references GameData and Simulation; it does not connect the trading, persistence, protocol or AI modules into a Rogue Trader loop.
 - `shared/RogueTrader.OriginalData` contains raw RPG/VEH/ITM/CFG readers and LIO reference views, typed reference views and canonical guards. Later audits/oracles expand field/reference coverage. Data availability does not complete native runtime behavior.
-- `server/RogueTrader.Simulation` includes generic cargo pickup and replay recording/hash comparison. Cargo masses/capacities and pickup rules are not accepted original semantics.
+- `server/RogueTrader.Simulation` includes generic cargo pickup, optional finite-deposit mining extraction and replay recording/hash comparison (format v2; v1 is explicitly rejected because input/hash semantics changed). Cargo masses/capacities and pickup rules are not accepted original semantics.
 - `server/RogueTrader.Persistence` contains profile repositories and the transaction core; original-ID content validation is also present. `server/RogueTrader.Trading` supplies generic proximity and buy/sell orchestration. No client exit-and-return progression is accepted.
 - `shared/RogueTrader.Protocol` contains a binary message codec; there is no production transport/authentication session. `server/RogueTrader.AI` contains a NEW/provisional pirate controller; original pirates and world/client integration remain open.
 - The derived compatibility pipeline includes scoped sell, buy, store-location, null-script capacity, radar-config and packet-length fixes. RT-F388/389/390/391/395/396/397 have their narrow recorded acceptance; they do not establish a playable native session or production shutdown safety.
@@ -23,6 +23,8 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 ## Next
 
+Queue M3 generic mining is implemented on `claim/m3-mining-extraction` and independently approved for its generic scope, pending the standing review/CI merge gate; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). Do not repeat it while claimed. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
+
 Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its separate brief under [docs/tasks](docs/tasks/README.md). Check live PR/branch claims before implementation. Generic queue work items already present in source are history, with their original-parity gaps retained.
 
 The remaining fidelity gates include native Start/profile/entry and engine choice (RT-F380/F384), actual delivery/offline patch readiness (RT-F387/F393), unresolved original reference semantics (RT-F377–379/F386/F069), and original gameplay/persistence acceptance. Use the task briefs and [feature catalog](docs/original-research/FEATURE_CATALOG.md) for exact scope; all unfinished feature boxes stay open.
@@ -31,4 +33,4 @@ Do not repeat merged hull-loader, persistence-core, cargo, trading, replay, code
 
 ## Handoff and review
 
-The [documentation index](docs/README.md) is the navigation entry. [Archived handoffs](docs/archive/README.md) are dated snapshots. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) records coverage, source evidence, mechanical checks and the review outcome. This branch changes documentation only and does not mark new gameplay acceptance.
+The [documentation index](docs/README.md) is the navigation entry. [Archived handoffs](docs/archive/README.md) are dated snapshots. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) records coverage, source evidence, mechanical checks and the review outcome. Queue M3 adds a generic engine slice with local verification recorded separately; it does not mark original gameplay acceptance.

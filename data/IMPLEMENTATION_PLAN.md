@@ -4,7 +4,7 @@ Authority: [master §1.2, §§6–8 and §18 M0/M1/M2](../ROGUE_TRADER_2_PLAN.md
 
 ## Purpose and current stage
 
-`ships/`, `weapons/`, `sectors/` and `ai/` hold the accepted **NEW/provisional First Contact fixtures**. The Godot build stages these JSON files into `client/GameData/`; they remain the simulation's current training definitions. They are not original Rogue Trader values. The build copies all `data/**/*.json`; GameClient reads only the three ship/weapon/sector files. AI tuning is loaded by the standalone AI module/tests and is not connected to the client. [original/](original/IMPLEMENTATION_PLAN.md) holds record-specific parity queues; canonical source bytes stay outside runtime working outputs.
+`ships/`, `weapons/`, `sectors/` and `ai/` hold the accepted **NEW/provisional First Contact fixtures**. The Godot build stages these JSON files into `client/GameData/`; they remain the simulation's current training definitions. They are not original Rogue Trader values. The build copies all `data/**/*.json`; GameClient reads only the three ship/weapon/sector files. AI tuning is loaded by the standalone AI module/tests and is not connected to the client. [mining/](mining/IMPLEMENTATION_PLAN.md) holds an explicitly NEW test fixture, loaded only by mining tests; the client does not enable mining. [original/](original/IMPLEMENTATION_PLAN.md) holds record-specific parity queues; canonical source bytes stay outside runtime working outputs.
 
 ## Accomplished
 

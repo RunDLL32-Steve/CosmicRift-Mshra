@@ -28,7 +28,7 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 | ID | Task | Where | Run | Depends on | Status snapshot | Brief |
 |---|---|---|---|---|---|---|
-| M3 | Mineral-bearing asteroids and mining-equipment extraction rules; generic engine, originals plug in via data | Simulation + GameData | Cloud | G4 MERGED | OPEN | [M3](docs/tasks/m3.md) |
+| M3 | Mineral-bearing asteroids and mining-equipment extraction rules; generic engine, originals plug in via data | Simulation + GameData | Cloud | G4 MERGED | REVIEW (`claim/m3-mining-extraction`) | [M3](docs/tasks/m3.md) |
 | M5 | Basic repairs and six equipment upgrades through transaction core | Persistence + GameData | Cloud | M1, G3 MERGED | OPEN | [M5](docs/tasks/m5.md) |
 | M7 | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED | OPEN | [M7](docs/tasks/m7.md) |
 | M8 | Godot HUD for cargo/currency, station UI, save/load flow | Client | Local (Godot) | M1, M2, M4 MERGED; M5 OPEN | OPEN | [M8](docs/tasks/m8.md) |
