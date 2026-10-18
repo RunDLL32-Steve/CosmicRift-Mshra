@@ -21,7 +21,7 @@ This file schedules unfinished queue items. Each active row links to one actiona
 | G5 | Original weapon/ammo records and child-chain value audit; no firing | OriginalData | Cloud/local | G3 MERGED | OPEN; partial RT-F036/F037/F040 scopes merged, remainder listed in brief | [G5](docs/tasks/g5.md) |
 | G6 | Original LVL/LIO reader and collision grid, RT-F021/F022 data only | OriginalData (reader not implemented) | Cloud/local | — | CLAIMED in prior queue snapshot; verify live | [G6](docs/tasks/g6.md) |
 | G8 | Validate flight scaling/sentinels against recorded evidence; no gameplay change | Docs + OriginalData tests | Local | G2, G3 MERGED | OPEN | [G8](docs/tasks/g8.md) |
-| G9 | BLO member identity and dependency closure recompute, RT-F069 | original-assets tools | Local | — | OPEN | [G9](docs/tasks/g9.md) |
+| G9 | BLO member identity and dependency closure recompute, RT-F069 | original-assets tools | Local | — | CLAIMED `claim/g9-dependency-checkpoint`; read-only checkpoint verified, overall acceptance incomplete | [G9](docs/tasks/g9.md) |
 | G10 | Original flight/weapons/controls/HUD validation against evidence | Client + simulation | Local | G2, G3 MERGED; G6 must be resolved | OPEN | [G10](docs/tasks/g10.md) |
 
 ## B. Milestone 2 loop

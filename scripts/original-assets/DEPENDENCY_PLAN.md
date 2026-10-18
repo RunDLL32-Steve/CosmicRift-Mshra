@@ -1,6 +1,6 @@
 # Original dependency inventory
 
-Status: **Complete for directory/candidate inventory; runtime closure remains In progress**, October 13, 2026. Reconciles with [master §18 fidelity gate / RT-F069](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [original feature catalog](../../docs/original-research/FEATURE_CATALOG.md#rt-f069), and scoped inventory feature RT-F375. Root owns master/catalog status reconciliation.
+Status: **Complete for directory/candidate inventory; runtime closure remains In progress**, October 13, 2026. Reconciles with [master §18 fidelity gate / RT-F069](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [original feature catalog](../../docs/original-research/FEATURE_CATALOG.md#rt-f069), and scoped inventory feature RT-F375. Root owns master/catalog status reconciliation. Current [G9 ledger](plan.d/g9.md), October 18: CLAIMED / in progress; twice-equal in-memory reproduction matches stored evidence, with eight unchanged raw residuals. Supplemental byte access and conditional drop source paths are documented separately from historical startup/package acceptance. RT-F069 remains unchecked; useful offline audits and user-present native checks remain.
 
 ## Outstanding
 

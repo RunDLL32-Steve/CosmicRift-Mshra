@@ -1141,7 +1141,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] Run an isolated original-client/emulator Rogue Trader compatibility spike and choose the production engine.
 - [ ] Validate original format versions, field scaling, sentinel values and executable behavior.
 - [x] Index original raw content and candidate dependencies: 3,086 records, 12 matched hulls, 200 items, seven resource records; original input hashes unchanged.
-- [ ] Resolve exact BLO archive-member/record identities and validate complete dependency closure (545 was the initial raw-index candidate count; residual closure has not been recomputed).
+- [ ] Resolve exact BLO archive-member/record identities and validate complete dependency closure (initial raw summary 545; RT-F375 inventories 89 archives / 1,262 members / 609 candidates with eight raw residuals; the [October 18 G9 checkpoint](scripts/original-assets/plan.d/g9.md) reproduces the inventory, while runtime eligibility/closure remains unverified).
 - [ ] Decode original assets, map/object/collision data and preserve their original appearance/behavior.
 - [ ] Validate original flight, weapons, controls, HUD and map against original evidence.
 - [ ] Implement the Rogue Trader mining/trading/upgrades/persistence loop using original content and values in M2.

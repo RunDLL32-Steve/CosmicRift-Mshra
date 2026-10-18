@@ -96,7 +96,9 @@ All three manufactory vehicles reference ITM ID 66 as their DropItemId. Item 66 
 
 VEH 425/426/427 share positive reference 66; it is absent from the item catalog. That static fact does not establish whether or when the native/emulator lifecycle evaluates it.
 
-**Conclusion**: Item 66 is genuinely missing from the ITM catalog. This is not a default/sentinel value — it is a positive reference to a non-existent item. The manufactory vehicles expect to drop an item that has no definition in the item catalog.
+**Conclusion**: The canonical manufactory rows record positive DropItemId66 and quantity1, while the canonical ITM catalog has no ID66. This establishes a dangling recorded reference; whether it is dynamically evaluated or an unused/legacy value remains unverified.
+
+**October 18 source checkpoint**: The [G9 ledger](../../scripts/original-assets/plan.d/g9.md#bounded-pinned-source-trace-for-dropitem66) traces a conditional explosion path through inherited two-argument kill and the generic event/item/null/quantity guards before Computer's Destroyable-gated one-argument destruction. It also distinguishes the Car-only Bot path. This is source reachability evidence, not actual dynamic eligibility or a fresh runtime test; item 66 remains absent and RT-F386 open.
 
 **Implication**: Trace the actual destruction/drop path for these manufactory types before proposing any change. RT-F383 arena initialization already passed, and that result does not evaluate every eventual drop path. Preserve the unresolved reference; add no invented item or fallback.
 
