@@ -10,29 +10,22 @@ Status authority: [master M0](../../ROGUE_TRADER_2_PLAN.md#milestone-0--reposito
 | Godot-independent JSON loading and validation | **Complete with evidence** — [GameCatalog.cs](GameCatalog.cs) rejects unknown fields, invalid/nonfinite values, duplicate IDs and derived acceleration/squared-magnitude overflow. |
 | Prototype data acceptance | **Complete with evidence** — prior [41-case result](../../artifacts/test-results/unit.trx): 41 passed, zero failed/not executed on October 12, 2026; [dated acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) records build/client/export gates. No tests rerun for this review. |
 
-These First Contact fixtures contain no original-content runtime adapter, cargo, economy or installed-equipment implementation. They do not complete any original hull/item.
+This GameData project contains no original-content runtime adapter or installed-equipment implementation. Generic cargo/pickup now exists in Simulation, with Persistence/Trading composition in separate projects; those do not extend this ship/weapon/sector JSON schema. They do not complete any original hull/item.
 
 ## Outstanding original data work
 
 Preserve `fowlmouth/cosmic-rift-assets` at `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`, pinned by [ASSET_MANIFEST.json](../../docs/original-research/ASSET_MANIFEST.json). Retain complete raw fields, names, category, version, ID, source row/path and hash beside derived values. Original records take precedence; adaptation outputs remain separate.
 
-- [ ] **Investigating** — RT-F001–RT-F012 and RT-F069: prove original hull identity/dependency closure. The separately completed [raw index](../../scripts/ORIGINAL_CONTENT_INDEX_PLAN.md) recovered 3,086 records, 12 matched hulls, 200 items and seven resources; indexing does not validate all members or hull behavior.
+- [ ] **Investigating** — RT-F001–RT-F012 and RT-F069: validate runtime hull/dependency closure. The separate [OriginalData module](../RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md) already loads and guards the hull identities and now exposes raw ITM/CFG/VEH records. The separately completed [raw index](../../scripts/ORIGINAL_CONTENT_INDEX_PLAN.md) recovered 3,086 records, 12 matched hulls, 200 items and seven resources; indexing does not validate all members or hull behavior.
 - [ ] **Not started** — runtime adapters for RT-F001–RT-F019 and RT-F076–RT-F268. Preserve original resource, weapon, equipment, ammo, repair and credit categories; follow individual catalog acceptance rather than duplicating detailed content plans.
 - [ ] **Investigating** — RT-F027–RT-F032 and RT-F036–RT-F041: native units, terrain overrides and sentinels. Reverse `-1/-1`, inheritance `-550`, MIRV lifetime `-65` and resale `-1` stay raw and unresolved; prototype defaults are not conversions.
-- [ ] **Investigating** — RT-F033–RT-F035 and RT-F067: original slot/category limits, skill-expression grammar and ordered event actions. Installation/starting-loadout implementation is **Not started**.
+- [ ] **Investigating** — RT-F033–RT-F035 and RT-F067: original slot/category limits, skill-expression grammar and ordered event actions. Raw `OriginalStartingLoadout`, `OriginalHullExchange`, `OriginalSkillLogic` and `OriginalEventScript` already exist in OriginalData; native evaluation, installation and execution remain open.
 - [ ] **Not started** — RT-F042–RT-F049 and RT-F054–RT-F057: interpreted pickup, refine, trade, repair, upgrade, warp and production definitions after original recipes/restrictions/values are validated. Six invented modifiers cannot complete the equipment catalog.
 - [ ] **Investigating** — RT-F021/RT-F069: LVL/LIO references and runtime semantics. The separate [pristine parser report](../../.tools/compatibility/reports/pristine-load-report.json) accepts unchanged CFG, 200 ITM v57, 30 VEH v53, 81 LIO, 12 RPG v6 and 1999×1998 LVL. This does not prove collision, evaluator or native execution fidelity.
 - [ ] **Not started** — focused adapter identity/version/raw-field/hash acceptance, then behavior verification only after the specific gameplay feature exists. Reconcile only that verified feature to master §18.
 
 Palette/HSV/shadow and direction→bank/state selection (RT-F023, RT-F074–RT-F075) remain importer/client dependencies. A decoded sprite or parser count cannot complete a hull/loadout.
 
-## Current reconciliation — October 13, 2026
+## Source audit — October 17, 2026
 
-Documentation-only source/saved-log review; no new build/test/GUI/simulation. Master registry: **394 IDs, 15 narrowly completed scopes, 379 open**. Completed prototype work above is history; original parity remains open unless its exact catalog acceptance passed.
-
-Separate compatibility evidence has advanced beyond parser-only: RT-F381/F382 package/runtime-source audits, RT-F383 actual original arena initialization, RT-F385 exact eight-value parser regression, and RT-F392/F394 full-asset loopback host/authentic shared Soccer are complete. [Runtime plan](../../docs/architecture/ROGUE_RUNTIME_PLAN.md) and [package plan](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) carry those proofs. This does not implement production services or tests in reserved folders.
-
-The native client reached Welcome FreeInfantry; Start produced no confirmed entry. Native asset delivery, actual original gameplay and durable progression remain unverified. Standalone compatibility mode does not save progression. Owned test client/backend/private namespace were removed; no desktop interaction while the user is playing. [Native plan](../../docs/architecture/NATIVE_CLIENT_PLAN.md).
-
-Next remains the unchecked per-feature queue in this document, using original fowlmouth records unchanged. Completed original viewer/package/input scopes RT-F020/F073/F373/F374 are historical proof, not native original appearance. RT-F375 all-archive inventory is complete; RT-F069 runtime dependency closure and Portal/logo/numeric Ball/item66 eligibility remain open. Original units/evaluators/bank/blit rules and shop/proximity/null-script bugs remain unresolved. NEW prototype tuning and modern expansion proposals cannot replace original parity.
-
+Current code and remaining integration limits are recorded in the [source documentation audit](../../docs/audits/2026-10-17-source-docs.md). Earlier dated test counts above are historical branch results, not a current-tree test run. No build, runtime check, GUI or simulation was run for this documentation audit. Global feature counts and completion status belong to [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap).

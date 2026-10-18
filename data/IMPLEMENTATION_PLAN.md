@@ -4,7 +4,7 @@ Authority: [master §1.2, §§6–8 and §18 M0/M1/M2](../ROGUE_TRADER_2_PLAN.md
 
 ## Purpose and current stage
 
-`ships/`, `weapons/` and `sectors/` hold the accepted **NEW/provisional First Contact fixtures**. The Godot build stages these JSON files into `client/GameData/`; they remain the simulation's current training definitions. They are not original Rogue Trader values. [original/](original/IMPLEMENTATION_PLAN.md) holds record-specific parity queues; canonical source bytes stay outside runtime working outputs.
+`ships/`, `weapons/`, `sectors/` and `ai/` hold the accepted **NEW/provisional First Contact fixtures**. The Godot build stages these JSON files into `client/GameData/`; they remain the simulation's current training definitions. They are not original Rogue Trader values. The build copies all `data/**/*.json`; GameClient reads only the three ship/weapon/sector files. AI tuning is loaded by the standalone AI module/tests and is not connected to the client. [original/](original/IMPLEMENTATION_PLAN.md) holds record-specific parity queues; canonical source bytes stay outside runtime working outputs.
 
 ## Accomplished
 
@@ -19,7 +19,7 @@ Evidence: [package audit plan](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md)
 
 - [ ] **Investigating — RT-F069/F380/F384:** validate native profile/connection and actual unchanged asset delivery before selecting the production engine.
 - [ ] **Not started — M2, RT-F001–F019 and per-record queues:** verify original hulls, weapons, equipment, resources, actors and sector interactions through the chosen engine. Existing parser/initializer success does not complete gameplay acceptance.
-- [ ] **Investigating — RT-F386/F388–F390:** resolve item66 eligibility, shop quantity/transaction/proximity and full-arena null-script risks with focused checks.
+- [ ] **Investigating — RT-F386 and broader economy:** item66 eligibility and original shop/transaction behavior remain open. The narrower compatibility sale, proximity, null-script and purchase safeguards RT-F388/F389/F390/F396 already have historical acceptance; do not repeat them as unfinished fixes.
 - [ ] **Not started — RT-F068/M2 persistence:** demonstrate durable progression; the current standalone native host does not save it.
 
 Use the specific [canonical domain plans](original/IMPLEMENTATION_PLAN.md). Keep fixture JSON until a validated original route replaces the relevant engineering scope; never overwrite canonical files or balance the originals to fit prototype equations. Completed tasks leave active queues but remain in master audit, completion history and [CHANGELOG.md](../CHANGELOG.md).

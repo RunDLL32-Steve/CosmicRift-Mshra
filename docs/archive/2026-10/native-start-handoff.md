@@ -1,3 +1,5 @@
+> Historical snapshot. Preserved for dated evidence; its instructions, counts, branch state and next steps may be superseded. Use [current continuation](../../../CONTINUATION.md), [task queue](../../../TASK_QUEUE.md) and [documentation index](../../README.md) for current work.
+
 # Native Start/profile handoff — October 14, 2026
 
 Issue branch: `codex/native-start-profile`, based on `626a09f`. Worktree: `C:\Repos\CosmicRift\.tools\issue-worktrees\native-start-profile`. Diagnostic/WIP source committed by root as `26d3226` after the agent's Git metadata permission failure. Implementation/testing stopped at the user's usage checkpoint. Root's full technical acceptance review, user native test and user merge remain pending; this commit is not an accepted Start fix. No further GUI interaction, push or automatic merge is authorized.

@@ -2,6 +2,10 @@
 
 Status authority: [master M1 engineering acceptance/fidelity gate](../../ROGUE_TRADER_2_PLAN.md#m0m1-completion-evidence--engineering-prototype), [§20.1 physics](../../ROGUE_TRADER_2_PLAN.md#201-physics-tests), [§20.2 economy](../../ROGUE_TRADER_2_PLAN.md#202-economy-tests), and [M2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--rogue-trader-core-gameplay). Reconcile with [canonical feature catalog](../../docs/original-research/FEATURE_CATALOG.md), [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md), and [project progress](../../docs/development-log/PROGRESS.md). Reviewed October 13, 2026; read-only test/result inspection, no reruns.
 
+## Current source coverage — October 17, 2026
+
+The test project references Simulation, OriginalData, Protocol, Persistence, Trading and AI. In addition to the historical M1 suite, source now contains original-record/field/reference oracle tests, cargo/pickup, file persistence/transactions, station trading, deterministic replay, protocol-codec and NEW pirate-controller cases. `OriginalProgressionTests` and `Persistence/ProfileContentValidatorTests` cover the optional progression-id binding seam; they do not wire a game loop. See [source audit](../../docs/audits/2026-10-17-source-docs.md) for source locations. Dated totals below and in `plan.d` are results reported by earlier branches, not the current suite size or a test run performed by this audit.
+
 ## Completion history — prototype engineering
 
 | Feature | Current status / evidence |
@@ -13,7 +17,7 @@ Status authority: [master M1 engineering acceptance/fidelity gate](../../ROGUE_T
 | Prior executed acceptance | **Complete with evidence** — [unit.trx](../../artifacts/test-results/unit.trx), October 12, 2026: 41 executed/passed, zero failed/not executed; [dated acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation). SDK 8.0.419. Source/export smoke and rendered launch remain distinct client evidence. |
 | Persistence and transaction core | **Complete with evidence (engine-side, NEW fixtures)** — [Persistence/](Persistence): 129 xUnit cases for §20.2 (insufficient funds, non-negative cargo, duplicate requests incl. restart, authoritative price math/overflow, save/load round trip, 64-way concurrent double-spend) and file recovery (orphan temp, crash before replace, truncated, bad checksum, invariant violation, both copies corrupt, newer/older schema, single-owner lock, profile identity on disk, device names, unpaired-surrogate ids). October 15, 2026: 210/210 total passed. All fixture ids/prices/limits are NEW provisional; no original economy parity is claimed. |
 
-The test data copies the same provisional JSON consumed by the client. Heavy fixtures do not add original playable ships. No original parity, M2 economy, AI or M3 network tests are claimed complete.
+The test data copies the same provisional JSON consumed by the client. Heavy fixtures do not add original playable ships. No original-parity or end-to-end M2/M3 acceptance is claimed complete. Engine-side economy, NEW AI and protocol-codec tests now exist; their presence does not prove a native or client-integrated loop.
 
 ## Cargo and pickup tests - October 16, 2026
 
@@ -26,7 +30,7 @@ The test data copies the same provisional JSON consumed by the client. Heavy fix
 ## Outstanding feature verification
 
 - [ ] **Investigating** — define original expected results for RT-F027–RT-F041/RT-F075 after native units, reverse/inheritance/lifetime sentinels, shield/armor ordering and bank/state selection are resolved. Prototype expectations are not original acceptance oracles.
-- [ ] **Not started** — focused original runtime adapter cases for RT-F001–RT-F019/RT-F033–RT-F035/RT-F067/RT-F069: version/identity/category/raw preservation, grammar and unsupported semantics, after adapter implementation.
+- [ ] **In progress (raw-data clauses)** — source already includes CFG/ITM/VEH, loadout, skill/event and item-reference cases. Still open are executable runtime-adapter behavior cases for RT-F001–RT-F019/RT-F033–RT-F035/RT-F067/RT-F069: version/identity/category/raw preservation, grammar and unsupported semantics, after adapter implementation.
 - [ ] **Not started** — original gameplay cases for completed features RT-F042–RT-F051/RT-F054/RT-F068: quantities, cargo, recipes, integer prices, duplicate requests, upgrade/repair/reward/retention behavior. Use original records and selected revision, not invented replacements.
 - [ ] **Not started** — relevant critical regressions and exact master/catalog reconciliation when each feature is implemented. Run simulation only where that completed gameplay feature needs it; parser/hash/bounds/image checks serve data/rendering work. Do not rerun the baseline solely for documentation.
 
@@ -37,13 +41,6 @@ Historical reproduction command from the root (when justified by implementation 
 .tools/dotnet/dotnet.exe test tests/Unit/RogueTrader.UnitTests.csproj --nologo --verbosity minimal
 ```
 
-## Current reconciliation — October 13, 2026
+## Source audit — October 17, 2026
 
-Documentation-only source/saved-log review; no new build/test/GUI/simulation. Master registry: **394 IDs, 15 narrowly completed scopes, 379 open**. Completed prototype work above is history; original parity remains open unless its exact catalog acceptance passed.
-
-Separate compatibility evidence has advanced beyond parser-only: RT-F381/F382 package/runtime-source audits, RT-F383 actual original arena initialization, RT-F385 exact eight-value parser regression, and RT-F392/F394 full-asset loopback host/authentic shared Soccer are complete. [Runtime plan](../../docs/architecture/ROGUE_RUNTIME_PLAN.md) and [package plan](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) carry those proofs. This does not implement production services or tests in reserved folders.
-
-The native client reached Welcome FreeInfantry; Start produced no confirmed entry. Native asset delivery, actual original gameplay and durable progression remain unverified. Standalone compatibility mode does not save progression. Owned test client/backend/private namespace were removed; no desktop interaction while the user is playing. [Native plan](../../docs/architecture/NATIVE_CLIENT_PLAN.md).
-
-Next remains the unchecked per-feature queue in this document, using original fowlmouth records unchanged. Completed original viewer/package/input scopes RT-F020/F073/F373/F374 are historical proof, not native original appearance. RT-F375 all-archive inventory is complete; RT-F069 runtime dependency closure and Portal/logo/numeric Ball/item66 eligibility remain open. Original units/evaluators/bank/blit rules and shop/proximity/null-script bugs remain unresolved. NEW prototype tuning and modern expansion proposals cannot replace original parity.
-
+Current code and remaining integration limits are recorded in the [source documentation audit](../../docs/audits/2026-10-17-source-docs.md). Earlier dated test counts above are historical branch results, not a current-tree test run. No build, runtime check, GUI or simulation was run for this documentation audit. Global feature counts and completion status belong to [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap).

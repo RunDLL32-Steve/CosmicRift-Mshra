@@ -1,6 +1,6 @@
 # Client assets implementation plan
 
-Reviewed October 13, 2026. Master: [M0/M1 engineering](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§16 original appearance](../../ROGUE_TRADER_2_PLAN.md#16-graphical-direction), [fidelity registry](../../ROGUE_TRADER_2_PLAN.md#original-feature-registry--october-13-checkpoint). Reconcile with the [client plan](../IMPLEMENTATION_PLAN.md) and [original importer plan](../../scripts/original-assets/IMPLEMENTATION_PLAN.md).
+Reviewed October 13, 2026. Master: [M0/M1 engineering](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§16 original appearance](../../ROGUE_TRADER_2_PLAN.md#16-graphical-direction), [fidelity registry](../../ROGUE_TRADER_2_PLAN.md#original-feature-registry--october-14-checkpoint). Reconcile with the [client plan](../IMPLEMENTATION_PLAN.md) and [original importer plan](../../scripts/original-assets/IMPLEMENTATION_PLAN.md).
 
 ## Purpose and completed history
 

@@ -1,8 +1,8 @@
 # Original reproduction handoff
 
-Authority: [master §1.2 and §18 fidelity/M2](../../ROGUE_TRADER_2_PLAN.md), [research plan](IMPLEMENTATION_PLAN.md), [feature catalog](FEATURE_CATALOG.md), [master projection](FEATURE_MASTER_CHECKLIST.md) and [progress](../development-log/PROGRESS.md). Current checkpoint: October 13, 2026.
+Authority: [master §1.2 and §18 fidelity/M2](../../ROGUE_TRADER_2_PLAN.md), [research plan](IMPLEMENTATION_PLAN.md), [feature catalog](FEATURE_CATALOG.md), [master projection](FEATURE_MASTER_CHECKLIST.md) and [progress](../development-log/PROGRESS.md). Current navigation updated October 17, 2026; dated evidence retains its original scope. Use [CONTINUATION.md](../../CONTINUATION.md) for the project-wide resume point.
 
-Original source is unchanged fowlmouth commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`. There are **394 original feature IDs: 15 scoped capabilities complete, 379 open**. No native player has entered the original arena and full gameplay parity is not complete.
+Original source is unchanged fowlmouth commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`. Current feature totals and completion marks belong to [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap) and its [checklist projection](FEATURE_MASTER_CHECKLIST.md); this handoff does not duplicate them. No native player entry has been verified in the recorded evidence, and full gameplay parity is not complete.
 
 ## Accomplished
 
@@ -17,7 +17,7 @@ Original source is unchanged fowlmouth commit `eb1514eaae7f9b9425307d9cc043c74ec
 1. **Investigating — RT-F380/F384:** when the user is available, diagnose native welcome Start/no entry, verify private profile/channel identity, connect, select the original hull and unspectate. The prior desktop test stopped while the user was playing another game; owned processes/private test namespace were cleaned up.
 2. **Investigating — RT-F069/F387:** prove actual original asset delivery, including all raw LVL bytes. The server parser leaves380,052 graphical trailer bytes unread; deliver the original1,290,994-byte file unchanged. Portal/logo/numeric Ball role and missing item66 eligibility remain open.
 3. **Not started — canonical domain queues:** verify existing engine handlers for original flight, weapons, mining/pickup/refining/trading/repair/upgrades/rewards and each actor/LIO feature. Generic handler presence does not complete gameplay. Preserve [field/evaluator contracts](FIELD_INTERPRETATION.md).
-4. **Investigating — RT-F388–F390:** focused fixes for oversell/credit ordering, store proximity and null-script full-arena joins. RT-F393 compiled offline patch guard still requires actual native readiness acceptance.
-5. **Not started — RT-F068:** durable progression; standalone native mode currently does not save inventory/skills/currency.
+4. **Remaining native trading/join acceptance:** RT-F388/RT-F389/RT-F390/RT-F396 sale/store/capacity/purchase guards have bounded handler evidence; RT-F391 optional admin policy and RT-F397 outgoing lengths are also scoped completed work. Native readiness (RT-F393), actual trading and durable transactions remain open. See [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md) and [delivery checks](../../scripts/compatibility/NativeDeliveryChecks/IMPLEMENTATION_PLAN.md).
+5. **RT-F068 integration remains open:** the tracked persistence core, original-ID binding and content validator exist; the [cloud branch log](../development-log/cloud/cloud-rt-f068-progression-contract.md) records a reconstructed original-ID save/load fixture and its verification limits. They are not wired into the native/M2 loop; standalone native mode still does not save progression.
 
 Six per-record plans are indexed in [data/original](../../data/original/IMPLEMENTATION_PLAN.md). Update stage at Investigating/In progress/Testing/Complete; remove completed active tasks but preserve master checked audit, history and [CHANGELOG.md](../../CHANGELOG.md). Do not repeat passed baseline simulations during documentation/data work. Only a completed behavior needing simulation triggers that focused verification.

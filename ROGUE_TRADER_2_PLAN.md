@@ -68,7 +68,7 @@ The requested recreation target is the original Cosmic Rift gameplay and visual 
 
 The preserved Rogue Trader package in **InfantryOnline/Zone-Assets** supplies mode-specific help, configuration, hull and item records. Where interpreted and version-validated, recovered evidence takes precedence over the NEW placeholder ship/mineral names and values proposed elsewhere in this document. Retain unresolved units, formulas, revision differences and asset reuse status explicitly in the [research audit](docs/original-research/INFANTRYONLINE.md).
 
-Milestones 0–1 remain the immediate engineering target. Their original geometric artwork and provisional tuning are temporary fixtures, not completed historical/visual parity. Track asset decoding, mapping, exact controls, weapon behavior, map recovery and parity separately before expanding presentation or declaring the requested recreation complete. Preserve original assets and appearance where applicable rights and mappings are established; avoid substituting an unrelated modern visual direction.
+Milestones 0–1 were the initial engineering target and have historical acceptance (see §18). Their original geometric artwork and provisional tuning are temporary fixtures, not completed historical/visual parity. Track asset decoding, mapping, exact controls, weapon behavior, map recovery and parity separately before expanding presentation or declaring the requested recreation complete. Preserve original assets and appearance where applicable rights and mappings are established; avoid substituting an unrelated modern visual direction.
 
 **Canonical foundation / originals unchanged:** The user identifies [fowlmouth/cosmic-rift-assets](https://github.com/fowlmouth/cosmic-rift-assets) as the complete original content source for a **100% Rogue Trader reproduction**. Pin `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`; original ships, items, configuration, map and associated asset values are authoritative. Preserve all original file bytes, names and values unchanged. Any parser, runtime adaptation or decoded display output belongs in a separate derived working area and must retain original references. The supplied [Rogue.bmp map view](https://media.githubusercontent.com/media/fowlmouth/cosmic-rift-assets/refs/heads/main/LVL-BMP/Rogue.bmp) is the map reference; LVL/LIO data requires a matching decoder. [ASSET_MANIFEST.json](docs/original-research/ASSET_MANIFEST.json) records raw hashes, LFS identities and provenance. Original-source integrity is verified with `scripts/verify-reference-assets.ps1`.
 
@@ -139,7 +139,7 @@ The surviving game overview establishes the following:
 
 These mechanics are mandatory recreation targets.
 
-The original game's exact ship statistics, mineral pricing, upgrade catalog, and underlying physics constants have not yet been fully recovered.
+Canonical raw ship/item values, resource prices and upgrade records have been recovered and indexed. Their native evaluator semantics, units, revision differences and complete runtime behavior remain unvalidated; see the feature catalog and field contracts.
 
 They must not be invented and subsequently described as historically accurate.
 
@@ -519,7 +519,7 @@ This is especially important because community recollections specifically distin
 
 Do not assume these weapons all appeared in Rogue Trader or were available to all spacecraft.
 
-Original equipment availability must be researched.
+Canonical equipment records and reference readers now exist. Original installation, timing, effect and native presentation acceptance still require validation. The table above describes the provisional testbed/design history, not the completed original weapon catalog.
 
 ## 7.4 Combat extensions
 
@@ -1147,7 +1147,9 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [ ] Implement the Rogue Trader mining/trading/upgrades/persistence loop using original content and values in M2.
 - [ ] Confirm full original Rogue Trader reproduction; no provisional replacement ships/minerals or unrelated expansions.
 
-### Original feature registry — October 14 checkpoint
+<a id="original-feature-registry--october-14-checkpoint"></a>
+
+### Original feature registry — current acceptance checkpoint
 
 397 entries;22 scoped completions,375 open. Source/acceptance:[FEATURE_CATALOG.md](docs/original-research/FEATURE_CATALOG.md). Completed audit entries remain checked;active queues contain unfinished work. Native playable entry remains unverified.
 
@@ -1529,7 +1531,7 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [x] RT-F376 - [Actual native client package inventory and version route](docs/original-research/FEATURE_CATALOG.md#rt-f376)
 - [ ] RT-F377 - [Portal PrizeCrateA graphic reference](docs/original-research/FEATURE_CATALOG.md#rt-f377)
 - [ ] RT-F378 - [Original Uiart logo reference](docs/original-research/FEATURE_CATALOG.md#rt-f378)
-- [ ] RT-F379 - [Numeric BallGraphic member role](docs/original-research/FEATURE_CATALOG.md#rt-f379)
+- [ ] RT-F379 - [BallGraphic trailing fields and native semantics](docs/original-research/FEATURE_CATALOG.md#rt-f379)
 - [ ] RT-F380 - [Isolated native-client integration preparation](docs/original-research/FEATURE_CATALOG.md#rt-f380)
 - [x] RT-F381 - [Original Rogue package links and transfer audit](docs/original-research/FEATURE_CATALOG.md#rt-f381)
 - [x] RT-F382 - [Generic Rogue arena/event runtime source audit](docs/original-research/FEATURE_CATALOG.md#rt-f382)
@@ -1549,9 +1551,15 @@ These completed tasks do not establish original-content parity. The exact reprod
 - [x] RT-F396 - [Shop purchase quantity and credit ordering](docs/original-research/FEATURE_CATALOG.md#rt-f396)
 - [x] RT-F397 - [Large asset packet length accounting](docs/original-research/FEATURE_CATALOG.md#rt-f397)
 
-October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. native entry/delivery, durable transactions, persistence and original gameplay parity remain open.
+October 14 completion: RT-F388 bounded sale validation/cash ordering, RT-F390 null-script capacity and RT-F395 derived host radar routing pass 35 actual-handler checks (baseline exposed 16 defects). A separate 10.25-second full-asset host exits 0 with zero logged exceptions, zero native clients and unchanged original hashes; invalid radar config rejects before startup. Evidence: [dated log](docs/development-log/2026-10-14.md), [fixed checks](artifacts/rogue-runtime-checks/fixed.json), [host exit](artifacts/rogue-runtime-checks/host/exit.json). These complete only the named emulator safeguards. native entry/delivery and original gameplay/progression acceptance remain open. Generic persistence and transaction modules now exist separately; they are not wired into the client loop.
 
 RT-F397 (merged to main): both outgoing byte-array length casts are removed and verified:46 canonical cache/packets and60 inert queue fixtures pass. Baseline reproduced29 canonical metadata discrepancies,24 synthetic length defects and16 incorrect queue choices; fixed has zero failures. Evidence/status: [issue log](docs/development-log/2026-10-14-rt-f397.md).
+
+### Source inventory reconciliation — October 17, 2026
+
+Source baseline `d14df02` includes raw original-data views, generic cargo/pickup, persistence/transactions, trading, replay, a provisional message codec and NEW pirate AI. These completed queue slices are recorded in [TASK_QUEUE.md](TASK_QUEUE.md) and [PROGRESS.md](docs/development-log/PROGRESS.md). Queue IDs M1/M4/M6 are work-item names, not acceptance of master Milestones 1/4/6. The running client does not integrate them into the required original loop, so the original feature and M2/M3 checkboxes below remain unchanged.
+
+The [October 17 documentation audit](docs/audits/2026-10-17-documentation-audit.md) checks current descriptions against source and recorded evidence; it does not establish new gameplay, native reception, or export acceptance. [Separate task briefs](docs/tasks/README.md) retain dependencies, code references and focused acceptance without reducing the full master/catalog scope.
 
 ## MILESTONE 2 — Rogue Trader core gameplay
 
@@ -1682,7 +1690,7 @@ Deliverable: Distributable Windows release candidate.
 
 **Codename: First Contact**
 
-This is the immediate development target.
+This was the initial development target; the provisional prototype has historical acceptance in §18. Current work is the original-fidelity gate and dependent Milestone 2 integration.
 
 Scope:
 
@@ -1991,7 +1999,7 @@ Rogue Trader 2.0 is successful when these foundational mechanics support a broad
 
 # 25. IMMEDIATE EXECUTION INSTRUCTIONS FOR CODEX
 
-Begin development with Milestone 0 and Milestone 1.
+Historical initial execution sequence: Milestones 0 and 1 have engineering acceptance. Do not restart this sequence; resume current work from CONTINUATION.md and TASK_QUEUE.md.
 
 Perform the following work in order:
 
@@ -2019,6 +2027,6 @@ Use original placeholder assets initially.
 
 Do not stop at planning. Begin implementing the actual project.
 
-## Native-engine continuation status — October 13, 2026
+## Native-engine continuation status — historical October 13, 2026
 
 Original package/link/runtime audits and actual arena initializer now pass (F381/F382/F383); bounded full-asset loopback hosting and authenticSoccer dependency pass (F392/F394). DerivedVehicleMaker field18 fix passes exact8-value regression (F385). Native copy reached welcome with private namespace, but Start produced no confirmed entry; Computer Use stopped by physicalEscape while user was playing another game. Owned client/server/test keys cleaned up. F380/F384/nativeentry/actualdelivery remain unchecked. Use NATIVE_CLIENT_PLAN,ROGUE_PACKAGE_AUDIT_PLAN,ROGUE_RUNTIME_PLAN for proof/gaps; no more desktop interaction until user is available.

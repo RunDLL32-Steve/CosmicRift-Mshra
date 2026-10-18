@@ -1,6 +1,6 @@
 # Client scripts implementation plan
 
-Reviewed October 13, 2026; source/log inspection only. Status authority: [master §5.3–5.4](../../ROGUE_TRADER_2_PLAN.md#53-physics-requirements), [M1 engineering/fidelity gate](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype) and [§18 original feature registry](../../ROGUE_TRADER_2_PLAN.md#original-feature-registry--october-13-checkpoint). Reconcile with the [client plan](../IMPLEMENTATION_PLAN.md) and [catalog](../../docs/original-research/FEATURE_CATALOG.md).
+Reviewed October 13, 2026; source/log inspection only. Status authority: [master §5.3–5.4](../../ROGUE_TRADER_2_PLAN.md#53-physics-requirements), [M1 engineering/fidelity gate](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype) and [§18 original feature registry](../../ROGUE_TRADER_2_PLAN.md#original-feature-registry--october-14-checkpoint). Reconcile with the [client plan](../IMPLEMENTATION_PLAN.md) and [catalog](../../docs/original-research/FEATURE_CATALOG.md).
 
 ## Purpose and accomplished work
 

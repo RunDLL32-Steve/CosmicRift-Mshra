@@ -1,14 +1,12 @@
-# Rogue Trader 2.0 — First Contact
+# Cosmic Rift: Rogue Trader reproduction
 
-RT-F397 is isolated on `codex/rt-f397-packet-length` for user testing and merge. The derived two-site outgoing packet length correction passes46 canonical packet checks and60 inert queue fixtures; see [issue evidence](docs/development-log/2026-10-14-rt-f397.md). Desktop interaction is prohibited for this work. Native reception, authentication and UI behavior remain unverified.
+The target is full original Rogue Trader gameplay and presentation using the unchanged canonical content. The repository currently contains a Godot flight/combat testbed, an original-content inspector, raw-data readers, generic gameplay modules and an isolated InfantryOnline compatibility toolchain. **Full original parity and native playable entry remain unverified.**
 
-Windows / Godot C# flight-and-combat testbed for Milestones 0 and 1 of [the master plan](ROGUE_TRADER_2_PLAN.md). Read [the startup instructions](PROJECT_START.md) first.
-
-The user's target is the gameplay and assets shown in [Cosmic Rift — Chaos Zone](https://www.youtube.com/watch?v=A6u1ljFgQVU), applied to **Rogue Trader mode**. The initial testbed uses original geometric placeholders and provisional tuning. It does not yet reproduce the archived artwork, map, ship catalog or Rogue Trader economy. The [InfantryOnline research](docs/original-research/INFANTRYONLINE.md) records actual recovered files and the next fidelity work.
+Start with [PROJECT_START.md](PROJECT_START.md), the [master specification](ROGUE_TRADER_2_PLAN.md) and [AGENTS.md](AGENTS.md). Use [CONTINUATION.md](CONTINUATION.md) for current status, [TASK_QUEUE.md](TASK_QUEUE.md) for task selection and the [documentation index](docs/README.md) for detailed plans.
 
 ## Build and play
 
-Run PowerShell from this repository. Setup downloads official, checksum-verified portable tools into ignored `.tools/`, without requiring a system SDK upgrade.
+From the repository root in PowerShell:
 
 ```powershell
 ./scripts/bootstrap.ps1 -IncludeExportTemplates
@@ -17,54 +15,40 @@ Run PowerShell from this repository. Setup downloads official, checksum-verified
 ./scripts/export-windows.ps1
 ```
 
-Pinned toolchain: Godot **4.5.1 .NET x64**, .NET SDK **8.0.419**, C# 12 / `net8.0`. This is a reproducible compatible baseline, not a claim to be the newest release. See [compatibility and maintenance](docs/architecture/TOOLCHAIN.md).
+The pinned inspection/testbed toolchain is Godot **4.5.1 .NET x64**, .NET SDK **8.0.419**, C# 12 / `net8.0`; see [TOOLCHAIN.md](docs/architecture/TOOLCHAIN.md). The compatibility toolchain separately pins .NET SDK 10.0.401. Bootstrap downloads checksum-verified tools to ignored `.tools/`.
 
-The standalone build is `artifacts/windows/FirstContact/RogueTrader2.exe`. Distribute the entire `FirstContact` folder or `artifacts/windows/FirstContact-0.1.0-win-x64.zip`; the executable requires the adjacent packed resources and managed files. Launching it requires no development editor or SDK. Unsigned development build.
+Default export produces `artifacts/windows/FirstContact/RogueTrader2.exe` and `FirstContact-0.1.0-win-x64.zip`. Keep the entire export folder together. `./scripts/export-windows.ps1 -Mode OriginalContent` stages canonical-derived sprites/map data and produces the separate original-content inspection package; it requires the reference assets and Python/Pillow. The October 12 prototype and October 13 viewer launch checks are historical evidence, not checks rerun by this documentation audit.
 
-## Controls and exercise
+## Current behavior
 
-- W / Up: forward thrust; S / Down: reverse thrust.
-- A / Left and D / Right: rotate; Space: fire plasma.
-- Escape: pause and open the controls/settings panel.
-- R: reset the test range, including after destruction.
+The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, A/Left and D/Right rotate, Space fire, Escape pause/settings, R reset. The settings panel remaps these controls and saves bindings in Godot's `user://` location. F2 opens the original-content inspector when staged assets are available. Native historical controls remain a separate fidelity task.
 
-Use the controls panel to remap keys; bindings are saved in Godot's `user://` location. These are the master plan's modern defaults. Recovered historical keys are documented separately.
+The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
 
-Fire toward the target directly above the spawn point until its shield and hull are exhausted. Accelerate, release thrust to drift, rotate while coasting, use reverse thrust to brake, and steer between the asteroids. The HUD shows speed, shields, hull, energy, targets and simulation ticks. There is no station, mining, economy or save-game progression in this milestone.
+## Code map
 
-## Structure and status
+| Area | Source |
+|---|---|
+| Godot input/rendering/HUD and original inspector | [client](client/IMPLEMENTATION_PLAN.md) |
+| Fixed 60 Hz simulation, cargo and replay | [Simulation](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) |
+| Raw original records and reference guards | [OriginalData](shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md) |
+| Validated provisional JSON definitions | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md) |
+| Profile repositories and transaction core | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) |
+| Generic station transactions | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md) |
+| Message codec; no live transport | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md) |
+| Provisional controller; no client integration | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md) |
+| Derived upstream tooling and checks | [compatibility](scripts/compatibility/IMPLEMENTATION_PLAN.md) |
+| Focused regression source | [unit tests](tests/Unit/IMPLEMENTATION_PLAN.md) |
 
-- `client/`: Godot scenes, input, rendering and HUD.
-- `server/RogueTrader.Simulation/`: Godot-independent authoritative simulation at 60 Hz.
-- `shared/RogueTrader.GameData/` and `data/`: validated external JSON definitions.
-- `tests/Unit/`: automated movement, collision and combat regression tests.
-- `docs/original-research/`: historical evidence, archived Rogue Trader files and video observations.
-- `scripts/`: pinned toolchain bootstrap, validation, launch and export.
+## Canonical content and acceptance
 
-[Development progress](docs/development-log/PROGRESS.md) reconciles all folder subplans with the [master checklist](ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Later modules are reserved folders with deferred plans, not working multiplayer or persistence implementations.
-
-Original assets are referenced for research, with provenance and reuse status recorded in [third-party notices](THIRD_PARTY_NOTICES.md). Verified derived originals are staged for local source inspection; the earlier Windows package remains the placeholder build.
-
-
-## Canonical original content
-
-The foundational source is [fowlmouth/cosmic-rift-assets](https://github.com/fowlmouth/cosmic-rift-assets) at `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`, designated by the user for 100% Rogue Trader reproduction. Preserve original bytes, values and names unchanged. Reference acquisition/verification:
+The user-designated foundation is fowlmouth/cosmic-rift-assets at `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`. Preserve source bytes, names and values. [ASSET_MANIFEST.json](docs/original-research/ASSET_MANIFEST.json) records provenance and hashes; [third-party notices](THIRD_PARTY_NOTICES.md) record reuse limits.
 
 ```powershell
 ./scripts/sync-reference-assets.ps1
 ./scripts/verify-reference-assets.ps1
 ```
 
-Originals live in ignored `.tools/references/cosmic-rift-assets/`; the committed [manifest](docs/original-research/ASSET_MANIFEST.json) records hashes and source identities. Conversion outputs must be stored separately. The original `LVL-BMP/Rogue.bmp` has been retrieved and visually inspected; it is not the placeholder playable sector. [InfantryOnline engine evaluation](docs/architecture/ENGINE_EVALUATION.md) is the next compatibility gate. The exact original reproduction remains unfinished.
+Originals live in ignored `.tools/references/cosmic-rift-assets/`; derived outputs stay separate. See the [engine evaluation](docs/architecture/ENGINE_EVALUATION.md) for the open production-engine decision.
 
-Current verified result: 41 unit tests, three native-input/UI smoke phases, six flight/combat phases and a self-contained Windows launch with rendered QA.
-
-## Current checkpoint
-
-See [CONTINUATION.md](CONTINUATION.md) and the [master](ROGUE_TRADER_2_PLAN.md): 397 features, 22 scoped completions, 375 open. The server loads original Rogue Trader data/arena; the native client reached welcome but did not enter. Test processes/private keys were cleaned up.
-
-The October 14 runtime slice fixes oversized sale credits, null-script full-arena crashes and bounded-host radar routing errors. All 35 focused handler checks pass; a 10-second headless host run has zero logged exceptions and unchanged assets. Reproduce with `./scripts/compatibility/prepare-derived-source.ps1` then `./scripts/compatibility/run-runtime-checks.ps1 -Build`. [Evidence and limits](docs/development-log/2026-10-14.md). Native entry, original gameplay and persistence remain open.
-
-The updated [OriginalContent Windows package](artifacts/windows/OriginalContent-2026-10-13-win-x64.zip) passes standalone inspector input/render checks. Keep the full folder;launchRogueTrader2.exe andpressF2. Rebuild:./scripts/export-windows.ps1 -Mode OriginalContent. The package is a verified asset viewer/provisional flight range;original native gameplay and persistence remain unfinished.
-
-Every meaningful source folder documents purpose,accomplishments/evidence,next work/status and original-parity limits. Completed tasks are history;active queues list remaining work. Preserve unchanged canonical assets and prefer the current master over older dated handoffs.
+Current registry: **397 feature entries, 22 scoped completions, 375 open**. M0/M1 prototype acceptance is historical. The original mining/trading/upgrades/persistence loop and native appearance are not accepted. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) distinguishes code inspection, recorded evidence and checks actually rerun.

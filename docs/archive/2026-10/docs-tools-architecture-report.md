@@ -1,3 +1,5 @@
+> Historical snapshot. Preserved for dated evidence; its instructions, counts, branch state and next steps may be superseded. Use [current continuation](../../../CONTINUATION.md), [task queue](../../../TASK_QUEUE.md) and [documentation index](../../README.md) for current work.
+
 # Documentation reconciliation report — tools and architecture
 
 October 13, 2026. Documentation only; no code, originals, .tools reports, builds, tests, server/client runs, simulations or desktop interaction changed.

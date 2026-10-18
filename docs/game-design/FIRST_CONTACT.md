@@ -44,6 +44,10 @@ A build recipe is not a runnable-build observation. A successful managed compila
 | Fire repeatedly at a target | Shield depletes before hull under NEW prototype rules; target is destroyed | M1 collisions/damage/combat |
 | Compare automated outputs | Fixed-step inputs reproduce the expected state within documented tolerance | M1 movement/combat tests; §20.1 |
 
+## Current source integration — October 17, 2026
+
+The running Godot route still loads the three NEW ship/weapon/sector definitions. Separate cargo/pickup, replay, persistence/transactions, station trading, message-codec and provisional AI modules now exist; they are not a connected M2 game loop. The optional original progression-id membership validator likewise is not invoked by repositories or client startup. See [source audit](../audits/2026-10-17-source-docs.md) for code references; no runtime acceptance was repeated during this audit.
+
 ## Scope after the first slice
 
 M2 targets the original resource generation/pickup → cargo → station sale/refining → upgrade → save/load loop, all twelve original RPG hulls and resolved original NPC/reward systems, after their dependencies validate. M3 still requires authoritative multiplayer and persistence acceptance; current native server mode must be evaluated before committing to new infrastructure. Resource outposts, bounty tuning, faction warfare and sector expansion stay with their assigned master milestones. Acceptance gates determine when that work starts.

@@ -162,7 +162,7 @@ Validation/integrity: `Identity_Mismatch_IsRejected`, `StationAccess_NotVerified
 
 Persistence: `Load_Missing_ReturnsNotFound`, `Create_WhenAnyGenerationExists_ReturnsAlreadyExists`, `Save_StaleRevision_ReturnsConflict`, `Save_WithoutPriorLoad_ReturnsConflict`, `Save_KeepsPreviousGenerationAsBackup`, `Load_OrphanTemp_UsesPrimaryAndQuarantinesTemp`, `Load_PrimaryMissingWithBackup_RecoversFromBackup`, `Load_TruncatedPrimary_QuarantinesAndRecoversFromBackup`, `Load_BadChecksum_QuarantinesAndRecoversFromBackup`, `Load_InvariantViolation_TreatedAsCorrupt`, `Load_PrimaryAndBackupCorrupt_ReturnsCorruptNeverEmptyProfile`, `Load_NewerSchemaVersion_ReturnsUnsupportedAndLeavesFilesUntouched`, `Migrator_AppliesStepsInOrder`, `Migrator_MissingStep_ReportsMigrationMissing` (synthetic versions passed to `ProfileMigrator.Upgrade`), `Payload_UnknownField_IsRejected`, `ProfileId_WithPathCharacters_IsRejected`, `Repository_SecondOpenOnSameRoot_IsRefused`.
 
-Run through `scripts/verify.ps1` (builds the solution, runs the unit project). Each test uses its own temp directory; no shared output.
+For persistence-only changes, run `dotnet test tests/Unit` using the pinned environment. `scripts/verify.ps1` additionally builds/imports/smokes the Godot client and is required when client/shared-physics changes or release scope calls for it. Each persistence test uses its own temp directory.
 
 ## 4. Non-goals and open questions
 
@@ -170,7 +170,7 @@ Non-goals: PostgreSQL, schema migrations for a database, accounts/authentication
 
 Open questions (recorded, not blocking this slice):
 - **Original item data:** the later integration supplies `IPriceSource`, `ICargoPolicy` (capacity, unit weight, stacking, which items count as cargo) and the hull id from data/original; IDs pass through verbatim. Whether the original kept currency as signed 32-bit and how to clamp/import is RT-F035/F049 evidence work.
-- **Proximity/docking:** the simulation/server computes `StationAccessVerified`; the M2 integration decides the station-interaction rule (original shop/proximity bugs are unresolved).
+- **Proximity/docking:** the simulation/server computes `StationAccessVerified`; the M2 integration decides and wires its station-interaction rule. The compatibility packet-shop path now has the separate RT-F389 StoreEnabled/spectator guard; that does not wire this persistence core into the native server.
 - **Upgrade installation restrictions** (hull/slot eligibility) are not modelled; until then `TryGetUpgradePrice` returning false is the only gate. A later `IUpgradeEligibility` may be inserted between steps 4 and 5.
 - **Retained state on death/logout/transfer** (RT-F043/F050/F054) decides which profile fields survive; this layer persists whatever the caller commits.
 - **PostgreSQL (M3):** implement `IProfileRepository` with row-version CAS and a unique `(profile_id, transaction_id)` constraint; the processor contract is unchanged.
@@ -200,4 +200,4 @@ Review fixes (independent review, October 15, 2026; regression tests in `Profile
 
 Known limits (recorded, not fixed): (a) revisions are the only CAS token, so if a primary is lost and recovered from the backup while a second, stale processor in the same process still holds the higher revision, that processor's next save can pass the CAS over a newer commit (requires on-disk corruption plus two live processors on one repository; cross-process sharing is already out of scope). (b) The temp file is flushed with write-through, but `File.Replace`/`File.Move` renames are not themselves flushed, so after a power loss (not a process crash) the last acknowledged rename may be rolled back by the file system; the previous generation is then loaded.
 
-Not implemented (non-goals unchanged): cross-process sharing, PostgreSQL, original item/price/cargo data, upgrade eligibility, retained-state-on-death rules.
+Not implemented (non-goals unchanged): cross-process sharing, PostgreSQL, original price/cargo rule integration, upgrade eligibility and retained-state-on-death rules. A later additive [RT-F068 binding](../development-log/cloud/cloud-rt-f068-progression-contract.md) provides `OriginalProgressionIds` plus `ProfileContentValidator` and a reconstructed original-ID save/load fixture. Repositories/processor do not invoke that validator automatically; it does not establish native persistence or the M2 loop.

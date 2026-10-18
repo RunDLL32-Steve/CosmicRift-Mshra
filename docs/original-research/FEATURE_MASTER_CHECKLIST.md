@@ -380,7 +380,7 @@
 - [x] RT-F376 - [Actual native client package inventory and version route](FEATURE_CATALOG.md#rt-f376)
 - [ ] RT-F377 - [Portal PrizeCrateA graphic reference](FEATURE_CATALOG.md#rt-f377)
 - [ ] RT-F378 - [Original Uiart logo reference](FEATURE_CATALOG.md#rt-f378)
-- [ ] RT-F379 - [Numeric BallGraphic member role](FEATURE_CATALOG.md#rt-f379)
+- [ ] RT-F379 - [BallGraphic trailing fields and native semantics](FEATURE_CATALOG.md#rt-f379)
 - [ ] RT-F380 - [Isolated native-client integration preparation](FEATURE_CATALOG.md#rt-f380)
 - [x] RT-F381 - [Original Rogue package links and transfer audit](FEATURE_CATALOG.md#rt-f381)
 - [x] RT-F382 - [Generic Rogue arena/event runtime source audit](FEATURE_CATALOG.md#rt-f382)

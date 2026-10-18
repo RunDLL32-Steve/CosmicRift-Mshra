@@ -2,7 +2,7 @@
 
 ## Current implementation checkpoint — October 13, 2026
 
-[HANDOFF.md](HANDOFF.md) and the master §18 are current status authority:394 IDs,15 scoped capabilities complete,379 open. Selected11 BLO archives/231 sprites/36,516 frames, canonical1999×1998 overview and source/updated standalone inspector are verified; native palette/blit/bank/HUD/audio/gameplay remain open. All89 canonical BLO directories/1,262 members and609 candidates are inventoried, with eight missing/unknown raw candidates; runtime closure is unverified. Five original help files are recovered separately from pinned Zone-Assets.
+[Master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap) is the status authority; [CONTINUATION.md](../../CONTINUATION.md) records the current handoff. The observations in this October 13 checkpoint are historical evidence, not a fresh verification. Selected11 BLO archives/231 sprites/36,516 frames, canonical1999×1998 overview and source/updated standalone inspector are verified; native palette/blit/bank/HUD/audio/gameplay remain open. All89 canonical BLO directories/1,262 members and609 candidates are inventoried, with eight missing/unknown raw candidates; runtime closure is unverified. Five original help files are recovered separately from pinned Zone-Assets.
 
 The package audit matches19,198 supported values/twelve hull links/222 map references; derived-only VehicleMaker fix restores eight field18 values. Original arena initializes25 computers/100 mineral drops/51teams/42hides; full-asset bounded host uses89 canonical BLOs plus authentic supplemental Soccer. Native test reached welcome only; Start produced no confirmed entry, private test/process cleanup is complete and desktop interaction stays stopped until the user is available. Standalone native mode does not persist progression. Generic handlers being present does not prove original runtime parity. Existing dated source-access observations below retain their historical scope; completed tasks are recorded in history/[CHANGELOG.md](../../CHANGELOG.md).
 
@@ -113,8 +113,8 @@ Pinned repository/schema/license inventory, canonical provenance, original raw/i
 - [ ] **Investigating — RT-F380/F384:** compatible native channel/profile, welcome Start/entry, original hull choice and unspectating; resume desktop work only when the user is available.
 - [ ] **Investigating — RT-F069/F387:** actual original graphics/audio/help/full-LVL delivery and remaining dependency/evaluator eligibility.
 - [ ] **Investigating — RT-F027–F041/F067:** native unit/sentinel/grammar execution; compiled parser success is narrower.
-- [ ] **Not started — M2 canonical queues/RT-F068:** original cargo/refining/trade/upgrades/actors/rewards and durable progression. Existing generic handlers should be verified before deciding to replace them; standalone does not save.
-- [ ] **Investigating — RT-F388–F390:** quantity/credit-order/proximity and null-script join risks; production shutdown remains unresolved.
+- [ ] **M2 native acceptance/RT-F068 integration open:** original cargo/refining/trade/upgrades/actors/rewards and durable progression are not accepted in the native/M2 loop. The persistence core and reconstructed original-ID save/load fixture exist separately; standalone native hosting does not save.
+- [ ] **Native trading/join acceptance after RT-F388/RT-F389/RT-F390/RT-F396:** bounded sale/store/capacity/purchase guards have actual-handler evidence in [RuntimeChecks](../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md); connected behavior, durable transactions and production shutdown remain unresolved.
 - [ ] **Investigating — native presentation/release:** complete bank/blit/HUD/audio/controls and exact-file rights/provenance.
 
 [asset-readme]: https://github.com/InfantryOnline/Zone-Assets/blob/401633b9b6829d9e5ae56b76a2563b1b95bbe4b9/README.md

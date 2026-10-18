@@ -1,6 +1,8 @@
+> Historical snapshot. Preserved for dated evidence; its instructions, counts, branch state and next steps may be superseded. Use [current continuation](../../../CONTINUATION.md), [task queue](../../../TASK_QUEUE.md) and [documentation index](../../README.md) for current work.
+
 # Content and research documentation reconciliation report
 
-Completed October 13, 2026; documentation-only. Authority: [master](ROGUE_TRADER_2_PLAN.md) and [current handoff](docs/original-research/HANDOFF.md).
+Completed October 13, 2026; documentation-only. Authority: [master](../../../ROGUE_TRADER_2_PLAN.md) and [current handoff](../../original-research/HANDOFF.md).
 
 ## Updated scope
 
