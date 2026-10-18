@@ -51,6 +51,6 @@ The user-designated foundation is fowlmouth/cosmic-rift-assets at `eb1514eaae7f9
 
 Originals live in ignored `.tools/references/cosmic-rift-assets/`; derived outputs stay separate. See the [engine evaluation](docs/architecture/ENGINE_EVALUATION.md) for the open production-engine decision.
 
-Current [G9 checkpoint](scripts/original-assets/plan.d/g9.md) reproduces the existing dependency inventory and records supplemental source access plus conditional drop paths. G9 remains claimed/in progress; runtime closure and native acceptance remain open.
+Current [G9 checkpoint](scripts/original-assets/plan.d/g9.md) reproduces the existing dependency inventory and records supplemental source access plus conditional drop paths. The separate [creation/death diagnostic](docs/development-log/2026-10-18-g9-creation-source.md) passes nine actual-handler cases within70 focused checks using NEW isolated state; this does not prove native/original eligibility. G9 remains claimed/in progress; runtime closure and native acceptance remain open.
 
 Current registry: **397 feature entries, 22 scoped completions, 375 open**. M0/M1 prototype acceptance is historical. The original mining/trading/upgrades/persistence loop and native appearance are not accepted. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) distinguishes code inspection, recorded evidence and checks actually rerun.
