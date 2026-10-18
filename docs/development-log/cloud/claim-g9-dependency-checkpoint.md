@@ -1,4 +1,4 @@
-Review status: review-pending
+Review status: review-approved
 
 # G9 creation-source and bounded maker/death diagnostic
 
@@ -8,4 +8,6 @@ Root coordinator approved the exact nine-case diagnostic contract and inspected 
 
 Verification: prepare-derived-source exit0; final runtime wrapper -Build exit0, Accepted=true70 checks/0 failures (nine Maker plus existing61), with actual source/assembly hashes and canonical ITM/VEH integrity. Initial author fixture/encoding failures and unpreserved overwritten70/6 report are disclosed in evidence. No baseline/native-delivery/login/Godot/flight/simulation suites. Files: MakerChecks.cs, minimal Program.cs, own RuntimeChecks/G9 plan and source evidence, brief, stable plan/root/current-status pointers and this log.
 
-Resume: fresh independent full-diff/exact-head review, relevant focused reproduction and final CI through the new PR; original author fixes findings on this branch and never merges. No G9 completion, release or M5 work is implied.
+Independent review: a newly started `gpt-6.1-sol` / XHigh reviewer read the complete 13-file diff at developer head `52ac6e4df12322e1c682913de5ea2f6e11ad8781` against master section18, G9 and the nine-case contract; no actionable findings. It independently ran prepare-derived-source (exit0), then runtime -Build (exit0, Accepted=true,70 checks/0 failures, all nine Maker outcomes inspected). The wrapper verified46 canonical foundation files. The reviewer matched all11 reported source hashes and four loaded assembly hashes,13 newly documented pinned-source hashes after LF normalization, canonical ITM/VEH hashes and200/30 unique raw IDs. Tracker QA is TRACKERS_CONSISTENT397/22/375;30 added/new local-link occurrences including fragments resolve; git diff --check passes. Its separately preserved ignored report is `artifacts/rogue-runtime-checks/pr63-independent-review/reviewer-fixed.json`, SHA256 `a019f77c7abbf424a0a299c1c6947e97bd17f53ecdcabd73f7270b2469af6e55`; the author's report was preserved separately before reproduction. This REVIEW commit changes review metadata only. Exact-head formal verdict, Windows CI and merge records are maintained in PR63. Baseline/native-delivery/login/Godot/flight/simulation checks were skipped because this slice does not change those paths.
+
+Resume: continue the remaining G9 reference/caller/lifecycle/sentinel audits under its existing claim; user-present native work retains its separate prerequisites. No G9 completion, release or M5 work is implied. Only the independent reviewer applies the exact-head merge gate; the author never merges.
