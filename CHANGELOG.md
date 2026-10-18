@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 bounded maker/death diagnostic — October 18, 2026
+
+- Trace pinned VehicleMaker83/84/85 → Computer425/426/427 sources and add nine actual-handler diagnostics to existing RuntimeChecks. Isolated packet/action/factory/death/veto controls pass within70 checks, retaining canonical bytes/values and Nanobot2023; no native client, poll or physics ticks. [Evidence and limitations](docs/development-log/2026-10-18-g9-creation-source.md). G9/RT-F069/RT-F386 remain open; no production rule or original completion claim.
+
 ## G9 dependency documentation checkpoint — October 18, 2026
 
 - Reproduce the existing 89-archive / 1,262-member / 609-candidate inventory in memory, retaining eight raw residuals, and reconcile current supplemental byte access with historical package/startup evidence. Record conditional Computer explosion/death source paths and remaining offline/native work in the [G9 ledger](scripts/original-assets/plan.d/g9.md). No executable behavior, canonical content, registry count or acceptance checkbox changes; G9 and RT-F069 remain in progress/open.

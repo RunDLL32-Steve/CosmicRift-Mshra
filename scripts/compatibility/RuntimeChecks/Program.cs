@@ -15,8 +15,13 @@ try
     Log.assume(Log.createClient("RuntimeChecks"));
     string itemPath = Path.Combine(repo, ".tools", "references", "cosmic-rift-assets", "ITM", "Rogue_mp.itm");
     string originalHash = Hash(itemPath);
-    var checks = ShopChecks.Run(itemPath).Concat(CapacityChecks.Run()).Concat(RoutingChecks.Run(args[3])).ToArray();
-    if (Hash(itemPath) != originalHash) throw new InvalidDataException("Original item bytes changed.");
+    string vehiclePath = Path.Combine(repo, ".tools", "references", "cosmic-rift-assets", "VEH", "Rogue.veh");
+    string vehicleHash = Hash(vehiclePath);
+    if (originalHash != "dd85dea54055108ec7c2996716c430a49c815baa937d36bc2a0a9b09b68334c7" ||
+        vehicleHash != "9eefa85a04587867616be786fffc664f3ebc0fb1d50ba6f6fd303a7a8a988572")
+        throw new InvalidDataException("G9 requires the pinned canonical ITM and VEH bytes.");
+    var checks = ShopChecks.Run(itemPath).Concat(CapacityChecks.Run()).Concat(RoutingChecks.Run(args[3])).Concat(MakerChecks.Run(itemPath, vehiclePath)).ToArray();
+    if (Hash(itemPath) != originalHash || Hash(vehiclePath) != vehicleHash) throw new InvalidDataException("Original item/vehicle bytes changed.");
     var failures = checks.Where(check => !check.Passed).Select(check => check.Name).Order().ToArray();
     string[] expectedBaselineFailures = [
         "Shop.Oversell", "Shop.ZeroSkipsHook", "Shop.MinValue", "Shop.BalanceOverflow", "Shop.PriceOverflow",
@@ -36,7 +41,27 @@ try
         Checks = checks, ExpectedBaselineFailures = args[2] == "baseline" ? expectedBaselineFailures : [],
         CanonicalCommit = "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
         UpstreamCommit = "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849",
-        CanonicalItemSha256 = originalHash, DerivedArenaSha256 = Hash(source),
+        CanonicalItemSha256 = originalHash, CanonicalVehicleSha256 = vehicleHash, DerivedArenaSha256 = Hash(source),
+        MakerDiagnostic = new
+        {
+            RootScopeApproval = "2026-10-18 bounded G9 nine-case diagnostic contract; original acceptance stays open",
+            Sources = new[]
+            {
+                "scripts/compatibility/RuntimeChecks/MakerChecks.cs", "scripts/compatibility/RuntimeChecks/Program.cs",
+                ".tools/compatibility/server-working/dotnetcore/Assets/Itm/ItmInfo.VehicleMaker.cs",
+                ".tools/compatibility/server-working/dotnetcore/Assets/Itm/ItmInfo.Projectile.cs",
+                ".tools/compatibility/server-working/dotnetcore/Assets/Shared/ArmorValues.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Logic/Packets/Update/Game.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Logic/General/Assets.Skills.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Game/Assets/AssetManager.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Game/Arena/ArenaState.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Game/Objects/Vehicle.cs",
+                ".tools/compatibility/server-working/dotnetcore/ZoneServer/Game/Objects/Vehicle.Computer.cs"
+            }.ToDictionary(path => path, path => Hash(Path.Combine(repo, path))),
+            CheckCount = checks.Count(check => check.Name.StartsWith("Maker.")),
+            NativeOrOriginalEligibilityVerified = false,
+            Composition = "Parsed pinned ID maps injected into isolated AssetManager; NEW player/team/map/position/health1; actual handlers; manually drained one action, no scheduler/Deserialize/server init"
+        },
         RoutingConfigSha256 = Hash(args[3]),
         AssemblyHashes = new
         {
@@ -44,7 +69,7 @@ try
             Network = Hash(typeof(InfServer.Protocol.Client).Assembly.Location), Assets = Hash(typeof(Assets.ItemInfo).Assembly.Location)
         },
         SocketBeginCalls = 0, PollCalls = 0, PhysicsTicks = 0, NativeClients = 0,
-        Scope = "Actual shop sell/buy, join and routing handlers with NEW in-memory boundary fixtures; no durable transactions, native entry, gameplay parity or persistence acceptance."
+        Scope = "Actual shop sell/buy, join, routing and bounded maker/death diagnostic handlers with NEW in-memory boundary fixtures; no durable transactions, native entry, gameplay parity or persistence acceptance."
     };
     Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
     File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
