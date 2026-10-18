@@ -31,7 +31,9 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 
 **Conclusion**: `PrizeCrateA` is genuinely absent. No member with that name or any close variant exists in the archive. The archive contains prize-related graphics (SuperBombPrize, SuperMinePrize, SuperMultiPrize) but nothing named PrizeCrateA. This is a genuine data gap in the original assets.
 
-**Implication**: Portal item's visual reference cannot be resolved from the canonical archives. Requires either a fallback mechanism or identification of the intended graphic from runtime behavior.
+**October18 pinned-loader role**: The [Portal source checkpoint](../development-log/2026-10-18-g9-portal-source.md) identifies f23/24 as this fixed-index loader's iconGraphic; prefireGraphic71/72 and warpGraphic101/102 normalize from raw leading-space `" None"`/`"None"` to None/None. This is not native field/display/revision proof or a missing-warp-effect finding. The selected archive-registration/factory/inherited ReadFile operations inspected do not demonstrate named CFS member resolution, display or fallback; the exact tracked-C# ReadBlobEntries search is bounded and does not exclude dynamic/native consumers.
+
+**Implication**: The known missing icon pair under this loader remains unresolved. Establish matching original/native icon-consumer/version/display/fallback evidence; do not substitute existing PortalGraphic.cfs or invent artwork. RT-F377 stays open.
 
 ---
 

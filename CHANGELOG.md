@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 Portal source roles — October 18, 2026
+
+- Distinguish this pinned loader's Portal iconGraphic pair from its None/None prefire/warp slots and the selected archive-container loading path. [Raw/normalized roles, source evidence and limits](docs/development-log/2026-10-18-g9-portal-source.md). Markdown only; no missing-warp-effect/replacement/native-role acceptance, runtime rerun or feature/count change.
+
 ## G9 BallGraphic source applicability — October 18, 2026
 
 - Document the pinned C# string/archive-access boundary and nearby sprite-reader/version contexts without treating a seven-token shape as CFG grammar evidence. [Source table and limits](docs/development-log/2026-10-18-g9-ballgraphic-source.md). Markdown only; no parser/runtime rerun, original value change or acceptance/count change. G9/RT-F069/RT-F379 remain open.
