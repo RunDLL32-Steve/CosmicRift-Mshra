@@ -1,6 +1,6 @@
 # Client implementation plan
 
-Reviewed October 13, 2026 against current source and saved acceptance logs. This documentation review runs no build, client, GUI or simulation.
+Source-audited October 17, 2026; dated acceptance records below remain historical. This documentation review runs no build, client, GUI or simulation.
 
 Status authority: [master §18 M1 engineering acceptance/fidelity gate](../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§1.3 current work](../ROGUE_TRADER_2_PLAN.md#13-continued-exact-reproduction--october132026), [§15 UI](../ROGUE_TRADER_2_PLAN.md#15-user-interface) and [§16 appearance](../ROGUE_TRADER_2_PLAN.md#16-graphical-direction). Original acceptance is tracked in the [feature catalog](../docs/original-research/FEATURE_CATALOG.md); the master is the status authority.
 
@@ -24,7 +24,7 @@ Godot 4.5.1/.NET 8 is the local engineering testbed and original-content inspect
 - [ ] **Investigating — RT-F023–RT-F026/RT-F074–RT-F075:** native bank/state selection, palette/HSV/shadow/blit, animation/timing, layered effects/audio and original HUD/controls. Column 5 and direction rounding are preview choices.
 - [ ] **Investigating — RT-F021/RT-F022/RT-F069:** original LVL/LIO coordinates, terrain/collision, objects and runtime dependency eligibility. The overview is an image; it is not a playable level.
 - [ ] **Investigating — native engine route:** the separate native client reached Welcome FreeInfantry; Start gave no confirmed entry. No native arena/player/asset-delivery acceptance. Test processes and private profile were cleaned; do not interact with the desktop while the user is playing. See [native plan](../docs/architecture/NATIVE_CLIENT_PLAN.md).
-- [ ] **Not started — original Godot runtime integration if required by engine choice:** canonical hull/weapon/loadout/economy/progression behavior. The new shared prototype schema is not a conversion of all original records.
+- [ ] **Not started — original Godot runtime integration if required by engine choice:** canonical hull/weapon/loadout/economy/progression behavior. The shared prototype schema is not a conversion of all original records. Cargo/pickup, Persistence, Trading, Protocol and AI libraries now exist separately; `GameClient` still constructs `new WorldSimulation(_catalog)` without cargo configuration and has no session, transaction or NPC-controller integration.
 - [ ] **Not started — M2/M3 final acceptance:** mining, trading, repairs, upgrades, saves and independent multiplayer through the selected engine; preserve original records rather than implementing unrelated proposals.
 
 ## Folder map and reproduction

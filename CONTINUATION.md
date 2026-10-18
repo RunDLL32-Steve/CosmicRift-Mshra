@@ -1,47 +1,34 @@
-# Current continuation — October 14, 2026
+# Current continuation — October 17, 2026
 
-Read PROJECT_START.md, AGENTS.md, the complete ROGUE_TRADER_2_PLAN.md and the affected folder plan. Master/catalog:397 feature entries,22 scoped completions,375 open. Commits/merges to main go through the CI/CD review process; no push unless the user asks.
+Read [PROJECT_START.md](PROJECT_START.md), [AGENTS.md](AGENTS.md), the complete [master](ROGUE_TRADER_2_PLAN.md), and the selected task's folder plan. **397 feature entries, 22 scoped completions, 375 open.** The source/documentation audit baseline is `d14df02` from `origin/main`; later remote changes require reconciliation.
 
-## Accomplished
+## Current implementation
 
-- M0/M1 engineering prototype acceptance is complete; its41 unit/source/export input/world results are historical.
-- Original content remains pinned/unchanged at eb1514eaae7f9b9425307d9cc043c74ecdd15e35.46 foundation records and99 distinct canonical hashes are verified by the respective inventories.
-- Original viewer and updated Windows export pass:12 hulls,231 sprites,1999×1998 overview; source/standalone input and three rendered pages at world tick0. Artifact: artifacts/windows/OriginalContent-2026-10-13-win-x64.zip.
-- All89 canonical BLO directories/1,262 members indexed;609 raw candidates audited. Full runtime closure remains open.
-- Actual parser/package audit validates200 items,30 vehicles,12 hull links,81 LIO records,19,198 supported values and222 map references.
-- Original arena initializer passes:25 computers,100 mineral drops,51 teams,42 hides,zero clients/polls/physics. Bounded full-asset host passes with two loopback sockets and unchanged files; its separate ready report lists26 initial vehicles.
-- VehicleMaker original field18 fix restores exactly eight values;allother exports unchanged.
-- Authentic shared Soccer archive resolves full-asset startup without changing89 canonical archives.
-- Native client reached welcome;Start had no confirmed entry. Desktop testing stopped while user played;owned processes/private registry test keys cleaned up.
-- RT-F388/RT-F390: derived sale quantity/cash ordering and null-script capacity fixes pass actual-handler checks. Canonical item values, original buy branch and upstream references unchanged.
-- RT-F395: shared NEW/provisional radar config fixes prior swallowed divide-by-zero errors; host rejects invalid divisors/logged runtime exceptions. Final headless10.25s host exit0,zero exceptions/clients,unchanged originals.35/35 focused checks pass against16 reproduced baseline failures.
+- The Godot client still runs the provisional flight/combat range and the original-content inspector. It references GameData and Simulation; it does not connect the trading, persistence, protocol or AI modules into a Rogue Trader loop.
+- `shared/RogueTrader.OriginalData` contains raw RPG/VEH/ITM/CFG readers and LIO reference views, typed reference views and canonical guards. Later audits/oracles expand field/reference coverage. Data availability does not complete native runtime behavior.
+- `server/RogueTrader.Simulation` includes generic cargo pickup and replay recording/hash comparison. Cargo masses/capacities and pickup rules are not accepted original semantics.
+- `server/RogueTrader.Persistence` contains profile repositories and the transaction core; original-ID content validation is also present. `server/RogueTrader.Trading` supplies generic proximity and buy/sell orchestration. No client exit-and-return progression is accepted.
+- `shared/RogueTrader.Protocol` contains a binary message codec; there is no production transport/authentication session. `server/RogueTrader.AI` contains a NEW/provisional pirate controller; original pirates and world/client integration remain open.
+- The derived compatibility pipeline includes scoped sell, buy, store-location, null-script capacity, radar-config and packet-length fixes. RT-F388/389/390/391/395/396/397 have their narrow recorded acceptance; they do not establish a playable native session or production shutdown safety.
+
+## Recorded acceptance and limits
+
+M0/M1's 41-unit-test source/export/input/world acceptance is historical, as are the October 13 original inspector/export checks (12 hulls, 231 sprites, exact 1999×1998 overview). See [progress and evidence](docs/development-log/PROGRESS.md), [CHANGELOG](CHANGELOG.md) and dated logs. No gameplay checks were rerun for this documentation-only change.
+
+The October 13 parser/package/arena/host work records 200 items, 30 vehicles, 12 hull links, 81 LIO records, 25 initialized computers and 100 drops. The separate host-ready observation of 26 initial vehicles is a different measurement. Native Welcome was observed; Start/arena entry was not confirmed. Old test processes/private keys were cleaned up at that checkpoint; this is not a claim about every process currently running.
+
+RT-F397 merged previously; its historical evidence covers 46 canonical packets and 60 inert queue fixtures. RT-F396's dated buy slice records 50 total checks; current RuntimeChecks source has 15 `Buy.*` checks and the later fixed report records 61 total checks. Totals from different revisions are not interchangeable. Wrappers now check the cached process handle/exit code: blank or non-zero exit is failure, even if a report exists.
+
+Ignored local artifacts may be absent in another checkout. Historical test totals describe the dated run, not the current suite size. Original data/runtime oracle skips must be disclosed, and source inspection cannot substitute for native reception, launch or gameplay acceptance.
 
 ## Next
 
-- RT-F001-RT-F012 raw hull catalog: `shared/RogueTrader.OriginalData` (branch feat/original-hull-catalog) loads the 12 RPG hulls linked to VEH rows with a SHA-256 guard; 81 unit tests (41 existing + 40 new). Hull boxes stay open: next is native ship choice/loadout/movement and interpreting units, energy and cargo before any value is applied.
-- Persistence/transaction core (branch feat/m2-persistence-economy-core): data-agnostic `RogueTrader.Persistence` (profile model, file/in-memory repositories with atomic write, backup, checksum, quarantine, schema migration hook; idempotent compare-and-swap `TransactionProcessor`) implemented per docs/architecture/PERSISTENCE_AND_TRANSACTIONS_DESIGN.md; unit tests 210/210 pass (41 existing + 40 hull loader + 129 persistence, including the independent review's regression fixes). Engine-side only: no original prices/cargo/hulls bound, no gameplay or UI integration, no master M2 box or RT-F ID ticked. Next: bind original hull/item/price data and the station-interaction rule, then M2 exit-and-return acceptance.
+Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its separate brief under [docs/tasks](docs/tasks/README.md). Check live PR/branch claims before implementation. Generic queue work items already present in source are history, with their original-parity gaps retained.
 
-- RT-F397 narrow acceptance complete and merged to main (8b34c38): root baseline/fixed builds verify46 canonical packets and60 inert queue fixtures;29 canonical/24 synthetic length defects and16 wrong queue choices become zero. No desktop interaction. See [issue log](docs/development-log/2026-10-14-rt-f397.md); F387/F393 broader acceptance remains unchecked.
+The remaining fidelity gates include native Start/profile/entry and engine choice (RT-F380/F384), actual delivery/offline patch readiness (RT-F387/F393), unresolved original reference semantics (RT-F377–379/F386/F069), and original gameplay/persistence acceptance. Use the task briefs and [feature catalog](docs/original-research/FEATURE_CATALOG.md) for exact scope; all unfinished feature boxes stay open.
 
-- [ ] In progress:diagnose native Start/profile behavior,confirm compatible engine,join local arena,choose ship/unspectate when user is available.
-- [ ] Testing:actual native asset transfer/full LVL trailer and offline patch-announcement guard.
-- [ ] Investigated:Portal/PrizeCrateA,Uiart/logo,numeric BallGraphic and missing item66 — all four genuinely absent/unknown. Findings: docs/original-research/MISSING_REFERENCES_FINDINGS.md.
-- [x] RT-F396 (merged to main, ff3397d): derived buy patch widens price math, rejects negative prices and ushort stack overflow, revalidates cash/limits after Shop.Buy, delivers exactly or rolls back, debits only after delivery; 50/50 actual-handler checks pass (14 buy checks; 6 fail on pristine upstream).
-- [x] RT-F389 packet-shop location gate (branch fix/rt-f389-store-proximity): derived canUseStore applies the original /buy,/sell rule (StoreEnabled terrain, or spectator with SpectatorStore); 11 Store.* checks, 61/61 fixed, 8 fail pre-patch. Not covered: skill shop (terrain skillEnabled), durable transactions, production shutdown, native store UI.
-- [ ] Not started:verify original movement/combat/mining/refining/trading/repair/upgrades/rewards/native appearance and audio.
-- [ ] Not started:add persistent progression;standalone does not save.
-- [ ] Open:multiple native clients and final original playable-package acceptance;engine choice remains open.
+Do not repeat merged hull-loader, persistence-core, cargo, trading, replay, codec or provisional-AI work. Extend only after its dependencies and original semantics are validated. Preserve canonical data, distinguish generic tests from original behavior and keep later expansion deferred.
 
-- [x] RT-F391 closed as validated optional admin policy (no code/stub); see docs/development-log/2026-10-15-rt-f391.md. Skill-shop location gate (terrain SkillEnabled) deliberately NOT built: the pinned server parses the flag but never enforces it, so a gate would invent a rule.
+## Handoff and review
 
-## Evidence and rules
-
-Maintained delegation rule: explicitly select effort per task (low mechanical docs/checks;medium bounded research/simple implementation;high complex work;Ultra only when justified),reassess for changed assignments,and review every agent's actual work/evidence before acceptance. Full rule:AGENTS.md,maintained agent qualification and review section. This persists across sessions.
-
-Plans:docs/architecture/NATIVE_CLIENT_PLAN.md,ROGUE_RUNTIME_PLAN.md,ROGUE_PACKAGE_AUDIT_PLAN.md;client/ORIGINAL_INSPECTOR_PLAN.md;scripts/original-assets/IMPLEMENTATION_PLAN.md andDEPENDENCY_PLAN.md;data/original domain queues;docs/original-research/FEATURE_CATALOG.md.
-
-Logs/reports:artifacts/qa/OriginalContent,artifacts/rogue-package-audit,.tools/compatibility/reports,.tools/compatibility/local-working/session-host/reports,and.tools/native-client-inspection/native-test-cleanup.json.
-
-Latest runtime evidence:artifacts/rogue-runtime-checks/{baseline,fixed}.json,host/{ready,exit}.json,invalid-host/exit.json,transformation-guards.json;docs/development-log/2026-10-14.md. Runtime checks require -Build;SessionHost -Start automatically compiles. Both use shared SessionHost/write-session-config.ps1;fixed checks generate fresh XML and reports hash loaded assemblies. No native UI/registry interaction occurred October14. No build remains running.
-
-SDK8/Godot is the inspection toolchain;upstream uses isolatedSDK10.0.401. Preserve originals and distinguish generic-handler availability from verified gameplay. Simulations require a completed behavior needing verification. Documentation reconciliation is complete. Completed runtime safeguards need no repeated baseline simulations;run focused checks for the next completed feature only. Latest three documentation reports retain earlier folder reconciliation evidence.
+The [documentation index](docs/README.md) is the navigation entry. [Archived handoffs](docs/archive/README.md) are dated snapshots. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) records coverage, source evidence, mechanical checks and the review outcome. This branch changes documentation only and does not mark new gameplay acceptance.

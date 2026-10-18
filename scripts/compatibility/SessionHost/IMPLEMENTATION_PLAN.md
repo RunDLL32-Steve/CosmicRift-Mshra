@@ -23,8 +23,8 @@ Six focused actual-helper routing checks pass in the [fixed report](../../../art
 - [ ] **In progress — RT-F380/RT-F384:** supported engine/profile/isolation and actual native Start/entry; resume desktop only when user is available.
 - [ ] **Testing — RT-F393:** compiled derived offline CS_Ready patch-announcement guard needs actual native handshake acceptance.
 - [ ] **Not started — RT-F387:** verify actual asset download/cache/receiver and full original map rendering.
-- [ ] **Investigating — RT-F389:** authoritative shop station/proximity eligibility.
-- [ ] **Not started — RT-F396:** purchase fulfillment/overflow/cash ordering; scoped sale and null-script capacity fixes are covered by the completed RuntimeChecks evidence.
+- [ ] **Native store acceptance after RT-F389:** verify the connected native UI against the implemented packet-shop StoreEnabled/spectator guard; see [RuntimeChecks](../RuntimeChecks/IMPLEMENTATION_PLAN.md).
+- [ ] **Native purchase acceptance after RT-F396:** verify connected original purchase behavior and durable transactions. Bounded purchase arithmetic/delivery/credit ordering is covered by the completed RuntimeChecks evidence.
 - [ ] **Investigating:** production shutdown and durable transaction/persistence behavior; standalone durable persistence remains absent.
 - [ ] **Not started:** native original flight/combat/mining/refining/trading/upgrades/rewards parity and multiple-client acceptance.
 

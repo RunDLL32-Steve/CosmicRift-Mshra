@@ -1,5 +1,11 @@
 # Changelog
 
+## Documentation and task organization — October 17, 2026
+
+- Reconcile active source/module, merge-state, compatibility-check and parity-limit descriptions against `d14df02`; distinguish dated runs from current source and full original acceptance. Correct the BallGraphic archive/member interpretation and one vehicle-loader XML field-count comment using preserved source evidence. No executable behavior or canonical content changes.
+- Move superseded root reports/handoffs to `docs/archive/2026-10/`, add a documentation index and give each active queue item a separate source-referenced brief plus a reusable template. Keep original feature/milestone acceptance flags and full scope unchanged.
+- Record audit coverage, local-reference/tracker checks and independent review under `docs/audits/`; no builds, native desktop runs or gameplay simulations for this documentation work.
+
 ## Trading station buy/sell - October 16, 2026
 
 - Add `server/RogueTrader.Trading` (queue item M4): a dock-radius proximity predicate in world units, a `StationPriceTable` price source (explicit tables or a provisional binding of the original ITM buy/sell fields with sentinels kept raw), `CatalogCargoPolicy` (the production `ICargoPolicy` over the simulation `CargoCatalog`) and `TradingService`, which passes the server-side docking verdict to the Persistence transaction core. Selling credits and removes atomically, buying checks wallet and cargo capacity, and replays stay idempotent. A new small project was unavoidable because Persistence and Simulation do not reference each other.

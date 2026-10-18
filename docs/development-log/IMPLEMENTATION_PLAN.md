@@ -1,16 +1,9 @@
 # Progress tracking implementation plan
 
-Master: [§§18, 21 rule 7, 25](../../ROGUE_TRADER_2_PLAN.md). Reconcile through [PROGRESS.md](PROGRESS.md).
+Authority: [master §§18/21/25](../../ROGUE_TRADER_2_PLAN.md), [current progress](PROGRESS.md) and [continuation](../../CONTINUATION.md).
 
-- Completed: Create reciprocal links between master, central progress index and folder subplans.
-- Completed: Record the user clarification: original Cosmic Rift assets and presentation for Rogue Trader.
-- Completed: Preserve evidence classifications, actual source access and prototype/fidelity distinctions.
-- Completed: Reconcile final test/export evidence across every affected checklist.
-- [ ] Continue dated entries for future implementation phases.
+Purpose: preserve dated implementation/verification evidence and connect folder plans to acceptance. Per-item changes belong in their own dated log and `plan.d` file, not a shared append queue.
 
-October14 completed:[runtime safeguards](2026-10-14.md),scoped RT-F388/390/395 acceptance35/35 plus healthy10-second headless host;master/catalog/projection reconciled396/18/378. Native entry andoriginal gameplay remainopen. Routine documentation/audit agents use low ormedium reasoning effort perAGENTS.md.
+Current organization: [PROGRESS.md](PROGRESS.md) indexes current module status; dated entries retain the checks and limitations at their revision. Historical test totals are not the current test-suite size. [October 17 documentation audit](../audits/2026-10-17-documentation-audit.md) records this reconciliation; older handoffs are [archived](../archive/README.md).
 
-Final reconciliation: master M0/M1 engineering checklists are checked. Full solution and 41 unit tests pass, source and exported clients pass native-input/UI and world smoke, and actual rendered gameplay/controls/export captures were inspected. See docs/development-log/PROGRESS.md for evidence and original reproduction/engine gates.
-
-
-October13 checkpoint reconciled:master372 IDs/current stages,5 scoped completions,folder histories and CHANGELOG updated. User stopped research;resume from CONTINUATION.md. Updated export/native runtime/M2 remain open.
+Next: record future completed work with exact revision, focused results, unverified acceptance and review outcome. Do not mark original parity from source availability or generic fixtures. Documentation-only changes run tracker checks without builds, GUI or simulations.

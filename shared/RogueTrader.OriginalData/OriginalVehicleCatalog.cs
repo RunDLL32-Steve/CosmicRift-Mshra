@@ -45,7 +45,7 @@ public sealed class OriginalVehicleRecord
 /// <see cref="OriginalHullCatalog"/>, whose code is not changed). Rules: every non-blank row must carry version
 /// token <c>v53</c> and at least four fields; f[0] and f[2] must be integers; ids must be unique; otherwise
 /// <see cref="OriginalVehicleException"/> (or <see cref="OriginalDataFormatException"/> for a malformed integer) is
-/// thrown. Pinned file: 30 rows, rows 1-17 type 5 (17 computers; Solar Mold has 478 fields, the other sixteen 477),
+/// thrown. Pinned file: 30 rows, rows 1-17 type 5 (17 computers, each with 477 fields, including Solar Mold),
 /// rows 18-29 type 2 (the 12 hulls, 454 fields), row 30 type 4 Spectator Mode (202 fields). The meaning of the
 /// record-type values is inferred from row names and the hull loader only; it is not established by documentation.
 /// </summary>

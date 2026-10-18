@@ -13,8 +13,8 @@ Seven original resource identities and four separate credit helpers are parsed w
 ## Next and parity boundary
 
 - [ ] **Not started — RT-F013–F019/F042–F047:** validate original generation, mining/pickup, cargo handling, refinery quantities/timing, trading and loss lifecycle.
-- [ ] **Investigating — RT-F388/F389:** fix and verify relevant sell/proximity behavior before checking a resource/helper trade feature complete.
-- [ ] **Not started — RT-F068:** verify session-to-session currency/inventory; standalone hosting currently does not persist.
+- [ ] **Native resource trading after RT-F388/F389:** bounded sell/store guards are complete; verify each original resource/helper trade path and durable conservation before completing that record. See [RuntimeChecks](../../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md).
+- [ ] **RT-F068 integration:** persistence core and reconstructed original-ID save/load fixture exist; native/M2 session-to-session currency/inventory integration remains unverified. Standalone native hosting does not persist. See [RT-F068 evidence/limits](../../../docs/development-log/cloud/cloud-rt-f068-progression-contract.md).
 
 Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.
 

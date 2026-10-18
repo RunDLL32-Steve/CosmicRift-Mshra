@@ -1,13 +1,11 @@
 # Documentation folder plan
 
-Authority:[master](../ROGUE_TRADER_2_PLAN.md),[current continuation](../CONTINUATION.md),and[progress](development-log/PROGRESS.md).
+Authority: [master](../ROGUE_TRADER_2_PLAN.md), [continuation](../CONTINUATION.md) and [progress](development-log/PROGRESS.md). Current registry: **397 feature entries, 22 scoped completions, 375 open**.
 
-Purpose:architecture,original-source research,game design,balance anddevelopment evidence. Current state:397 catalog/master entries with22 scoped completions and375 open;native playable entry andfulloriginalparity remainopen.
+Purpose: maintain architecture, original-source evidence, game design, balance, task assignments and development history. Start at the [documentation index](README.md).
 
-Accomplished:original-source provenance/field catalogs,component subplans,current proof/history,master/status reconciliation andknown-gap tracking.
+Current organization: `tasks/` holds separate actionable briefs; `audits/` holds source/documentation review evidence; `archive/` preserves superseded handoffs; existing domain folders retain their plans and dated evidence. See [October 17 audit](audits/2026-10-17-documentation-audit.md).
 
-Next:maintain current feature stages with implementation/testing;record major completions inCHANGELOG;do not treat generic source handlers or pictures as runtime acceptance.
+Next: keep present-tense descriptions aligned with source and every completed claim linked to dated verification. Update task status and item-specific `plan.d` evidence with implementation; keep full original-feature acceptance in the master/catalog. Native entry, delivery, original evaluator semantics, gameplay and persistent client progression remain open.
 
-Each child folder has its own implementation plan or scoped detailed plans. Historical logs/hand-offs retain their dated evidence. Documentation changes require local consistency/link checks only.
-
-October14:[runtime safeguard implementation/evidence](development-log/2026-10-14.md) records35/35 focused handler checks,healthy10-second headless host and scoped master/catalog completion;original buying/store eligibility/gameplay/persistence remainopen.
+Markdown-only reconciliation uses tracker and local-reference inspection. It does not require builds, native interaction or gameplay simulations.

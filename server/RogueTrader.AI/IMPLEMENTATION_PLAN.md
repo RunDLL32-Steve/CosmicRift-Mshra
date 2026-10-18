@@ -8,21 +8,14 @@ Module status: **Provisional NEW pirate controller present (TASK_QUEUE M6, merge
 
 - [ ] **Investigating** — RT-F060/RT-F272/RT-F306: canonical PirateStation and Pirate Base controller/child-ship/loadout/spawn/drop/team relationships. Do not invent a generic pirate and call it original parity.
 - [ ] **Investigating** — RT-F059/RT-F062 and relevant RT-F269–RT-F285 actors: distinct Null enemies, mold/spore ecology and production/defense/refinery/repair actors. Preserve original categories, faction/owner values and unresolved/missing references; detailed records remain in the catalog.
-- [ ] **Not started** — completed initial NPC targeting, pursuit, thrust/rotation, firing/range control, damage/destruction and rewards under the same validated rules as players. A proposed patrol/chase state machine alone is not original controller evidence.
+- [ ] **In progress (NEW engine groundwork)** — `PirateController.Think` already emits targeting, pursuit, turn/thrust and fire decisions; [M6](plan.d/m6.md) records tests against the player slot. Separate NPC execution, damage-to-player and reward attribution are still absent from `WorldSimulation`; original controller behavior remains unverified.
 - [ ] **Investigating** — RT-F027–RT-F032/RT-F036–RT-F041/RT-F051/RT-F067: native movement/projectile/energy/reward units, negative sentinels and event order. Emulator bot formulas differ from its client-controlled player path and cannot independently prove native AI parity.
 - [ ] **Not started** — per-feature tests for implemented NPC behavior and its original spawn/drop/reward chain, then M3 shared execution acceptance. Run focused simulation only after the specific gameplay feature exists and needs verification.
 - [ ] **Investigating** — original direction/bank/pose and animation selection RT-F023–RT-F024/RT-F074–RT-F075 with the client. Visible original artwork cannot complete the AI feature.
 - [ ] **Not started** — record implementation/evidence and reconcile only verified actor features to master/catalog; leave discovery and inferred behavior unchecked.
 
-Completion history: no AI feature is complete. Prior [41-test prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) exercises stationary targets, not pursuit/NPC intelligence. No builds/launches/tests rerun for this review.
+Completion history: NEW controller groundwork is recorded in [M6](plan.d/m6.md); no original AI feature or playable NPC integration is complete. Prior [41-test prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) exercises stationary targets, not pursuit/NPC intelligence. No builds/launches/tests rerun for this review.
 
-## Current reconciliation — October 13, 2026
+## Source audit — October 17, 2026
 
-Documentation-only source/saved-log review; no new build/test/GUI/simulation. Master registry: **394 IDs, 15 narrowly completed scopes, 379 open**. Completed prototype work above is history; original parity remains open unless its exact catalog acceptance passed.
-
-Separate compatibility evidence has advanced beyond parser-only: RT-F381/F382 package/runtime-source audits, RT-F383 actual original arena initialization, RT-F385 exact eight-value parser regression, and RT-F392/F394 full-asset loopback host/authentic shared Soccer are complete. [Runtime plan](../../docs/architecture/ROGUE_RUNTIME_PLAN.md) and [package plan](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) carry those proofs. This does not implement production services or tests in reserved folders.
-
-The native client reached Welcome FreeInfantry; Start produced no confirmed entry. Native asset delivery, actual original gameplay and durable progression remain unverified. Standalone compatibility mode does not save progression. Owned test client/backend/private namespace were removed; no desktop interaction while the user is playing. [Native plan](../../docs/architecture/NATIVE_CLIENT_PLAN.md).
-
-Next remains the unchecked per-feature queue in this document, using original fowlmouth records unchanged. Completed original viewer/package/input scopes RT-F020/F073/F373/F374 are historical proof, not native original appearance. RT-F375 all-archive inventory is complete; RT-F069 runtime dependency closure and Portal/logo/numeric Ball/item66 eligibility remain open. Original units/evaluators/bank/blit rules and shop/proximity/null-script bugs remain unresolved. NEW prototype tuning and modern expansion proposals cannot replace original parity.
-
+Current code and remaining integration limits are recorded in the [source documentation audit](../../docs/audits/2026-10-17-source-docs.md). Earlier dated test counts above are historical branch results, not a current-tree test run. No build, runtime check, GUI or simulation was run for this documentation audit. Global feature counts and completion status belong to [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap).

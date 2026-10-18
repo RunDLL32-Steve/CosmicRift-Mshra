@@ -27,7 +27,7 @@ This subplan reconciles with [master §1.2](../../ROGUE_TRADER_2_PLAN.md#12-user
 - [ ] Decode audio and other non-CFS payloads. Zero unsupported entries in this selected batch does not establish support for all BLO archives.
 - [ ] Resolve all remaining content dependencies outside this selected sprite batch and prove complete runtime record closure.
 - [ ] Validate native LVL/LIO collision/terrain/object execution and original renderer behavior. Actual parser/arena initialization is Complete in the compatibility plans; the BMP preview does not prove playable collision behavior.
-- [ ] Validate exact native rendered appearance/gameplay evidence. Source and standalone Godot inspector input plus three rendered pages are Complete (RT-F071/RT-F373/RT-F374), world tick 0; native palette/blit/pose acceptance remains open.
+- [ ] Validate exact native rendered appearance/gameplay evidence. Source and standalone Godot inspector input plus three rendered pages are Complete (RT-F073/RT-F373/RT-F374), world tick 0; native palette/blit/pose acceptance remains open.
 - [ ] Declare full original visual/gameplay parity. This exporter establishes preserved source pixels and identities, not complete native rendering or gameplay parity.
 
 ## Reproducible commands

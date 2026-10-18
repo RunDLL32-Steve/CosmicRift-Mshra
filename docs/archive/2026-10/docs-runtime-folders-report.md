@@ -1,32 +1,34 @@
+> Historical snapshot. Preserved for dated evidence; its instructions, counts, branch state and next steps may be superseded. Use [current continuation](../../../CONTINUATION.md), [task queue](../../../TASK_QUEUE.md) and [documentation index](../../README.md) for current work.
+
 # Runtime-folder documentation reconciliation
 
 Completed October 13, 2026. Documentation-only reconciliation against current source and saved acceptance reports; no build, test, server, client, GUI, asset change or simulation. Root owns the master/catalog/instructions/changelog reconciliation.
 
 ## Changed files
 
-- [client/IMPLEMENTATION_PLAN.md](client/IMPLEMENTATION_PLAN.md)
-- [client/Scripts/IMPLEMENTATION_PLAN.md](client/Scripts/IMPLEMENTATION_PLAN.md)
-- [client/UI/IMPLEMENTATION_PLAN.md](client/UI/IMPLEMENTATION_PLAN.md)
-- [client/Scenes/IMPLEMENTATION_PLAN.md](client/Scenes/IMPLEMENTATION_PLAN.md)
-- [client/Assets/IMPLEMENTATION_PLAN.md](client/Assets/IMPLEMENTATION_PLAN.md)
-- [client/Audio/IMPLEMENTATION_PLAN.md](client/Audio/IMPLEMENTATION_PLAN.md)
-- [client/Shaders/IMPLEMENTATION_PLAN.md](client/Shaders/IMPLEMENTATION_PLAN.md)
-- [shared/IMPLEMENTATION_PLAN.md](shared/IMPLEMENTATION_PLAN.md)
-- [server/IMPLEMENTATION_PLAN.md](server/IMPLEMENTATION_PLAN.md)
-- [tests/IMPLEMENTATION_PLAN.md](tests/IMPLEMENTATION_PLAN.md)
-- [.github/IMPLEMENTATION_PLAN.md](.github/IMPLEMENTATION_PLAN.md)
-- [server/RogueTrader.Server/IMPLEMENTATION_PLAN.md](server/RogueTrader.Server/IMPLEMENTATION_PLAN.md)
-- [shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md)
-- [shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)
-- [server/RogueTrader.AI/IMPLEMENTATION_PLAN.md](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)
-- [server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)
-- [server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md)
-- [tests/Integration/IMPLEMENTATION_PLAN.md](tests/Integration/IMPLEMENTATION_PLAN.md)
-- [tests/LoadTests/IMPLEMENTATION_PLAN.md](tests/LoadTests/IMPLEMENTATION_PLAN.md)
-- [tests/Network/IMPLEMENTATION_PLAN.md](tests/Network/IMPLEMENTATION_PLAN.md)
-- [tests/Unit/IMPLEMENTATION_PLAN.md](tests/Unit/IMPLEMENTATION_PLAN.md)
-- [.github/workflows/IMPLEMENTATION_PLAN.md](.github/workflows/IMPLEMENTATION_PLAN.md)
-- [client/ORIGINAL_INSPECTOR_PLAN.md](client/ORIGINAL_INSPECTOR_PLAN.md)
+- [client/IMPLEMENTATION_PLAN.md](../../../client/IMPLEMENTATION_PLAN.md)
+- [client/Scripts/IMPLEMENTATION_PLAN.md](../../../client/Scripts/IMPLEMENTATION_PLAN.md)
+- [client/UI/IMPLEMENTATION_PLAN.md](../../../client/UI/IMPLEMENTATION_PLAN.md)
+- [client/Scenes/IMPLEMENTATION_PLAN.md](../../../client/Scenes/IMPLEMENTATION_PLAN.md)
+- [client/Assets/IMPLEMENTATION_PLAN.md](../../../client/Assets/IMPLEMENTATION_PLAN.md)
+- [client/Audio/IMPLEMENTATION_PLAN.md](../../../client/Audio/IMPLEMENTATION_PLAN.md)
+- [client/Shaders/IMPLEMENTATION_PLAN.md](../../../client/Shaders/IMPLEMENTATION_PLAN.md)
+- [shared/IMPLEMENTATION_PLAN.md](../../../shared/IMPLEMENTATION_PLAN.md)
+- [server/IMPLEMENTATION_PLAN.md](../../../server/IMPLEMENTATION_PLAN.md)
+- [tests/IMPLEMENTATION_PLAN.md](../../../tests/IMPLEMENTATION_PLAN.md)
+- [.github/IMPLEMENTATION_PLAN.md](../../../.github/IMPLEMENTATION_PLAN.md)
+- [server/RogueTrader.Server/IMPLEMENTATION_PLAN.md](../../../server/RogueTrader.Server/IMPLEMENTATION_PLAN.md)
+- [shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md](../../../shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md)
+- [shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md](../../../shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)
+- [server/RogueTrader.AI/IMPLEMENTATION_PLAN.md](../../../server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)
+- [server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md](../../../server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)
+- [server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md](../../../server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md)
+- [tests/Integration/IMPLEMENTATION_PLAN.md](../../../tests/Integration/IMPLEMENTATION_PLAN.md)
+- [tests/LoadTests/IMPLEMENTATION_PLAN.md](../../../tests/LoadTests/IMPLEMENTATION_PLAN.md)
+- [tests/Network/IMPLEMENTATION_PLAN.md](../../../tests/Network/IMPLEMENTATION_PLAN.md)
+- [tests/Unit/IMPLEMENTATION_PLAN.md](../../../tests/Unit/IMPLEMENTATION_PLAN.md)
+- [.github/workflows/IMPLEMENTATION_PLAN.md](../../../.github/workflows/IMPLEMENTATION_PLAN.md)
+- [client/ORIGINAL_INSPECTOR_PLAN.md](../../../client/ORIGINAL_INSPECTOR_PLAN.md)
 
 ## Current facts and corrected claims
 

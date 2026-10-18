@@ -14,7 +14,7 @@ All seventeen original type-5 computer records and the separate type-4 Spectator
 
 - [ ] **Not started — RT-F269–F286/F059–F063:** validate each actor faction/ownership/production/repair/combat/hazard role and spectator transitions without replacing them with a generic invented pirate.
 - [ ] **Investigating — RT-F386:** resolve positive DropItemId66 on original manufactory vehicles425/426/427; no alias or invented item.
-- [ ] **Investigating — RT-F390:** complete the null-script full-arena join guard and focused regression before marking it done.
+- [ ] **Native join/spectator acceptance after RT-F390:** the null-script capacity guard and 12 handler checks are complete; actual native arena join, team assignment and spectator transitions remain unverified. See [RuntimeChecks](../../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md).
 
 Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.
 

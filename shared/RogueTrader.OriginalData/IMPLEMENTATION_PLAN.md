@@ -10,14 +10,16 @@ Master: [section 18 / M2 first task](../../ROGUE_TRADER_2_PLAN.md), [fidelity ru
 - `OriginalHull`: name, skill id, vehicle id, category, complete raw RPG and VEH records, and raw typed values with field indexes: hull points f[6], weight f[7], cargo f[47..48], energy f[94..96], all sixteen speed blocks f[202..361] (ten fields each), bounce f[362], hyper energy cost f[373]. No units, scaling or interpretation are applied; negative values are flagged `IsNegativeSentinel` and returned as-is.
 - Tests: [tests/Unit](../../tests/Unit/IMPLEMENTATION_PLAN.md).
 
+## Current source coverage — October 17, 2026
+
+The module now extends beyond the initial hull loader. Source inspection confirms `OriginalItemCatalog` (all supported ITM records), `OriginalVehicleCatalog`, `OriginalCfg`, raw flight/collision/energy/weapon/upgrade/actor/visibility views, skill and event token parsers, `OriginalStartingLoadout`/`OriginalHullExchange`, and `OriginalItemReferenceResolver`. These expose raw data and candidate links; they do not execute original gameplay. `OriginalProgressionEvidence` records progression-policy evidence; `OriginalProgressionIds` supplies a NEW decimal-id contract for a separately callable persistence membership validator. It does not recover the historical save schema or apply wipe/exchange rules. See the [source audit](../../docs/audits/2026-10-17-source-docs.md) for exact source locations and inspection limits.
+
 ## Per-item entries
 
-Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
+Branch names, review labels, shim results and asset-availability notes in older entries describe their authoring checkpoint; they are not a live PR status or a fresh current-tree run. Check current dependencies against source and use master §18 for completion. Each registry item's status (done vs remaining clauses, branch, evidence) lives in its own file in [plan.d/](plan.d/), one file per RT-ID, so parallel branches never collide here (AGENTS.md "One file per item").
 
 ## Outstanding
 
 - [ ] Interpretation of units, scaling, sentinel/fallback meaning, cargo and energy (FIELD_INTERPRETATION runtime contracts).
-- [ ] ITM loadout/installation restrictions, RPG skill requirements, and the twelve type-16 hull exchange items (RT-F249-RT-F260).
+- [ ] Execute and verify ITM installation restrictions, RPG skill evaluation and hull exchange behavior (RT-F249–RT-F260). Raw starting-loadout/exchange records and skill syntax parsers already exist; see [RT-F035](plan.d/rt-f035.md) and [RT-F034](plan.d/rt-f034.md).
 - [ ] Runtime adapters into simulation/client; none of RT-F001-RT-F012 is ticked until native selection, loadout and movement are verified.
-- RT-F045 (data only, cloud/rt-f045-trading-post-credits, review pending): `OriginalTradingPost` resolves the four 14-field trade blocks of VEH id 404 (Tellerium/Krandazite/Wreckage/Alloy) to credit effects 18/17/19/44 and input items 2004/2006/2008/2020; credit rows keep raw f[31]=55/80/300/20. Quantities, scale, eligibility and award flow unvalidated; NWS 20-vs-100 Wreckage conflict open; box stays open.
-- RT-F044 (data only, cloud/rt-f044-public-refinery, review pending): `OriginalRefinery` resolves the three refine blocks of VEH id 400 (Tellerium->Refined Tellerium, Krandazite->Refined Krandazite, Iron Ore->Alloy). The catalog's NWS "wreckage->Alloy" is not in the pinned record. Quantities/radius/conditions/flow unvalidated; LIO 13/14 placement open; box stays open.

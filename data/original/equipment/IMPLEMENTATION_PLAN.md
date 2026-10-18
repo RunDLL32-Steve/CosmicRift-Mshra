@@ -13,7 +13,7 @@ Original item categories and parsed values are available. Derived-only RT-F385 r
 ## Next and parity boundary
 
 - [ ] **Investigating — RT-F033–F035/F048/F049:** validate exact slot/class/skill logic, modifier composition, pricing and installation.
-- [ ] **Investigating — RT-F386/F388/F389:** establish missing item66 eligibility, safe sell quantity/credit ordering and server store proximity. No fix is accepted solely from source inspection.
+- [ ] **Investigating — RT-F386 / native trading:** establish missing item66 runtime eligibility and connected native shop/install behavior. RT-F388/F389/F396 bounded sell/store/buy guards are implemented and verified separately in [RuntimeChecks](../../../scripts/compatibility/RuntimeChecks/IMPLEMENTATION_PLAN.md); they do not complete an equipment record.
 - [ ] **Not started — per-record table:** verify original build, warp, repair and utility behavior in the native route; preserve internal effects as internal.
 
 Full original runtime remains unchecked. Native testing reached only the welcome screen; Start produced no confirmed entry and the private test was cleaned up. Do not resume desktop interaction until the user is available.
