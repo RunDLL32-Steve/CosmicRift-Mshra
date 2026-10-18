@@ -1,0 +1,17 @@
+# G9 dependency checkpoint — October 18, 2026
+
+Scope: Markdown-only reconciliation on `claim/g9-dependency-checkpoint`, based on reviewed main `b092cc820a2a2a23cdd879df854f53266918ccbc` and claim `1dd577d37312237e7e5bbf03fb91805213fde42d`. Authority: [master §18](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype). Detailed evidence, source pins/hashes, reproducible command, exact raw residuals and remaining work: [G9 ledger](../../scripts/original-assets/plan.d/g9.md).
+
+The coordinator reproduced the existing inventory twice in memory, equal to stored evidence: 89 canonical archives, 1,262 members, 609 candidates, eight raw residuals, 99 canonical hashes, runtime closure false. Current physical supplemental help/Soccer byte checks match recorded acquisition metadata. Existing package audit and RT-F394 startup results were read as historical evidence, not rerun. Pinned source inspection traces a conditional Computer explosion route through inherited two-argument kill and guarded generic drops; actual dynamic/native eligibility remains UNKNOWN.
+
+No assets, generated outputs, code, scripts or tests changed. No new feature or checkbox completion: registry remains 397 entries / 22 scoped completions / 375 open. RT-F375 is already completed inventory; RT-F069/F377–379/F386 remain unchecked. G9 remains CLAIMED / in progress; useful offline reference/caller/lifecycle/sentinel audits and user-present native checks remain. The checkpoint does not release G9 or authorize jumping to M5.
+
+## Preapproval handoff clarification
+
+After the initial author handoff, the coordinator requested a NOT STARTED next-slice brief for VehicleMaker 83/84/85 → Computer 425/426/427 creation/death eligibility. The [proposal](../../scripts/original-assets/plan.d/g9.md#proposed-next-offline-slice--not-started) specifies pinned source locators, canonical three-row evidence, caller/callback/nested-input closure and a separately approved future RuntimeChecks fixture contract. No oracle is approved, implemented or run; no additional runtime claim or acceptance is made. This clarification changes only the task brief, its own ledger and these dated/branch logs. Clarification QA: `TRACKERS_CONSISTENT` 397/22/375; focused validation passed two changed local-link occurrences and their fragments; `git diff --check` passed. Exact-head handoff and subsequent review/CI are recorded in PR 62.
+
+## Documentation verification at this checkpoint
+
+`python scripts/check-trackers.py` passed: `TRACKERS_CONSISTENT`, 397 entries / 22 complete / 375 open. Focused inline Python local-link validation passed: 29 local-link occurrences and required fragments resolve (all links in new files and the complete G9 brief, plus added lines in other changed files; occurrences are not deduplicated). `git diff --check` passed. An initial link scanner treated code-block Python dictionary calls as links; excluding fenced code corrected that check without any content change. Parser/staging/runtime/native-delivery/.NET/Godot suites and baseline simulations are skipped because only Markdown changed. No GUI/authentication or gameplay execution occurred. Ignored root evidence paths are provenance/prerequisites, not tracked artifacts assumed available in this issue worktree.
+
+At this author checkpoint, independent PR review and CI have not been evaluated. Subsequent branch review/CI/merge status belongs to [PR 62](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/62), not these dated source observations.

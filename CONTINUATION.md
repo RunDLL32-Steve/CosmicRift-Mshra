@@ -23,6 +23,8 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 ## Next
 
+G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; see the [October 18 ledger](scripts/original-assets/plan.d/g9.md). Read-only inventory reproduction/source access is verified, not complete runtime closure: 89 canonical archives / 1,262 members / 609 candidates retain eight raw residuals, and RT-F069 stays open. Continue bounded offline reference/caller/lifecycle/sentinel audits, then user-present native entry/delivery/evaluator checks. Do not duplicate RT-F375, release G9, or skip to M5 based on this checkpoint.
+
 Queue M3 generic mining merged in [PR 60](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/60) at `1037592dc48991d61ccc8900374b1f371da58368` after independent exact-head review and successful Windows CI; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). The generic slice is completed queue history; do not reclaim it. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
 
 Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its separate brief under [docs/tasks](docs/tasks/README.md). Check live PR/branch claims before implementation. Generic queue work items already present in source are history, with their original-parity gaps retained.

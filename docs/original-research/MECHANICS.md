@@ -8,6 +8,10 @@ The package audit matches19,198 supported values/twelve hull links/222 map refer
 
 Reviewed: October 12, 2026. Scope: the historical foundation for [master plan §2 and Milestone 0](../../ROGUE_TRADER_2_PLAN.md#2-historical-game-research), plus evidence informing §§5–8. Work status: [research implementation plan](IMPLEMENTATION_PLAN.md); project acceptance: [development progress](../development-log/PROGRESS.md). The user subsequently supplied preserved sources and requested exact Cosmic Rift presentation/assets for Rogue Trader, now recorded in master §1.2; see [InfantryOnline provenance and values](INFANTRYONLINE.md) and the [video reference](VIDEO_REFERENCE.md).
 
+## G9 source-access checkpoint — October 18, 2026
+
+The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) records current twice-equal in-memory inventory reproduction (89 canonical archives / 1,262 members / 609 candidates / eight unchanged raw residuals / 99 canonical hashes) and physical supplemental help/Soccer byte checks. Historical package/startup acceptance was read, not rerun. Classification: VERIFIED for these bounded source/byte facts and the pinned conditional Computer explosion → inherited two-argument kill → guarded drop-handler route; UNKNOWN for actual manufactory/native eligibility, missing graphic fallback and BallGraphic numeric semantics. Direct Computer one-argument destruction does not prove explosions bypass the generic handler. G9 remains CLAIMED / in progress, RT-F069/F377–379/F386 remain unchecked, and registry counts remain 397 / 22 / 375. Remaining offline audits and user-present native checks are explicit in the ledger.
+
 ## Evidence rules
 
 | Classification | Use |

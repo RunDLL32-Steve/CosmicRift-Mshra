@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 dependency documentation checkpoint — October 18, 2026
+
+- Reproduce the existing 89-archive / 1,262-member / 609-candidate inventory in memory, retaining eight raw residuals, and reconcile current supplemental byte access with historical package/startup evidence. Record conditional Computer explosion/death source paths and remaining offline/native work in the [G9 ledger](scripts/original-assets/plan.d/g9.md). No executable behavior, canonical content, registry count or acceptance checkbox changes; G9 and RT-F069 remain in progress/open.
+
 ## Generic mining extraction — October 18, 2026
 
 - Queue M3: optional external deposit/equipment definitions, deterministic surface-range extraction, finite asteroid depletion and collectible-to-cargo capacity handling. All extraction tuning and rules are NEW/provisional. Existing clients omit mining definitions and keep their current behavior.
