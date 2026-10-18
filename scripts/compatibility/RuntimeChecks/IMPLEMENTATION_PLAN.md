@@ -1,8 +1,8 @@
 # Focused native runtime checks
 
-Purpose: test completed derived compatibility fixes through actual upstream handlers, without native UI, socket begins, arena polling or physics. Parent: [compatibility plan](../IMPLEMENTATION_PLAN.md). Master authority: [§18 fidelity gate RT-F388/RT-F390/RT-F395](../../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§9.3/§20.2](../../../ROGUE_TRADER_2_PLAN.md#93-transaction-safety).
+Purpose: test completed derived compatibility fixes through actual upstream handlers, without native UI, socket begins, arena polling or physics ticks. Actual G9 explosion damage math is exercised separately from physics ticks. Parent: [compatibility plan](../IMPLEMENTATION_PLAN.md). Master authority: [§18 fidelity gate RT-F388/RT-F390/RT-F395](../../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [§9.3/§20.2](../../../ROGUE_TRADER_2_PLAN.md#93-transaction-safety).
 
-Current stage, October 14, 2026: **Complete for the scoped RT-F388/RT-F390/RT-F395 regressions.** Root owns builds against the shared derived server. This project uses isolated SDK 10.0.401; the Godot/testbed SDK remains 8.0.419.
+Historical stage, October 14, 2026: **Complete for the scoped RT-F388/RT-F390/RT-F395 regressions.** That historical run used the primary checkout derived server. Current G9 builds use issue-owned derived sources, outputs, cache and logs as detailed in its plan.d ledger. This project uses isolated SDK 10.0.401; the Godot/testbed SDK remains 8.0.419.
 
 - [x] RT-F388: original oversell/cash-ordering defects reproduced; 17 focused sales checks verify partial/full/free/replayed/invalid sales, script veto/ownership/cash changes, arithmetic bounds and actual serialized inventory cash.
 - [x] RT-F390: generic null binding reproduced at full/over/zero capacity; 12 checks verify rejection, under-capacity flow and all existing case-insensitive sport exceptions at the team-selection boundary.

@@ -67,4 +67,4 @@ Report SHA256 `7227a1d89e734c21bc3231e377c6557c42d3ff555270d5e0dd0d27232f4d5b90`
 |Network|`e1027073437166f3898c4c7f88ec8997d7fc7baa9fee1f3f73c10cc5f4469cd3`|
 |Assets|`2ff0f88a3479adb3d27bcb4df6631f39fa19bbfb107579a9f2049455cd43b913`|
 
-Documentation QA: `TRACKERS_CONSISTENT`397/22/375; 27 added/new local-link occurrences and fragments resolve; `git diff --check` passes. Baseline/native-delivery/login/Godot/flight/simulation suites skipped as unrelated. Fresh PR exact-head review/CI remains required; original feature checkboxes remain unchecked.
+Documentation QA: `TRACKERS_CONSISTENT`397/22/375; 27 added/new local-link occurrences and fragments resolve; `git diff --check` passes. Baseline/native-delivery/login/Godot/flight/simulation suites skipped as unrelated. [PR63](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/63) exact-head review/CI remains required; original feature checkboxes remain unchecked.
