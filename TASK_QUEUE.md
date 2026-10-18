@@ -28,7 +28,6 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 | ID | Task | Where | Run | Depends on | Status snapshot | Brief |
 |---|---|---|---|---|---|---|
-| M3 | Mineral-bearing asteroids and mining-equipment extraction rules; generic engine, originals plug in via data | Simulation + GameData | Cloud | G4 MERGED | REVIEW (`claim/m3-mining-extraction`) | [M3](docs/tasks/m3.md) |
 | M5 | Basic repairs and six equipment upgrades through transaction core | Persistence + GameData | Cloud | M1, G3 MERGED | OPEN | [M5](docs/tasks/m5.md) |
 | M7 | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED | OPEN | [M7](docs/tasks/m7.md) |
 | M8 | Godot HUD for cargo/currency, station UI, save/load flow | Client | Local (Godot) | M1, M2, M4 MERGED; M5 OPEN | OPEN | [M8](docs/tasks/m8.md) |
@@ -56,6 +55,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 - G7 — merged 3f2ae03: 30 VEH rows and 18 non-hull rows; RT-F055 clauses remain open.
 - M1 — merged b2ac2bf: generic persistence/transaction core; full original lifecycle binding and M2 acceptance remain open.
 - M2 — merged 7684b05: generic cargo/pickup engine slice; RT-F030/F042 remain open.
+- M3 — merged `1037592dc48991d61ccc8900374b1f371da58368` ([PR 60](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/60)): generic finite-deposit mining/equipment extraction and replay v2; original RT-F042, client/transport/persistence integration and master M2 original acceptance remain open.
 - M4 — merged 3e29142: generic trading engine slice; RT-F044/F045/F049 remain open.
 - M6 — merged 759a66a: NEW provisional pirate state machine, not wired into WorldSimulation; RT-F060/F272/F306 remain open.
 - C2 — merged 8f66688: rogue.cfg only; other arena CFGs were not pinned.

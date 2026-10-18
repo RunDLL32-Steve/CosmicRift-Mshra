@@ -23,13 +23,13 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 ## Next
 
-Queue M3 generic mining is implemented on `claim/m3-mining-extraction` and independently approved for its generic scope, pending the standing review/CI merge gate; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). Do not repeat it while claimed. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
+Queue M3 generic mining merged in [PR 60](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/60) at `1037592dc48991d61ccc8900374b1f371da58368` after independent exact-head review and successful Windows CI; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). The generic slice is completed queue history; do not reclaim it. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
 
 Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its separate brief under [docs/tasks](docs/tasks/README.md). Check live PR/branch claims before implementation. Generic queue work items already present in source are history, with their original-parity gaps retained.
 
 The remaining fidelity gates include native Start/profile/entry and engine choice (RT-F380/F384), actual delivery/offline patch readiness (RT-F387/F393), unresolved original reference semantics (RT-F377–379/F386/F069), and original gameplay/persistence acceptance. Use the task briefs and [feature catalog](docs/original-research/FEATURE_CATALOG.md) for exact scope; all unfinished feature boxes stay open.
 
-Do not repeat merged hull-loader, persistence-core, cargo, trading, replay, codec or provisional-AI work. Extend only after its dependencies and original semantics are validated. Preserve canonical data, distinguish generic tests from original behavior and keep later expansion deferred.
+Do not repeat merged hull-loader, persistence-core, cargo, mining, trading, replay, codec or provisional-AI work. Extend only after its dependencies and original semantics are validated. Preserve canonical data, distinguish generic tests from original behavior and keep later expansion deferred.
 
 ## Handoff and review
 
