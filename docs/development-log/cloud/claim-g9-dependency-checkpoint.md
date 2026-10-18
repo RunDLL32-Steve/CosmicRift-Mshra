@@ -2,7 +2,7 @@ Review status: review-pending
 
 # G9 dependency checkpoint
 
-Branch: `claim/g9-dependency-checkpoint`; queue G9, RT-F069. Status: documentation checkpoint implemented; overall G9 acceptance in progress. Scope and evidence: [dated checkpoint](../2026-10-18-g9-dependency-checkpoint.md), [detailed ledger](../../../scripts/original-assets/plan.d/g9.md).
+PR: [62](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/62). Branch: `claim/g9-dependency-checkpoint`; queue G9, RT-F069. Status: documentation checkpoint implemented; overall G9 acceptance in progress. Scope and evidence: [dated checkpoint](../2026-10-18-g9-dependency-checkpoint.md), [detailed ledger](../../../scripts/original-assets/plan.d/g9.md).
 
 Acceptance for this checkpoint: reproduce existing inventory/source access accurately, retain literal raw residuals and all open acceptance, separate current source checks from historical runtime/package results, and pass Markdown QA. Full runtime eligibility/closure is not accepted; no feature checkboxes or registry counts change.
 
