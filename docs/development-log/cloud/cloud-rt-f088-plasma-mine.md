@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review local, head 480a34b)
 
 # cloud/rt-f088-plasma-mine
 
