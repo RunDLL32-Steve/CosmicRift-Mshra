@@ -1,4 +1,4 @@
-Review status: UNREVIEWED
+Review status: APPROVED (round 1, senior review local, head 2530490)
 
 # cloud/rt-f087-meson-cannon
 
