@@ -2,7 +2,7 @@ Review status: review-pending
 
 # G9 RT-F379 BallGraphic source-applicability checkpoint
 
-Branch: `claim/g9-dependency-checkpoint`; queue G9, RT-F069/RT-F379 remain OPEN. Base main `71341cbcb23af3a921592543ee36ac79f39a634e`. Root approved this bounded Markdown-only scope on October18; coordinating `gpt-6.1-sol` / XHigh inspected/designed source semantics, original author `gpt-6.1-sol` / Medium documents them. [Detailed source table/provenance/limits](../2026-10-18-g9-ballgraphic-source.md), [G9 ledger](../../../scripts/original-assets/plan.d/g9.md), [task brief](../../tasks/g9.md).
+PR: [64](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/64). Branch: `claim/g9-dependency-checkpoint`; queue G9, RT-F069/RT-F379 remain OPEN. Base main `71341cbcb23af3a921592543ee36ac79f39a634e`. Root approved this bounded Markdown-only scope on October18; coordinating `gpt-6.1-sol` / XHigh inspected/designed source semantics, original author `gpt-6.1-sol` / Medium documents them. [Detailed source table/provenance/limits](../2026-10-18-g9-ballgraphic-source.md), [G9 ledger](../../../scripts/original-assets/plan.d/g9.md), [task brief](../../tasks/g9.md).
 
 Done for this checkpoint: document the exact bounded tracked-C# BallGraphic search, string/archive helper behavior, nearby sprite method field order, concrete reader end checks and VEH-version caller context. Conditional isolated seven-token comparison is source inference, not a parser experiment or CFG validation. Remaining: matching original CFG consumer/grammar/version/evaluator, all five numeric meanings, native rendering/eligibility and full dependency closure. No token/ordinal/HSV/animation substitution or feature completion.
 
