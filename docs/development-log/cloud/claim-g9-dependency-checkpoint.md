@@ -2,7 +2,7 @@ Review status: review-pending
 
 # G9 RT-F378 Uiart/logo precision and stable-summary consolidation
 
-Branch `claim/g9-dependency-checkpoint`, base main `76633126df74731ce236cc27c0a403b258370d93`. Coordinating `gpt-6.1-sol` / XHigh designed the bounded primary-source interpretation; root independently checked/approved it; original author `gpt-6.1-sol` / Medium documents the correction. [Current evidence](../2026-10-18-g9-uiart-source.md), [authoritative G9 ledger](../../../scripts/original-assets/plan.d/g9.md), [brief](../../tasks/g9.md).
+PR [75](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/75). Branch `claim/g9-dependency-checkpoint`, base main `76633126df74731ce236cc27c0a403b258370d93`. Coordinating `gpt-6.1-sol` / XHigh designed the bounded primary-source interpretation; root independently checked/approved it; original author `gpt-6.1-sol` / Medium documents the correction. [Current evidence](../2026-10-18-g9-uiart-source.md), [authoritative G9 ledger](../../../scripts/original-assets/plan.d/g9.md), [brief](../../tasks/g9.md).
 
 Done: retain accepted exact logo-name absence, remove unsupported appearance/intent/shipping/fallback claims, record one fresh CFG byte observation and one new Uiart pinned Git blob/search, reuse PR64 helper/PR70 container context without retracing, consolidate stable G9 summaries. Remaining: matching original/native consumer/revision/display/evaluator/fallback and full closure. No substitute artwork or proof of unused state/global/native absence.
 
