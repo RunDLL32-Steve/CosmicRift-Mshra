@@ -45,14 +45,15 @@ def parse_pages(text):
 
 def open_prs(repo, include_forks=False):
     out = run(["gh", "api", "--paginate", f"repos/{repo}/pulls?state=open&per_page=100"]).stdout
-    prs = []
+    prs, skipped = [], []
     for p in parse_pages(out):
         fork = (p["head"].get("repo") or {}).get("full_name") != repo
         if fork and not include_forks:
+            skipped.append(p["number"])
             continue  # fork PR code is never merged or executed unless the owner asks with --include-forks
         prs.append({"number": p["number"], "title": p["title"], "head": p["head"]["ref"], "base": p["base"]["ref"],
                     "draft": p["draft"], "fork": fork, "labels": [l["name"] for l in p["labels"]]})
-    return prs
+    return prs, skipped
 
 
 def main():
@@ -68,7 +69,10 @@ def main():
     if not a.name.startswith("sprint/") or ".." in a.name or " " in a.name:
         sys.exit("branch name must start with sprint/ and contain no spaces or '..'")
     run(["git", "fetch", "origin", "main"])
-    prs = sorted(open_prs(a.repo, a.include_forks), key=lambda p: p["number"])
+    prs, skipped = open_prs(a.repo, a.include_forks)
+    prs.sort(key=lambda p: p["number"])
+    if skipped:
+        print(f"WARNING: skipped untrusted fork PRs {skipped} (use --include-forks to merge them)")
     if a.prs:
         prs = [p for p in prs if p["number"] in a.prs]
     wt = os.path.abspath(os.path.join(a.worktree_root, a.name.replace("/", "-")))
@@ -95,8 +99,8 @@ def main():
             run(["git", "merge", "--abort"], cwd=wt, check=False)
             conflicted.append({**p, "files": files, "reason": (m.stdout + m.stderr).strip()[-300:]})
     head = run(["git", "rev-parse", "HEAD"], cwd=wt).stdout.strip()
-    report = {"branch": a.name, "base": "origin/main", "head": head, "worktree": wt,
-              "open_prs": [p["number"] for p in prs], "merged": merged, "conflicted": conflicted, "failed": failed}
+    report = {"branch": a.name, "base": "origin/main", "head": head, "worktree": os.path.relpath(wt, ROOT),
+              "open_prs": [p["number"] for p in prs], "skipped_untrusted": skipped, "merged": merged, "conflicted": conflicted, "failed": failed}
     os.makedirs(os.path.join(ROOT, "artifacts"), exist_ok=True)
     rpath = os.path.join(ROOT, "artifacts", "sprint-integrate.json")
     with open(rpath, "w", encoding="utf-8") as f:

@@ -79,8 +79,11 @@ def main():
         cand = os.path.join(ROOT, "docs", "development-log", "sprint", branch.replace("/", "-") + ".json")
         report_path = cand if branch.startswith("sprint/") and os.path.isfile(cand) else None
     if report_path:
-        with open(report_path, encoding="utf-8") as fh:
-            rep = json.load(fh)
+        try:
+            with open(report_path, encoding="utf-8") as fh:
+                rep = json.load(fh)
+        except (OSError, ValueError) as e:
+            rep = {"merged": [], "failed": [{"number": 0, "title": f"unreadable integration report: {e}"}]}
         problems = [f"#{p['number']} conflicted" for p in rep.get("conflicted", [])] + \
                    [f"#{p['number']} failed to fetch" for p in rep.get("failed", [])]
         if not rep.get("merged"):

@@ -12,8 +12,8 @@ concurrency:
   group: sprint-${{ github.ref }}
   cancel-in-progress: true
 
-# Note: this validates the pushed sprint branch only. A PR the integrate script left out (conflict) is not visible
-# here; pass the integration report to sprint-validate locally for that.
+# Note: the validator reads the report that sprint-integrate.py committed under docs/development-log/sprint/,
+# so PRs it omitted (conflicts, fork PRs) are visible here.
 jobs:
   validate:
     runs-on: windows-2022
