@@ -23,7 +23,7 @@ Config source identities: server.xml1127 bytes/SHA256 `796d88a54cb3066e901621f77
 
 Ignored issue `artifacts/g9-catalog-membership/setup.json` records all15 input size/hash/equality and planned output paths. Active arena-working/Global/reports/logs, ArenaProbe bin/obj, derived project outputs, copied NuGet cache and CLIhome resolve within issue root. Only SDK10.0.401 and two reference junctions point at shared read inputs. All seven existing derived patch hashes match issue manifest and global pin is10.0.401/rollForward disable. No whole.tools junction, shared mutable outputs, move/delete or prepare operation.
 
-## Planned acceptance and execution status
+## Execution contract and status
 
 After explicit first-run clearance, unchanged `run-arena-probe.ps1 -Build` builds/runs one hidden offline helper bounded30 seconds. Full verbose output/log/report must be retained; report actual exit/Accepted, full expected/actual IDs, duplicate/reference checks,66warning, identity digests, input/source and loaded-assembly identities plus existing initialized-state/zero-client/begin/poll/physics limits. Digest algorithm: lowercase SHA256 over UTF8 without BOM, invariant decimal sorted IDs joined LF WITH trailing LF. Preserve author report/result/logs under distinct ignored issue evidence before reviewer reproduction; independently rebuilt assembly hashes need not be byte-identical.
 
@@ -52,8 +52,8 @@ Complete author report/result/wrapper/build/stdout/stderr logs and source/loaded
 
 Both source hashes and loaded assembly hashes match current/preserved bytes. C# remains unchanged after this run; later Markdown updates do not justify another execution.
 
- G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375 and raw609/eight residuals unchanged. This is selected standalone initializer evidence only; no arbitrary/live/custom/native catalog closure, original gameplay or production rule acceptance. No baseline/Maker/RuntimeChecks/native/login/Godot/flight/simulation/inventory suites. Markdown tracker/link/whitespace QA will be recorded with the completed evidence; old dated logs remain unchanged.
+ G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375 and raw609/eight residuals unchanged. This is selected standalone initializer evidence only; no arbitrary/live/custom/native catalog closure, original gameplay or production rule acceptance. No baseline/Maker/RuntimeChecks/native/login/Godot/flight/simulation/inventory suites. Markdown tracker/link/whitespace QA is recorded in Final documentation QA below; old dated logs remain unchanged.
 
 ## Final documentation QA
 
-`TRACKERS_CONSISTENT`:397 entries/22 complete/375 open. Scoped local-link validation passed 24 added/new occurrences and fragments (new Markdown in full plus added lines elsewhere; not deduplicated); `git diff --check` passed. Both final C# source hashes still match the preserved author report. Fresh independent exact-head review and CI remain required; author never merges.
+`TRACKERS_CONSISTENT`:397 entries/22 complete/375 open. Scoped local-link validation passed 24 added/new occurrences and fragments (new Markdown in full plus added lines elsewhere; not deduplicated); `git diff --check` passed. Both final C# source hashes still match the preserved author report. Fresh independent exact-head review and CI are recorded in [PR76](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/76); author never merges.
