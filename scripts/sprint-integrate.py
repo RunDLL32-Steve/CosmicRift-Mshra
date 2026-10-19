@@ -14,7 +14,7 @@ Usage (any directory inside the repository; authenticated `gh`):
     python scripts/sprint-integrate.py --prs 77 78 79        # explicit subset
 Refuses to reuse an existing local branch or worktree of the same name (use a new --name, or --reset to replace it).
 Writes <repo>/artifacts/sprint-integrate.json and docs/development-log/sprint/<name>.md (committed on the sprint
-branch). Then run: python scripts/sprint-validate.py --root <worktree> --integrate-report artifacts/sprint-integrate.json
+branch). Also commits docs/development-log/sprint/<name>.json, which sprint-validate.py finds by default.
 Standard library only.
 """
 import argparse, datetime, json, os, subprocess, sys
@@ -43,10 +43,16 @@ def parse_pages(text):
     return out
 
 
-def open_prs(repo):
+def open_prs(repo, include_forks=False):
     out = run(["gh", "api", "--paginate", f"repos/{repo}/pulls?state=open&per_page=100"]).stdout
-    return [{"number": p["number"], "title": p["title"], "head": p["head"]["ref"], "base": p["base"]["ref"],
-             "draft": p["draft"], "labels": [l["name"] for l in p["labels"]]} for p in parse_pages(out)]
+    prs = []
+    for p in parse_pages(out):
+        fork = (p["head"].get("repo") or {}).get("full_name") != repo
+        if fork and not include_forks:
+            continue  # fork PR code is never merged or executed unless the owner asks with --include-forks
+        prs.append({"number": p["number"], "title": p["title"], "head": p["head"]["ref"], "base": p["base"]["ref"],
+                    "draft": p["draft"], "fork": fork, "labels": [l["name"] for l in p["labels"]]})
+    return prs
 
 
 def main():
@@ -56,12 +62,13 @@ def main():
     ap.add_argument("--prs", nargs="*", type=int, help="explicit PR numbers (default: every open PR)")
     ap.add_argument("--worktree-root", default=os.path.join(ROOT, ".tools", "issue-worktrees"))
     ap.add_argument("--push", action="store_true", help="push the sprint/* branch to origin (never forced)")
+    ap.add_argument("--include-forks", action="store_true", help="also merge PRs from forks (their code then runs in tests)")
     ap.add_argument("--reset", action="store_true", help="replace an existing local branch and worktree of this name")
     a = ap.parse_args()
     if not a.name.startswith("sprint/") or ".." in a.name or " " in a.name:
         sys.exit("branch name must start with sprint/ and contain no spaces or '..'")
     run(["git", "fetch", "origin", "main"])
-    prs = sorted(open_prs(a.repo), key=lambda p: p["number"])
+    prs = sorted(open_prs(a.repo, a.include_forks), key=lambda p: p["number"])
     if a.prs:
         prs = [p for p in prs if p["number"] in a.prs]
     wt = os.path.abspath(os.path.join(a.worktree_root, a.name.replace("/", "-")))
@@ -105,6 +112,8 @@ def main():
              + ["", "Validate with `python scripts/sprint-validate.py --root <worktree> --integrate-report "
                 "artifacts/sprint-integrate.json`. This branch is an integration check only and never merges to main "
                 "by itself."])
+    with open(os.path.join(logdir, a.name.replace("/", "-") + ".json"), "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)  # committed so CI and reviewers validate the same PR set
     with open(os.path.join(logdir, a.name.replace("/", "-") + ".md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     run(["git", "add", "docs/development-log/sprint"], cwd=wt)

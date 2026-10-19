@@ -33,7 +33,7 @@ def sh(name, args, env=None, timeout=1800):
     except (OSError, subprocess.TimeoutExpired) as e:
         status, tail = "fail", str(e)
     results.append({"check": name, "status": status, "seconds": round(time.time() - t, 1),
-                    "detail": tail if status == "fail" else ""})
+                    "detail": tail if status == "fail" else "", "out": tail})
 
 
 def note(name, status, detail=""):
@@ -73,8 +73,13 @@ def main():
         return any(s in f for f in changed for s in subs)
 
     # integration report: conflicts, omitted PRs and an empty sprint must not pass
-    if a.integrate_report:
-        with open(a.integrate_report, encoding="utf-8") as fh:
+    report_path = a.integrate_report
+    if not report_path:  # committed by sprint-integrate.py for this sprint branch
+        branch = git("rev-parse", "--abbrev-ref", "HEAD").strip()
+        cand = os.path.join(ROOT, "docs", "development-log", "sprint", branch.replace("/", "-") + ".json")
+        report_path = cand if branch.startswith("sprint/") and os.path.isfile(cand) else None
+    if report_path:
+        with open(report_path, encoding="utf-8") as fh:
             rep = json.load(fh)
         problems = [f"#{p['number']} conflicted" for p in rep.get("conflicted", [])] + \
                    [f"#{p['number']} failed to fetch" for p in rep.get("failed", [])]
@@ -82,9 +87,11 @@ def main():
             problems.append("no PR was merged into the sprint")
         note("sprint integration report", "fail" if problems else "pass", "; ".join(problems))
     else:
-        note("sprint integration report", "not-verified", "no --integrate-report given; omitted PRs cannot be detected")
+        note("sprint integration report", "not-verified", "no integration report (docs/development-log/sprint/<branch>.json or --integrate-report); omitted PRs cannot be detected")
 
     common = git("rev-parse", "--git-common-dir").strip()
+    if not common:
+        sys.exit("not inside a git repository")
     main_root = os.path.dirname(os.path.abspath(os.path.join(ROOT, common)))  # the primary checkout owns .tools
     tools = next((r for r in (ROOT, main_root) if os.path.exists(os.path.join(r, ".tools", "dotnet", "dotnet.exe"))), None)
     dotnet = os.path.join(tools, ".tools", "dotnet", "dotnet.exe") if tools else shutil.which("dotnet")
@@ -94,9 +101,14 @@ def main():
             if tools:  # same isolation as scripts/environment.ps1
                 env["DOTNET_ROOT"] = os.path.join(tools, ".tools", "dotnet")
                 env["DOTNET_CLI_HOME"] = os.path.join(tools, ".tools", "dotnet-home")
+                env["NUGET_PACKAGES"] = os.path.join(tools, ".tools", "nuget")
+                env["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
                 env["DOTNET_NOLOGO"] = "1"
                 env["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1"
             sh("dotnet test tests/Unit", [dotnet, "test", "tests/Unit"], env=env)
+            m = re.search(r"Passed!\s*-\s*Failed:\s*0,\s*Passed:\s*(\d+)", results[-1].get("out", ""))
+            if results[-1]["status"] == "pass" and not m:
+                results[-1].update(status="fail", detail="dotnet test passed but no passing test count was found (zero tests?)")
         else:
             note("dotnet test tests/Unit", "not-verified", "dotnet not found")
     pwsh = shutil.which("pwsh") or shutil.which("powershell")
@@ -114,6 +126,14 @@ def main():
     if has_any(*asset_paths):
         note("runtime/native-delivery checks", "not-verified",
              "needs original assets; run locally with run-runtime-checks.ps1 / run-native-delivery-checks.ps1")
+    pys = [f for f in changed if f.endswith(".py") and os.path.isfile(os.path.join(ROOT, f))]
+    if pys:
+        sh("py_compile changed .py", [py, "-m", "py_compile", *pys])
+    covered = ("shared/", "server/", "tests/", "client/", "docs/", "data/", "scripts/", "global.json", "package", ".prettier",
+               ".gitignore", ".editorconfig")
+    unmapped = [f for f in changed if not f.lower().endswith(".md") and not f.startswith(covered)]
+    if unmapped:
+        note("unmapped changed paths", "not-verified", "no Test-selection row covers: " + ", ".join(unmapped[:10]))
     failed = any(r["status"] == "fail" for r in results)
     unverified = any(r["status"] == "not-verified" for r in results)
     verdict = "SPRINT_INVALID" if failed else "SPRINT_INCOMPLETE" if unverified else "SPRINT_VALID"
