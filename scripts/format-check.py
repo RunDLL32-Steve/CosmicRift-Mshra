@@ -25,12 +25,24 @@ def git(*args):
     return r.stdout
 
 
+def changed_since(base):
+    """Files changed on this branch vs base. CI checkouts are shallow and may lack the base ref: fetch it, and when
+    there is no common ancestor in the shallow history compare the trees directly (two-dot)."""
+    if subprocess.run(["git", "rev-parse", "--verify", "--quiet", base], cwd=ROOT, capture_output=True).returncode:
+        remote, _, branch = base.partition("/")
+        subprocess.run(["git", "fetch", "--no-tags", "--depth=1", remote, f"{branch}:refs/remotes/{remote}/{branch}"], cwd=ROOT, capture_output=True)
+        if subprocess.run(["git", "rev-parse", "--verify", "--quiet", base], cwd=ROOT, capture_output=True).returncode:
+            sys.exit(f"cannot resolve {base}; fetch it first (git fetch origin main)")
+    mb = subprocess.run(["git", "merge-base", base, "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    ref = mb.stdout.strip() if mb.returncode == 0 and mb.stdout.strip() else base
+    return git("diff", "--name-only", "--diff-filter=d", ref).splitlines()
+
+
 def target_files(base, everything):
     if everything:
         names = git("ls-files").splitlines()
     else:
-        mb = git("merge-base", base, "HEAD").strip()
-        names = git("diff", "--name-only", "--diff-filter=d", mb).splitlines()
+        names = changed_since(base)
         names += git("ls-files", "--others", "--exclude-standard").splitlines()
     return sorted(
         {
