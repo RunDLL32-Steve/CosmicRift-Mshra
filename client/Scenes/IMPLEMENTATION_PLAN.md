@@ -8,7 +8,7 @@ Reviewed October 13, 2026. Master: [M0 structure](../../ROGUE_TRADER_2_PLAN.md#m
 
 ## Active outstanding work
 
-- [ ] **Investigating — production engine decision:** determine whether Godot scenes are needed for the final recreation after native client/server entry is proved.
-- [ ] **Not started — original playable level/interaction presentation if using Godot:** RT-F021/RT-F022 and M2; validate native LVL/LIO semantics before scene assembly.
+-   [ ] **Investigating — production engine decision:** determine whether Godot scenes are needed for the final recreation after native client/server entry is proved.
+-   [ ] **Not started — original playable level/interaction presentation if using Godot:** RT-F021/RT-F022 and M2; validate native LVL/LIO semantics before scene assembly.
 
 No additional scene work is required for the completed paused inspector scope. Generated/imported editor resources are not source milestones; no launch or simulation ran for this documentation review.

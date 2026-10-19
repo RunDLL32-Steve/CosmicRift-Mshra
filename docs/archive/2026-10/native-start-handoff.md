@@ -6,9 +6,9 @@ Issue branch: `codex/native-start-profile`, based on `626a09f`. Worktree: `C:\Re
 
 ## Current source state
 
-- `scripts/compatibility/inspect-native-start.py`: new standard-library, offline diagnostic. Reads candidate/source PE resources, known binary hashes, the exact two-literal private namespace derivation, the single loopback zone-list entry, relevant wrapper overrides and blank launcher INIs. Reports credential presence flags only; never values. Optional reports must be new JSON files under this checkout's ignored `.tools/` or `artifacts/`. It launches no native client, touches no registry and uses no network.
-- `scripts/compatibility/test-native-start.py`: 13 headless fixture tests for standard/extended dialog templates, disabled controls, malformed PE/resource bounds/cycles, namespace changes outside the approved literals, unknown-build rejection, local endpoint validation, manifest identity, wrapper overrides, privacy and explicit unverified status.
-- No preparation script, original binary, authentication code, ticket, credential, canonical content or root source file was changed. No build, simulation, native launch, profile write, commit or push was performed for this branch task.
+-   `scripts/compatibility/inspect-native-start.py`: new standard-library, offline diagnostic. Reads candidate/source PE resources, known binary hashes, the exact two-literal private namespace derivation, the single loopback zone-list entry, relevant wrapper overrides and blank launcher INIs. Reports credential presence flags only; never values. Optional reports must be new JSON files under this checkout's ignored `.tools/` or `artifacts/`. It launches no native client, touches no registry and uses no network.
+-   `scripts/compatibility/test-native-start.py`: 13 headless fixture tests for standard/extended dialog templates, disabled controls, malformed PE/resource bounds/cycles, namespace changes outside the approved literals, unknown-build rejection, local endpoint validation, manifest identity, wrapper overrides, privacy and explicit unverified status.
+-   No preparation script, original binary, authentication code, ticket, credential, canonical content or root source file was changed. No build, simulation, native launch, profile write, commit or push was performed for this branch task.
 
 ## Evidence and remaining uncertainty
 

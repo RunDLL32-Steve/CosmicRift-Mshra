@@ -12,8 +12,8 @@ Current G9 selected-catalog membership strengthening is separately scoped in [pl
 
 ## Next and parity
 
-- [ ] **Not started:** native join, F11 hull selection, unspectating, original spawn/warp acceptance.
-- [ ] **Investigating:** original entity/evaluator lifecycle beyond initial state, including building-type identity and absent item 66 references.
-- [ ] **Not started:** player mining/refining/trading/upgrades/rewards/persistence acceptance; initial drops alone do not prove these.
+-   [ ] **Not started:** native join, F11 hull selection, unspectating, original spawn/warp acceptance.
+-   [ ] **Investigating:** original entity/evaluator lifecycle beyond initial state, including building-type identity and absent item 66 references.
+-   [ ] **Not started:** player mining/refining/trading/upgrades/rewards/persistence acceptance; initial drops alone do not prove these.
 
 A relevant completed initializer change may be checked with root-coordinated `./scripts/compatibility/run-arena-probe.ps1 -Build`, which builds/runs a hidden owned helper with a 30-second bound. Documentation reconciliation runs no probe or simulation.

@@ -27,18 +27,18 @@ The playable test range has no station UI, mining loop or save-game progression.
 
 ## Code map
 
-| Area | Source |
-|---|---|
-| Godot input/rendering/HUD and original inspector | [client](client/IMPLEMENTATION_PLAN.md) |
-| Fixed 60 Hz simulation, cargo and replay | [Simulation](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md) |
-| Raw original records and reference guards | [OriginalData](shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md) |
-| Validated provisional JSON definitions | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md) |
-| Profile repositories and transaction core | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md) |
-| Generic station transactions | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md) |
-| Message codec; no live transport | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md) |
-| Provisional controller; no client integration | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md) |
-| Derived upstream tooling and checks | [compatibility](scripts/compatibility/IMPLEMENTATION_PLAN.md) |
-| Focused regression source | [unit tests](tests/Unit/IMPLEMENTATION_PLAN.md) |
+| Area                                             | Source                                                                                              |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Godot input/rendering/HUD and original inspector | [client](client/IMPLEMENTATION_PLAN.md)                                                             |
+| Fixed 60 Hz simulation, cargo and replay         | [Simulation](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md)                                  |
+| Raw original records and reference guards        | [OriginalData](shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md)                              |
+| Validated provisional JSON definitions           | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md) |
+| Profile repositories and transaction core        | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)                                |
+| Generic station transactions                     | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md)                                        |
+| Message codec; no live transport                 | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)                                      |
+| Provisional controller; no client integration    | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)                                                  |
+| Derived upstream tooling and checks              | [compatibility](scripts/compatibility/IMPLEMENTATION_PLAN.md)                                       |
+| Focused regression source                        | [unit tests](tests/Unit/IMPLEMENTATION_PLAN.md)                                                     |
 
 ## Canonical content and acceptance
 

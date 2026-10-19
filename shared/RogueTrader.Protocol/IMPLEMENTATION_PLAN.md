@@ -6,12 +6,12 @@ Module status: **Not started** for M3 acceptance; a NEW/provisional message code
 
 ## Outstanding work
 
-- [ ] **Investigating** — production engine/native-client route with the compatibility owner. Emulator client-state trust differs from eventual master authority; define the boundary before transport/message selection.
-- [ ] **In progress (codec groundwork only)** — `Messages.cs` already defines versioned PlayerInput, WorldSnapshot, TransactionRequest and TransactionResponse; `MessageCodec` serializes them. Authenticated sessions, spawn routing, acknowledgment processing, prediction/reconciliation and reconnect remain unimplemented. Master snapshot/player-count goals are not measured capacity.
-- [ ] **Not started** — state contracts for RT-F050–RT-F054, RT-F058 and RT-F064–RT-F068: spectator/team/reward/stronghold/private-team/warp/ownership/visibility/docking/event/progression behavior. Preserve original identities; reject arbitrary client inventory/currency/damage/item creation.
-- [ ] **Investigating** — [original units/sentinels](../../docs/original-research/FIELD_INTERPRETATION.md): coordinates/velocity/yaw, target/location sentinel and timing meanings, native bank/state selection. Do not serialize provisional units as original units or infer packets from parsed fields.
-- [ ] **Not started** — [network acceptance](../../tests/Network/IMPLEMENTATION_PLAN.md): malformed/stale commands, authority rejection, independent clients, reconciliation/reconnect and duplicate-state prevention.
-- [ ] **Not started** — record actual implemented files/test evidence and reconcile exact verified behavior to master M3; original features stay unchecked until full acceptance.
+-   [ ] **Investigating** — production engine/native-client route with the compatibility owner. Emulator client-state trust differs from eventual master authority; define the boundary before transport/message selection.
+-   [ ] **In progress (codec groundwork only)** — `Messages.cs` already defines versioned PlayerInput, WorldSnapshot, TransactionRequest and TransactionResponse; `MessageCodec` serializes them. Authenticated sessions, spawn routing, acknowledgment processing, prediction/reconciliation and reconnect remain unimplemented. Master snapshot/player-count goals are not measured capacity.
+-   [ ] **Not started** — state contracts for RT-F050–RT-F054, RT-F058 and RT-F064–RT-F068: spectator/team/reward/stronghold/private-team/warp/ownership/visibility/docking/event/progression behavior. Preserve original identities; reject arbitrary client inventory/currency/damage/item creation.
+-   [ ] **Investigating** — [original units/sentinels](../../docs/original-research/FIELD_INTERPRETATION.md): coordinates/velocity/yaw, target/location sentinel and timing meanings, native bank/state selection. Do not serialize provisional units as original units or infer packets from parsed fields.
+-   [ ] **Not started** — [network acceptance](../../tests/Network/IMPLEMENTATION_PLAN.md): malformed/stale commands, authority rejection, independent clients, reconciliation/reconnect and duplicate-state prevention.
+-   [ ] **Not started** — record actual implemented files/test evidence and reconcile exact verified behavior to master M3; original features stay unchecked until full acceptance.
 
 Completion history: NEW codec groundwork is recorded in [C5](plan.d/c5.md); no live network feature or M3 acceptance is complete. Prior [prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) covers local simulation/source/export only. No builds/launches/simulations rerun for this review.
 

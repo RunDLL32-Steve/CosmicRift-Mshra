@@ -6,11 +6,11 @@ Original source is unchanged fowlmouth commit `eb1514eaae7f9b9425307d9cc043c74ec
 
 ## Accomplished
 
-- Raw catalog: 3,086 records; twelve matched RPG/VEH hulls, thirty vehicles, 200 items, seven resources and 81 LIO records. Compiled pinned parser accepts these originals and the 1999×1998 LVL.
-- Selected eleven BLO archives: 231 sprites/36,516 frames, fourteen focused decoder/staging checks. Source and updated standalone inspector validate all twelve hull identities, 64 direction rows, eleven state columns and exact map overview; rendered/input acceptance passes at world tick0. RT-F020/F070–F073/F373/F374 are scoped completions, not native bank/blit/gameplay proof.
-- All89 canonical BLO directories/1,262 members and609 candidates inventoried (RT-F375). Eight missing/unknown raw candidates remain; five help files are separately recovered from pinned Zone-Assets. Full runtime closure RT-F069 stays unchecked.
-- Native package static inventory RT-F376, package audit RT-F381 (19,198 supported values/twelve hull links/222 map links), generic-handler source audit RT-F382, original arena initializer RT-F383, exactly eight derived VehicleMaker field18 corrections RT-F385, bounded full-asset backend RT-F392 and authentic supplemental Soccer startup dependency RT-F394 pass within their stated acceptance.
-- Original arena initializes25 computers/100 mineral drops/51 teams/42 hides. Bounded host loads89 canonical BLOs plus authentic shared Soccer, listens on two loopbacks and exits0 after120seconds with maxclients0 and unchanged source hashes.
+-   Raw catalog: 3,086 records; twelve matched RPG/VEH hulls, thirty vehicles, 200 items, seven resources and 81 LIO records. Compiled pinned parser accepts these originals and the 1999×1998 LVL.
+-   Selected eleven BLO archives: 231 sprites/36,516 frames, fourteen focused decoder/staging checks. Source and updated standalone inspector validate all twelve hull identities, 64 direction rows, eleven state columns and exact map overview; rendered/input acceptance passes at world tick0. RT-F020/F070–F073/F373/F374 are scoped completions, not native bank/blit/gameplay proof.
+-   All89 canonical BLO directories/1,262 members and609 candidates inventoried (RT-F375). Eight missing/unknown raw candidates remain; five help files are separately recovered from pinned Zone-Assets. Full runtime closure RT-F069 stays unchecked.
+-   Native package static inventory RT-F376, package audit RT-F381 (19,198 supported values/twelve hull links/222 map links), generic-handler source audit RT-F382, original arena initializer RT-F383, exactly eight derived VehicleMaker field18 corrections RT-F385, bounded full-asset backend RT-F392 and authentic supplemental Soccer startup dependency RT-F394 pass within their stated acceptance.
+-   Original arena initializes25 computers/100 mineral drops/51 teams/42 hides. Bounded host loads89 canonical BLOs plus authentic shared Soccer, listens on two loopbacks and exits0 after120seconds with maxclients0 and unchanged source hashes.
 
 ## Next
 

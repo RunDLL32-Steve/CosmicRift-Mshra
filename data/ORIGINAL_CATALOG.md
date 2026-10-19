@@ -9,32 +9,34 @@ Read from unchanged `fowlmouth/cosmic-rift-assets` commit `eb1514eaae7f9b9425307
 Twelve `RPG/Rogue.rpg` v6 entries match candidate vehicle IDs and names in `VEH/Rogue.veh` v53. This is an identity cross-match, not validation of installation eligibility, physics scaling or runtime behavior.
 
 | Original name | RPG identifier | Candidate vehicle identifier |
-|---|---|---|
-| Asp | 2 | 2002 |
-| Excelsior | 15 | 2011 |
-| Ravager | 16 | 2012 |
-| Hornet | 8 | 2000 |
-| Skithist | 1 | 2001 |
-| Mastakith | 4 | 2004 |
-| Tarthist | 11 | 2010 |
-| Kragath | 3 | 2003 |
-| Rak'Kir | 5 | 2005 |
-| Rip'Pir | 6 | 2006 |
-| Zap'Pir | 9 | 2008 |
-| Zag'Gir | 10 | 2009 |
+| ------------- | -------------- | ---------------------------- |
+| Asp           | 2              | 2002                         |
+| Excelsior     | 15             | 2011                         |
+| Ravager       | 16             | 2012                         |
+| Hornet        | 8              | 2000                         |
+| Skithist      | 1              | 2001                         |
+| Mastakith     | 4              | 2004                         |
+| Tarthist      | 11             | 2010                         |
+| Kragath       | 3              | 2003                         |
+| Rak'Kir       | 5              | 2005                         |
+| Rip'Pir       | 6              | 2006                         |
+| Zap'Pir       | 9              | 2008                         |
+| Zag'Gir       | 10             | 2009                         |
+
 ## Original resource records
 
 Seven original type-4 resource records in `ITM/Rogue_mp.itm` v57. Ammunition, credits, repair records and projectile effects retain their separate categories.
 
-| Original name | Item identifier | Source row |
-|---|---|---|
-| Tellerium | 2003 | 68 |
-| Refined Tellerium | 2004 | 69 |
-| Krandazite | 2005 | 70 |
-| Refined Krandazite | 2006 | 71 |
-| Wreckage | 2008 | 87 |
-| Iron Ore | 2019 | 166 |
-| Alloy | 2020 | 167 |
+| Original name      | Item identifier | Source row |
+| ------------------ | --------------- | ---------- |
+| Tellerium          | 2003            | 68         |
+| Refined Tellerium  | 2004            | 69         |
+| Krandazite         | 2005            | 70         |
+| Refined Krandazite | 2006            | 71         |
+| Wreckage           | 2008            | 87         |
+| Iron Ore           | 2019            | 166        |
+| Alloy              | 2020            | 167        |
+
 The initial raw index has 3,086 records (CFG 2,763, VEH 30, ITM 200, RPG 12, LIO 81), 112 weapon/effect candidates and551 filename/stem candidates. Its545 archive-member candidates are historical initial inventory, not the current unresolved count. RT-F375 inventories all89 canonical BLO directories/1,262 members and609 expanded candidates:595 unique member candidates,6 filenames,5 missing filenames,2 missing members and1 numeric-role unknown. Five help files are separately recovered with pinned provenance; runtime closure RT-F069 remains unverified.
 
 Pinned versioned parsing and RT-F381 confirm all record identities, twelve hull links,19,198 supported item values and222 map references. RT-F385 fixes eight omitted VehicleMaker bounty fields only in derived parser code. Original-data arena initialization is verified; native selection, gameplay and progression are not. Current per-record acceptance is in [original domain queues](original/IMPLEMENTATION_PLAN.md). The NEW Interceptor/plasma/training JSON remains a separate engineering fixture.

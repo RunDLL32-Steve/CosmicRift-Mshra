@@ -4,12 +4,12 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 
 ## Summary
 
-| Reference | Issue ID | Source | Finding |
-|-----------|----------|--------|---------|
-| Portal/PrizeCrateA | RT-F377 | ITM/Rogue_mp.itm:112 | Genuinely absent from UtilityEffects.blo |
-| Uiart/logo | RT-F378 | CFG/rogue.cfg:2752 | Genuinely absent from cruiart.blo |
-| BallGraphic trailing numeric fields | RT-F379 | CFG/rogue.cfg:2107 | `Soccer,Ball,0,0,0,0,35`; refers to supplemental Soccer/Ball, not canonical ball.blo |
-| Computer DropItemId66 | RT-F386 | VEH records 425/426/427 | Item 66 absent from ITM catalog |
+| Reference                           | Issue ID | Source                  | Finding                                                                              |
+| ----------------------------------- | -------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| Portal/PrizeCrateA                  | RT-F377  | ITM/Rogue_mp.itm:112    | Genuinely absent from UtilityEffects.blo                                             |
+| Uiart/logo                          | RT-F378  | CFG/rogue.cfg:2752      | Genuinely absent from cruiart.blo                                                    |
+| BallGraphic trailing numeric fields | RT-F379  | CFG/rogue.cfg:2107      | `Soccer,Ball,0,0,0,0,35`; refers to supplemental Soccer/Ball, not canonical ball.blo |
+| Computer DropItemId66               | RT-F386  | VEH records 425/426/427 | Item 66 absent from ITM catalog                                                      |
 
 ---
 
@@ -21,13 +21,14 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 **Investigation**: Exhaustive examination of `UtilityEffects.blo` members (objectId 0-6).
 
 **Archive contents** (7 members):
-- objectId 0: FlagGraphic.cfs
-- objectId 1: PortalGraphic.cfs
-- objectId 2: RepelA.cfs
-- objectId 3: RepelB.cfs
-- objectId 4: SuperBombPrize.cfs
-- objectId 5: SuperMinePrize.cfs
-- objectId 6: SuperMultiPrize.cfs
+
+-   objectId 0: FlagGraphic.cfs
+-   objectId 1: PortalGraphic.cfs
+-   objectId 2: RepelA.cfs
+-   objectId 3: RepelB.cfs
+-   objectId 4: SuperBombPrize.cfs
+-   objectId 5: SuperMinePrize.cfs
+-   objectId 6: SuperMultiPrize.cfs
 
 **Conclusion**: `PrizeCrateA` is genuinely absent. No member with that name or any close variant exists in the archive. The archive contains prize-related graphics (SuperBombPrize, SuperMinePrize, SuperMultiPrize) but nothing named PrizeCrateA. This is a genuine data gap in the original assets.
 
@@ -45,11 +46,12 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 **Investigation**: Exhaustive examination of `cruiart.blo` members (objectId 0-32).
 
 **Archive contents** (33 members):
-- CRFONT1-5.cfs (5 files), button1-5.cfs (5 files), cashback.cfs, cursor.cfs,
-- font1-5.cfs (5 files), gback.cfs, gguage.cfs, header.cfs, mainb.cfs,
-- messageb.cfs, mtitle.cfs, newradar.cfs, notepada.cfs, notepadp.cfs,
-- physics.cfs, scrollb1.cfs, scrollb2.cfs, tinynum.cfs, vision.cfs,
-- warfog.cfs, warpPorter.cfs
+
+-   CRFONT1-5.cfs (5 files), button1-5.cfs (5 files), cashback.cfs, cursor.cfs,
+-   font1-5.cfs (5 files), gback.cfs, gguage.cfs, header.cfs, mainb.cfs,
+-   messageb.cfs, mtitle.cfs, newradar.cfs, notepada.cfs, notepadp.cfs,
+-   physics.cfs, scrollb1.cfs, scrollb2.cfs, tinynum.cfs, vision.cfs,
+-   warfog.cfs, warpPorter.cfs
 
 **Conclusion**: The accepted33-member canonical cruiart inventory lacks the exact `logo` member name. This establishes exact-name absence, not the visual identity of other members, shipping history or native intent. The [Uiart source checkpoint](../development-log/2026-10-18-g9-uiart-source.md) records string access/archive registration and a bounded pinned tracked-C# search; these do not prove native display/member lookup or that the field is unused.
 
@@ -81,22 +83,23 @@ Pinned `CfgInfo.Soccer.cs` reads `BallGraphic` as a string and registers the arc
 
 **Findings**:
 
-| VEH Record | DropItemId | Status |
-|------------|------------|--------|
-| 425 | 66 | `missing` |
-| 426 | 66 | `missing` |
-| 427 | 66 | `missing` |
+| VEH Record | DropItemId | Status    |
+| ---------- | ---------- | --------- |
+| 425        | 66         | `missing` |
+| 426        | 66         | `missing` |
+| 427        | 66         | `missing` |
 
 All three manufactory vehicles reference ITM ID 66 as their DropItemId. Item 66 does not exist among the 200 Rogue_mp.itm records. Record count is not an ID range: IDs are sparse and include values such as 1004 and 2008.
 
 **Corroborating pattern**: Other VEH records show a consistent DropItemId pattern:
-- VEH 400: DropItemId=0 (sentinel/default)
-- VEH 401: DropItemId=2008 (present)
-- VEH 402: DropItemId=0 (sentinel/default)
-- VEH 403: DropItemId=2008 (present)
-- VEH 404: DropItemId=0 (sentinel/default)
-- VEH 405: DropItemId=2008 (present)
-- VEH 407: DropItemId=0 (sentinel/default)
+
+-   VEH 400: DropItemId=0 (sentinel/default)
+-   VEH 401: DropItemId=2008 (present)
+-   VEH 402: DropItemId=0 (sentinel/default)
+-   VEH 403: DropItemId=2008 (present)
+-   VEH 404: DropItemId=0 (sentinel/default)
+-   VEH 405: DropItemId=2008 (present)
+-   VEH 407: DropItemId=0 (sentinel/default)
 
 VEH 425/426/427 share positive reference 66; it is absent from the item catalog. That static fact does not establish whether or when the native/emulator lifecycle evaluates it.
 
@@ -110,9 +113,9 @@ VEH 425/426/427 share positive reference 66; it is absent from the item catalog.
 
 ## Related Documents
 
-- [Dependency Plan](../../scripts/original-assets/DEPENDENCY_PLAN.md) — RT-F375 inventory, outstanding items
-- [Package Audit Plan](../architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) — RT-F381/F385 parser audit
-- [Runtime Plan](../architecture/ROGUE_RUNTIME_PLAN.md) — RT-F382/F383/F392/F394 runtime source
-- [Actor Domain Queue](../../data/original/actors/IMPLEMENTATION_PLAN.md) — RT-F386 investigation
-- [Feature Catalog](FEATURE_CATALOG.md) — RT-F377 through RT-F386 definitions
-- [Handoff](../archive/2026-10/qwen-handoff.md) — Verified vs uncertain state tables
+-   [Dependency Plan](../../scripts/original-assets/DEPENDENCY_PLAN.md) — RT-F375 inventory, outstanding items
+-   [Package Audit Plan](../architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) — RT-F381/F385 parser audit
+-   [Runtime Plan](../architecture/ROGUE_RUNTIME_PLAN.md) — RT-F382/F383/F392/F394 runtime source
+-   [Actor Domain Queue](../../data/original/actors/IMPLEMENTATION_PLAN.md) — RT-F386 investigation
+-   [Feature Catalog](FEATURE_CATALOG.md) — RT-F377 through RT-F386 definitions
+-   [Handoff](../archive/2026-10/qwen-handoff.md) — Verified vs uncertain state tables

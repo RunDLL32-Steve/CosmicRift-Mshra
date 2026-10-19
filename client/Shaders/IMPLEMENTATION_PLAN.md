@@ -8,8 +8,8 @@ Reviewed October 13, 2026. Master: [§16 original appearance](../../ROGUE_TRADER
 
 ## Active outstanding work
 
-- [ ] **Investigating — RT-F074:** original renderer semantics and supported modes through the compatible native engine.
-- [ ] **Not started — faithful render adaptation if needed by engine choice:** implement only proved behavior and verify original pixel/color treatment.
-- [ ] **Not started — optional modern effects:** deferred until exact reproduction acceptance; no effect is required merely to populate this folder.
+-   [ ] **Investigating — RT-F074:** original renderer semantics and supported modes through the compatible native engine.
+-   [ ] **Not started — faithful render adaptation if needed by engine choice:** implement only proved behavior and verify original pixel/color treatment.
+-   [ ] **Not started — optional modern effects:** deferred until exact reproduction acceptance; no effect is required merely to populate this folder.
 
 No shader feature is complete. Native wrapper assets live separately in ignored compatibility tools and are not a Godot shader implementation. No rendering/build/simulation ran for this documentation review.

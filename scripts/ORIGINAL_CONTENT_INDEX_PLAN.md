@@ -6,21 +6,21 @@ Reconcile with the master [fidelity clarification, §1.2](../ROGUE_TRADER_2_PLAN
 
 ## Completion history — Complete with evidence
 
-- Read only the five canonical Rogue Trader text inputs at pinned commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`: CFG, VEH, ITM, RPG, and LIO.
-- Verify the manifest commit, checkout commit when Git metadata exists, and exact SHA-256/byte length of all five inputs before indexing.
-- Detect compatible UTF-8/BOM or CP1252 decoding without normalization of source hashes.
-- Preserve record type, version, identifier, original name, source row, every field as a string, raw field lexemes, and raw record text. CFG preserves all entries, sections, comments and blank rows.
-- Retain different observed header positions: VEH v53 / ITM v57 / LIO v23 use type/version/id/name; RPG v6 uses version/id/type and name at field 39.
-- Cross-reference the 12 RPG hull names with candidate VEH field-3 IDs and matching names. All 12 match in the pinned package.
-- Index 200 original item records, including 112 type-6/8 weapon/effect candidates and seven type-4 Resources records. Credits/repair records remain separate even when their original category also says Resources.
-- Record case-insensitive exact filename/BLO-stem candidates against manifest paths while preserving original source spelling and archive-member candidate tokens.
-- Record unresolved filename/stem references separately and explicitly count unresolved archive-member candidates.
-- Prevent output inside the original folder or over the manifest; write derived JSON atomically outside originals.
-- Re-hash every input after parsing; verify original hashes are unchanged.
-- Run actual indexing and meaningful parser/integrity/output checks described below.
-- [ ] **Investigating — RT-F069:** resolve remaining archive/member identities and complete dependency closure. The accepted selected decoder slice is recorded in [its owner plan](original-assets/IMPLEMENTATION_PLAN.md); it does not complete all raw-index candidates.
-- [ ] **Investigating — RT-F027–RT-F041 / RT-F067:** finish version-aware evaluator, sentinel, units, combat and equipment/runtime interpretation. Selected formats are accepted by the pinned loader; native operational semantics remain open in [field contracts](../docs/original-research/FIELD_INTERPRETATION.md).
-- [ ] **Investigating — RT-F069:** reconcile complete dependency/record identity acceptance with the master; full original gameplay/appearance parity remains unfinished.
+-   Read only the five canonical Rogue Trader text inputs at pinned commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`: CFG, VEH, ITM, RPG, and LIO.
+-   Verify the manifest commit, checkout commit when Git metadata exists, and exact SHA-256/byte length of all five inputs before indexing.
+-   Detect compatible UTF-8/BOM or CP1252 decoding without normalization of source hashes.
+-   Preserve record type, version, identifier, original name, source row, every field as a string, raw field lexemes, and raw record text. CFG preserves all entries, sections, comments and blank rows.
+-   Retain different observed header positions: VEH v53 / ITM v57 / LIO v23 use type/version/id/name; RPG v6 uses version/id/type and name at field 39.
+-   Cross-reference the 12 RPG hull names with candidate VEH field-3 IDs and matching names. All 12 match in the pinned package.
+-   Index 200 original item records, including 112 type-6/8 weapon/effect candidates and seven type-4 Resources records. Credits/repair records remain separate even when their original category also says Resources.
+-   Record case-insensitive exact filename/BLO-stem candidates against manifest paths while preserving original source spelling and archive-member candidate tokens.
+-   Record unresolved filename/stem references separately and explicitly count unresolved archive-member candidates.
+-   Prevent output inside the original folder or over the manifest; write derived JSON atomically outside originals.
+-   Re-hash every input after parsing; verify original hashes are unchanged.
+-   Run actual indexing and meaningful parser/integrity/output checks described below.
+-   [ ] **Investigating — RT-F069:** resolve remaining archive/member identities and complete dependency closure. The accepted selected decoder slice is recorded in [its owner plan](original-assets/IMPLEMENTATION_PLAN.md); it does not complete all raw-index candidates.
+-   [ ] **Investigating — RT-F027–RT-F041 / RT-F067:** finish version-aware evaluator, sentinel, units, combat and equipment/runtime interpretation. Selected formats are accepted by the pinned loader; native operational semantics remain open in [field contracts](../docs/original-research/FIELD_INTERPRETATION.md).
+-   [ ] **Investigating — RT-F069:** reconcile complete dependency/record identity acceptance with the master; full original gameplay/appearance parity remains unfinished.
 
 ## Commands
 
@@ -45,6 +45,5 @@ The seven original type-4 Resources records are Tellerium, Refined Tellerium, Kr
 Executed checks passed: all 12 hull/VEH IDs and names match; all 323 CSV records round-trip to the exact decoded source text; CFG entries plus structural rows round-trip every original line; numeric fields stay strings; a quoted-comma/doubled-quote/empty-field case retains raw tokens; output inside originals is rejected; a tampered expected SHA-256 is rejected; and all five source hashes remain unchanged before and after checks. The CLI generated its JSON with exit 0. Source-specific integrity is also corroborated by the root's 45-file raw reference verifier.
 
 No source artwork, stats, maps, names or bytes were changed. No gameplay behavior or engine compatibility is claimed by this index.
-
 
 Current raw dependency follow-up: [DEPENDENCY_PLAN.md](original-assets/DEPENDENCY_PLAN.md) completes RT-F375 all89 BLO/1,262 exact members/609 raw candidates with99 canonical hash checks. The original545 archive-member candidate count is historical and is not a current residual. [Package audit](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md) verifies modeled identities/value links separately. Runtime eligibility, missing Portal/logo/numeric Ball roles and native delivery remain open; raw indexing never proves original gameplay.

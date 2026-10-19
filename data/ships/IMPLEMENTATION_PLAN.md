@@ -10,6 +10,6 @@ Evidence: M0/M1 historical 41-unit-case and source/export acceptance; current JS
 
 ## Next and parity boundary
 
-- [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture while native compatibility is evaluated; validate all twelve original hulls and exchanges in the canonical queue.
+-   [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture while native compatibility is evaluated; validate all twelve original hulls and exchanges in the canonical queue.
 
 No new tuning is needed for the current engineering fixture. It is not canonical original content and does not complete any original per-record gameplay feature. The unchanged originals, source identities, current stage and feature-specific next steps belong in the canonical plan above; completed acceptance belongs in [CHANGELOG.md](../../CHANGELOG.md) and the master audit.

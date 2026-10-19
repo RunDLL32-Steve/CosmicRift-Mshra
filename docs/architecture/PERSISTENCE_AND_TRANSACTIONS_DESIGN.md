@@ -42,6 +42,7 @@ public static class ProfileInvariants
     public static IReadOnlyList<string> Validate(PlayerProfile p, PersistenceOptions o);
 }
 ```
+
 Invariants: schema version current; ProfileId matches the regex; `Revision >= 0`; `Wallet >= 0`; inventory keys non-null/non-empty, values `> 0`; upgrade ids non-empty; transaction ids unique and non-empty (`<= 128` chars); window and ledger counts within limits; ledger sequences strictly increasing and `< NextLedgerSequence`. Record equality on collections is by reference, so tests compare through a `ProfileAssert.Equivalent` helper (tests project).
 
 ### 1.2 Repository
@@ -62,6 +63,7 @@ public enum DiagnosticCode { Truncated, MalformedJson, ChecksumMismatch, WrongFo
     MigrationApplied, MigrationMissing, OrphanTempQuarantined, PrimaryQuarantined, BackupQuarantined, RecoveredFromBackup, IoFailure }
 public sealed record PersistenceDiagnostic(DiagnosticCode Code, string Message, string? FilePath);
 ```
+
 **Optimistic concurrency (CAS):** every repository tracks, per profile id, the last revision it loaded, created or saved (`ConcurrentDictionary<string,long>` guarded by a per-profile `SemaphoreSlim(1,1)`). `SaveAsync` returns `RevisionConflict` unless the tracked revision exists **and** equals `expectedRevision` **and** `next.Revision == expectedRevision + 1`. A save for a profile never loaded/created by this instance is a conflict. Exceptions are reserved for programmer errors (`ArgumentException`); all I/O and data failures come back as typed results.
 
 `InMemoryProfileRepository : IProfileRepository` (same CAS rules, stores the immutable record) ships in the main project for tests and tooling.
@@ -70,13 +72,13 @@ public sealed record PersistenceDiagnostic(DiagnosticCode Code, string Message, 
 
 `public sealed class FileProfileRepository : IProfileRepository, IDisposable` — `public static FileProfileRepository Open(string rootDirectory, PersistenceOptions options, IReadOnlyList<IProfileMigration> migrations, TimeProvider? time = null)`.
 
-- **Single owner:** `Open` creates the root and holds `<root>/.repository.lock` open with `FileShare.None` until `Dispose`; a second `Open` on the same root throws `ProfileRepositoryLockedException`. Cross-process sharing is out of scope.
-- **Files:** primary `<id>.profile.json`, backup `<id>.profile.bak.json`, temp `<id>.profile.json.tmp`, quarantine `<root>/quarantine/<id>.<yyyyMMddTHHmmssfffZ>.<DiagnosticCode>.json`. Files are **moved** into quarantine, never deleted.
-- **Format (envelope, UTF-8, no BOM):** `{"format":"rogue-trader.player-profile","schemaVersion":1,"sha256":"<lowercase hex>","payload":"<payload JSON as a string>"}`. `sha256` is over the UTF-8 bytes of the `payload` string, so the checksum never depends on re-serialization. The payload is `ProfileDocumentV1` (internal DTO with plain `Dictionary<string,int>`/`List<>` members, camelCase, `UnmappedMemberHandling.Disallow` like `GameCatalog`) mapped explicitly to/from `PlayerProfile`. `ProfileSerializer` (public static) exposes `byte[] Serialize(PlayerProfile)` and `ProfileDecodeResult Decode(ReadOnlySpan<byte>, IReadOnlyList<IProfileMigration>)`.
-- **Decode order:** parse envelope (failure: `Truncated` if the bytes end before the root object closes, else `MalformedJson`) -> `format` check (`WrongFormat`) -> `schemaVersion > Current` => `NewerVersion` (stop; nothing else inspected) -> checksum (`ChecksumMismatch`) -> payload parse -> if `schemaVersion < Current` run migrations -> map -> `ProfileInvariants` (`InvariantViolation`).
-- **Migration hook:** `public interface IProfileMigration { int FromVersion { get; } JsonObject Migrate(JsonObject payload); }` (produces `FromVersion + 1`). `public static class ProfileMigrator { MigrationOutcome Upgrade(JsonObject payload, int fromVersion, int targetVersion, IReadOnlyList<IProfileMigration> steps); }` applies steps in order; a gap yields `MigrationMissing`. Version 1 ships with an empty list. A migrated profile is written at the current version on its next save (the old file becomes the backup naturally).
-- **Atomic save:** under the per-profile lock: CAS check -> invariants -> serialize -> write temp with `new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough)`, `Write`, `Flush(flushToDisk: true)`, dispose -> if primary exists `File.Replace(tmp, primary, backup, ignoreMetadataErrors: true)` else `File.Move(tmp, primary)` -> update tracked revision -> `Saved`. Any exception => `IoError` with the tracked revision unchanged. `CreateAsync` uses the same path and returns `AlreadyExists` if primary, backup or temp exists.
-- **Load algorithm:** (1) if a temp file exists, quarantine it (`OrphanTempQuarantined`) — it was never acknowledged. (2) primary present and decodes => `Loaded`. (3) primary `NewerVersion` or `MigrationMissing` => return that status, touch **nothing**, no backup fallback (falling back would silently regress progress). (4) primary corrupt (any other code) => quarantine it (`PrimaryQuarantined`), go to (5). (5) backup present and decodes => `RecoveredFromBackup` (backup copied to primary via the atomic save path at its own revision; diagnostics list everything). Backup corrupt => quarantine it, return `Corrupt`. (6) neither file present and nothing quarantined in this call => `NotFound`; if anything was quarantined => `Corrupt`. **No path returns an empty/new profile**; only the caller creates one, and only after `NotFound`.
+-   **Single owner:** `Open` creates the root and holds `<root>/.repository.lock` open with `FileShare.None` until `Dispose`; a second `Open` on the same root throws `ProfileRepositoryLockedException`. Cross-process sharing is out of scope.
+-   **Files:** primary `<id>.profile.json`, backup `<id>.profile.bak.json`, temp `<id>.profile.json.tmp`, quarantine `<root>/quarantine/<id>.<yyyyMMddTHHmmssfffZ>.<DiagnosticCode>.json`. Files are **moved** into quarantine, never deleted.
+-   **Format (envelope, UTF-8, no BOM):** `{"format":"rogue-trader.player-profile","schemaVersion":1,"sha256":"<lowercase hex>","payload":"<payload JSON as a string>"}`. `sha256` is over the UTF-8 bytes of the `payload` string, so the checksum never depends on re-serialization. The payload is `ProfileDocumentV1` (internal DTO with plain `Dictionary<string,int>`/`List<>` members, camelCase, `UnmappedMemberHandling.Disallow` like `GameCatalog`) mapped explicitly to/from `PlayerProfile`. `ProfileSerializer` (public static) exposes `byte[] Serialize(PlayerProfile)` and `ProfileDecodeResult Decode(ReadOnlySpan<byte>, IReadOnlyList<IProfileMigration>)`.
+-   **Decode order:** parse envelope (failure: `Truncated` if the bytes end before the root object closes, else `MalformedJson`) -> `format` check (`WrongFormat`) -> `schemaVersion > Current` => `NewerVersion` (stop; nothing else inspected) -> checksum (`ChecksumMismatch`) -> payload parse -> if `schemaVersion < Current` run migrations -> map -> `ProfileInvariants` (`InvariantViolation`).
+-   **Migration hook:** `public interface IProfileMigration { int FromVersion { get; } JsonObject Migrate(JsonObject payload); }` (produces `FromVersion + 1`). `public static class ProfileMigrator { MigrationOutcome Upgrade(JsonObject payload, int fromVersion, int targetVersion, IReadOnlyList<IProfileMigration> steps); }` applies steps in order; a gap yields `MigrationMissing`. Version 1 ships with an empty list. A migrated profile is written at the current version on its next save (the old file becomes the backup naturally).
+-   **Atomic save:** under the per-profile lock: CAS check -> invariants -> serialize -> write temp with `new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough)`, `Write`, `Flush(flushToDisk: true)`, dispose -> if primary exists `File.Replace(tmp, primary, backup, ignoreMetadataErrors: true)` else `File.Move(tmp, primary)` -> update tracked revision -> `Saved`. Any exception => `IoError` with the tracked revision unchanged. `CreateAsync` uses the same path and returns `AlreadyExists` if primary, backup or temp exists.
+-   **Load algorithm:** (1) if a temp file exists, quarantine it (`OrphanTempQuarantined`) — it was never acknowledged. (2) primary present and decodes => `Loaded`. (3) primary `NewerVersion` or `MigrationMissing` => return that status, touch **nothing**, no backup fallback (falling back would silently regress progress). (4) primary corrupt (any other code) => quarantine it (`PrimaryQuarantined`), go to (5). (5) backup present and decodes => `RecoveredFromBackup` (backup copied to primary via the atomic save path at its own revision; diagnostics list everything). Backup corrupt => quarantine it, return `Corrupt`. (6) neither file present and nothing quarantined in this call => `NotFound`; if anything was quarantined => `Corrupt`. **No path returns an empty/new profile**; only the caller creates one, and only after `NotFound`.
 
 ### 1.4 Transaction layer
 
@@ -115,10 +117,11 @@ public interface ITransactionProcessor
 public sealed class TransactionProcessor(IProfileRepository repository, IPriceSource prices, ICargoPolicy cargo,
     PersistenceOptions options, TimeProvider? time = null) : ITransactionProcessor;
 ```
+
 **Per-profile serialization:** the processor holds `ConcurrentDictionary<string, ProfileSlot>`; `ProfileSlot` = `SemaphoreSlim(1,1)`, `PlayerProfile Committed`, `bool NeedsReload`. Every transaction and `OpenProfileAsync` runs entirely inside the slot lock (the token is honored only while waiting for it; commit uses `CancellationToken.None`). Within one processor that alone prevents double-spend; the repository CAS additionally rejects a second processor or stale writer (`PersistenceConflict`), so two writers can never both commit from the same revision.
 
-**Validation order (fixed; first failure wins; no state touched before step 8):**
-0. Shape: ids non-null/non-empty (TransactionId <= 128 chars), `Quantity > 0`, reward `Currency >= 0`, reward item quantities `> 0`, reward not entirely empty => `InvalidRequest`.
+**Validation order (fixed; first failure wins; no state touched before step 8):** 0. Shape: ids non-null/non-empty (TransactionId <= 128 chars), `Quantity > 0`, reward `Currency >= 0`, reward item quantities `> 0`, reward not entirely empty => `InvalidRequest`.
+
 1. Identity (9.3-1): `r.ProfileId == ctx.AuthenticatedProfileId` (Ordinal) else `IdentityMismatch`; slot exists and `!NeedsReload` else `ProfileNotOpen`. Acquire lock.
 2. Duplicate lookup (9.3-6, read side): if `TransactionId` is in the window: same `RequestFingerprint` => return the stored result with `IsReplay = true`, no save; different fingerprint => `TransactionIdReused`. This precedes state checks because a replay must return the original outcome even if funds/cargo have since changed. Fingerprint = lowercase hex SHA-256 of `kind|profileId|stationOrSource|itemOrUpgrade|quantity|currency|items` with reward items sorted ordinally as `id=qty` joined by `;`.
 3. Proximity (9.3-2): Buy/Sell/BuyUpgrade require `ctx.StationAccessVerified` else `StationAccessDenied`; rewards skip it.
@@ -133,30 +136,31 @@ Rejections are not recorded; a rejected id may be retried. Callers must generate
 
 ## 2. Failure and recovery matrix
 
-| Situation | Disk state | Load outcome | Player-visible effect |
-|---|---|---|---|
-| Crash while writing temp / before `Replace` | old primary, partial or full temp | `Loaded` (old), temp quarantined | Unacknowledged transaction absent; client retry applies it once |
-| Crash inside `Replace` leaving no primary | backup (old), maybe temp | temp quarantined, `RecoveredFromBackup` | Same as above |
-| Crash after `Replace`, before ack | new primary, backup | `Loaded` (new) | Retry with same id returns stored result (`IsReplay`) |
-| Truncated primary | primary short | primary quarantined, `RecoveredFromBackup` or `Corrupt` | At most the last generation lost, always reported |
-| Bad checksum / invariant violation (e.g. negative wallet) | primary edited/damaged | as truncated | as truncated |
-| Primary and backup both corrupt | both bad | both quarantined, `Corrupt` | Game must not start a fresh profile; surfaces error |
-| Newer schema version | primary from newer build | `UnsupportedNewerVersion`, nothing moved | Error; saving impossible (not loaded) |
-| Older version, no migration | primary v<current | `MigrationMissing`, nothing moved | Error |
-| Duplicate transaction after restart | window persisted in profile | — | Replay returns original result, no second credit |
-| Save I/O error (disk full, locked) | primary unchanged | — | `PersistenceFailed`, in-memory rolled back, reopen required |
+| Situation                                                 | Disk state                        | Load outcome                                            | Player-visible effect                                           |
+| --------------------------------------------------------- | --------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
+| Crash while writing temp / before `Replace`               | old primary, partial or full temp | `Loaded` (old), temp quarantined                        | Unacknowledged transaction absent; client retry applies it once |
+| Crash inside `Replace` leaving no primary                 | backup (old), maybe temp          | temp quarantined, `RecoveredFromBackup`                 | Same as above                                                   |
+| Crash after `Replace`, before ack                         | new primary, backup               | `Loaded` (new)                                          | Retry with same id returns stored result (`IsReplay`)           |
+| Truncated primary                                         | primary short                     | primary quarantined, `RecoveredFromBackup` or `Corrupt` | At most the last generation lost, always reported               |
+| Bad checksum / invariant violation (e.g. negative wallet) | primary edited/damaged            | as truncated                                            | as truncated                                                    |
+| Primary and backup both corrupt                           | both bad                          | both quarantined, `Corrupt`                             | Game must not start a fresh profile; surfaces error             |
+| Newer schema version                                      | primary from newer build          | `UnsupportedNewerVersion`, nothing moved                | Error; saving impossible (not loaded)                           |
+| Older version, no migration                               | primary v<current                 | `MigrationMissing`, nothing moved                       | Error                                                           |
+| Duplicate transaction after restart                       | window persisted in profile       | —                                                       | Replay returns original result, no second credit                |
+| Save I/O error (disk full, locked)                        | primary unchanged                 | —                                                       | `PersistenceFailed`, in-memory rolled back, reopen required     |
 
 ## 3. Test plan (xunit, `tests/Unit/Persistence/`, namespace `RogueTrader.UnitTests.Persistence`)
 
 Fixtures: `FixturePriceSource` (dictionary-backed; every price labelled `// NEW provisional test fixture, not game balance`), `FixtureCargoPolicy` (sum of units <= a NEW fixture limit), `FaultInjectingProfileRepository` (wraps `InMemoryProfileRepository`; modes `FailBeforeWrite`, `ThrowAfterWrite`), `TempDirectory : IDisposable`, `ProfileAssert.Equivalent`. Item ids are obviously synthetic (`fixture-ore-a`, `fixture item/Ω #2`). Test classes: `EconomyTransactionTests`, `TransactionConcurrencyTests`, `FileProfileRepositoryTests`, `ProfileSerializerTests`.
 
 20.2 bullet -> tests:
-1. *Cannot spend money they do not have:* `Buy_WithInsufficientFunds_IsRejectedAndProfileUnchanged`, `BuyUpgrade_WithInsufficientFunds_IsRejected`.
-2. *Cargo cannot become negative:* `Sell_MoreThanHeld_IsRejectedAndInventoryUnchanged`, `Sell_ItemNotHeld_IsRejected`, `Sell_AllUnits_RemovesEntry`, `NonPositiveQuantity_IsRejected` (Theory: 0, -1, int.MinValue).
-3. *Duplicate requests create no duplicate rewards:* `GrantReward_DuplicateId_IsNoOpReturningOriginalResult`, `GrantReward_DuplicateAfterRestart_IsNoOp`, `Buy_DuplicateId_DoesNotChargeTwice`, `TransactionId_ReusedWithDifferentPayload_IsRejected`.
-4. *Prices calculated correctly:* `Buy_ChargesAuthoritativeUnitPriceTimesQuantity`, `Sell_CreditsAuthoritativeUnitPriceTimesQuantity`, `Buy_UnpricedItem_IsRejectedAsNotForSale`, `NegativePrice_IsRejectedAsInvalidPrice`, `Buy_TotalPriceOverflow_IsRejected`, `Sell_WalletOverflow_IsRejected`, `Applied_AppendsLedgerEntryWithBalanceAfter`.
-5. *Save/load preserves currency and inventory:* `SaveLoad_RoundTripPreservesWalletInventoryUpgradesHullAndWindow`, `SaveLoad_PreservesOpaqueIdsVerbatim`, `ExitAndReturn_RewardSellUpgrade_ProgressionIntact` (reward cargo, sell, buy upgrade, dispose processor and repository, reopen, verify).
-6. *Simultaneous transactions cannot double-spend:* `ConcurrentBuys_OnlyAffordableOnesApply` (64 parallel buys, funds for N; exactly N applied, wallet never negative), `ConcurrentDuplicateRewards_ApplyExactlyOnce`, `Repository_ConcurrentSavesSameExpectedRevision_OnlyOneSucceeds`, `TwoProcessorsSharingRepository_CannotDoubleSpend`.
+
+1. _Cannot spend money they do not have:_ `Buy_WithInsufficientFunds_IsRejectedAndProfileUnchanged`, `BuyUpgrade_WithInsufficientFunds_IsRejected`.
+2. _Cargo cannot become negative:_ `Sell_MoreThanHeld_IsRejectedAndInventoryUnchanged`, `Sell_ItemNotHeld_IsRejected`, `Sell_AllUnits_RemovesEntry`, `NonPositiveQuantity_IsRejected` (Theory: 0, -1, int.MinValue).
+3. _Duplicate requests create no duplicate rewards:_ `GrantReward_DuplicateId_IsNoOpReturningOriginalResult`, `GrantReward_DuplicateAfterRestart_IsNoOp`, `Buy_DuplicateId_DoesNotChargeTwice`, `TransactionId_ReusedWithDifferentPayload_IsRejected`.
+4. _Prices calculated correctly:_ `Buy_ChargesAuthoritativeUnitPriceTimesQuantity`, `Sell_CreditsAuthoritativeUnitPriceTimesQuantity`, `Buy_UnpricedItem_IsRejectedAsNotForSale`, `NegativePrice_IsRejectedAsInvalidPrice`, `Buy_TotalPriceOverflow_IsRejected`, `Sell_WalletOverflow_IsRejected`, `Applied_AppendsLedgerEntryWithBalanceAfter`.
+5. _Save/load preserves currency and inventory:_ `SaveLoad_RoundTripPreservesWalletInventoryUpgradesHullAndWindow`, `SaveLoad_PreservesOpaqueIdsVerbatim`, `ExitAndReturn_RewardSellUpgrade_ProgressionIntact` (reward cargo, sell, buy upgrade, dispose processor and repository, reopen, verify).
+6. _Simultaneous transactions cannot double-spend:_ `ConcurrentBuys_OnlyAffordableOnesApply` (64 parallel buys, funds for N; exactly N applied, wallet never negative), `ConcurrentDuplicateRewards_ApplyExactlyOnce`, `Repository_ConcurrentSavesSameExpectedRevision_OnlyOneSucceeds`, `TwoProcessorsSharingRepository_CannotDoubleSpend`.
 
 Validation/integrity: `Identity_Mismatch_IsRejected`, `StationAccess_NotVerified_IsRejected`, `GrantReward_DoesNotRequireStationAccess`, `Buy_ExceedingCargoPolicy_IsRejected`, `GrantReward_ExceedingCargoPolicy_IsRejectedWhole`, `BuyUpgrade_AlreadyOwned_IsRejected`, `IdempotencyWindow_EvictsOldestBeyondCapacity`, `SaveFailure_RollsBackAndRequiresReopen`, `SaveThrowsAfterWrite_RetryAfterReopenReturnsReplay`.
 
@@ -169,12 +173,13 @@ For persistence-only changes, run `dotnet test tests/Unit` using the pinned envi
 Non-goals: PostgreSQL, schema migrations for a database, accounts/authentication, multiplayer or cross-process save sharing, original economy parity (prices, capacities, item lists, starting wallet, sell/buy spreads, the 9.4 currency-creation check — the latter belongs to price data), repairs/resupply, hull exchange, death/drop retention, sector transfer, UI, Godot wiring, cloud backup/rotation beyond one previous generation.
 
 Open questions (recorded, not blocking this slice):
-- **Original item data:** the later integration supplies `IPriceSource`, `ICargoPolicy` (capacity, unit weight, stacking, which items count as cargo) and the hull id from data/original; IDs pass through verbatim. Whether the original kept currency as signed 32-bit and how to clamp/import is RT-F035/F049 evidence work.
-- **Proximity/docking:** the simulation/server computes `StationAccessVerified`; the M2 integration decides and wires its station-interaction rule. The compatibility packet-shop path now has the separate RT-F389 StoreEnabled/spectator guard; that does not wire this persistence core into the native server.
-- **Upgrade installation restrictions** (hull/slot eligibility) are not modelled; until then `TryGetUpgradePrice` returning false is the only gate. A later `IUpgradeEligibility` may be inserted between steps 4 and 5.
-- **Retained state on death/logout/transfer** (RT-F043/F050/F054) decides which profile fields survive; this layer persists whatever the caller commits.
-- **PostgreSQL (M3):** implement `IProfileRepository` with row-version CAS and a unique `(profile_id, transaction_id)` constraint; the processor contract is unchanged.
-- **Window size:** 1024 is a NEW engineering default; revisit once real transaction rates are known.
+
+-   **Original item data:** the later integration supplies `IPriceSource`, `ICargoPolicy` (capacity, unit weight, stacking, which items count as cargo) and the hull id from data/original; IDs pass through verbatim. Whether the original kept currency as signed 32-bit and how to clamp/import is RT-F035/F049 evidence work.
+-   **Proximity/docking:** the simulation/server computes `StationAccessVerified`; the M2 integration decides and wires its station-interaction rule. The compatibility packet-shop path now has the separate RT-F389 StoreEnabled/spectator guard; that does not wire this persistence core into the native server.
+-   **Upgrade installation restrictions** (hull/slot eligibility) are not modelled; until then `TryGetUpgradePrice` returning false is the only gate. A later `IUpgradeEligibility` may be inserted between steps 4 and 5.
+-   **Retained state on death/logout/transfer** (RT-F043/F050/F054) decides which profile fields survive; this layer persists whatever the caller commits.
+-   **PostgreSQL (M3):** implement `IProfileRepository` with row-version CAS and a unique `(profile_id, transaction_id)` constraint; the processor contract is unchanged.
+-   **Window size:** 1024 is a NEW engineering default; revisit once real transaction rates are known.
 
 ## 5. Implementation notes
 

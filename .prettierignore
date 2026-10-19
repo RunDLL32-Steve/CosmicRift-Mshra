@@ -13,3 +13,5 @@ node_modules/
 **/obj/
 **/.godot/
 package-lock.json
+# Token cannot push workflow files; owner formats these.
+.github/workflows/
