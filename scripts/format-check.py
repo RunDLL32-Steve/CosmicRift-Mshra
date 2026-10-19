@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def git(*args):
-    r = subprocess.run(["git", "-c", "core.quotepath=false", *args], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(["git", "-c", "core.quotepath=false", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         sys.exit(f"git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout
@@ -33,7 +33,7 @@ def changed_since(base):
         subprocess.run(["git", "fetch", "--no-tags", "--depth=1", remote, f"{branch}:refs/remotes/{remote}/{branch}"], cwd=ROOT, capture_output=True)
         if subprocess.run(["git", "rev-parse", "--verify", "--quiet", base], cwd=ROOT, capture_output=True).returncode:
             sys.exit(f"cannot resolve {base}; fetch it first (git fetch origin main)")
-    mb = subprocess.run(["git", "merge-base", base, "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    mb = subprocess.run(["git", "merge-base", base, "HEAD"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
     ref = mb.stdout.strip() if mb.returncode == 0 and mb.stdout.strip() else base
     return git("diff", "--name-only", "--diff-filter=d", ref).splitlines()
 
@@ -72,6 +72,8 @@ def main():
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     out = (r.stdout + r.stderr).strip()
     if a.fix:
