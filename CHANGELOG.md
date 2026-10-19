@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 Uiart/logo documentation precision — October 18, 2026
+
+- Preserve known exact-name absence while removing unsupported visual/intent/shipping/fallback claims; record bounded pinned Uiart string/archive access and consolidate stable G9 summaries around its ledger. [Evidence and limits](docs/development-log/2026-10-18-g9-uiart-source.md). Markdown only; no accepted checks rerun, original changes or feature/count completion.
+
 ## G9 Portal source roles — October 18, 2026
 
 - Distinguish this pinned loader's Portal iconGraphic pair from its None/None prefire/warp slots and the selected archive-container loading path. [Raw/normalized roles, source evidence and limits](docs/development-log/2026-10-18-g9-portal-source.md). Markdown only; no missing-warp-effect/replacement/native-role acceptance, runtime rerun or feature/count change.

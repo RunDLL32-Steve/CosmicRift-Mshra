@@ -51,9 +51,9 @@ Date: 2026-10-14; evidence corrected October 17 against canonical CFG and the pi
 - physics.cfs, scrollb1.cfs, scrollb2.cfs, tinynum.cfs, vision.cfs,
 - warfog.cfs, warpPorter.cfs
 
-**Conclusion**: `logo` is genuinely absent. No member named "logo" or any logo-like variant exists anywhere in the 33-member archive. This is a genuine data gap in the original assets.
+**Conclusion**: The accepted33-member canonical cruiart inventory lacks the exact `logo` member name. This establishes exact-name absence, not the visual identity of other members, shipping history or native intent. The [Uiart source checkpoint](../development-log/2026-10-18-g9-uiart-source.md) records string access/archive registration and a bounded pinned tracked-C# search; these do not prove native display/member lookup or that the field is unused.
 
-**Implication**: The Uiart Logo field references a file that does not exist in the canonical UI art archive. May indicate a file that was intended but never shipped, or a fallback to default behavior.
+**Implication**: Matching original/native logo consumer, revision, display/evaluator and fallback remain UNKNOWN. No substitute art or interpretation of another member as a logo is justified; RT-F378 remains open.
 
 ---
 
