@@ -13,7 +13,7 @@ Read [PROJECT_START.md](PROJECT_START.md), [AGENTS.md](AGENTS.md), the complete 
 
 ## Recorded acceptance and limits
 
-M0/M1's 41-unit-test source/export/input/world acceptance is historical, as are the October 13 original inspector/export checks (12 hulls, 231 sprites, exact 1999×1998 overview). See [progress and evidence](docs/development-log/PROGRESS.md), [CHANGELOG](CHANGELOG.md) and dated logs. No gameplay checks were rerun for this documentation-only change.
+M0/M1's 41-unit-test source/export/input/world acceptance is historical, as are the October 13 original inspector/export checks (12 hulls, 231 sprites, exact 1999×1998 overview). See [progress and evidence](docs/development-log/PROGRESS.md), [CHANGELOG](CHANGELOG.md) and dated logs. No gameplay checks were rerun for the October 17 documentation audit.
 
 The October 13 parser/package/arena/host work records 200 items, 30 vehicles, 12 hull links, 81 LIO records, 25 initialized computers and 100 drops. The separate host-ready observation of 26 initial vehicles is a different measurement. Native Welcome was observed; Start/arena entry was not confirmed. Old test processes/private keys were cleaned up at that checkpoint; this is not a claim about every process currently running.
 
@@ -23,7 +23,7 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 ## Next
 
-G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [authoritative ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated62/63/64/70 evidence and exact remaining scope. Current [RT-F378 Uiart/logo clarification](docs/development-log/2026-10-18-g9-uiart-source.md) retains known exact-name absence and distinguishes pinned string/archive registration from UNKNOWN native consumer/revision/display/fallback. No prior checks were rerun; raw609/eight residuals and397/22/375 remain unchanged. Continue matching consumer evidence and other bounded G9 audits with separate user-present native prerequisites. RT-F069/F377/F378/F379/F386 remain open; no duplicate inventory, claim release, feature completion or M5 work follows.
+G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [actual selected catalog membership increment](docs/development-log/2026-10-18-g9-catalog-membership.md) passed the first author run and one explicitly cleared round1 author rework run: exit0, catalog Accepted=true,200 exact IDs/no duplicates or reference mismatches, one expected66 Warning, unchanged inputs and zero clients/begin/poll/physics. Author evidence is preserved separately for fresh review reproduction. Prior checks are not rerun; native consumers/gameplay/full closure and all original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.
 
 Queue M3 generic mining merged in [PR 60](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/60) at `1037592dc48991d61ccc8900374b1f371da58368` after independent exact-head review and successful Windows CI; see [local evidence](docs/development-log/2026-10-18-m3-mining.md). The generic slice is completed queue history; do not reclaim it. Original RT-F042 remains open. Next integration remains M8 client input/HUD and the original equipment/spawn/evaluator bindings after their dependencies are validated. Mining intent is not carried by the current Protocol codec; transport integration remains outside M3.
 

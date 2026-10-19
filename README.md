@@ -51,6 +51,6 @@ The user-designated foundation is fowlmouth/cosmic-rift-assets at `eb1514eaae7f9
 
 Originals live in ignored `.tools/references/cosmic-rift-assets/`; derived outputs stay separate. See the [engine evaluation](docs/architecture/ENGINE_EVALUATION.md) for the open production-engine decision.
 
-G9 remains claimed/in progress; its [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated inventory, bounded diagnostics and source findings. Current [Uiart/logo clarification](docs/development-log/2026-10-18-g9-uiart-source.md) preserves exact-name absence without visual/intent/fallback claims. Matching native consumers, runtime dependency closure and original gameplay acceptance remain open.
+G9 remains claimed/in progress; its [ledger](scripts/original-assets/plan.d/g9.md) indexes dated evidence and open native/original limits. Current [selected initializer catalog check](docs/development-log/2026-10-18-g9-catalog-membership.md) passes the selected standalone200-ID/object-lookup check after approved local execution; it does not complete runtime closure or original gameplay acceptance.
 
 Current registry: **397 feature entries, 22 scoped completions, 375 open**. M0/M1 prototype acceptance is historical. The original mining/trading/upgrades/persistence loop and native appearance are not accepted. The [October 17 audit](docs/audits/2026-10-17-documentation-audit.md) distinguishes code inspection, recorded evidence and checks actually rerun.

@@ -10,7 +10,7 @@ Reviewed: October 12, 2026. Scope: the historical foundation for [master plan §
 
 ## G9 source-access checkpoint — October 18, 2026
 
-The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) indexes accepted dated inventory, bounded emulator diagnostics and source findings with their individual limits. Current [Uiart/logo clarification](../development-log/2026-10-18-g9-uiart-source.md): VERIFIED STATIC for pinned string/archive registration and the bounded tracked-C# lexical search; prior exact-name absence stays accepted history. Visual identity of other members, shipping/native intent and matching original/native consumer/revision/display/fallback remain UNKNOWN. No prior parser/runtime/native results were rerun. G9/RT-F069/F377/F378/F379/F386 remain open; raw609/eight residuals and397/22/375 unchanged. Native/original eligibility and full dependency closure remain unverified.
+The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) indexes accepted dated inventory, diagnostics and source limits. Current [actual selected catalog increment](../development-log/2026-10-18-g9-catalog-membership.md): VERIFIED STATIC bounded one-hop nested-record source rationale; actual selected standalone full-ID membership is verified by cleared first-author and round1-rework exit0/Accepted runs with200 exact IDs/reference consistency, missing66 null/Warning and zero unexpected errors. This does not establish general/native catalog closure. Matching native consumers/revisions/display/evaluators/fallback and full original closure remain UNKNOWN. G9/RT-F069/F377/F378/F379/F386 open;397/22/375/raw609/eight unchanged. No prior accepted result is a new run.
 
 ## Evidence rules
 

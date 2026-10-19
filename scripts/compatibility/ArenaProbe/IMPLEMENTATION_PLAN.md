@@ -8,6 +8,8 @@ RT-F383 is **Complete for original arena initialization**. [Program.cs](Program.
 
 Verified original map 1999×1998, 200 items, 30 vehicles, 12 hull links; 25 computers (2 Refineries, 2 Trading Outposts, 5 Repair Docks, 12 GunSats, 3 MeteorShowers, 1 Solar Mold), 51 teams and 42 hides. Initial 100 drops are 45 Iron Ore, 45 Tellerium and 10 Krandazite. No doors/flags were initialized. This initializer uses `loadBlobs=false`; later full-asset hosting is a separate feature.
 
+Current G9 selected-catalog membership strengthening is separately scoped in [plan.d/g9.md](plan.d/g9.md); historical count-only acceptance above does not prove its new complete-ID/reference checks.
+
 ## Next and parity
 
 - [ ] **Not started:** native join, F11 hull selection, unspectating, original spawn/warp acceptance.
