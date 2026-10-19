@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def git(*args):
-    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(["git", "-c", "core.quotepath=false", *args], cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"git {' '.join(args)} failed: {r.stderr.strip()}")
     return r.stdout
@@ -68,7 +68,7 @@ def main():
         return 0
     mode = "--write" if a.fix else "--list-different"
     r = subprocess.run(
-        ["node", exe, mode, "--end-of-line", "auto", "--ignore-unknown", "--log-level", "warn", *files],
+        ["node", exe, mode, "--end-of-line", "auto", "--ignore-unknown", *files],
         cwd=ROOT,
         capture_output=True,
         text=True,
