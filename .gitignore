@@ -12,3 +12,4 @@ client/GameData/
 client/OriginalContent/
 
 **/__pycache__/
+node_modules/
