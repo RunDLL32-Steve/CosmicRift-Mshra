@@ -2,7 +2,7 @@
 
 ## G9 selected-catalog probe strengthening — October 18, 2026
 
-- Implement complete raw/actual-ID and object-lookup diagnostics in existing ArenaProbe, with selected input/digest/loaded-assembly provenance and literal missing66 check. [Readiness/evidence](docs/development-log/2026-10-18-g9-catalog-membership.md): one approved wrapper/helper run exits0, Accepted=true,200 exact IDs with consistent object lookups and expected missing66 Warning. No original feature/count or production rule change.
+- Implement complete raw/actual-ID and object-lookup diagnostics in existing ArenaProbe, with selected input/digest/loaded-assembly provenance and literal missing66 check. [Readiness/evidence](docs/development-log/2026-10-18-g9-catalog-membership.md): first-author and cleared round1-rework wrapper/helper runs exit0, Accepted=true,200 exact IDs with consistent object lookups and expected missing66 Warning. No original feature/count or production rule change.
 
 ## G9 Uiart/logo documentation precision — October 18, 2026
 

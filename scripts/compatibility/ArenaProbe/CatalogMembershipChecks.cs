@@ -16,10 +16,10 @@ public static class CatalogMembershipChecks
         string source = SourcePath();
         string repo = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(source)!, "../../.."));
         string zone = OwnedRegular(Path.Combine(repo, ".tools/compatibility/arena-working/rogue"), repo);
-        Require(Path.GetFullPath(Environment.CurrentDirectory) == zone, "Unexpected probe working directory.");
+        Require(string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(Environment.CurrentDirectory)), Path.TrimEndingDirectorySeparator(zone), StringComparison.OrdinalIgnoreCase), "Unexpected probe working directory.");
         string assetsRoot = OwnedRegular(Path.Combine(zone, "assets"), zone);
         string[] searchPaths = AssetFileFactory.AssetFolderPaths.Select(path => OwnedRegular(path, zone)).ToArray();
-        Require(searchPaths.Length == 1 && searchPaths[0] == assetsRoot, "Expected only the issue-owned staged assets search path.");
+        Require(searchPaths.Length == 1 && string.Equals(Path.TrimEndingDirectorySeparator(searchPaths[0]), Path.TrimEndingDirectorySeparator(assetsRoot), StringComparison.OrdinalIgnoreCase), "Expected only the issue-owned staged assets search path.");
         string cfgName = server._config["server/zoneConfig"].Value;
         string itemName = server._zoneConfig.level.itmFile;
         string cfgPath = Resolve(cfgName, searchPaths, assetsRoot);
@@ -32,11 +32,15 @@ public static class CatalogMembershipChecks
             Input(server._config["server/ipAllowlistFile"].Value,
                 OwnedRegular(Path.Combine(zone, server._config["server/ipAllowlistFile"].Value), zone))
         };
+        // Authority: docs/original-research/ASSET_MANIFEST.json assets entry originalPath CFG/rogue.cfg, originalSizeBytes/originalSha256.
         Require(inputs[1].SizeBytes == 48399 && inputs[1].Sha256 == "82a9e40ef4fbe5787ae34953b93e02236f5a9d927ef0f09e0c3699be9cddbf90", "Selected CFG is not the pinned canonical bytes.");
+        // Authority: same manifest assets entry originalPath ITM/Rogue_mp.itm, originalSizeBytes/originalSha256.
         Require(inputs[2].SizeBytes == 111614 && inputs[2].Sha256 == "dd85dea54055108ec7c2996716c430a49c815baa937d36bc2a0a9b09b68334c7", "Selected ITM is not the pinned canonical bytes.");
 
         // Existing token reader only: no second ItemInfo.Load and no static
         // BlobsToLoad/FilesToLoad effects. Hash guard fixes the selected schema.
+        // ID column2/type18 come from inspected pinned upstream loader source;
+        // they are not independently confirmed original/native semantics.
         var expected = new List<int>();
         foreach (string line in File.ReadLines(itemPath))
         {
