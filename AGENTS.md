@@ -109,6 +109,16 @@ Two scheduled cloud routines run unattended, day and night: **CosmicRift develop
 - **Verification limits.** Cloud runs lack the ignored local toolchain (`.tools/` SDKs, Godot, pinned upstream and original assets). Anything a cloud run cannot test is recorded as "not verified in cloud - local CI required" and never marked complete; results are never fabricated.
 - **Stop conditions.** Stop and write the resume point to the branch log when a task needs desktop interaction, an authentication ticket, a user decision or a toolchain the cloud lacks.
 
+### Batch review trigger — October 18, 2026 (applies to every agent: Claude, Codex, local and cloud)
+
+This overrides the 4-hourly reviewer schedule and the "wake the reviewer after each BBQ/cooked" step above. The review process itself (review quality protocol, merge gate, BBQ/cooked keys, labels) is unchanged.
+
+- **Reviewers do not run on a schedule.** A review run starts only when (a) the count of open `cloud/*` PRs labelled `review-pending` reaches **15**, or (b) the user starts it manually.
+- **The developer that opens the PR that makes the count 15 starts the reviewer** (after the BBQ commit and label are in place). Count with `gh api repos/RunDLL32-Steve/CosmicRift-Mshra/pulls?state=open` (paginated). Do not start it below 15, and not again while a review run is in progress or started in the last 60 minutes. Claude uses `mcp__scheduled-tasks__run_scheduled_task` with `cosmicrift-local-reviewer`; Codex starts its own review agent (a newly started agent that did not author the PRs) with the same instructions. If the reviewer cannot be started, record it in the report and leave the PRs `review-pending` for the user.
+- **A triggered run reviews every `review-pending` PR**, stacked bases first, then oldest first: full diff against scope and acceptance clauses, applicable local checks, protocol and merge gate as above, one merge at a time. If it must stop (usage limit), write the PRs reviewed and remaining to the branch logs and report.
+- Reviewers no longer wake the development routine; rework of `review-changes-requested` PRs happens on the development task's next run.
+- The author never reviews or merges its own work, in any agent.
+
 ## Current documentation checkpoint — October 17, 2026
 
 Read [CONTINUATION.md](CONTINUATION.md) and the complete master before resuming. Current catalog/master: **397 feature entries, 22 scoped completions, 375 open**. Original viewer/export and scoped parser/package/runtime safeguards have dated acceptance. Generic cargo, persistence/transactions, trading, replay, codec and provisional AI now exist in source; they do not establish a complete original gameplay loop. Native playable entry, actual native delivery, production engine choice and original progression remain unverified.
