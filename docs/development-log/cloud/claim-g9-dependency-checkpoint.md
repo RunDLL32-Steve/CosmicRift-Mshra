@@ -1,4 +1,12 @@
-Review status: review-approved
+Review status: review-pending
+
+# G9 conditional reset lifecycle source increment
+
+Current increment: source-only author work complete; coordinator/root inspected the actual nine-file draft and granted clearance. Author QA passed TRACKERS_CONSISTENT397/22/375,14 changed/new local-link occurrences including fragments, and git diff --check. Independent review remains pending. [October19 source checkpoint](../2026-10-19-g9-reset-lifecycle-source.md) records conditional reset callers and selected direct destroy/kill bodies. No session/configuration/native proof, indirect callback closure, universal no-drop rule or original completion. Nine owned Markdown files only: dated checkpoint, G9 brief/ledger, this log, README, CHANGELOG, CONTINUATION, PROGRESS and MECHANICS. Counts397/22/375/raw609/eight unchanged; all broader G9 IDs open. Fresh reviewer/CI/merge pending after final author handoff and the required reviewer in-progress check; author/coordinator never merge. Resume with final exact-head review after author QA/BBQ/PR handoff.
+
+## Accepted PR76 history
+
+PR76 is merged/accepted history; the paragraphs below preserve its dated author/reviewer process and are not the review status of this new increment.
 
 # G9 actual selected catalog membership
 
