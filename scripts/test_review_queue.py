@@ -147,15 +147,47 @@ class Classify(unittest.TestCase):
 
 
 class AuthorDeclarationTests(unittest.TestCase):
-    def test_parse_and_tier(self):
-        self.assertEqual(rq.parse_author("x\n**Authored-by:** Sonnet 5.5 / high\n"),("Sonnet 5.5", "high"))
+    def test_parse(self):
+        self.assertEqual(rq.parse_author("x\n**Authored-by:** Sonnet 5.5 / high\n"), ("Sonnet 5.5", "high"))
+        self.assertEqual(rq.parse_author("Authored-by: **Sonnet 5.5 / high**"), ("Sonnet 5.5", "high"))
+        self.assertEqual(rq.parse_author("Intro\r\nAuthored-by: Sonnet 5.5 / high\r\nmore"), ("Sonnet 5.5", "high"))
         self.assertIsNone(rq.parse_author("no declaration"))
-        self.assertLess(rq.tier("Sonnet 5.5"), rq.tier("Opus 5.5"))
+        self.assertIsNone(rq.parse_author("Authored-by:\nTests: OK"))
+        self.assertIsNone(rq.parse_author("Authored-by: \r\n\r\nTests: OK"))
 
-    def test_approval_must_cover_head(self):
-        rv = [{"commit_id": "a", "submitted_at": "1", "body": "APPROVED"}]
-        self.assertTrue(rq.approved_at_head("a", rv))
-        self.assertFalse(rq.approved_at_head("b", rv))
+
+class ApprovalTests(unittest.TestCase):
+    SHA = "a" * 40
+
+    def rv(self, body, commit=None, at="1"):
+        return {"commit_id": commit or self.SHA, "submitted_at": at, "body": body}
+
+    def test_not_approvals(self):
+        for body in ("Verdict: CHANGES_REQUESTED. Will be APPROVED once R2-1 is fixed",
+                     "Verdict: not APPROVED",
+                     "Verdict: REQUEST_CHANGES (the merge gate says APPROVED requires no blockers)",
+                     "APPROVED-WITH-NOTES pending owner"):
+            self.assertFalse(rq.approved_at_head(self.SHA, [self.rv(body)]), body)
+
+    def test_approvals(self):
+        for body in ("Round 1 — APPROVED for exact head " + self.SHA,
+                     "**Verdict: APPROVED** for head " + self.SHA,
+                     "Verdict: APPROVED for " + self.SHA):
+            self.assertTrue(rq.approved_at_head(self.SHA, [self.rv(body)]), body)
+
+    def test_must_cover_head_and_be_newest(self):
+        ok = self.rv("Verdict: APPROVED for x", at="1")
+        self.assertFalse(rq.approved_at_head("b" * 40, [ok]))
+        later = self.rv("CHANGES_REQUESTED", at="2")
+        self.assertFalse(rq.approved_at_head(self.SHA, [ok, later]))
+
+    def test_later_review_and_bbq_commits_allowed(self):
+        ok = self.rv("Verdict: APPROVED for x")
+        mk = lambda sha, msg: {"sha": sha, "message": msg}
+        cs = [mk(self.SHA, "work"), mk("b" * 40, "REVIEW round 1: APPROVED"), mk("c" * 40, "BBQ ready")]
+        self.assertTrue(rq.approved_at_head("c" * 40, [ok], cs))
+        cs[1] = mk("b" * 40, "real change")
+        self.assertFalse(rq.approved_at_head("c" * 40, [ok], cs))
 
 
 if __name__ == "__main__":
