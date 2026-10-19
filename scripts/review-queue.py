@@ -106,6 +106,45 @@ def classify(pr, commits, reviews, comments):
     return out
 
 
+AUTHOR_LINE = re.compile(r"^\s*[*_]*Authored[- ]by[*_]*\s*:\s*[*_]*\s*(.+?)\s*$", re.I | re.M)
+TIERS = {"haiku": 1, "sonnet": 2, "opus": 3, "fable": 4}
+
+
+def parse_author(body):
+    """`Authored-by: <model> / <effort>` line of a PR body -> (model, effort) or None when absent."""
+    m = AUTHOR_LINE.search(body or "")
+    if not m:
+        return None
+    parts = [x.strip() for x in re.split(r"[/,;]", m.group(1)) if x.strip()]
+    return (parts[0], parts[1] if len(parts) > 1 else "") if parts else None
+
+
+def tier(model):
+    """Model tier rank (haiku < sonnet < opus < fable) or 0 when unknown."""
+    return next((v for k, v in TIERS.items() if k in (model or "").lower()), 0)
+
+
+def approved_at_head(head_sha, reviews):
+    """True when some review on exactly this head says APPROVED and it is the newest review that names a verdict."""
+    verdicts = [r for r in sorted(reviews, key=lambda r: r["submitted_at"] or "")
+                if re.search(r"\b(APPROVED|CHANGES[_ ]REQUESTED)\b", r.get("body") or "")]
+    return bool(verdicts) and verdicts[-1]["commit_id"] == head_sha and "APPROVED" in verdicts[-1]["body"]
+
+
+def audit(repo):
+    """Every open or merged PR: author declaration and whether an approving review covers its head."""
+    rows = []
+    for p in gh("pulls?state=all&per_page=100", repo):
+        if p["state"] == "closed" and not p.get("merged_at"):
+            continue
+        reviews = [{"commit_id": r["commit_id"], "submitted_at": r["submitted_at"], "body": r["body"]}
+                   for r in gh(f"pulls/{p['number']}/reviews?per_page=100", repo)]
+        a = parse_author(p.get("body"))
+        rows.append({"number": p["number"], "state": "merged" if p.get("merged_at") else "open",
+                     "author": a, "approved_at_head": approved_at_head(p["head"]["sha"], reviews)})
+    return sorted(rows, key=lambda r: r["number"])
+
+
 def gh(path, repo):
     raw = subprocess.run(["gh", "api", "--paginate", "--slurp", f"repos/{repo}/{path}"], check=True,
                          capture_output=True, text=True).stdout
@@ -130,7 +169,18 @@ def main(argv=None):
     ap.add_argument("--repo", default=DEFAULT_REPO)
     ap.add_argument("--pr", type=int, action="append", help="only these PR numbers")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--audit", action="store_true", help="list PRs missing an Authored-by line or an approving review on head")
     args = ap.parse_args(argv)
+    if args.audit:
+        rows = audit(args.repo)
+        bad = [r for r in rows if not r["author"] or not r["approved_at_head"]]
+        if args.json:
+            print(json.dumps(bad, indent=2))
+        else:
+            for r in bad:
+                print(f"#{r['number']:<3} {r['state']:<6} author={'/'.join(r['author']) if r['author'] else 'MISSING':<20} approved_at_head={r['approved_at_head']}")
+            print(f"AUDIT: {len(bad)} of {len(rows)} PRs lack an Authored-by line or an approving review at head")
+        return 0
     numbers = args.pr or [p["number"] for p in gh("pulls?state=open&per_page=100", args.repo)]
     results = []
     for n in sorted(numbers):

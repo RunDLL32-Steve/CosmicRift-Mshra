@@ -146,5 +146,17 @@ class Classify(unittest.TestCase):
         self.assertEqual(self.go(pr(), cs, [stale])["action"], "REVIEW")
 
 
+class AuthorDeclarationTests(unittest.TestCase):
+    def test_parse_and_tier(self):
+        self.assertEqual(rq.parse_author("x\n**Authored-by:** Sonnet 5.5 / high\n"),("Sonnet 5.5", "high"))
+        self.assertIsNone(rq.parse_author("no declaration"))
+        self.assertLess(rq.tier("Sonnet 5.5"), rq.tier("Opus 5.5"))
+
+    def test_approval_must_cover_head(self):
+        rv = [{"commit_id": "a", "submitted_at": "1", "body": "APPROVED"}]
+        self.assertTrue(rq.approved_at_head("a", rv))
+        self.assertFalse(rq.approved_at_head("b", rv))
+
+
 if __name__ == "__main__":
     unittest.main()
