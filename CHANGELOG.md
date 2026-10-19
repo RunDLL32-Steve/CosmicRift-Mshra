@@ -2,7 +2,7 @@
 
 ## G9 conditional reset lifecycle source — October 19, 2026
 
-- Record guarded gameStart/gameReset → resetVehicles → selected destroy body and contrast its direct calls with kill(Player,int). [Evidence and limits](docs/development-log/2026-10-19-g9-reset-lifecycle-source.md). Markdown only, pending independent review; no runtime/native, universal no-drop or original completion claim.
+- Record guarded gameStart/gameReset → resetVehicles → selected destroy body and contrast its direct calls with kill(Player,int). [Evidence and limits](docs/development-log/2026-10-19-g9-reset-lifecycle-source.md). Markdown only; no runtime/native, universal no-drop or original completion claim. Live workflow status: [PR85](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/85) and its [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md).
 
 ## G9 selected-catalog probe strengthening — October 18, 2026
 

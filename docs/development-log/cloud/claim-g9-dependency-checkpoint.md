@@ -1,4 +1,4 @@
-Review status: review-approved
+Review status: review-pending
 
 # G9 conditional reset lifecycle source increment
 
@@ -9,6 +9,10 @@ Author handoff checkpoint before independent review — Current increment: sourc
 ## PR85 author rework round 1
 
 Author rework checkpoint before independent re-review — R1-1 (minor), review5569455952 / inline4312225994 on reviewed head `a9305f3d02bad226b62f2de4506074ef8fffd50c`: replace the unconditional Game.Reset callback statement with the direct `callsync("Game.Reset", false)` attempted-dispatch statement; event presence and callback effects remain unverified. The vehicleReset guard and all original acceptance limits are retained. Only the dated source checkpoint and this administrative log change. Coordinator inspected the actual two-file rework diff and accepted it for author handoff. Author QA passed TRACKERS_CONSISTENT397/22/375,14 full-PR added/new local-link occurrences including fragments across nine files, and git diff --check. Independent verification/thread resolution and final exact-head approval/CI/reviewer-only merge remain pending. No new source research or runtime/build checks.
+
+## PR85 author rework round 2
+
+R2-1 (major), superseding review5569543051 / inline4312294687 on reviewed head `96aacf36c22cb5e44760a2995d14a3c4985caa5a`: remove volatile review/CI/merge-pending assertions from the eight maintained documents and point live workflow status to PR85/current branch log. The dated checkpoint explicitly preserves its original October19 author-handoff QA/stage as historical. Source table and provenance remain unchanged; G9 claimed/in-progress, broader original/native/session/indirect-effect limits and397/22/375/raw609/eight remain unchanged. This paragraph records author rework, not a reviewer verdict; the prior reviewer section below is retained for reviewer reconciliation. Coordinator/root independently inspected the actual nine-file rework diff and cleared author handoff; this is not reviewer approval. Author QA passed TRACKERS_CONSISTENT397/22/375,20 full-PR added/new local-link occurrences including fragments across nine files, and git diff --check; the dated source table/provenance prefix matches reviewed head96aacf3 unchanged. The original author-handoff14-link result remains historical. Resume at fresh exact-head re-review after final author handoff; no approval or merge is implied by author QA. No source research/runtime/build checks.
 
 ## Independent PR85 review round 2
 

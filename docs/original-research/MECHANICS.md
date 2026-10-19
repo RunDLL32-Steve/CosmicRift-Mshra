@@ -14,7 +14,7 @@ The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) indexes accepted dat
 
 ## G9 conditional reset lifecycle source — October 19, 2026
 
-[Selected source trace](../development-log/2026-10-19-g9-reset-lifecycle-source.md): VERIFIED STATIC conditional gameStart/gameReset reset callers and selected resetVehicles/destroy/kill bodies; actual configuration/session/native eligibility and indirect callback effects remain UNKNOWN. Pending independent review; no universal no-drop conclusion, runtime rerun, feature completion or registry/raw-residual change. Prior accepted evidence stays in the G9 ledger.
+[Selected source trace](../development-log/2026-10-19-g9-reset-lifecycle-source.md): VERIFIED STATIC conditional gameStart/gameReset reset callers and selected resetVehicles/destroy/kill bodies; actual configuration/session/native eligibility and indirect callback effects remain UNKNOWN. Live workflow status: [PR85](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/85) and its [branch log](../development-log/cloud/claim-g9-dependency-checkpoint.md). No universal no-drop conclusion, runtime rerun, feature completion or registry/raw-residual change. Prior accepted evidence stays in the G9 ledger.
 
 ## Evidence rules
 
