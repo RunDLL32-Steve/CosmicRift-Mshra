@@ -24,8 +24,8 @@ def boxes(text, pattern):
         out.setdefault(m.group("id"), m.group("c") == "x")
     return out
 
-check = boxes(read(CHECKLIST), r"^-\s+\[(?P<c>[ x])\] (?P<id>RT-F\d+)\b")
-plan = boxes(read(PLAN), r"^-\s+\[(?P<c>[ x])\] (?P<id>RT-F\d+)\b")
+check = boxes(read(CHECKLIST), r"^-[ \t]+\[(?P<c>[ x])\] (?P<id>RT-F\d+)\b")
+plan = boxes(read(PLAN), r"^-[ \t]+\[(?P<c>[ x])\] (?P<id>RT-F\d+)\b")
 cat = boxes(read(CATALOG), r'RT-F\d+ ?\[(?P<c>[ x])\]'.replace("RT-F\d+", "(?P<id>RT-F\d+)"))
 total, done = len(check), sum(check.values())
 openn = total - done
