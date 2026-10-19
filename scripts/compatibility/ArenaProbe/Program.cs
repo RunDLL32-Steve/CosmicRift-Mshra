@@ -24,9 +24,21 @@ static int Run(string[] args)
     var sourceHashes = Directory.GetFiles("assets").ToDictionary(path => Path.GetFileName(path)!, Hash);
     if (!Log.init()) throw new IOException("Logger initialization failed.");
     Log.assume(Log.createClient("OriginalArenaProbe"));
+    var unexpectedErrors = new List<string>();
+    Log.LogMessage errorSink = (type, _, message) => { if (type is TLog.Error or TLog.Exception) unexpectedErrors.Add(message); };
+    Log.eError += errorSink;
+    try
+    {
     InfServer.Logic.Registrar.register();
     var server = new ZoneServer();
     if (!server.init() || !server.IsStandalone) throw new InvalidDataException("Original data initialization rejected; inspect logs.");
+    // Actual initialized catalog inspection is deliberately before newArena.
+    var catalog = CatalogMembershipChecks.Inspect(server);
+    if (!catalog.Accepted)
+    {
+        File.WriteAllText(Path.GetFullPath(args[0]), JsonSerializer.Serialize(new { Accepted = false, CatalogMembership = catalog }, new JsonSerializerOptions { WriteIndented = true }));
+        throw new InvalidDataException("Selected actual catalog membership/lookup check rejected before newArena.");
+    }
     // Do not call begin/poll: no game/ping bind, players, gameplay updates or production clocks.
     var arena = server.newArena("Original Rogue Trader initializer", false);
     arena._bActive = false;
@@ -48,8 +60,10 @@ static int Run(string[] args)
         throw new InvalidDataException("Initializer unexpectedly created clients/players/additional arenas.");
     foreach (var pair in sourceHashes)
         if (Hash(Path.Combine("assets", pair.Key!)) != pair.Value) throw new InvalidDataException($"Original copy changed: {pair.Key}");
+    if (unexpectedErrors.Count != 0) throw new InvalidDataException("Unexpected initialization error/exception: " + string.Join("; ", unexpectedErrors));
     var report = new
     {
+        Accepted = true, CatalogMembership = catalog, UnexpectedInitializationErrors = unexpectedErrors,
         UpstreamCommit = "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849", CanonicalCommit = "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
         ProcessId = Environment.ProcessId, Stage = "Actual completed bounded original arena initializer verification; no gameplay/native client parity",
         Standalone = server.IsStandalone, Arena = arena._name, ArenaCount = server._arenas.Count, ClientCount = server._clients.Count,
@@ -64,8 +78,9 @@ static int Run(string[] args)
     };
     File.WriteAllText(Path.GetFullPath(args[0]), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
     Console.WriteLine($"ORIGINAL_ARENA_INIT_PASS: {JsonSerializer.Serialize(report)}");
-    Log.close();
     return 0;
+    }
+    finally { Log.eError -= errorSink; Log.close(); }
 }
 static object Field(object value, string name)
 {

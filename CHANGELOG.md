@@ -1,5 +1,9 @@
 # Changelog
 
+## G9 selected-catalog probe strengthening — October 18, 2026
+
+- Implement complete raw/actual-ID and object-lookup diagnostics in existing ArenaProbe, with selected input/digest/loaded-assembly provenance and literal missing66 check. [Readiness/evidence](docs/development-log/2026-10-18-g9-catalog-membership.md): one approved wrapper/helper run exits0, Accepted=true,200 exact IDs with consistent object lookups and expected missing66 Warning. No original feature/count or production rule change.
+
 ## G9 Uiart/logo documentation precision — October 18, 2026
 
 - Preserve known exact-name absence while removing unsupported visual/intent/shipping/fallback claims; record bounded pinned Uiart string/archive access and consolidate stable G9 summaries around its ledger. [Evidence and limits](docs/development-log/2026-10-18-g9-uiart-source.md). Markdown only; no accepted checks rerun, original changes or feature/count completion.
