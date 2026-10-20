@@ -1,5 +1,13 @@
 # Changelog
 
+## G9 initialized reset input observation — October 19, 2026
+
+-   Add one actual selected standalone StartGame.vehicleReset snapshot after accepted catalog/provenance and before arena creation, source-backed expected false, and the same JSON evidence on success/controlled rejection. [Contract/evidence and limits](docs/development-log/2026-10-19-g9-reset-input-observation.md); [live branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md). No session/native reset eligibility or original completion.
+
+## G9 conditional reset lifecycle source — October 19, 2026
+
+-   Record guarded gameStart/gameReset → resetVehicles → selected destroy body and contrast its direct calls with kill(Player,int). [Evidence and limits](docs/development-log/2026-10-19-g9-reset-lifecycle-source.md). Markdown only; no runtime/native, universal no-drop or original completion claim. Live workflow status: [PR85](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/85) and its [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md).
+
 ## G9 selected-catalog probe strengthening — October 18, 2026
 
 -   Implement complete raw/actual-ID and object-lookup diagnostics in existing ArenaProbe, with selected input/digest/loaded-assembly provenance and literal missing66 check. [Readiness/evidence](docs/development-log/2026-10-18-g9-catalog-membership.md): first-author and cleared round1-rework wrapper/helper runs exit0, Accepted=true,200 exact IDs with consistent object lookups and expected missing66 Warning. No original feature/count or production rule change.

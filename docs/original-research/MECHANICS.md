@@ -12,6 +12,14 @@ Reviewed: October 12, 2026. Scope: the historical foundation for [master plan §
 
 The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) indexes accepted dated inventory, diagnostics and source limits. Current [actual selected catalog increment](../development-log/2026-10-18-g9-catalog-membership.md): VERIFIED STATIC bounded one-hop nested-record source rationale; actual selected standalone full-ID membership is verified by cleared first-author and round1-rework exit0/Accepted runs with200 exact IDs/reference consistency, missing66 null/Warning and zero unexpected errors. This does not establish general/native catalog closure. Matching native consumers/revisions/display/evaluators/fallback and full original closure remain UNKNOWN. G9/RT-F069/F377/F378/F379/F386 open;397/22/375/raw609/eight unchanged. No prior accepted result is a new run.
 
+## G9 initialized reset input observation — October 19, 2026
+
+[Contract and evidence](../development-log/2026-10-19-g9-reset-input-observation.md): expected false is supported by pinned canonical VehicleReset=0 and pinned GetBool conversion. The probe captures only the actual selected standalone initialized server.\_zoneConfig.startGame object after accepted catalog/provenance and before arena creation. Session/native reset eligibility, private cache, mutation/overrides and indirect callback effects remain UNKNOWN. [Branch log](../development-log/cloud/claim-g9-dependency-checkpoint.md) records live workflow; G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375/raw609/eight unchanged. No broader historical parity follows. VERIFIED OBSERVATION for the selected standalone object: cleared author wrapper/helper exit0, actual false, top/catalog/reset Accepted=true; session/native semantics remain UNKNOWN.
+
+## G9 conditional reset lifecycle source — October 19, 2026
+
+[Selected source trace](../development-log/2026-10-19-g9-reset-lifecycle-source.md): VERIFIED STATIC conditional gameStart/gameReset reset callers and selected resetVehicles/destroy/kill bodies; actual configuration/session/native eligibility and indirect callback effects remain UNKNOWN. Live workflow status: [PR85](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/85) and its [branch log](../development-log/cloud/claim-g9-dependency-checkpoint.md). No universal no-drop conclusion, runtime rerun, feature completion or registry/raw-residual change. Prior accepted evidence stays in the G9 ledger.
+
 ## Evidence rules
 
 | Classification | Use                                                                                                                                                                            |

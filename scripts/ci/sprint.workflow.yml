@@ -1,0 +1,42 @@
+name: Sprint integration validation
+
+on:
+    push:
+        branches: ["sprint/**"]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: sprint-${{ github.ref }}
+    cancel-in-progress: true
+
+# Note: the validator reads the report that sprint-integrate.py committed under docs/development-log/sprint/,
+# so PRs it omitted (conflicts, fork PRs) are visible here.
+jobs:
+    validate:
+        runs-on: windows-2022
+        timeout-minutes: 45
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Cache portable tools and packages
+              uses: actions/cache@v4
+              with:
+                  path: .tools
+                  key: windows-first-contact-${{ hashFiles('toolchain.lock.json', '**/*.csproj') }}
+            - name: Install verified portable tools
+              shell: pwsh
+              run: ./scripts/bootstrap.ps1
+            - name: Validate sprint branch against main
+              shell: pwsh
+              run: python scripts/sprint-validate.py --base origin/main --full
+            - name: Upload sprint validation report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: sprint-validate
+                  path: artifacts/sprint-validate.json
+                  if-no-files-found: warn

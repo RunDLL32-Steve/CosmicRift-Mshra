@@ -39,6 +39,21 @@ static int Run(string[] args)
             File.WriteAllText(Path.GetFullPath(args[0]), JsonSerializer.Serialize(new { Accepted = false, CatalogMembership = catalog }, new JsonSerializerOptions { WriteIndented = true }));
             throw new InvalidDataException("Selected actual catalog membership/lookup check rejected before newArena.");
         }
+        // Snapshot only this selected standalone initialized config, before arena construction.
+        // Canonical rogue.cfg [StartGame] VehicleReset=0; pinned GetBool reads it as false.
+        bool observedVehicleReset = server._zoneConfig.startGame.vehicleReset;
+        var startGameResetInput = new
+        {
+            Stage = "AfterServerInitBeforeNewArena",
+            Scope = "Selected standalone initialized server._zoneConfig.startGame object only; no session/native reset eligibility",
+            ObservedVehicleReset = observedVehicleReset, ExpectedVehicleReset = false,
+            Accepted = !observedVehicleReset
+        };
+        if (!startGameResetInput.Accepted)
+        {
+            File.WriteAllText(Path.GetFullPath(args[0]), JsonSerializer.Serialize(new { Accepted = false, CatalogMembership = catalog, StartGameResetInput = startGameResetInput }, new JsonSerializerOptions { WriteIndented = true }));
+            throw new InvalidDataException("Selected initialized StartGame.VehicleReset differs from canonical false before newArena.");
+        }
         // Do not call begin/poll: no game/ping bind, players, gameplay updates or production clocks.
         var arena = server.newArena("Original Rogue Trader initializer", false);
         arena._bActive = false;
@@ -63,7 +78,7 @@ static int Run(string[] args)
         if (unexpectedErrors.Count != 0) throw new InvalidDataException("Unexpected initialization error/exception: " + string.Join("; ", unexpectedErrors));
         var report = new
         {
-            Accepted = true, CatalogMembership = catalog, UnexpectedInitializationErrors = unexpectedErrors,
+            Accepted = true, CatalogMembership = catalog, StartGameResetInput = startGameResetInput, UnexpectedInitializationErrors = unexpectedErrors,
             UpstreamCommit = "bb97579efeceff1c63d781d8c1bb8dd4a5b9b849", CanonicalCommit = "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
             ProcessId = Environment.ProcessId, Stage = "Actual completed bounded original arena initializer verification; no gameplay/native client parity",
             Standalone = server.IsStandalone, Arena = arena._name, ArenaCount = server._arenas.Count, ClientCount = server._clients.Count,
