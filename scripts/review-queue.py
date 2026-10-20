@@ -17,6 +17,7 @@ Usage (repository root; needs an authenticated `gh`):
     python scripts/review-queue.py                 # human-readable table
     python scripts/review-queue.py --json          # machine-readable
     python scripts/review-queue.py --repo OWNER/REPO --pr 7
+    python scripts/review-queue.py --audit [--since 84] [--json]   # PRs lacking an approving review at head / Authored-by
 Exit status is 0 when it ran, whatever the queue holds. Standard library only; read-only (GET requests).
 """
 import argparse, json, re, subprocess, sys
@@ -106,6 +107,75 @@ def classify(pr, commits, reviews, comments):
     return out
 
 
+AUTHOR_LINE = re.compile(r"^[ \t]*[*_]*Authored[- ]by[*_]*[ \t]*:[ \t]*[*_]*[ \t]*([^\r\n]*?)[ \t*_]*\r?$", re.I | re.M)
+CANONICAL_VERDICT = re.compile(r"^\W*Verdict\W*APPROVED\W+for\W+(?:head\W+)?([0-9a-f]{7,40})\b", re.I | re.M)
+VERDICT = re.compile(r"\b(?:(?i:(not|never|once|be))\s+)?(APPROVED|CHANGES[_ ]REQUESTED|REQUEST[_ ]CHANGES)\b(?!-)")
+
+
+def parse_author(body):
+    """`Authored-by: <model> / <effort>` line of a PR body -> (model, effort), or None when absent or empty.
+
+    The format is strict: model and effort are separated by `/`, `,` or `;` ("Opus 5.5 (high)" keeps its effort in the model).
+    """
+    m = AUTHOR_LINE.search(body or "")
+    if not m:
+        return None
+    parts = [x.strip(" \t*_") for x in re.split(r"[/,;]", m.group(1))]
+    parts = [x for x in parts if x]
+    return (parts[0], parts[1] if len(parts) > 1 else "") if parts else None
+
+
+def review_verdict(body):
+    """'approved', 'not-approved' or None (no verdict word) for a review body.
+
+    A line `Verdict: APPROVED for <sha>` is canonical. Otherwise the FIRST verdict token decides, and a negation or
+    future-tense word before APPROVED ("not", "never", "once", "be") or a suffix such as -WITH-NOTES makes it not an approval.
+    """
+    body = body or ""
+    if CANONICAL_VERDICT.search(body):
+        return "approved"
+    m = VERDICT.search(body)
+    if not m:
+        return None
+    return "approved" if m.group(2) == "APPROVED" and not m.group(1) else "not-approved"
+
+
+def approved_at_head(head_sha, reviews, commits=None):
+    """True when the newest review that gives a verdict approves the head.
+
+    The approval covers the head when it names it exactly, or, if `commits` (chronological [{"sha","message"}]) is
+    given, when every later commit is a reviewer log-mirror (REVIEW) or empty BBQ marker, which the merge gate allows.
+    """
+    verdicts = [r for r in sorted(reviews, key=lambda r: r["submitted_at"] or "") if review_verdict(r.get("body"))]
+    if not verdicts or review_verdict(verdicts[-1]["body"]) != "approved":
+        return False
+    at = verdicts[-1]["commit_id"]
+    if at == head_sha:
+        return True
+    if commits is None:
+        return False
+    shas = [c["sha"] for c in commits]
+    if at not in shas:
+        return False
+    return all(is_review_commit(c["message"]) or is_bbq(c["message"]) for c in commits[shas.index(at) + 1:])
+
+
+def audit(repo, since=0):
+    """Every open or merged PR: author declaration (checked from PR #since on) and whether an approval covers its head."""
+    rows = []
+    for p in gh("pulls?state=all&per_page=100", repo):
+        if p["state"] == "closed" and not p.get("merged_at"):
+            continue
+        n = p["number"]
+        reviews = [{"commit_id": r["commit_id"], "submitted_at": r["submitted_at"], "body": r["body"]}
+                   for r in gh(f"pulls/{n}/reviews?per_page=100", repo)]
+        commits = [{"sha": c["sha"], "message": c["commit"]["message"]} for c in gh(f"pulls/{n}/commits?per_page=100", repo)]
+        rows.append({"number": n, "state": "merged" if p.get("merged_at") else "open",
+                     "author": parse_author(p.get("body")), "declaration_required": n >= since,
+                     "approved_at_head": approved_at_head(p["head"]["sha"], reviews, commits)})
+    return sorted(rows, key=lambda r: r["number"])
+
+
 def gh(path, repo):
     raw = subprocess.run(["gh", "api", "--paginate", "--slurp", f"repos/{repo}/{path}"], check=True,
                          capture_output=True, text=True).stdout
@@ -130,7 +200,22 @@ def main(argv=None):
     ap.add_argument("--repo", default=DEFAULT_REPO)
     ap.add_argument("--pr", type=int, action="append", help="only these PR numbers")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--audit", action="store_true", help="list merged/open PRs without an approving review at head, and PRs without Authored-by")
+    ap.add_argument("--since", type=int, default=84, help="with --audit: first PR number that must carry an Authored-by line")
     args = ap.parse_args(argv)
+    if args.audit:
+        rows = audit(args.repo, args.since)
+        merged = [r["number"] for r in rows if r["state"] == "merged" and not r["approved_at_head"]]
+        opened = [r["number"] for r in rows if r["state"] == "open" and not r["approved_at_head"]]
+        undeclared = [r["number"] for r in rows if r["declaration_required"] and not r["author"]]
+        if args.json:
+            print(json.dumps({"since": args.since, "merged_without_approval": merged, "open_without_approval": opened,
+                              "missing_authored_by": undeclared}, indent=2))
+        else:
+            print(f"merged without approval at head: {len(merged)}  {merged}")
+            print(f"open without approval at head: {len(opened)}  {opened}")
+            print(f"missing Authored-by (since #{args.since}): {len(undeclared)}  {undeclared}")
+        return 0
     numbers = args.pr or [p["number"] for p in gh("pulls?state=open&per_page=100", args.repo)]
     results = []
     for n in sorted(numbers):
