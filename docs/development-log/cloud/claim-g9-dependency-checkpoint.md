@@ -1,4 +1,14 @@
-Review status: review-approved
+Review status: review-pending
+
+# G9 initialized StartGame reset input observation
+
+Current increment: selected standalone initialized-object observation only. Author `gpt-6.1-sol` / Medium; coordinator `gpt-6.1-sol` / XHigh under explicit human substitution. Base main `a0aa59aebc32978356b27b4592a3829b92d9ef62`, same claim branch. [Contract/readiness and author evidence](../2026-10-19-g9-reset-input-observation.md). Status: author implementation and one cleared focused run complete; wrapper/helper/postverification exit0, observed=false/expected=false and top/catalog/reset Accepted=true. Full200-ID/digest/reference/66-null Warning evidence and all45 input identities match; build1487 warnings/0 errors. Author final QA passes TRACKERS_CONSISTENT397/22/375,27 added/new local-link occurrences including fragments and git diff --check; exactly11 owned files/no feature checkmarks or protected changes. Resume at author commit/PR handoff after coordinator/root actual final-diff/evidence inspection. No author approval/merge; fresh independent reviewer and exact-head CI/merge gates remain separate.
+
+Scope: one actual vehicleReset field capture after accepted catalog/provenance before newArena, source-backed expected false, same report snapshot on success/rejection. No session/native/reset behavior claim. G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375/raw609/eight unchanged. Mandated sprint commands were actually attempted before BBQ; both exit2 because scripts are absent. Sprint integration/validation NOT VERIFIED; current issue checkout was the truthful validation root, no sprint worktree/output/push or imported PR82 files. Prior accepted artifacts/logs remain unchanged and new evidence uses artifacts/g9-initialized-reset-input/author.
+
+# Accepted PR85 history
+
+PR85 is merged/accepted dated history; the following author/reviewer checkpoints do not describe the current increment.
 
 # G9 conditional reset lifecycle source increment
 
