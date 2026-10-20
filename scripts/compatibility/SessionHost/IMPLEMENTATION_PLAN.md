@@ -20,12 +20,12 @@ Six focused actual-helper routing checks pass in the [fixed report](../../../art
 
 ## Next and parity
 
-- [ ] **In progress — RT-F380/RT-F384:** supported engine/profile/isolation and actual native Start/entry; resume desktop only when user is available.
-- [ ] **Testing — RT-F393:** compiled derived offline CS_Ready patch-announcement guard needs actual native handshake acceptance.
-- [ ] **Not started — RT-F387:** verify actual asset download/cache/receiver and full original map rendering.
-- [ ] **Native store acceptance after RT-F389:** verify the connected native UI against the implemented packet-shop StoreEnabled/spectator guard; see [RuntimeChecks](../RuntimeChecks/IMPLEMENTATION_PLAN.md).
-- [ ] **Native purchase acceptance after RT-F396:** verify connected original purchase behavior and durable transactions. Bounded purchase arithmetic/delivery/credit ordering is covered by the completed RuntimeChecks evidence.
-- [ ] **Investigating:** production shutdown and durable transaction/persistence behavior; standalone durable persistence remains absent.
-- [ ] **Not started:** native original flight/combat/mining/refining/trading/upgrades/rewards parity and multiple-client acceptance.
+-   [ ] **In progress — RT-F380/RT-F384:** supported engine/profile/isolation and actual native Start/entry; resume desktop only when user is available.
+-   [ ] **Testing — RT-F393:** compiled derived offline CS_Ready patch-announcement guard needs actual native handshake acceptance.
+-   [ ] **Not started — RT-F387:** verify actual asset download/cache/receiver and full original map rendering.
+-   [ ] **Native store acceptance after RT-F389:** verify the connected native UI against the implemented packet-shop StoreEnabled/spectator guard; see [RuntimeChecks](../RuntimeChecks/IMPLEMENTATION_PLAN.md).
+-   [ ] **Native purchase acceptance after RT-F396:** verify connected original purchase behavior and durable transactions. Bounded purchase arithmetic/delivery/credit ordering is covered by the completed RuntimeChecks evidence.
+-   [ ] **Investigating:** production shutdown and durable transaction/persistence behavior; standalone durable persistence remains absent.
+-   [ ] **Not started:** native original flight/combat/mining/refining/trading/upgrades/rewards parity and multiple-client acceptance.
 
 Build/preparation only: `./scripts/compatibility/run-native-session-host.ps1 -Build`. Explicit backend start: add `-Start -DurationSeconds 120` (10–120-second bound); `-Start` also forces a fresh compile. The wrapper launches a hidden owned process, returns readiness/PID/report paths and launches no native UI. A `stop.request` marker under `.tools/compatibility/local-working/session-host/` requests early stop. Root owns shared-output builds and focused executable acceptance. Native entry, asset reception, original gameplay and saving remain separate acceptance tasks.

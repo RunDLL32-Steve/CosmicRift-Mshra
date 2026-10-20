@@ -10,8 +10,8 @@ Canonical original source files remain unchanged in the pinned reference checkou
 
 ## Active outstanding work
 
-- [ ] **Investigating — RT-F069/F377–F379:** runtime dependency eligibility, Portal member, logo and numeric BallGraphic interpretations. All-archive inventory completion does not establish closure.
-- [ ] **Investigating — RT-F023–RT-F025/F074/F075:** native HSV/palette/shadow/blit, banking/timing, layers and HUD rules.
-- [ ] **Not started — native appearance/asset-delivery acceptance:** verified client receipt and original level/object/ship/effect rendering after arena entry.
+-   [ ] **Investigating — RT-F069/F377–F379:** runtime dependency eligibility, Portal member, logo and numeric BallGraphic interpretations. All-archive inventory completion does not establish closure.
+-   [ ] **Investigating — RT-F023–RT-F025/F074/F075:** native HSV/palette/shadow/blit, banking/timing, layers and HUD rules.
+-   [ ] **Not started — native appearance/asset-delivery acceptance:** verified client receipt and original level/object/ship/effect rendering after arena entry.
 
 Keep original bytes, basenames, fields and source hashes; derived outputs stay separate. Local source availability and the local inspection export do not establish redistribution rights. No new assets or verification runs were produced for this documentation review.

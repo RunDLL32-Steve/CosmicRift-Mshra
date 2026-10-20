@@ -6,12 +6,12 @@ Module status: **Not started**. No harness or measured multiplayer capacity exis
 
 ## Outstanding work
 
-- [ ] **Not started** — instrument an actually implemented authoritative world; record reproducible host/toolchain/data revision, client count, tick latency, CPU/GPU/memory/network and database/transaction behavior.
-- [ ] **Not started** — M5 representative canonical workloads from completed RT-F042–RT-F068 resource/economy/reward/actor/ownership/visibility/transition/progression features and associated RT-F269–RT-F367 actors/objects. Do not fabricate workload rates from unexplained raw original timing fields.
-- [ ] **Investigating** — production engine/native-client route and original runtime semantics through [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md). Units, sentinels, actor/event timing and native render/bank/state selection must be resolved before claims about representative original load; graphics/native-client profiling stays distinct from server profiling.
-- [ ] **Not started** — measure realistic steady/burst activity, simultaneous transactions, reconnect/transfer recovery and long-lived memory behavior after those gameplay/services exist. Validate correctness/duplication along with throughput.
-- [ ] **Not started** — justify player-limit increases from recorded measurements; identify bottlenecks before adding infrastructure. M6 optimization/regression follows earlier acceptance.
-- [ ] **Not started** — record per-feature limits/evidence and reconcile only measured master targets. Index/parser counts or 41 prototype unit tests cannot complete performance acceptance.
+-   [ ] **Not started** — instrument an actually implemented authoritative world; record reproducible host/toolchain/data revision, client count, tick latency, CPU/GPU/memory/network and database/transaction behavior.
+-   [ ] **Not started** — M5 representative canonical workloads from completed RT-F042–RT-F068 resource/economy/reward/actor/ownership/visibility/transition/progression features and associated RT-F269–RT-F367 actors/objects. Do not fabricate workload rates from unexplained raw original timing fields.
+-   [ ] **Investigating** — production engine/native-client route and original runtime semantics through [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md). Units, sentinels, actor/event timing and native render/bank/state selection must be resolved before claims about representative original load; graphics/native-client profiling stays distinct from server profiling.
+-   [ ] **Not started** — measure realistic steady/burst activity, simultaneous transactions, reconnect/transfer recovery and long-lived memory behavior after those gameplay/services exist. Validate correctness/duplication along with throughput.
+-   [ ] **Not started** — justify player-limit increases from recorded measurements; identify bottlenecks before adding infrastructure. M6 optimization/regression follows earlier acceptance.
+-   [ ] **Not started** — record per-feature limits/evidence and reconcile only measured master targets. Index/parser counts or 41 prototype unit tests cannot complete performance acceptance.
 
 Completion history: no load feature/test is complete. Prior [prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) establishes local playability only. No builds/launches/simulations rerun for this documentation review; simulations wait until a completed gameplay feature requires verification.
 

@@ -10,7 +10,7 @@ Earlier missing-help controlled failure and upstream shutdown cancellation/rearm
 
 ## Next and parity
 
-- [ ] **Investigating:** production shutdown receive-rearm race, required before a durable host.
-- [ ] **Not started:** production remote bind/security/persistence configuration after native runtime acceptance.
+-   [ ] **Investigating:** production shutdown receive-rearm race, required before a durable host.
+-   [ ] **Not started:** production remote bind/security/persistence configuration after native runtime acceptance.
 
 No routine rerun is needed during documentation work. After a relevant completed host fix, root may use `./scripts/compatibility/run-local-server-probe.ps1 -Build`, which builds and executes this hidden, bounded probe. Graphics/native entry/gameplay are outside this program's acceptance scope.

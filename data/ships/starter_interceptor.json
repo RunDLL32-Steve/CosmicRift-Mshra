@@ -1,16 +1,16 @@
 {
-  "id": "starter_interceptor",
-  "name": "Interceptor",
-  "evidenceClassification": "NEW",
-  "radius": 14,
-  "physics": {
-    "mass": 100,
-    "forwardThrust": 12000,
-    "reverseThrust": 12000,
-    "rotationSpeed": 3.3,
-    "maximumSpeed": 360,
-    "asteroidRestitution": 0.25
-  },
-  "defense": { "maximumHull": 100, "maximumShield": 50 },
-  "reactor": { "maximumEnergy": 100, "energyRegenerationPerSecond": 20 }
+    "id": "starter_interceptor",
+    "name": "Interceptor",
+    "evidenceClassification": "NEW",
+    "radius": 14,
+    "physics": {
+        "mass": 100,
+        "forwardThrust": 12000,
+        "reverseThrust": 12000,
+        "rotationSpeed": 3.3,
+        "maximumSpeed": 360,
+        "asteroidRestitution": 0.25
+    },
+    "defense": { "maximumHull": 100, "maximumShield": 50 },
+    "reactor": { "maximumEnergy": 100, "energyRegenerationPerSecond": 20 }
 }

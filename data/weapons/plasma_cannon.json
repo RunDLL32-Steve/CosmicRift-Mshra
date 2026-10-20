@@ -1,12 +1,12 @@
 {
-  "id": "plasma_cannon",
-  "name": "Plasma cannon",
-  "evidenceClassification": "NEW",
-  "muzzleVelocity": 700,
-  "projectileRadius": 3,
-  "damage": 28,
-  "cooldownSeconds": 0.2,
-  "energyCost": 6,
-  "lifetimeSeconds": 2.5,
-  "inheritsShipVelocity": true
+    "id": "plasma_cannon",
+    "name": "Plasma cannon",
+    "evidenceClassification": "NEW",
+    "muzzleVelocity": 700,
+    "projectileRadius": 3,
+    "damage": 28,
+    "cooldownSeconds": 0.2,
+    "energyCost": 6,
+    "lifetimeSeconds": 2.5,
+    "inheritsShipVelocity": true
 }

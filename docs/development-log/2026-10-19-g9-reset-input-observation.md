@@ -32,13 +32,13 @@ Preserved full200 expected/actual arrays are identical/sorted/unique, no duplica
 
 Ignored `artifacts/g9-initialized-reset-input/author/` preserves wrapper.log/exit, build/stdout/stderr/control/full JSON, runtime logs, current two source files and actual three loaded DLL byte copies. `verification.json` (approved verify.py post mode exit0) confirms45 source/pristine/active identities for15 approved inputs and seven canonical identities unchanged, seven prepared patch hashes matching and regular issue-owned output trees. Current source and loaded DLL hashes equal report fields and saved bytes. Prior author/rework artifacts remain byte-equal; `prior-accepted-fixed-outputs/` separately retains the fixed paths overwritten by the existing wrapper. `execution-provenance.json` distinguishes original preliminary pre mode from corrected-source readiness mode; neither is a probe run. Preliminary draft evidence under artifacts/g9-reset-input-observation/author is explicitly labelled preliminary.
 
-| Evidence | Bytes | SHA-256 |
-|---|---:|---|
-| Program.cs | 8446 | `c6069bfa2940ea47f3777451e24b5fd4901e3a41d1944938d57f52b2fccf34b3` |
-| CatalogMembershipChecks.cs | 9113 | `15e9a24d31e4f4f53ae4a2ed9853b83fa362ea532ed07a324d544e443c5bc50a` |
-| Actual loaded Runner / LegacyArenaProbe.dll | 54272 | `ec123c10441163ac486a3ffbe14555f9f0d8629ba13dc3bdc7acaf46d2b802de` |
-| Actual loaded Server / ZoneServer.dll | 539648 | `21d4259bcd63e3f39bf6af1b041213c8a8bc00ff7d309cad4cd1e667d2376d01` |
-| Actual loaded Assets / Assets.dll | 128512 | `14e75f1637bcde02db36ad4847321e68979e607205a6abdcdb8ab89ee21a4305` |
+| Evidence                                    |  Bytes | SHA-256                                                            |
+| ------------------------------------------- | -----: | ------------------------------------------------------------------ |
+| Program.cs                                  |   8446 | `c6069bfa2940ea47f3777451e24b5fd4901e3a41d1944938d57f52b2fccf34b3` |
+| CatalogMembershipChecks.cs                  |   9113 | `15e9a24d31e4f4f53ae4a2ed9853b83fa362ea532ed07a324d544e443c5bc50a` |
+| Actual loaded Runner / LegacyArenaProbe.dll |  54272 | `ec123c10441163ac486a3ffbe14555f9f0d8629ba13dc3bdc7acaf46d2b802de` |
+| Actual loaded Server / ZoneServer.dll       | 539648 | `21d4259bcd63e3f39bf6af1b041213c8a8bc00ff7d309cad4cd1e667d2376d01` |
+| Actual loaded Assets / Assets.dll           | 128512 | `14e75f1637bcde02db36ad4847321e68979e607205a6abdcdb8ab89ee21a4305` |
 
 Full report SHA256 `c4f6f567b30627bb1b1ed665fa9455c4e3afe502eeebd7080975a8b5748e70d0`; verification SHA256 `8481766af4459352cf15966f376189d3a410e89919c91464e041adaad6993db8`. These identify this dated author run, not reviewer reproduction or formal approval.
 

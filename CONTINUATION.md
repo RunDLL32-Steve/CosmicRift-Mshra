@@ -4,12 +4,12 @@ Read [PROJECT_START.md](PROJECT_START.md), [AGENTS.md](AGENTS.md), the complete 
 
 ## Current implementation
 
-- The Godot client still runs the provisional flight/combat range and the original-content inspector. It references GameData and Simulation; it does not connect the trading, persistence, protocol or AI modules into a Rogue Trader loop.
-- `shared/RogueTrader.OriginalData` contains raw RPG/VEH/ITM/CFG readers and LIO reference views, typed reference views and canonical guards. Later audits/oracles expand field/reference coverage. Data availability does not complete native runtime behavior.
-- `server/RogueTrader.Simulation` includes generic cargo pickup, optional finite-deposit mining extraction and replay recording/hash comparison (format v2; v1 is explicitly rejected because input/hash semantics changed). Cargo masses/capacities and pickup rules are not accepted original semantics.
-- `server/RogueTrader.Persistence` contains profile repositories and the transaction core; original-ID content validation is also present. `server/RogueTrader.Trading` supplies generic proximity and buy/sell orchestration. No client exit-and-return progression is accepted.
-- `shared/RogueTrader.Protocol` contains a binary message codec; there is no production transport/authentication session. `server/RogueTrader.AI` contains a NEW/provisional pirate controller; original pirates and world/client integration remain open.
-- The derived compatibility pipeline includes scoped sell, buy, store-location, null-script capacity, radar-config and packet-length fixes. RT-F388/389/390/391/395/396/397 have their narrow recorded acceptance; they do not establish a playable native session or production shutdown safety.
+-   The Godot client still runs the provisional flight/combat range and the original-content inspector. It references GameData and Simulation; it does not connect the trading, persistence, protocol or AI modules into a Rogue Trader loop.
+-   `shared/RogueTrader.OriginalData` contains raw RPG/VEH/ITM/CFG readers and LIO reference views, typed reference views and canonical guards. Later audits/oracles expand field/reference coverage. Data availability does not complete native runtime behavior.
+-   `server/RogueTrader.Simulation` includes generic cargo pickup, optional finite-deposit mining extraction and replay recording/hash comparison (format v2; v1 is explicitly rejected because input/hash semantics changed). Cargo masses/capacities and pickup rules are not accepted original semantics.
+-   `server/RogueTrader.Persistence` contains profile repositories and the transaction core; original-ID content validation is also present. `server/RogueTrader.Trading` supplies generic proximity and buy/sell orchestration. No client exit-and-return progression is accepted.
+-   `shared/RogueTrader.Protocol` contains a binary message codec; there is no production transport/authentication session. `server/RogueTrader.AI` contains a NEW/provisional pirate controller; original pirates and world/client integration remain open.
+-   The derived compatibility pipeline includes scoped sell, buy, store-location, null-script capacity, radar-config and packet-length fixes. RT-F388/389/390/391/395/396/397 have their narrow recorded acceptance; they do not establish a playable native session or production shutdown safety.
 
 ## Recorded acceptance and limits
 

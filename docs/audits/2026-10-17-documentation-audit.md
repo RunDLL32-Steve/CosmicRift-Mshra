@@ -10,16 +10,16 @@ Root Markdown files reduced from 14 to 9. Five old root Markdown reports/handoff
 
 The queue's active work has separate briefs under `docs/tasks/`: precise code/test entry points, dependencies, scope, acceptance and applicable focused verification. Completed queue slices remain history and do not imply original-parity completion. The template supports bounded lower-cost execution; unresolved original semantics retain the matrix's research/review escalation. The complete 397-feature master/catalog scope remains authoritative even when a brief schedules only part of it.
 
-Compatibility corrections include six derived source files, current 15 Buy.* cases and revision-specific 35/50/61 totals, merged packet-length fixes, completed narrow store/buy/null-script safeguards and current wrapper exit-code handling. Corrected the unsupported BallGraphic ordinal hypothesis: `Soccer,Ball,0,0,0,0,35` names Soccer/Ball; canonical ball.blo/GameBall is a different identity. Missing item 66 is a lifecycle question, not a proven initializer blocker.
+Compatibility corrections include six derived source files, current 15 Buy.\* cases and revision-specific 35/50/61 totals, merged packet-length fixes, completed narrow store/buy/null-script safeguards and current wrapper exit-code handling. Corrected the unsupported BallGraphic ordinal hypothesis: `Soccer,Ball,0,0,0,0,35` names Soccer/Ball; canonical ball.blo/GameBall is a different identity. Missing item 66 is a lifecycle question, not a proven initializer blocker.
 
 One C# XML summary incorrectly counted Solar Mold at 478 fields. Read-only inspection of the pinned VEH file (41,075 bytes, SHA-256 `9eefa85a04587867616be786fffc664f3ebc0fb1d50ba6f6fd303a7a8a988572`) found all 17 computer rows have 477 fields, including Solar Mold row 9 / ID 409. Only that summary was corrected; executable C#, tests, original bytes and values are unchanged.
 
 ## Evidence and delegation review
 
-- [Source/module audit](2026-10-17-source-docs.md): client/shared/server/tests/provisional data and design/balance plans; compared C#/JSON/project references and relevant test bodies.
-- [Compatibility/research audit](2026-10-17-compat-docs.md): scripts, architecture, original-domain plans and research; inspected source plus existing parent-checkout reports. Report contents were read, not authenticated by a fresh rebuild.
-- [Task organization audit](2026-10-17-task-docs.md): queue-to-brief mapping, source references and fidelity limits.
-- [Documentation inventory](2026-10-17-documentation-inventory.md): path-level classification and coverage for version-controlled Markdown and new documentation.
+-   [Source/module audit](2026-10-17-source-docs.md): client/shared/server/tests/provisional data and design/balance plans; compared C#/JSON/project references and relevant test bodies.
+-   [Compatibility/research audit](2026-10-17-compat-docs.md): scripts, architecture, original-domain plans and research; inspected source plus existing parent-checkout reports. Report contents were read, not authenticated by a fresh rebuild.
+-   [Task organization audit](2026-10-17-task-docs.md): queue-to-brief mapping, source references and fidelity limits.
+-   [Documentation inventory](2026-10-17-documentation-inventory.md): path-level classification and coverage for version-controlled Markdown and new documentation.
 
 The coordinator inspected actual changes and decisive evidence, corrected source/queue omissions and required the task author to restore claim/dependency/run-eligibility rules before acceptance. Matrix model families were unavailable: GPT-6.1-sol/high handled source verification, GPT-6-luna/medium handled bounded task organization and the fresh independent documentation review. No top-tier research model was used for routine status edits.
 

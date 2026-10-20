@@ -8,5 +8,5 @@ Authority: [master §12.1/§12.2](../../ROGUE_TRADER_2_PLAN.md#121-initial-npc-p
 
 ## Next and parity boundary
 
-- [ ] Replace with recovered original controller/actor values when RT-F060/F272/F306 evidence exists; original data takes precedence. Until then this is an engineering fixture and not original parity.
-- [ ] Playtest-tune after the AI is wired into a simulation that gives NPCs their own input.
+-   [ ] Replace with recovered original controller/actor values when RT-F060/F272/F306 evidence exists; original data takes precedence. Until then this is an engineering fixture and not original parity.
+-   [ ] Playtest-tune after the AI is wired into a simulation that gives NPCs their own input.

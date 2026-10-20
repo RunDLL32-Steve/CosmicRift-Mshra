@@ -14,17 +14,16 @@ The staged `runtime.map` contains `sourcePath`, `sourceSha256`, `sourceCommit`, 
 
 Important concrete references:
 
-| Asset | PNG | Cell / grid |
-|---|---|---|
-| Asp | `TerranShipsSmall/Asp.png` | 54×54 / 64 rows, 11 columns |
-| Hornet | `TerranShipsSmall/hornet.png` | 54×54 / 64 rows, 11 columns |
-| Small Skithzar/Grazi hulls | Exact catalog paths | 54×54 / 64 rows, 11 columns |
-| Tiny hull counterparts | `rogueships/<original-name>Tiny.png` | 34×34 / 64 rows, 11 columns |
-| Plasma cannon projectile | `Ebombs/EbulletA.png` | 12×12 / one row, 30 columns |
-| Plasma impact | `Ebombs/EBulletHitA.png` | 32×32 / one row, 30 columns |
+| Asset                      | PNG                                         | Cell / grid                                      |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| Asp                        | `TerranShipsSmall/Asp.png`                  | 54×54 / 64 rows, 11 columns                      |
+| Hornet                     | `TerranShipsSmall/hornet.png`               | 54×54 / 64 rows, 11 columns                      |
+| Small Skithzar/Grazi hulls | Exact catalog paths                         | 54×54 / 64 rows, 11 columns                      |
+| Tiny hull counterparts     | `rogueships/<original-name>Tiny.png`        | 34×34 / 64 rows, 11 columns                      |
+| Plasma cannon projectile   | `Ebombs/EbulletA.png`                       | 12×12 / one row, 30 columns                      |
+| Plasma impact              | `Ebombs/EBulletHitA.png`                    | 32×32 / one row, 30 columns                      |
 | Canonical asteroid sprites | `O_Asteroids/RockA.png` through `RockI.png` | Original 24–64 pixel cells / one row, 60 columns |
-| Energy panel | `cruiart/gback.png`, `cruiart/gguage.png` | 160×52 / respective one and 64 columns |
-| Map overview | `Rogue.png` after staging | Native 1999×1998 RGB |
+| Energy panel               | `cruiart/gback.png`, `cruiart/gguage.png`   | 160×52 / respective one and 64 columns           |
+| Map overview               | `Rogue.png` after staging                   | Native 1999×1998 RGB                             |
 
 All exported palette RGB entries remain unchanged. Index 0 is transparent. Source shadow/light index ranges and blit modes remain raw metadata; correct native blending, HSV/user palette transforms, pose selection, animation timing, and all gameplay behavior remain separate fidelity work. UI objects retain their full original cells, including empty margins and segmented components. PNGs and QA sheets are derived artifacts; canonical originals are never edited.
-

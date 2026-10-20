@@ -6,9 +6,9 @@ Completed October 13, 2026; documentation-only. Authority: [master](../../../ROG
 
 ## Updated scope
 
-- All data Markdown: parent plan/catalog, six canonical domain queues, original parent index and new plans for fixture ships/weapons/sectors.
-- Original-research IMPLEMENTATION_PLAN/HANDOFF/COSMIC_RIFT_ASSETS/INFANTRYONLINE/MECHANICS/FIELD_INTERPRETATION/VIDEO_REFERENCE. Root owns FEATURE_CATALOG and FEATURE_MASTER_CHECKLIST.
-- docs/balance IMPLEMENTATION_PLAN/PROVISIONAL_VALUES and docs/game-design IMPLEMENTATION_PLAN/FIRST_CONTACT.
+-   All data Markdown: parent plan/catalog, six canonical domain queues, original parent index and new plans for fixture ships/weapons/sectors.
+-   Original-research IMPLEMENTATION_PLAN/HANDOFF/COSMIC_RIFT_ASSETS/INFANTRYONLINE/MECHANICS/FIELD_INTERPRETATION/VIDEO_REFERENCE. Root owns FEATURE_CATALOG and FEATURE_MASTER_CHECKLIST.
+-   docs/balance IMPLEMENTATION_PLAN/PROVISIONAL_VALUES and docs/game-design IMPLEMENTATION_PLAN/FIRST_CONTACT.
 
 ## Status and evidence boundaries
 
