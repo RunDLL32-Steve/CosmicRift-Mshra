@@ -49,3 +49,5 @@ Actual `python scripts/sprint-integrate.py` exited2: file absent. Actual `python
 ## Author QA and handoff scope
 
 Author final QA: `python scripts/check-trackers.py` exit0 prints TRACKERS_CONSISTENT,397 entries/22 complete/375 open. All27 added/new local-link occurrences including fragments pass; `git diff --check` exit0. Exactly11 allowed files, no new feature checkmarks/protected paths or high-confidence secret-pattern matches. This is the author-stage local result; independent exact-head review/reproduction, required Windows CI and reviewer-only merge gates are separate. All original feature acceptance remains open and counts unchanged.
+
+Author handoff metadata: [PR86](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/86), work commit `86d1a59`, initial BBQ `c75f746`. Coordinator/root accepted the actual diff/evidence for this handoff. This is historical author-stage QA; use PR86 and the branch log for live review/CI/merge status. No independent approval or author merge is implied.
