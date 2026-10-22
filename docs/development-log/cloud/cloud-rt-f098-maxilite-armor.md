@@ -1,6 +1,6 @@
 Review status: UNREVIEWED
 
-# cloud/rt-f098-duraplas-armor
+# cloud/rt-f098-maxilite-armor
 
 - RT-IDs: RT-F098 (Maxilite Armor, ITM/Rogue_mp.itm row 23, id 6, type 13), data/reference clause only. Gate items 2 and 4. Base: origin/main 1ce1d21. Not stacked. Run locally by the local development routine. Template: RT-F099 tests.
 
