@@ -13,8 +13,18 @@ public sealed record RawItemPrice(string ItemId, int RawBuy, int RawSell);
 /// </summary>
 public sealed class StationPriceTable : IPriceSource
 {
+    private readonly string[] _stationIds;
     private readonly Dictionary<(string Station, string Item), long> _buy = new();
     private readonly Dictionary<(string Station, string Item), long> _sell = new();
+    private readonly Dictionary<(string Station, string Upgrade), long> _upgrade = new();
+    private readonly Dictionary<(string Station, string Repair), long> _repair = new();
+
+    /// <summary>
+    /// The original ITM categories that hold installable upgrade modules (RT-F048). The catalog names five groups here, not six:
+    /// the "six equipment upgrades" of master M2 is a NEW count that the original data does not confirm.
+    /// </summary>
+    public static readonly IReadOnlyList<string> OriginalUpgradeCategories =
+        [.. OriginalUpgrade.Families, "Hull Armor"];
 
     /// <summary>Explicit prices (NEW fixtures or hand-authored data). Absent entries are not traded.</summary>
     public StationPriceTable(string stationId, IEnumerable<(string ItemId, long? Buy, long? Sell)> prices)
@@ -25,6 +35,7 @@ public sealed class StationPriceTable : IPriceSource
         ArgumentNullException.ThrowIfNull(stationIds);
         ArgumentNullException.ThrowIfNull(prices);
         var stations = stationIds.ToArray();
+        _stationIds = stations;
         if (stations.Any(string.IsNullOrEmpty))
             throw new ArgumentException("A station needs an id.", nameof(stationIds));
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -59,6 +70,11 @@ public sealed class StationPriceTable : IPriceSource
         static string Key(OriginalItem i) => i.Id.ToString(CultureInfo.InvariantCulture);
         var table = new StationPriceTable(stationIds, items.Items.Select(i =>
             (Key(i), i.Buy.Value > 0 ? (long?)i.Buy.Value : null, i.Sell.Value > 0 ? (long?)i.Sell.Value : null)));
+        // Upgrade modules are priced at their raw buy field (f[8] > 0), id = decimal ITM id. Exclusivity, slots and effects are undecoded.
+        foreach (var i in items.Items)
+            if (OriginalUpgradeCategories.Contains(i.Category) && i.Buy.Value > 0)
+                foreach (var station in table._stationIds)
+                    table._upgrade[(station, Key(i))] = i.Buy.Value;
         table.RawPrices = items.Items.Select(i => new RawItemPrice(Key(i), i.Buy.Value, i.Sell.Value)).ToArray();
         return table;
     }
@@ -72,10 +88,39 @@ public sealed class StationPriceTable : IPriceSource
     public bool TryGetSellUnitPrice(string stationId, string itemId, out long unitPrice) =>
         _sell.TryGetValue((stationId, itemId), out unitPrice);
 
-    /// <summary>Upgrades are not priced here (queue item M5).</summary>
-    public bool TryGetUpgradePrice(string stationId, string upgradeId, out long price)
+    public bool TryGetUpgradePrice(string stationId, string upgradeId, out long price) =>
+        _upgrade.TryGetValue((stationId, upgradeId), out price);
+
+    public bool TryGetRepairPrice(string stationId, string repairId, out long price) =>
+        _repair.TryGetValue((stationId, repairId), out price);
+
+    /// <summary>
+    /// Adds explicit upgrade prices (NEW fixtures or hand-authored data) at every station of this table, replacing none: a repeated
+    /// upgrade id is refused. Returns this table.
+    /// </summary>
+    public StationPriceTable WithUpgradePrices(IEnumerable<(string UpgradeId, long Price)> prices) => AddPrices(prices, _upgrade, "upgrade");
+
+    /// <summary>
+    /// Adds explicit repair prices. The original repair rows (ids 39/40/43) have buy 0 and no decoded cost (RT-F047), so no price
+    /// is ever derived from original data: every repair price here is authored and NEW/provisional.
+    /// </summary>
+    public StationPriceTable WithRepairPrices(IEnumerable<(string RepairId, long Price)> prices) => AddPrices(prices, _repair, "repair");
+
+    /// <summary>All-or-nothing: the whole batch is checked against itself and the table before anything is written.</summary>
+    private StationPriceTable AddPrices(IEnumerable<(string Id, long Price)> prices, Dictionary<(string, string), long> target, string what)
     {
-        price = 0;
-        return false;
+        ArgumentNullException.ThrowIfNull(prices);
+        var batch = prices.ToArray();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (id, price) in batch)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentException($"A {what} price needs an id.", nameof(prices));
+            if (!seen.Add(id) || _stationIds.Any(s => target.ContainsKey((s, id))))
+                throw new ArgumentException($"Duplicate {what} price for '{id}'.", nameof(prices));
+            if (price < 0) throw new ArgumentException($"Negative {what} price for '{id}'.", nameof(prices));
+        }
+        foreach (var (id, price) in batch)
+            foreach (var station in _stationIds) target[(station, id)] = price;
+        return this;
     }
 }
