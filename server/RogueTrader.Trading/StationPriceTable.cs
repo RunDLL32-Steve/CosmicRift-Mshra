@@ -106,18 +106,21 @@ public sealed class StationPriceTable : IPriceSource
     /// </summary>
     public StationPriceTable WithRepairPrices(IEnumerable<(string RepairId, long Price)> prices) => AddPrices(prices, _repair, "repair");
 
+    /// <summary>All-or-nothing: the whole batch is checked against itself and the table before anything is written.</summary>
     private StationPriceTable AddPrices(IEnumerable<(string Id, long Price)> prices, Dictionary<(string, string), long> target, string what)
     {
         ArgumentNullException.ThrowIfNull(prices);
+        var batch = prices.ToArray();
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (id, price) in prices.ToArray())
+        foreach (var (id, price) in batch)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException($"A {what} price needs an id.", nameof(prices));
             if (!seen.Add(id) || _stationIds.Any(s => target.ContainsKey((s, id))))
                 throw new ArgumentException($"Duplicate {what} price for '{id}'.", nameof(prices));
             if (price < 0) throw new ArgumentException($"Negative {what} price for '{id}'.", nameof(prices));
-            foreach (var station in _stationIds) target[(station, id)] = price;
         }
+        foreach (var (id, price) in batch)
+            foreach (var station in _stationIds) target[(station, id)] = price;
         return this;
     }
 }

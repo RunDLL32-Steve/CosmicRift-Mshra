@@ -80,7 +80,9 @@ public static class ProfileSerializer
             var diagnostics = new List<PersistenceDiagnostic>();
             if (version < PlayerProfile.CurrentSchemaVersion)
             {
-                var outcome = ProfileMigrator.Upgrade(payload, version, PlayerProfile.CurrentSchemaVersion, migrations);
+                // Caller-supplied steps win; the built-in steps keep files from earlier builds loadable without registration.
+                var steps = migrations.Concat(ProfileSchemaMigrations.BuiltIn).ToArray();
+                var outcome = ProfileMigrator.Upgrade(payload, version, PlayerProfile.CurrentSchemaVersion, steps);
                 if (!outcome.Succeeded)
                     return Fail(DiagnosticCode.MigrationMissing, $"No migration from schema version {outcome.MissingFromVersion} is available.");
                 payload = outcome.Payload!;

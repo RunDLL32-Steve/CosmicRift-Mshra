@@ -182,11 +182,62 @@ public sealed class RepairAndUpgradeTests
         var text = payload.ToJsonString();
         envelope["payload"] = text;
         envelope["sha256"] = ProfileSerializerHash(text);
+        envelope["schemaVersion"] = 1;
 
+        // No migration is registered by the caller: the built-in 1 -> 2 step carries the old file forward.
         var decoded = ProfileSerializer.Decode(System.Text.Encoding.UTF8.GetBytes(envelope.ToJsonString()), Array.Empty<IProfileMigration>());
 
         Assert.True(decoded.Succeeded);
         Assert.Null(decoded.Profile!.AppliedTransactions[^1].RepairId);
+        Assert.Equal(PlayerProfile.CurrentSchemaVersion, decoded.Profile.SchemaVersion);
+        Assert.Contains(decoded.Diagnostics, d => d.Code == DiagnosticCode.MigrationApplied);
+    }
+
+    [Fact]
+    public async Task Repair_SaveWrittenByThisBuild_CarriesANewerEnvelopeVersionThanSchemaOne()
+    {
+        // R1-1: the previous reader (schema 1, unknown members disallowed) must see a newer version and refuse the file
+        // untouched, not treat it as corrupt. That holds only when the envelope version is above 1 whenever repairId can appear.
+        var env = await Env.CreateAsync(wallet: 500);
+        await env.Buy(null, Fx.OreA, 1);
+
+        var envelope = System.Text.Json.Nodes.JsonNode.Parse(ProfileSerializer.Serialize(env.Snapshot))!.AsObject();
+
+        Assert.True(envelope["schemaVersion"]!.GetValue<int>() > 1);
+        Assert.Contains("repairId", envelope["payload"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Repair_FileRepositoryMigratesSchemaOneFileAndWritesSchemaTwo()
+    {
+        using var dir = new TempDirectory();
+        var options = new PersistenceOptions();
+        PlayerProfile original;
+        using (var repo = FileProfileRepository.Open(dir.Path, options, Array.Empty<IProfileMigration>()))
+        {
+            var env = await Env.CreateAsync(wallet: 500, repo: repo, options: options);
+            await env.Buy(null, Fx.OreA, 1);
+            original = env.Snapshot;
+        }
+        // Rewrite the primary file the way the previous build wrote it: schema 1, no repairId member.
+        var file = Directory.GetFiles(dir.Path, "*", SearchOption.AllDirectories)
+            .Where(f => !f.EndsWith(".bak") && !f.EndsWith(".lock") && !f.EndsWith(".tmp")).OrderBy(f => f.Length).First();
+        var envelope = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(file))!.AsObject();
+        var payload = System.Text.Json.Nodes.JsonNode.Parse(envelope["payload"]!.GetValue<string>())!.AsObject();
+        foreach (var t in payload["appliedTransactions"]!.AsArray()) t!.AsObject().Remove("repairId");
+        envelope["payload"] = payload.ToJsonString();
+        envelope["sha256"] = ProfileSerializerHash(payload.ToJsonString());
+        envelope["schemaVersion"] = 1;
+        File.WriteAllText(file, envelope.ToJsonString());
+
+        using (var repo = FileProfileRepository.Open(dir.Path, options, Array.Empty<IProfileMigration>()))
+        {
+            var env = await Env.CreateAsync(createProfile: false, repo: repo, options: options);
+            Assert.Equal(original.Wallet, env.Snapshot.Wallet);
+            Assert.Equal(TransactionStatus.Applied, (await env.Repair(null, Fx.RepairMinor)).Status);
+        }
+        var rewritten = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(file))!.AsObject();
+        Assert.Equal(PlayerProfile.CurrentSchemaVersion, rewritten["schemaVersion"]!.GetValue<int>());
     }
 
     private static string ProfileSerializerHash(string text) =>
@@ -306,6 +357,37 @@ public sealed class RepairAndUpgradeTests
         Assert.Throws<ArgumentException>(() => table.WithRepairPrices([("39", 16L)]));
         Assert.Throws<ArgumentException>(() => table.WithRepairPrices([("40", -1L)]));
         Assert.Throws<ArgumentException>(() => table.WithUpgradePrices([("u", 1L), ("u", 2L)]));
+    }
+
+    [Fact]
+    public void PriceBatches_AreAllOrNothing_ForRepairAndUpgrade()
+    {
+        var table = new StationPriceTable(["s"], []);
+        var kinds = new (string Name, Func<IEnumerable<(string, long)>, StationPriceTable> Add, Func<string, bool> Has)[]
+        {
+            ("repair", table.WithRepairPrices, id => table.TryGetRepairPrice("s", id, out _)),
+            ("upgrade", table.WithUpgradePrices, id => table.TryGetUpgradePrice("s", id, out _)),
+        };
+        foreach (var (name, add, has) in kinds)
+        {
+            add([("existing", 5L)]);
+            var bad = new (string, long)[][]
+            {
+                [("first", 40L), ("first", 60L)],          // duplicate inside the batch
+                [("first", 40L), ("neg", -1L)],            // negative after a good entry
+                [("first", 40L), ("", 1L)],                // empty id after a good entry
+                [("first", 40L), ("existing", 9L)],        // conflicts with an id already in the table
+            };
+            foreach (var batch in bad)
+            {
+                Assert.Throws<ArgumentException>(() => add(batch));
+                Assert.False(has("first"), $"{name}: partial batch was published");
+                Assert.False(has("neg"));
+            }
+            add([("first", 40L), ("second", 50L)]);   // the corrected retry succeeds
+            Assert.True(has("first"));
+            Assert.True(has("second"));
+        }
     }
 
     [RequiresOriginalAssetsFact]

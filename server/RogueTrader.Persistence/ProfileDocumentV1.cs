@@ -27,7 +27,7 @@ internal sealed class ProfileDocumentV1
         [JsonRequired] public long WalletAfter { get; set; }
         [JsonRequired] public long Revision { get; set; }
         [JsonRequired] public DateTimeOffset AppliedAtUtc { get; set; }
-        /// <summary>Absent in files written before repairs existed.</summary>
+        /// <summary>Schema 2. Absent in schema 1 payloads, which <see cref="ProfileSchemaMigrations.V1ToV2"/> carries forward unchanged.</summary>
         public string? RepairId { get; set; }
     }
 

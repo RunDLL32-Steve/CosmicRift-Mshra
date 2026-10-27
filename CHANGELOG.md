@@ -2,7 +2,7 @@
 
 ## Repairs and upgrade pricing — October 27, 2026
 
-- Queue M5: add `RepairAsync` (priced, station-gated, idempotent wallet debit with `RepairId` recorded; optional payload field so older saves load) and price the original upgrade categories (35 ITM rows) at their raw buy field in `StationPriceTable`. Repair prices are never derived from original data (raw buy 0, amount/unit undecoded). The original data names five upgrade groups, not six. [Persistence entry](server/RogueTrader.Persistence/plan.d/m5.md). RT-F047/F048/F049 and master M2 boxes stay open; counts unchanged.
+- Queue M5: add `RepairAsync` (priced, station-gated, idempotent wallet debit with `RepairId` recorded; profile schema 2 with a built-in 1-to-2 migration so older saves load and older builds refuse the newer file) and price the original upgrade categories (35 ITM rows) at their raw buy field in `StationPriceTable`. Repair prices are never derived from original data (raw buy 0, amount/unit undecoded). The original data names five upgrade groups, not six. [Persistence entry](server/RogueTrader.Persistence/plan.d/m5.md). RT-F047/F048/F049 and master M2 boxes stay open; counts unchanged.
 
 ## G9 initialized reset input observation — October 19, 2026
 
