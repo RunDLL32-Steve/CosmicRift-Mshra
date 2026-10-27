@@ -1,5 +1,9 @@
 # Changelog
 
+## Repairs and upgrade pricing — October 27, 2026
+
+- Queue M5: add `RepairAsync` (priced, station-gated, idempotent wallet debit with `RepairId` recorded; optional payload field so older saves load) and price the original upgrade categories (35 ITM rows) at their raw buy field in `StationPriceTable`. Repair prices are never derived from original data (raw buy 0, amount/unit undecoded). The original data names five upgrade groups, not six. [Persistence entry](server/RogueTrader.Persistence/plan.d/m5.md). RT-F047/F048/F049 and master M2 boxes stay open; counts unchanged.
+
 ## G9 initialized reset input observation — October 19, 2026
 
 - Add one actual selected standalone StartGame.vehicleReset snapshot after accepted catalog/provenance and before arena creation, source-backed expected false, and the same JSON evidence on success/controlled rejection. [Contract/evidence and limits](docs/development-log/2026-10-19-g9-reset-input-observation.md); [live branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md). No session/native reset eligibility or original completion.

@@ -98,6 +98,14 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.BuyUpgrade, r.TransactionId, r.ProfileId, r.StationId, null, r.UpgradeId, 0, 0, null, shapeOk), ct);
     }
 
+    public Task<TransactionResult> RepairAsync(TransactionContext ctx, RepairRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.RepairId);
+        return ExecuteAsync(ctx, new Req(TransactionKind.Repair, r.TransactionId, r.ProfileId, r.StationId, r.RepairId, null, 0, 0, null, shapeOk), ct);
+    }
+
     public Task<TransactionResult> GrantRewardAsync(TransactionContext ctx, GrantRewardRequest r, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -142,7 +150,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     }
 
     private sealed record Plan(long CurrencyDelta, long WalletAfter, ImmutableSortedDictionary<string, int> NewInventory,
-        ImmutableSortedDictionary<string, int> ItemDeltas, ImmutableSortedSet<string> NewUpgrades, string? UpgradeId, bool QuantityIncreases);
+        ImmutableSortedDictionary<string, int> ItemDeltas, ImmutableSortedSet<string> NewUpgrades, string? UpgradeId, bool QuantityIncreases, string? RepairId = null);
 
     private async Task<TransactionResult> ExecuteAsync(TransactionContext ctx, Req q, CancellationToken ct)
     {
@@ -166,7 +174,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                 if (!string.Equals(done.TransactionId, q.TransactionId, StringComparison.Ordinal)) continue;
                 return string.Equals(done.RequestFingerprint, fingerprint, StringComparison.Ordinal)
                     ? new TransactionResult(done.TransactionId, TransactionStatus.Applied, RejectionReason.None, true,
-                        done.CurrencyDelta, done.ItemDeltas, done.UpgradeId, done.WalletAfter, done.Revision)
+                        done.CurrencyDelta, done.ItemDeltas, done.UpgradeId, done.WalletAfter, done.Revision, done.RepairId)
                     : Reject(q.TransactionId, RejectionReason.TransactionIdReused, committed);
             }
 
@@ -178,7 +186,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             var now = _time.GetUtcNow();
             var revision = committed.Revision + 1;
             var applied = committed.AppliedTransactions.Add(new AppliedTransaction(q.TransactionId!, q.Kind, fingerprint,
-                plan!.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, now));
+                plan!.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, now, plan.RepairId));
             if (applied.Count > _options.IdempotencyWindow) applied = applied.RemoveRange(0, applied.Count - _options.IdempotencyWindow);
             var ledger = committed.Ledger.Add(new WalletLedgerEntry(committed.NextLedgerSequence, q.TransactionId!, q.Kind,
                 plan.CurrencyDelta, plan.WalletAfter, now));
@@ -211,7 +219,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             }
             slot.Committed = next;
             return new TransactionResult(q.TransactionId!, TransactionStatus.Applied, RejectionReason.None, false,
-                plan.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision);
+                plan.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, plan.RepairId);
         }
         finally { slot.Lock.Release(); }
     }
@@ -226,6 +234,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         var deltas = ImmutableSortedDictionary.CreateBuilder<string, int>(StringComparer.Ordinal);
         var upgrades = c.Upgrades;
         string? upgradeId = null;
+        string? repairId = null;
         long currencyDelta;
         long walletAfter;
         var increases = false;
@@ -274,6 +283,16 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     walletAfter = c.Wallet - price;
                     break;
                 }
+                case TransactionKind.Repair:
+                {
+                    if (!_prices.TryGetRepairPrice(q.Place!, q.ItemId!, out var price)) return RejectionReason.NotForSale;
+                    if (price < 0) return RejectionReason.InvalidPrice;
+                    if (c.Wallet < price) return RejectionReason.InsufficientFunds;
+                    repairId = q.ItemId;
+                    currencyDelta = -price;
+                    walletAfter = c.Wallet - price;
+                    break;
+                }
                 case TransactionKind.GrantReward:
                 {
                     walletAfter = checked(c.Wallet + q.Currency);
@@ -300,7 +319,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         // 7. Cargo (all-or-nothing).
         if (increases && !_cargo.Fits(c, newInventory)) return RejectionReason.CargoCapacityExceeded;
 
-        plan = new Plan(currencyDelta, walletAfter, newInventory, deltas.ToImmutable(), upgrades, upgradeId, increases);
+        plan = new Plan(currencyDelta, walletAfter, newInventory, deltas.ToImmutable(), upgrades, upgradeId, increases, repairId);
         return RejectionReason.None;
     }
 

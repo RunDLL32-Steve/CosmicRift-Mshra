@@ -14,6 +14,8 @@ internal static class Fx
     public const string UpgradeX = "fixture-upgrade-x";
     public const string UpgradeY = "fixture-upgrade-y";
     public const string Hull = "fixture-hull-1";
+    public const string RepairMinor = "fixture-repair-minor";
+    public const string RepairFull = "fixture-repair-full";
 
     public static string NewId() => Guid.NewGuid().ToString("N");
 }
@@ -66,6 +68,13 @@ internal sealed class FixturePriceSource : IPriceSource
         [(Fx.Station, Fx.UpgradeY)] = 300, // NEW provisional test fixture, not game balance
     };
 
+    public Dictionary<(string Station, string Repair), long> Repair { get; } = new()
+    {
+        [(Fx.Station, Fx.RepairMinor)] = 40,  // NEW provisional test fixture, not game balance
+        [(Fx.Station, Fx.RepairFull)] = 200,  // NEW provisional test fixture, not game balance
+    };
+
+    public bool TryGetRepairPrice(string stationId, string repairId, out long price) => Repair.TryGetValue((stationId, repairId), out price);
     public bool TryGetBuyUnitPrice(string stationId, string itemId, out long unitPrice) => Buy.TryGetValue((stationId, itemId), out unitPrice);
     public bool TryGetSellUnitPrice(string stationId, string itemId, out long unitPrice) => Sell.TryGetValue((stationId, itemId), out unitPrice);
     public bool TryGetUpgradePrice(string stationId, string upgradeId, out long price) => Upgrade.TryGetValue((stationId, upgradeId), out price);
@@ -184,6 +193,9 @@ internal sealed class Env
 
     public Task<TransactionResult> BuyUpgrade(string? id, string upgrade, bool stationAccess = true) =>
         Proc.BuyUpgradeAsync(Ctx(stationAccess), new BuyUpgradeRequest(id ?? Fx.NewId(), Fx.ProfileId, Fx.Station, upgrade));
+
+    public Task<TransactionResult> Repair(string? id, string repair, bool stationAccess = true, string station = Fx.Station) =>
+        Proc.RepairAsync(Ctx(stationAccess), new RepairRequest(id ?? Fx.NewId(), Fx.ProfileId, station, repair));
 
     public Task<TransactionResult> Reward(string? id, long currency, params (string Item, int Qty)[] items) =>
         Proc.GrantRewardAsync(Ctx(false), new GrantRewardRequest(id ?? Fx.NewId(), Fx.ProfileId, "fixture-source-1", currency,

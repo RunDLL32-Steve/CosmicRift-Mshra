@@ -11,5 +11,6 @@ public interface ITransactionProcessor
     Task<TransactionResult> BuyAsync(TransactionContext ctx, BuyRequest r, CancellationToken ct = default);
     Task<TransactionResult> SellAsync(TransactionContext ctx, SellRequest r, CancellationToken ct = default);
     Task<TransactionResult> BuyUpgradeAsync(TransactionContext ctx, BuyUpgradeRequest r, CancellationToken ct = default);
+    Task<TransactionResult> RepairAsync(TransactionContext ctx, RepairRequest r, CancellationToken ct = default);
     Task<TransactionResult> GrantRewardAsync(TransactionContext ctx, GrantRewardRequest r, CancellationToken ct = default);
 }
