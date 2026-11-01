@@ -126,14 +126,15 @@ public sealed class StationProfileSession
         new(transactionId, TransactionStatus.Rejected, reason, false, 0, new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1);
 
     /// <summary>
-    /// Stable transaction id for one pickup (queue M7 mining slice): the same sector instance and pickup sequence always give the
+    /// Stable transaction id for one pickup (queue M7 mining slice): the same world instance and pickup sequence always give the
     /// same id, so a retried grant after a lost acknowledgement, reload or relaunch is recognised as a duplicate and applied once.
+    /// Sequences restart at 0 in every <see cref="WorldSimulation"/>, so the id must be unique per world, not per sector (R1-1).
     /// </summary>
-    public static string PickupTransactionId(string sectorInstanceId, int sequence)
+    public static string PickupTransactionId(string worldInstanceId, int sequence)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
+        ArgumentException.ThrowIfNullOrEmpty(worldInstanceId);
         ArgumentOutOfRangeException.ThrowIfNegative(sequence);
-        return StableId("pickup", $"{sectorInstanceId}-{sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        return StableId("pickup", $"{worldInstanceId}-{sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
     }
 
     /// <summary>
@@ -141,11 +142,11 @@ public sealed class StationProfileSession
     /// core. The source id names the pile, so the ledger shows where cargo came from. Retry with the same arguments after a
     /// refusal; the stable id makes the grant safe to repeat across retries, reloads and relaunches.
     /// </summary>
-    public Task<TransactionResult> GrantPickupAsync(string sectorInstanceId, CargoPickup pickup, CancellationToken ct = default)
+    public Task<TransactionResult> GrantPickupAsync(string worldInstanceId, CargoPickup pickup, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(pickup);
         var profileId = RequireProfile();
-        var transactionId = PickupTransactionId(sectorInstanceId, pickup.Sequence);
+        var transactionId = PickupTransactionId(worldInstanceId, pickup.Sequence);
         return _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
             new GrantRewardRequest(transactionId, profileId, $"{PickupSourcePrefix}{pickup.PileId}", 0,
                 new Dictionary<string, int> { [pickup.ItemId] = pickup.Quantity }), ct);

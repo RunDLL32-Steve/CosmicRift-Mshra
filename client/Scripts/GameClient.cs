@@ -41,6 +41,8 @@ public partial class GameClient : Node2D
     private readonly PickupCommitQueue _pickups = new();
     private MineralFieldCatalog? _minerals;
     private bool _atRefinery;
+    /// <summary>One id per WorldSimulation: pickup ids and mineral placement key on it, never on the sector instance (review R1-1).</summary>
+    private string _worldInstanceId = "";
     private long _lastShipSaveTick;
     private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
     private KillRewardDefinition _killReward = KillRewardDefinition.None;
@@ -417,8 +419,9 @@ public partial class GameClient : Node2D
         if (lostKills > 0) Notice($"{lostKills} kill reward{(lostKills == 1 ? "" : "s")} could not be saved and {(lostKills == 1 ? "was" : "were")} lost.", warning: true);
         _playCatalog = EffectiveCatalog();
         _lastShipSaveTick = 0;
-        // NEW: mineral placement is reseeded from each sector instance, so a reset lays the field out afresh.
-        var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_sectorInstanceId.GetHashCode(StringComparison.Ordinal));
+        // NEW: mineral placement is reseeded for each world, so a reset lays the field out afresh.
+        _worldInstanceId = Guid.NewGuid().ToString("N");
+        var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_worldInstanceId.GetHashCode(StringComparison.Ordinal));
         var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold(), minerals: minerals);
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
             world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
@@ -451,7 +454,8 @@ public partial class GameClient : Node2D
 
     /// <summary>The world hold is always the saved inventory plus the pickups still waiting to be saved.</summary>
     private void ReconcileHold() =>
-        _world.Cargo.ReplaceContents(_pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold())).ToArray());
+        _world.Cargo.ReplaceContents(_pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()),
+            _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId)).ToArray());
 
     /// <summary>
     /// Saves every pickup the world recorded (queue M7 mining slice) through the idempotent transaction core, one grant per
@@ -461,7 +465,7 @@ public partial class GameClient : Node2D
     private void CommitPickups(bool force = false)
     {
         if (_world is null) return;
-        _pickups.Observe(_sectorInstanceId, _world.Pickups);
+        _pickups.Observe(_worldInstanceId, _world.Pickups);
         if (_session?.Profile is null || _pickups.Count == 0 || _nextPickupRetryTick == long.MaxValue
             || (!force && _world.TickNumber < _nextPickupRetryTick)) return;
         var outcome = Await(_pickups.CommitAsync(_session));
@@ -486,6 +490,7 @@ public partial class GameClient : Node2D
     }
 
     public int PendingPickups => _pickups.Count;
+    public string WorldInstanceId => _worldInstanceId;
 
     /// <summary>Test hook: makes the next pickup commits fail as if the save folder were unavailable.</summary>
     public void SimulatePickupSaveFailure() => _nextPickupRetryTick = long.MaxValue;
@@ -577,6 +582,7 @@ public partial class GameClient : Node2D
         if (_initialized && _smokeTest is null)
         {
             CommitKills(force: true);
+            CommitPickups(force: true);
             SaveShip();
         }
         _repository?.Dispose();

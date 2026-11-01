@@ -188,7 +188,10 @@ public sealed class MiningRewardTests
         // The save succeeds but the acknowledgement is lost: after a reload the retry is a replay and leaves the queue.
         Assert.True((await session.ReloadAsync()).Succeeded);
         Assert.Equal(TransactionStatus.Applied, (await session.GrantPickupAsync("sector-1", pickup)).Status);
-        Assert.Equal(new Dictionary<string, int> { ["2003"] = 160 }, queue.HoldContents(session.Profile!.Inventory)); // until replayed
+        // Review R1-2: the reloaded profile already holds it, so the hold must not count the still-queued pickup twice.
+        var savedIds = session.Profile!.AppliedTransactions.Select(t => t.TransactionId);
+        Assert.Equal(new Dictionary<string, int> { ["2003"] = 80 }, queue.HoldContents(session.Profile.Inventory, savedIds));
+        Assert.Equal(1, queue.Count);
         var replay = await queue.CommitAsync(session);
         Assert.Equal(pickup, Assert.Single(replay.Replayed));
         Assert.Null(replay.Blocked);
@@ -219,6 +222,26 @@ public sealed class MiningRewardTests
         queue.Observe("b", [new CargoPickup(0, "mineral:16:1", "2003", 2, 1)]); // a new world starts its sequence at 0 again
         Assert.False(Assert.Single((await queue.CommitAsync(session)).Applied).Sequence != 0);
         Assert.Equal(7, session.Profile!.Inventory["2003"]);
+    }
+
+    [Fact]
+    public async Task ResetThatKeepsTheSector_StillSavesTheSamePileAgain()
+    {
+        // Review R1-1: a reset that keeps the sector instance builds a new world whose pickup sequence restarts at 0. The client
+        // keys pickups on a per-world id, so collecting the same starting pile again is a new grant, not a replay.
+        var session = await OpenAsync();
+        var queue = new PickupCommitQueue();
+        var first = new CargoPickup(0, "pile_wreckage_launch", "2008", 9, 30);
+        queue.Observe("world-1", [first]);
+        Assert.Single((await queue.CommitAsync(session)).Applied);
+        queue.StartNewWorld();
+        queue.Observe("world-2", [first]);
+        var again = await queue.CommitAsync(session);
+        Assert.Single(again.Applied);
+        Assert.Empty(again.Replayed);
+        Assert.Equal(18, session.Profile!.Inventory["2008"]);
+        // The hazard the per-world id avoids: reusing an id makes the core report the pickup as already saved.
+        Assert.True((await session.GrantPickupAsync("world-1", first)).IsReplay);
     }
 
     [Fact]

@@ -13,23 +13,27 @@ public sealed record PickupCommitOutcome(IReadOnlyList<CargoPickup> Applied, IRe
 
 /// <summary>
 /// Queue M7 mining slice: every pickup a world records is granted to the profile once, through the idempotent GrantReward core,
-/// with a stable id per sector instance and pickup sequence (see <see cref="StationProfileSession.PickupTransactionId"/>). The
+/// with a stable id per world instance and pickup sequence (see <see cref="StationProfileSession.PickupTransactionId"/>). The
 /// queue holds pickups not yet saved, so the ship's hold is always the saved inventory plus <see cref="PendingUnits"/>; a
 /// refusal or a reload keeps them queued for the next pass. Godot-free so the client's flow is unit-tested.
 /// </summary>
 public sealed class PickupCommitQueue
 {
-    private readonly List<(string SectorInstanceId, CargoPickup Pickup)> _pending = [];
+    private readonly List<(string WorldInstanceId, CargoPickup Pickup)> _pending = [];
     private int _seen;
 
     public int Count => _pending.Count;
 
     /// <summary>Queues the pickups the world recorded since the last call.</summary>
-    public void Observe(string sectorInstanceId, IReadOnlyList<CargoPickup> pickups)
+    /// <param name="worldInstanceId">
+    /// Unique per <see cref="WorldSimulation"/> instance (pickup sequences restart at 0 in every world), not per sector: a sector
+    /// that keeps its identity across a reset still needs a new world id, or the second world's pickups would repeat old ids.
+    /// </param>
+    public void Observe(string worldInstanceId, IReadOnlyList<CargoPickup> pickups)
     {
-        ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
+        ArgumentException.ThrowIfNullOrEmpty(worldInstanceId);
         ArgumentNullException.ThrowIfNull(pickups);
-        for (; _seen < pickups.Count; _seen++) _pending.Add((sectorInstanceId, pickups[_seen]));
+        for (; _seen < pickups.Count; _seen++) _pending.Add((worldInstanceId, pickups[_seen]));
     }
 
     /// <summary>
@@ -52,13 +56,20 @@ public sealed class PickupCommitQueue
         return units;
     }
 
-    /// <summary>The saved inventory plus the queued pickups: what the ship's hold holds.</summary>
-    public IReadOnlyDictionary<string, int> HoldContents(IReadOnlyDictionary<string, int> savedInventory)
+    /// <summary>
+    /// The saved inventory plus the queued pickups: what the ship's hold holds. A queued pickup whose transaction id is already in
+    /// <paramref name="savedTransactionIds"/> was saved but its acknowledgement was lost; it is already in the inventory and is not
+    /// counted again (review R1-2). The next commit pass recognises it as a replay and removes it from the queue.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> HoldContents(IReadOnlyDictionary<string, int> savedInventory, IEnumerable<string>? savedTransactionIds = null)
     {
         ArgumentNullException.ThrowIfNull(savedInventory);
+        var saved = new HashSet<string>(savedTransactionIds ?? [], StringComparer.Ordinal);
         var hold = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var (item, quantity) in savedInventory) if (quantity > 0) hold[item] = quantity;
-        foreach (var (item, quantity) in PendingUnits()) hold[item] = checked(hold.GetValueOrDefault(item) + quantity);
+        foreach (var (world, pickup) in _pending)
+            if (!saved.Contains(StationProfileSession.PickupTransactionId(world, pickup.Sequence)))
+                hold[pickup.ItemId] = checked(hold.GetValueOrDefault(pickup.ItemId) + pickup.Quantity);
         return hold;
     }
 

@@ -4,7 +4,7 @@ Review status: ready-for-review
 
 Scope: the half of queue [M7](../../tasks/m7.md) left open after PR 94 merged the kill slice: "connect the generic kill/mining outcome to GrantReward using stable idempotency identity". Section A rows were not cloud-eligible (G1 blocked, G5 claimed by `cloud/rt-f036-f037-g5-weapon-records`, G6/G9 claimed, G8 local, G10 waits on G6), so M7 was the first open row. Data: [minerals](../../../data/minerals/IMPLEMENTATION_PLAN.md), [stations](../../../data/stations/IMPLEMENTATION_PLAN.md).
 
-Status: round 1 pushed, awaiting review. Not merged by the author.
+Status: round 2 pushed (review round 1 fixes), awaiting re-review. Not merged by the author.
 
 ## Round 1 — November 1, 2026
 
@@ -21,4 +21,12 @@ Not verified: the `verify.ps1` wrapper itself, the Windows export, pinned SDK 8.
 
 Fidelity: RT-F042 and RT-F044 stay open; every LIO type 5 reading, the map scale, the one-for-one free refining and all placement are NEW. Feature counts unchanged. Sector resets still re-pay the practice targets (Steve's respawn rule is being built in the M9 thread, not here).
 
-Resume point: independent review of the round 1 head.
+## Round 2 — November 1, 2026 (review round 1 at bc8e5d7)
+
+-   R1-1: pickup ids and mineral placement now key on a per-world id (a new GUID in every `NewWorld`), never on the sector instance, so a reset that keeps the sector (PR #95) cannot repeat `pickup-<id>-0`. Test `ResetThatKeepsTheSector_StillSavesTheSamePileAgain`.
+-   R1-2: `PickupCommitQueue.HoldContents` skips queued pickups whose id is already in the profile's applied transactions, so a reload after a lost acknowledgement no longer double-counts the hold. `MinedPickup_IsSavedOnce_AcrossRetryAndReload` now asserts it.
+-   R1-3: quitting gives queued pickups a last save, as kills already had.
+
+Verified: unit 878 passed, 0 failed, 5 skips; integration 6; Godot import 0 and smoke 0 (all three PASS lines); FORMAT_CLEAN; TRACKERS_CONSISTENT.
+
+Resume point: re-review of the round 2 head.

@@ -85,7 +85,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(session.Profile!.Inventory.GetValueOrDefault("2003") == savedOre + mined && client.PendingPickups == 0,
                 $"Once saving works the {mined} mined Tellerium must be saved exactly once.");
             var minedPickup = readWorld().Pickups.Skip(pickupsBefore).First(p => p.PileId == mineral.Id);
-            Require((await session.GrantPickupAsync(client.SectorInstanceId, minedPickup)).IsReplay,
+            Require((await session.GrantPickupAsync(client.WorldInstanceId, minedPickup)).IsReplay,
                 "Granting the same pickup again must be recognised as a duplicate.");
             await nextPhysicsFrame();
             Require(hud.NoticeText.Contains("Mined") && hud.NoticeText.Contains("Tellerium"), $"The HUD must report the mined ore, got '{hud.NoticeText}'.");
