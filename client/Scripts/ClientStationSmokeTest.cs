@@ -62,6 +62,16 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 $"The HUD must show the kill reward and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
             GD.Print($"STATION SMOKE PASS: destroying a target paid {reward} credits once; the replayed kill was a duplicate");
 
+            // A sector reset must not bring the destroyed target back early (targets respawn only as a group, on a timer).
+            var killedTarget = readWorld().Kills[0].TargetId;
+            var instanceBeforeReset = client.SectorInstanceId;
+            resetSector();
+            await nextPhysicsFrame();
+            Require(readWorld().Targets.Single(t => t.Id == killedTarget).IsDestroyed && client.SectorInstanceId == instanceBeforeReset,
+                "A sector reset must keep destroyed targets down and keep the sector instance, so the kill cannot pay again.");
+            Require(session.Profile!.Wallet == walletBeforeKill + reward, "A sector reset must not pay any kill again.");
+            GD.Print("STATION SMOKE PASS: a sector reset keeps the destroyed target down and pays nothing again");
+
             // Dock with the native key from the spawn point (inside the provisional dock radius).
             resetSector();
             Require(readWorld().Cargo.Quantity(pile.ItemId) == pile.Quantity, "A sector reset must rebuild the hold from the saved profile.");
@@ -162,7 +172,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload warning for unsaved cargo, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload warning for unsaved cargo, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

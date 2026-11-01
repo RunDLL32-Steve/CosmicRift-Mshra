@@ -87,6 +87,8 @@ public sealed class GameCatalog
             Nonnegative(target.Shield, "target shield");
             Finite(target.X, target.Y, target.Heading);
         }
+        Nonnegative(Sector.TargetRespawnSeconds, "target respawn seconds");
+        if (Sector.TargetRespawnSeconds * 60 > int.MaxValue) throw new ArgumentException("target respawn seconds is too large.");
         foreach (var asteroid in Sector.Asteroids)
         {
             ArgumentNullException.ThrowIfNull(asteroid);

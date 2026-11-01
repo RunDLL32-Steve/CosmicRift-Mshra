@@ -21,6 +21,18 @@ public sealed class ShipState
     public string? LastDamageWeaponId { get; internal set; }
     internal long NextFireTick { get; set; }
 
+    /// <summary>Back to full hull, shield and energy with no damage history (target group respawn).</summary>
+    internal void Revive(Vector2 position, float heading)
+    {
+        Position = position;
+        Heading = heading;
+        Velocity = Vector2.Zero;
+        Hull = Definition.Defense.MaximumHull;
+        Shield = Definition.Defense.MaximumShield;
+        Energy = Definition.Reactor.MaximumEnergy;
+        LastDamagedByShipId = DestroyedByShipId = LastDamageWeaponId = null;
+    }
+
     internal ShipState(string id, ShipDefinition definition, WeaponDefinition weapon, Vector2 position, float heading)
     {
         Id = id;
@@ -35,7 +47,8 @@ public sealed class ShipState
 }
 
 /// <summary>One target destruction: which target, which ship fired the destroying projectile, and the tick it happened on.</summary>
-public sealed record TargetKill(string TargetId, string KillerShipId, long Tick);
+/// <param name="Wave">Which respawn of the target group the target belonged to (0 for the first group).</param>
+public sealed record TargetKill(string TargetId, string KillerShipId, long Tick, int Wave = 0);
 
 public sealed class AsteroidState
 {

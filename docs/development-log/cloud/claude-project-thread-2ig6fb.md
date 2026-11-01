@@ -4,7 +4,7 @@ Review status: ready-for-review
 
 Scope: the first playable progression loop. Queue M9 depends on M7 (kill/mining rewards through idempotent GrantReward), which was still OPEN, so this branch takes the M7 kill-reward slice and the M9 exit/relaunch acceptance together. See briefs [M7](../../tasks/m7.md) and [M9](../../tasks/m9.md), the [client entry](../../../client/UI/plan.d/m9.md), [reward data](../../../data/rewards/IMPLEMENTATION_PLAN.md) and the [integration plan](../../../tests/Integration/IMPLEMENTATION_PLAN.md).
 
-Status: round 1 pushed, awaiting review. Not merged by the author.
+Status: PR 94 (rounds 1-2) merged November 1, 2026. Follow-up target respawn pushed as a new PR, awaiting review. Not merged by the author.
 
 ## Round 1 — November 1, 2026
 
@@ -21,4 +21,14 @@ Not verified: the `verify.ps1` wrapper itself (its steps were run directly; Wind
 
 Fidelity: this is engineering persistence acceptance, not original persistence parity (RT-F068 retention is unrecoverable). RT-F051 and every master M2 box stay open; feature counts unchanged.
 
-Resume point: independent review of the round 1 head.
+## Follow-up: target respawn — November 1, 2026 (new PR after PR 94 merged)
+
+Steve chose: once the whole target group is destroyed, it respawns after one minute.
+
+-   `SectorDefinition.TargetRespawnSeconds` (validated finite and non-negative; 0 = never), set to 60 in `first_contact.json` (NEW). `WorldSimulation` starts the timer when the last target dies and respawns every target at its configured position with full hull/shield as the next `TargetWave`; `TargetKill.Wave` records it and the kill transaction id is now `kill-<instance>-<wave>-<target>`, so each wave pays once.
+-   Manual sector reset: chosen to **not** bring targets back early. `GameClient.ResetSector` carries the target group (`WorldSimulation.CarryTargetsFrom`: hull, shield, destroyed state, wave, time left) into the rebuilt world and keeps the sector instance id, so reset is no longer a credit faucet for kills and queued kills survive it. Relaunch still starts a fresh group (target state is not saved); piles still refill on reset (unchanged, pre-existing).
+-   HUD: countdown to the next group.
+
+Verified (same substitutions): `--no-incremental` build 0 warnings; `dotnet test tests/Unit` 874 passed, 0 failed, 5 existing skips; `tests/Integration` 6 passed; Godot import exit 0; `--smoke-test` exit 0 with the new "sector reset keeps the destroyed target down" step and all three PASS markers.
+
+Resume point: independent review of the follow-up head.

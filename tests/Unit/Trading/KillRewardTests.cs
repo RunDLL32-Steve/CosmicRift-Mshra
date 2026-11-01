@@ -143,11 +143,13 @@ public sealed class KillRewardTests
     [Fact]
     public void KillTransactionId_IsStableAndBounded()
     {
-        Assert.Equal("kill-abc-target_alpha", StationProfileSession.KillTransactionId("abc", "target_alpha"));
-        var longId = StationProfileSession.KillTransactionId(new string('s', 32), new string('t', 200));
+        Assert.Equal("kill-abc-0-target_alpha", StationProfileSession.KillTransactionId("abc", 0, "target_alpha"));
+        Assert.Equal("kill-abc-3-target_alpha", StationProfileSession.KillTransactionId("abc", 3, "target_alpha"));
+        var longId = StationProfileSession.KillTransactionId(new string('s', 32), 0, new string('t', 200));
         Assert.True(longId.Length <= ProfileInvariants.MaxTransactionIdLength);
-        Assert.Equal(longId, StationProfileSession.KillTransactionId(new string('s', 32), new string('t', 200)));
-        Assert.NotEqual(longId, StationProfileSession.KillTransactionId(new string('s', 32), new string('u', 200)));
+        Assert.Equal(longId, StationProfileSession.KillTransactionId(new string('s', 32), 0, new string('t', 200)));
+        Assert.NotEqual(longId, StationProfileSession.KillTransactionId(new string('s', 32), 1, new string('t', 200)));
+        Assert.NotEqual(longId, StationProfileSession.KillTransactionId(new string('s', 32), 0, new string('u', 200)));
     }
 
     [Fact]
