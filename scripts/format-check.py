@@ -54,6 +54,9 @@ def target_files(base, everything):
 
 
 def main():
+    # R3-1: file names outside the console code page must not crash the report on Windows.
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     p = argparse.ArgumentParser()
     p.add_argument("--fix", action="store_true", help="rewrite files")
     p.add_argument("--all", action="store_true", help="all tracked files")
