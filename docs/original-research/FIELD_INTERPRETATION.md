@@ -20,20 +20,20 @@ Asp is [RPG/Rogue.rpg][rpg] row1: first six raw fields `v6,2,1,2002,1,0`; select
 
 For v53, active [SpeedValues.Parse][speed] reads ten fields per terrain. The compiled Asp record confirms this terrain0 block. The historical `Parsers/Vehicles/SpeedValues.cs` includes a different order/comment; use the tested active version, retain the raw source, and avoid applying legacy fixed-column guesses.
 
-| Raw Asp field | Active parsed name | Original value | Runtime contract still to validate |
-|---|---|---:|---|
-| f[202] | RollAllowed | 0 | Meaning of allowed/mode versus the separate Car.Mode field. |
-| f[203] | RollFriction | 0 | Native friction equation and terrain/upgrade overrides. |
-| f[204] | RollThrust | 45 | Acceleration scale, timestep and cargo/upgrade composition. |
-| f[205] | RollRotate | 1380 | Native yaw units, rates, bank state and wrap/rounding. |
-| f[206] | RollTopSpeed (short) | 3250 | Native speed scale and clamp policy. |
-| f[207] | StrafeThrust | 22 | Lateral vector, energy/key input and native scale. |
-| f[208] | HyperTopSpeed | 3500 | Hyper limit, transitions and active conditions. |
-| f[209] | HyperThrust | 50 | Hyper acceleration and energy expenditure. |
-| f[210] | BackwardThrust | -1 | Sentinel/fallback semantics; retain negative raw value. |
-| f[211] | BackwardHyperThrust | -1 | Sentinel/fallback semantics; retain negative raw value. |
-| f[362] | BouncePercent | 727 | Native collision response and scale. |
-| f[373] | HyperEnergyCost | 1100 | Energy/time units and consumption event. |
+| Raw Asp field | Active parsed name   | Original value | Runtime contract still to validate                          |
+| ------------- | -------------------- | -------------: | ----------------------------------------------------------- |
+| f[202]        | RollAllowed          |              0 | Meaning of allowed/mode versus the separate Car.Mode field. |
+| f[203]        | RollFriction         |              0 | Native friction equation and terrain/upgrade overrides.     |
+| f[204]        | RollThrust           |             45 | Acceleration scale, timestep and cargo/upgrade composition. |
+| f[205]        | RollRotate           |           1380 | Native yaw units, rates, bank state and wrap/rounding.      |
+| f[206]        | RollTopSpeed (short) |           3250 | Native speed scale and clamp policy.                        |
+| f[207]        | StrafeThrust         |             22 | Lateral vector, energy/key input and native scale.          |
+| f[208]        | HyperTopSpeed        |           3500 | Hyper limit, transitions and active conditions.             |
+| f[209]        | HyperThrust          |             50 | Hyper acceleration and energy expenditure.                  |
+| f[210]        | BackwardThrust       |             -1 | Sentinel/fallback semantics; retain negative raw value.     |
+| f[211]        | BackwardHyperThrust  |             -1 | Sentinel/fallback semantics; retain negative raw value.     |
+| f[362]        | BouncePercent        |            727 | Native collision response and scale.                        |
+| f[373]        | HyperEnergyCost      |           1100 | Energy/time units and consumption event.                    |
 
 All16 terrain blocks must remain available. The canonical CFG sets `Isometric=0`; an emulator bot's assumption about isometric Y coordinates must not be imported as original overhead geometry.
 
@@ -43,14 +43,14 @@ The original-coordinate contract is separate from the provisional prototype's me
 
 [MovementController][movement] is bot movement. It hardcodes terrain0 and contains comments about unavailable map terrain and uncertain Y scaling. Actual code uses:
 
-| Current emulator bot operation | Meaning and limit |
-|---|---|
-| RollThrust/StrafeThrust/BackwardThrust multiplied by4800 then integer-divided by128 | A source-proven bot conversion. Negative backward sentinels are multiplied literally here; this does not establish their original native fallback meaning. |
-| Direction wraps240; rotation uses `(rawRotate/10000.0)*elapsedMilliseconds` | Current bot yaw rate. [Vector2.createUnitVector][vector] multiplies yaw by1.5 degrees, giving240 units/revolution and up at0. |
-| Velocity receives acceleration ×elapsedMilliseconds/1000 | Current bot integration, not a proof of original fixed tick. |
-| Friction uses rawFriction×800/256 plus elapsed-time factors; speed clamps to rawTopSpeed | Preserve arithmetic/truncation order when investigating, without adopting as native behavior. |
-| Position +=velocity×elapsedMilliseconds/10000; Y additionally ×0.70 | The source explicitly questions Y scaling. This is especially unresolved for canonical overhead `Isometric=0`. |
-| Collision bounce multiplies velocity byBouncePercent/1000 | Current bot implementation; original collisions/height/radius still require native evidence. |
+| Current emulator bot operation                                                           | Meaning and limit                                                                                                                                          |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RollThrust/StrafeThrust/BackwardThrust multiplied by4800 then integer-divided by128      | A source-proven bot conversion. Negative backward sentinels are multiplied literally here; this does not establish their original native fallback meaning. |
+| Direction wraps240; rotation uses `(rawRotate/10000.0)*elapsedMilliseconds`              | Current bot yaw rate. [Vector2.createUnitVector][vector] multiplies yaw by1.5 degrees, giving240 units/revolution and up at0.                              |
+| Velocity receives acceleration ×elapsedMilliseconds/1000                                 | Current bot integration, not a proof of original fixed tick.                                                                                               |
+| Friction uses rawFriction×800/256 plus elapsed-time factors; speed clamps to rawTopSpeed | Preserve arithmetic/truncation order when investigating, without adopting as native behavior.                                                              |
+| Position +=velocity×elapsedMilliseconds/10000; Y additionally ×0.70                      | The source explicitly questions Y scaling. This is especially unresolved for canonical overhead `Isometric=0`.                                             |
+| Collision bounce multiplies velocity byBouncePercent/1000                                | Current bot implementation; original collisions/height/radius still require native evidence.                                                               |
 
 For example, raw rotate1380 would imply138 bot yaw units/second or3.6128 radians/second under that bot formula. This is a **RECONSTRUCTED native-physics hypothesis**, not an original verified conversion. It must not silently replace the provisional rotate rate or be labeled exact Cosmic Rift physics.
 
@@ -60,15 +60,15 @@ The current server [player-update path][player] assigns client-provided energy, 
 
 The active [Projectile loader][projectile] maps f[54] fireDelay, f[94] inheritedSpeed, f[101] muzzleVelocity, f[110] aliveTime, f[131] maxLivePerPlayer, f[135..138] anti recharge/fire/thrust/rotate durations, f[142] explodeItem. Compiled pristine v57 loading accepts the records. Raw observations include:
 
-| Item row / ID | fireDelay | inheritedSpeed | muzzleVelocity | aliveTime | Child / relevant special values |
-|---|---:|---:|---:|---:|---|
-| 1 /1004 Plasma Cannon | 25 | 1000 | 2200 | 550 | explodeItem0 |
-| 7 /1026 Plasma Bomb | 150 | 1000 | 2100 | 2000 | explodeItem0 |
-| 6 /1047 MIRV Missile Launcher | 400 | -550 | 2750 | -65 | explodeItem3008; ammo item2002; negative lifetime requires trigger interpretation |
-| 141 /1069 X-Laser | 200 | -550 | 4000 | 350 | Source description says passes intervening objects; exact accessible/physics policy remains to decode |
-| 153 /1073 Laser Cannon | 30 | -550 | 4000 | 550 | Negative inheritance sentinel/weighted mode unresolved |
-| 61 /1001 Disruptor Mine | 400 | 0 | 0 | 6000 | maxLivePerPlayer3; anti recharge/fire/thrust/rotate150 each |
-| 156 /1076 Disabler | 450 | 1000 | 2000 | 2000 | antiThrust300, antiRotate0; description also names maneuver thrusters |
+| Item row / ID                 | fireDelay | inheritedSpeed | muzzleVelocity | aliveTime | Child / relevant special values                                                                       |
+| ----------------------------- | --------: | -------------: | -------------: | --------: | ----------------------------------------------------------------------------------------------------- |
+| 1 /1004 Plasma Cannon         |        25 |           1000 |           2200 |       550 | explodeItem0                                                                                          |
+| 7 /1026 Plasma Bomb           |       150 |           1000 |           2100 |      2000 | explodeItem0                                                                                          |
+| 6 /1047 MIRV Missile Launcher |       400 |           -550 |           2750 |       -65 | explodeItem3008; ammo item2002; negative lifetime requires trigger interpretation                     |
+| 141 /1069 X-Laser             |       200 |           -550 |           4000 |       350 | Source description says passes intervening objects; exact accessible/physics policy remains to decode |
+| 153 /1073 Laser Cannon        |        30 |           -550 |           4000 |       550 | Negative inheritance sentinel/weighted mode unresolved                                                |
+| 61 /1001 Disruptor Mine       |       400 |              0 |              0 |      6000 | maxLivePerPlayer3; anti recharge/fire/thrust/rotate150 each                                           |
+| 156 /1076 Disabler            |       450 |           1000 |           2000 |      2000 | antiThrust300, antiRotate0; description also names maneuver thrusters                                 |
 
 Searches of active `dotnetcore` source find inheritedSpeed/aliveTime declared and parsed, but no complete native projectile-motion/sentinel evaluator. Do not turn -550 into a negative percentage or -65 into a negative TTL. Native projectile defaults, weighted inheritance, trigger conditions and lifetime modes remain open even though their actual source numbers are available.
 

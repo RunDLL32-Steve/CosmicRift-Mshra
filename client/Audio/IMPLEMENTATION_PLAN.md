@@ -8,8 +8,8 @@ Reviewed October 13, 2026. Master: [§16 effects](../../ROGUE_TRADER_2_PLAN.md#1
 
 ## Active outstanding work
 
-- [ ] **Investigating — RT-F024/F069:** native sound member resolution, eligibility, timing, mixing and original thrust/weapon/hit/explosion/ambient triggers through the chosen engine.
-- [ ] **Not started — playback integration if Godot is chosen:** preserve original samples and definitions in separate derived outputs; do not create replacement audio for parity.
-- [ ] **Not started — focused original playback acceptance:** record source/member identity and actual triggers only after implementation.
+-   [ ] **Investigating — RT-F024/F069:** native sound member resolution, eligibility, timing, mixing and original thrust/weapon/hit/explosion/ambient triggers through the chosen engine.
+-   [ ] **Not started — playback integration if Godot is chosen:** preserve original samples and definitions in separate derived outputs; do not create replacement audio for parity.
+-   [ ] **Not started — focused original playback acceptance:** record source/member identity and actual triggers only after implementation.
 
 No audio feature is complete here. Full native runtime is still open after the welcome-screen test. No downloads, playback, builds or simulations ran during this review.

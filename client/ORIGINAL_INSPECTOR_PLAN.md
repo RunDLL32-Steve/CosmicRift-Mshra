@@ -6,17 +6,17 @@ Current stage: **Complete** - RT-F374 passed source and standalone verification.
 
 ## Active outstanding work
 
-- [ ] Deferred - actual original native banking, blit/palette/HSV/shadow/timing/audio/HUD parity (RT-F023-026/F074-075).
+-   [ ] Deferred - actual original native banking, blit/palette/HSV/shadow/timing/audio/HUD parity (RT-F023-026/F074-075).
 
 ## Source completion history - October 13, 2026
 
-- [x] Twelve hulls, all 64 directions/all 11 preview states and valid atlas regions (8,448 hull frame selections).
-- [x] All 231 sprite selectors and last-frame selection through actual widget signals.
-- [x] Independent hull and per-sprite frame choices preserved across map/page/member changes.
-- [x] Native focused SpinBox Enter commits row 31; F2/Escape and Close button; persisted F3/P remap open/close; preexisting controls restored.
-- [x] World tick remains 0 with no reset/gameplay; pause flag and actual controls menu preserved after closing.
+-   [x] Twelve hulls, all 64 directions/all 11 preview states and valid atlas regions (8,448 hull frame selections).
+-   [x] All 231 sprite selectors and last-frame selection through actual widget signals.
+-   [x] Independent hull and per-sprite frame choices preserved across map/page/member changes.
+-   [x] Native focused SpinBox Enter commits row 31; F2/Escape and Close button; persisted F3/P remap open/close; preexisting controls restored.
+-   [x] World tick remains 0 with no reset/gameplay; pause flag and actual controls menu preserved after closing.
 
-- [x] Updated standalone export repeats all three input phases and final pass with world tick 0 unchanged; exit 0 with SDK/runtime discovery disabled.
+-   [x] Updated standalone export repeats all three input phases and final pass with world tick 0 unchanged; exit 0 with SDK/runtime discovery disabled.
 
 Root-owned Debug source build passed with zero warnings/errors. Native engine input harness printed all three `ORIGINAL_INPUT_PHASE_PASS` lines and final `ORIGINAL_INPUT_PASS`, exit 0. Evidence: [standalone input log](../artifacts/qa/OriginalContent/standalone-input.log) and [source verification record](../artifacts/qa/original-input-source-record.json). Root confirmed standalone exit 0 with `DOTNET_ROOT` pointing to an absent directory and `PATH` restricted to Windows. Three standalone resource pages also pass at tick 0; root inspected their rendered captures. Root reconciles the master/catalog/changelog. No baseline gameplay simulation ran.
 

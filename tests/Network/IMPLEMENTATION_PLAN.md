@@ -6,11 +6,11 @@ Module status: **Not started**. There is no network suite here. M0/M1 engineerin
 
 ## Outstanding work
 
-- [ ] **Investigating** — settle native-client compatibility/trust boundary and expected protocol revision; [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md) distinguishes emulator client motion from eventual server authority. Unit/coordinate/yaw/timing/sentinel and bank/state semantics cannot be inferred from packets or provisional data alone.
-- [ ] **Not started** — M3 connection/authentication/version mismatch, spawn, malformed/stale input rejection and authority validation. Client input must not directly overwrite world, damage, currency or inventory.
-- [ ] **Not started** — prediction/reconciliation, reconnect and independent-client combat/shared mining/NPC acceptance after protocol/server implementation.
-- [ ] **Not started** — original transition/ownership/visibility/progression cases RT-F050–RT-F058/RT-F064–RT-F068: invalid warps, team/spec prune, failed transfers, duplicate commands/rewards, retained inventory and reconnect state.
-- [ ] **Not started** — exact evidence/master/catalog reconciliation after implemented tests pass. Keep original record identities/categories/raw values traceable; narrower successful connections cannot complete all original multiplayer behavior.
+-   [ ] **Investigating** — settle native-client compatibility/trust boundary and expected protocol revision; [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md) distinguishes emulator client motion from eventual server authority. Unit/coordinate/yaw/timing/sentinel and bank/state semantics cannot be inferred from packets or provisional data alone.
+-   [ ] **Not started** — M3 connection/authentication/version mismatch, spawn, malformed/stale input rejection and authority validation. Client input must not directly overwrite world, damage, currency or inventory.
+-   [ ] **Not started** — prediction/reconciliation, reconnect and independent-client combat/shared mining/NPC acceptance after protocol/server implementation.
+-   [ ] **Not started** — original transition/ownership/visibility/progression cases RT-F050–RT-F058/RT-F064–RT-F068: invalid warps, team/spec prune, failed transfers, duplicate commands/rewards, retained inventory and reconnect state.
+-   [ ] **Not started** — exact evidence/master/catalog reconciliation after implemented tests pass. Keep original record identities/categories/raw values traceable; narrower successful connections cannot complete all original multiplayer behavior.
 
 Completion history: no network feature/test is complete. [Prior prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) covers local engineering only. No builds/launches/simulations rerun for this review.
 

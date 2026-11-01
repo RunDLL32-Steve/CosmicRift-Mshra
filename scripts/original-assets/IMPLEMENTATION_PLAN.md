@@ -4,31 +4,31 @@ This subplan reconciles with [master §1.2](../../ROGUE_TRADER_2_PLAN.md#12-user
 
 ## Completed and verified
 
-- Read canonical source records and inspect pinned primary BLO/CFS format sources without copying or executing upstream implementations.
-- Implement original Python BLO v1/v2 table parsing with directory/payload bounds, overlap, duplicate-name and safe-path rejection.
-- Implement CFS v2-v5 headers, palette, frame directory, scanline nibble RLE, extended lengths, raw uncompressed pixels and signed-dimension reflection. Actual selected originals contain CFS v3/v4/v5.
-- Preserve original frame/canvas dimensions, crop X/Y, row/column order, raw palette words, user data, flags, descriptions, unknown bytes, and original names/table ordinals.
-- Export palette-indexed PNGs with original RGB entries and index-zero transparency. Every PNG round-trips its original decoded palette and pixel-index bytes.
-- Decode all 12 Small hull sprites, all 12 Tiny counterparts, canonical asteroids, plasma/projectile/effect assets, resources, and original UI sprite objects.
-- Verify all selected input SHA-256/byte lengths against the pinned manifest before decoding; re-hash inputs after export and confirm unchanged originals.
-- Generate full `index.json` and compact `runtime.json`; resolve all 12 original VEH sprite pairs at fields 382/383 uniquely to exact BLO member names and table ordinals.
-- Inspect actual contact sheets for all 231 exported objects plus directional strips for every Small/Tiny ship. Observe clockwise directions beginning upward; retain all 11 pose columns without assigning unverified meanings.
-- Preserve the full preset index/runtime during partial diagnostic exports. Regression confirms the full index hash remains identical after an O_Asteroids-only run.
-- Stage generated PNGs byte-for-byte outside originals, verifying every atlas against re-decoded canonical CFS pixels/palette/transparency and original header/table metadata.
-- Stage canonical `Rogue.bmp` as a native 1999×1998 RGB PNG with exact decoded RGB pixels and provenance in the staged runtime catalog.
-- Run 10 decoder tests and four focused staging tests. Validate malformed/truncated data, RLE bounds, signed reflection, output guards, altered originals, changed generated pixels with forged metadata hash, and wrong member identities.
-- Inspect the actual staged map preview. No world simulation or engine application was run for these parser/export features.
+-   Read canonical source records and inspect pinned primary BLO/CFS format sources without copying or executing upstream implementations.
+-   Implement original Python BLO v1/v2 table parsing with directory/payload bounds, overlap, duplicate-name and safe-path rejection.
+-   Implement CFS v2-v5 headers, palette, frame directory, scanline nibble RLE, extended lengths, raw uncompressed pixels and signed-dimension reflection. Actual selected originals contain CFS v3/v4/v5.
+-   Preserve original frame/canvas dimensions, crop X/Y, row/column order, raw palette words, user data, flags, descriptions, unknown bytes, and original names/table ordinals.
+-   Export palette-indexed PNGs with original RGB entries and index-zero transparency. Every PNG round-trips its original decoded palette and pixel-index bytes.
+-   Decode all 12 Small hull sprites, all 12 Tiny counterparts, canonical asteroids, plasma/projectile/effect assets, resources, and original UI sprite objects.
+-   Verify all selected input SHA-256/byte lengths against the pinned manifest before decoding; re-hash inputs after export and confirm unchanged originals.
+-   Generate full `index.json` and compact `runtime.json`; resolve all 12 original VEH sprite pairs at fields 382/383 uniquely to exact BLO member names and table ordinals.
+-   Inspect actual contact sheets for all 231 exported objects plus directional strips for every Small/Tiny ship. Observe clockwise directions beginning upward; retain all 11 pose columns without assigning unverified meanings.
+-   Preserve the full preset index/runtime during partial diagnostic exports. Regression confirms the full index hash remains identical after an O_Asteroids-only run.
+-   Stage generated PNGs byte-for-byte outside originals, verifying every atlas against re-decoded canonical CFS pixels/palette/transparency and original header/table metadata.
+-   Stage canonical `Rogue.bmp` as a native 1999×1998 RGB PNG with exact decoded RGB pixels and provenance in the staged runtime catalog.
+-   Run 10 decoder tests and four focused staging tests. Validate malformed/truncated data, RLE bounds, signed reflection, output guards, altered originals, changed generated pixels with forged metadata hash, and wrong member identities.
+-   Inspect the actual staged map preview. No world simulation or engine application was run for these parser/export features.
 
 ## Still pending
 
-- [ ] Establish native-client bank/pose-column selection. Column 5 looks visually balanced but is not proven to be the original neutral state.
-- [ ] Implement native user-palette/HSV transformations, shadow/light blend modes and all original sprite blit behavior. Raw source palette/index values are retained; no approximate recoloring is applied.
-- [ ] Validate exact native animation timing and state evaluators. CFS animation-time values are preserved raw; preview-tool timing is not sufficient proof of original runtime behavior.
-- [ ] Decode audio and other non-CFS payloads. Zero unsupported entries in this selected batch does not establish support for all BLO archives.
-- [ ] Resolve all remaining content dependencies outside this selected sprite batch and prove complete runtime record closure.
-- [ ] Validate native LVL/LIO collision/terrain/object execution and original renderer behavior. Actual parser/arena initialization is Complete in the compatibility plans; the BMP preview does not prove playable collision behavior.
-- [ ] Validate exact native rendered appearance/gameplay evidence. Source and standalone Godot inspector input plus three rendered pages are Complete (RT-F073/RT-F373/RT-F374), world tick 0; native palette/blit/pose acceptance remains open.
-- [ ] Declare full original visual/gameplay parity. This exporter establishes preserved source pixels and identities, not complete native rendering or gameplay parity.
+-   [ ] Establish native-client bank/pose-column selection. Column 5 looks visually balanced but is not proven to be the original neutral state.
+-   [ ] Implement native user-palette/HSV transformations, shadow/light blend modes and all original sprite blit behavior. Raw source palette/index values are retained; no approximate recoloring is applied.
+-   [ ] Validate exact native animation timing and state evaluators. CFS animation-time values are preserved raw; preview-tool timing is not sufficient proof of original runtime behavior.
+-   [ ] Decode audio and other non-CFS payloads. Zero unsupported entries in this selected batch does not establish support for all BLO archives.
+-   [ ] Resolve all remaining content dependencies outside this selected sprite batch and prove complete runtime record closure.
+-   [ ] Validate native LVL/LIO collision/terrain/object execution and original renderer behavior. Actual parser/arena initialization is Complete in the compatibility plans; the BMP preview does not prove playable collision behavior.
+-   [ ] Validate exact native rendered appearance/gameplay evidence. Source and standalone Godot inspector input plus three rendered pages are Complete (RT-F073/RT-F373/RT-F374), world tick 0; native palette/blit/pose acceptance remains open.
+-   [ ] Declare full original visual/gameplay parity. This exporter establishes preserved source pixels and identities, not complete native rendering or gameplay parity.
 
 ## Reproducible commands
 

@@ -20,9 +20,9 @@ git -C .tools/references/infantry-online-server grep -n -i -w logo bb97579efecef
 
 This is a whole-word lexical result for pinned tracked C# only; dynamic, unnamed or native consumers and other global paths are not ruled out. The referenced source was read, not executed.
 
-| New pinned Git blob (under dotnetcore/) | LF bytes | SHA256 |
-|---|---:|---|
-|Assets/Cfg/CfgInfo.Uiart.cs|4566|`7d409abcac9f589b4a14ed65c6f40ef754dd260e3bfbcdae4fc36a41cc0930c9`|
+| New pinned Git blob (under dotnetcore/) | LF bytes | SHA256                                                             |
+| --------------------------------------- | -------: | ------------------------------------------------------------------ |
+| Assets/Cfg/CfgInfo.Uiart.cs             |     4566 | `7d409abcac9f589b4a14ed65c6f40ef754dd260e3bfbcdae4fc36a41cc0930c9` |
 
 The server HEAD matches that pin. Coordinator/root verified working bytes after CRLF→LF normalization equal pinned Git blob bytes; raw CRLF working hashes differ. Reproduction method (not a new author run/tool): obtain `blob=subprocess.check_output(['git','-C',ref,'show',pin+':dotnetcore/Assets/Cfg/CfgInfo.Uiart.cs'])`; record `len(blob)`/`hashlib.sha256(blob).hexdigest()` and compare `working.read_bytes().replace(b'\r\n',b'\n') == blob`.
 

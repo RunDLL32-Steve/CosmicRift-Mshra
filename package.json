@@ -1,0 +1,12 @@
+{
+    "name": "cosmic-rift-tooling",
+    "private": true,
+    "description": "Repository formatting tooling only; not part of the game runtime.",
+    "scripts": {
+        "format:check": "python scripts/format-check.py",
+        "format:fix": "python scripts/format-check.py --fix"
+    },
+    "devDependencies": {
+        "prettier": "3.3.3"
+    }
+}

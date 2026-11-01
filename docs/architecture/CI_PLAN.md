@@ -6,15 +6,15 @@ Master authority: [§13.1 architecture](../../ROGUE_TRADER_2_PLAN.md#131-initial
 
 ## Completion history and evidence
 
-| Scoped feature | Current status | Evidence and limit |
-|---|---|---|
-| Windows workflow definition with pinned portable tools | Complete with evidence | [build.yml](../../.github/workflows/build.yml) bootstraps verified tools, builds/tests/smokes the client, exports Windows and uploads zip/TRX evidence; [toolchain lock](../../toolchain.lock.json) pins tools/checksums. |
-| Prior local M0/M1 command acceptance | Complete with evidence | [Acceptance record](../../docs/development-log/PROGRESS.md#final-validation-evidence): 41 tests, three native-input/UI and six world phases in source/export plus rendered/export QA. These were prior local runs, not a hosted CI result or new documentation run. |
+| Scoped feature                                         | Current status         | Evidence and limit                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows workflow definition with pinned portable tools | Complete with evidence | [build.yml](../../.github/workflows/build.yml) bootstraps verified tools, builds/tests/smokes the client, exports Windows and uploads zip/TRX evidence; [toolchain lock](../../toolchain.lock.json) pins tools/checksums.                                           |
+| Prior local M0/M1 command acceptance                   | Complete with evidence | [Acceptance record](../../docs/development-log/PROGRESS.md#final-validation-evidence): 41 tests, three native-input/UI and six world phases in source/export plus rendered/export QA. These were prior local runs, not a hosted CI result or new documentation run. |
 
 ## Active outstanding work
 
-- [ ] **Partially observed — hosted CI acceptance:** origin is configured for RunDLL32-Steve/CosmicRift-Mshra. Read-only REST inspection confirms the Windows check on `d14df02` concluded success ([run](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/actions/runs/39051255053/job/117450136234)). Artifact download and this documentation PR's later head are not verified by that observation; keep export/asset-dependent/native acceptance distinct.
-- [ ] **Not started — fidelity CI coverage:** add appropriate focused checks for the now-completed importer/viewer scopes and independently verify the exported feature. Existing workflow inspection establishes only the provisional First Contact sequence; RT-F069 dependency closure, RT-F074 native blits and RT-F075 state selection remain open.
+-   [ ] **Partially observed — hosted CI acceptance:** origin is configured for RunDLL32-Steve/CosmicRift-Mshra. Read-only REST inspection confirms the Windows check on `d14df02` concluded success ([run](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/actions/runs/39051255053/job/117450136234)). Artifact download and this documentation PR's later head are not verified by that observation; keep export/asset-dependent/native acceptance distinct.
+-   [ ] **Not started — fidelity CI coverage:** add appropriate focused checks for the now-completed importer/viewer scopes and independently verify the exported feature. Existing workflow inspection establishes only the provisional First Contact sequence; RT-F069 dependency closure, RT-F074 native blits and RT-F075 state selection remain open.
 
 Preserve unchanged originals with separately derived outputs. [Field contracts](../../docs/original-research/FIELD_INTERPRETATION.md) track unresolved units/sentinels/native evaluators; CI counts cannot resolve them. NEW proposals stay deferred until exact reproduction. Do not rerun baseline simulations for documentation/research changes or run concurrent builds against shared outputs.
 
