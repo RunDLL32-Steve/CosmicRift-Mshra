@@ -1,0 +1,11 @@
+{
+    "id": "sector_target_kill",
+    "evidenceClassification": "ORIGINAL+NEW",
+    "source": "CFG/rogue.cfg [Cash] section at line 234 (KillReward=75 on line 239) at pinned eb1514e; guarded by KillRewardTests.ShippedCreditsMatchThePinnedRogueCfg.",
+    "credits": 75,
+    "newRules": [
+        "The raw [Cash] KillReward value is paid as a flat credit amount to the player for each destroyed sector target. The units and formula of [Cash] (ShareRadius 0, SharePercent 0, PercentOfKiller 100, PercentOfTarget 1000) and [Bounty] are undecoded and not applied.",
+        "Sector targets are NEW practice targets, not original NPCs. Each target pays once per sector instance; targets come back when the sector is reset or the client relaunches.",
+        "Destroying a target drops nothing (original drop rules are open)."
+    ]
+}

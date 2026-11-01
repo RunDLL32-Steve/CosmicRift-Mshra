@@ -21,5 +21,6 @@ A small .NET 8 composition project that lets a docked ship buy and sell through 
 
 -   [ ] **Investigating** — RT-F045/RT-F049: original station inventories, credit units/scaling, the meaning of the raw sell -1 (and 0) and shop eligibility. The all-stations-trade-all-priced-items rule, dock radii and fixture capacities are NEW/provisional.
 -   [ ] **Investigating** — RT-F044: refinery recipes are not a buy/sell flow and are not modelled here.
--   [ ] **Not started** — M5 upgrades and repairs through the same service (`TryGetUpgradePrice` returns false today).
--   [ ] **Not started** — client HUD/station UI and server wiring (queue item M8); ship position must come from the authoritative simulation, never from the request.
+-   [x] **Merged** — M5 upgrades and repairs through the same service ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)).
+-   [x] **Merged** — client HUD/station UI wiring through `StationProfileSession` (queue M8, [PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93), [client entry](../../client/UI/plan.d/m8.md)); docking uses the authoritative simulation position.
+-   [ ] **In review** — queue M7 kill-reward slice: `KillRewardDefinition` (raw rogue.cfg `[Cash] KillReward`, NEW flat reading) and `StationProfileSession.GrantKillRewardAsync` with a stable per-sector-instance transaction id; `UncommittedPickups` for the reload warning. Evidence: [KillRewardTests.cs](../../tests/Unit/Trading/KillRewardTests.cs) and the [M9 integration suite](../../tests/Integration/PersistedProgressionTests.cs). RT-F051 stays open.

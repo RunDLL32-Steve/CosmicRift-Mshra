@@ -21,6 +21,10 @@ RT-F397 merged previously; its historical evidence covers 46 canonical packets a
 
 Ignored local artifacts may be absent in another checkout. Historical test totals describe the dated run, not the current suite size. Original data/runtime oracle skips must be disclosed, and source inspection cannot substitute for native reception, launch or gameplay acceptance.
 
+## Testbed loop update — November 1, 2026
+
+M5 ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)) and M8 ([PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93)) merged: the Godot client now saves a local profile, shows credits/cargo/upgrades, docks at a derived Trading Outpost and restores the ship on relaunch. The M7 kill-reward slice and the M9 exit/relaunch acceptance suite are in review on `claude/project-thread-2ig6fb` ([branch log](docs/development-log/cloud/claude-project-thread-2ig6fb.md)). The statements above about the client not connecting trading/persistence predate these merges.
+
 ## Next
 
 G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [initialized reset-input observation](docs/development-log/2026-10-19-g9-reset-input-observation.md) captures the selected standalone initialized object before newArena; use the [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md) and its current PR for live workflow status. PR85 conditional lifecycle source and PR76 selected catalog are accepted dated history. Follow that live workflow record before selecting remaining G9 work from the ledger; preserve earlier accepted results; native consumers/gameplay/full closure and original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.

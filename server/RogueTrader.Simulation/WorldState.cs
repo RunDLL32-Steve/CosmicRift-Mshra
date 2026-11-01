@@ -34,6 +34,9 @@ public sealed class ShipState
     }
 }
 
+/// <summary>One target destruction: which target, which ship fired the destroying projectile, and the tick it happened on.</summary>
+public sealed record TargetKill(string TargetId, string KillerShipId, long Tick);
+
 public sealed class AsteroidState
 {
     public string Id { get; }

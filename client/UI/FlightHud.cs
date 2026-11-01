@@ -17,6 +17,7 @@ public partial class FlightHud : CanvasLayer
     private Label _credits = null!;
     private Label _cargo = null!;
     private Label _profileStatus = null!;
+    private Label _notice = null!;
     private string _stationHint = "";
     private Label _contentCaption = null!;
     private readonly Dictionary<string, Button> _bindingButtons = [];
@@ -65,6 +66,11 @@ public partial class FlightHud : CanvasLayer
         _cargo = Label("", 12, Muted);
         _cargo.Name = "HudCargo";
         metrics.AddChild(_cargo);
+        _notice = Label("", 12, Teal);
+        _notice.Name = "HudNotice";
+        _notice.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _notice.CustomMinimumSize = new Vector2(240, 0);
+        metrics.AddChild(_notice);
 
         var right = Panel();
         right.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
@@ -137,6 +143,14 @@ public partial class FlightHud : CanvasLayer
 
     public string CreditsText => _credits.Text;
     public string CargoText => _cargo.Text;
+    public string NoticeText => _notice.Text;
+
+    /// <summary>Short flight notice under the cargo line (kill rewards, unsaved-cargo warnings); empty hides it.</summary>
+    public void SetNotice(string text, bool warning = false)
+    {
+        _notice.Text = text;
+        _notice.Modulate = warning ? new Color("f4b66b") : Colors.White;
+    }
 
     /// <summary>Shows the authoritative profile (wallet, inventory, upgrades) and the ship hold's weight. Null profile: services offline.</summary>
     public void UpdateProfile(PlayerProfile? profile, StationDefinition station, long cargoWeight, long cargoCapacity, bool docked, string profileStatus)

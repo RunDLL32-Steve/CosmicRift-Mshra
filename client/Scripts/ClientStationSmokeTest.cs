@@ -42,6 +42,26 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(hud.CargoText.Contains($"x{pile.Quantity}"), $"HUD cargo '{hud.CargoText}' must list the committed pickup.");
             GD.Print("STATION SMOKE PASS: pickup survives a failed save and is then committed and shown on the HUD");
 
+            // Kill reward (queue M7 slice): the spawn faces target_alpha, so holding fire destroys it.
+            resetSector();
+            var walletBeforeKill = session.Profile!.Wallet;
+            SendKey(Key.Space, true);
+            for (var frame = 0; frame < 900 && readWorld().Kills.Count == 0; frame++)
+                await nextPhysicsFrame();
+            SendKey(Key.Space, false);
+            Require(readWorld().Kills.Count == 1, "Holding fire from spawn must destroy the practice target ahead.");
+            await nextPhysicsFrame();
+            var reward = session.KillReward.Credits;
+            Require(reward > 0 && session.Profile!.Wallet == walletBeforeKill + reward && client.PendingKillRewards == 0,
+                $"The kill must pay {reward} credits into the saved profile, got wallet {session.Profile!.Wallet} from {walletBeforeKill}.");
+            var replay = await session.GrantKillRewardAsync(client.SectorInstanceId, readWorld().Kills[0]);
+            Require(replay is { Status: TransactionStatus.Applied, IsReplay: true } && session.Profile!.Wallet == walletBeforeKill + reward,
+                "Replaying the same kill must be recognised as a duplicate and pay nothing.");
+            await nextPhysicsFrame();
+            Require(hud.NoticeText.Contains($"+{reward:N0} credits") && hud.CreditsText == $"CREDITS  {session.Profile.Wallet:N0}",
+                $"The HUD must show the kill reward and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
+            GD.Print($"STATION SMOKE PASS: destroying a target paid {reward} credits once; the replayed kill was a duplicate");
+
             // Dock with the native key from the spawn point (inside the provisional dock radius).
             resetSector();
             Require(readWorld().Cargo.Quantity(pile.ItemId) == pile.Quantity, "A sector reset must rebuild the hold from the saved profile.");
@@ -57,7 +77,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Press($"sellall:{pile.ItemId}");
             Require(session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0,
                 "Trade all must hand the whole input stack in.");
-            Require(session.Profile.Wallet == station.StartingWallet + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
+            Require(session.Profile.Wallet == walletBeforeKill + reward + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
             Require(client.Station.CreditsText == $"CREDITS  {session.Profile.Wallet:N0}", "The station screen must show the saved wallet.");
             GD.Print($"STATION SMOKE PASS: {trade.Name} paid {pile.Quantity * trade.CreditsPerUnit} credits into the saved profile");
 
@@ -118,10 +138,16 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var beforeExit = session.Profile!;
             var pilesBeforeReload = readWorld().Collectibles.Select(p => p.Id).ToArray();
             var ship = beforeExit.Ship ?? throw new InvalidOperationException("Pausing must save the ship condition.");
+            // Cargo collected but not yet saved (no commit runs while paused) is dropped by the reload, and the player is told.
+            var unsavedItem = station.Collectibles.First(p => p.ItemId != pile.ItemId).ItemId;
+            Require(readWorld().Cargo.Add(unsavedItem, 3).Accepted == 3, "The test must be able to place unsaved cargo in the hold.");
             Require(Math.Abs(ship.X - readWorld().Player.Position.X) < 0.01f && Math.Abs(ship.Y - readWorld().Player.Position.Y) < 0.01f
                 && Math.Abs(ship.Hull - readWorld().Player.Hull) < 0.01f, "The saved ship condition must match the paused ship.");
             hud.FindChildren("ReloadProfile", "Button", true, false).Cast<Button>().Single().EmitSignal(Button.SignalName.Pressed);
             Require(Same(beforeExit, client.Session!.Profile!), "Reload from the pause menu must return the saved profile unchanged.");
+            Require(readWorld().Cargo.Quantity(unsavedItem) == 0, "The reload must drop the unsaved cargo from the hold.");
+            Require(hud.NoticeText.Contains("Reload discarded 3 unsaved cargo units") && client.ProfileStatus.Contains("Reload discarded 3"),
+                $"The reload must say it dropped the unsaved cargo, got '{hud.NoticeText}'.");
             Require(readWorld().Collectibles.Select(p => p.Id).SequenceEqual(pilesBeforeReload), "A profile reload must not respawn collected piles.");
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
@@ -136,7 +162,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload warning for unsaved cargo, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)
@@ -146,7 +172,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
         }
         finally
         {
-            foreach (var key in new[] { Key.W, Key.F, Key.Escape }) SendKey(key, false);
+            foreach (var key in new[] { Key.W, Key.F, Key.Escape, Key.Space }) SendKey(key, false);
             client.ClearPickupSaveFailure();
             resetSector();
         }

@@ -26,12 +26,10 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 ## B. Milestone 2 loop
 
-| ID  | Task                                                              | Where                    | Run           | Depends on                               | Status snapshot | Brief                  |
-| --- | ----------------------------------------------------------------- | ------------------------ | ------------- | ---------------------------------------- | --------------- | ---------------------- |
-| M5  | Basic repairs and six equipment upgrades through transaction core | Persistence + GameData   | Cloud         | M1, G3 MERGED                            | OPEN            | [M5](docs/tasks/m5.md) |
-| M7  | Initial kill/mining rewards through idempotent GrantReward        | Simulation + Persistence | Cloud         | M1, M6 MERGED                            | OPEN            | [M7](docs/tasks/m7.md) |
-| M8  | Godot HUD for cargo/currency, station UI, save/load flow          | Client                   | Local (Godot) | M1, M2, M4 MERGED; M5 OPEN               | OPEN            | [M8](docs/tasks/m8.md) |
-| M9  | Persisted progression across exit/relaunch acceptance test        | Integration tests        | Local         | M1–M8; do not start until all are MERGED | OPEN            | [M9](docs/tasks/m9.md) |
+| ID  | Task                                                       | Where                    | Run   | Depends on                               | Status snapshot        | Brief                  |
+| --- | ---------------------------------------------------------- | ------------------------ | ----- | ---------------------------------------- | ---------------------- | ---------------------- |
+| M7  | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED                            | IN REVIEW (kill slice) | [M7](docs/tasks/m7.md) |
+| M9  | Persisted progression across exit/relaunch acceptance test | Integration tests        | Local | M1–M8; do not start until all are MERGED | IN REVIEW              | [M9](docs/tasks/m9.md) |
 
 ## C. Additional groundwork
 
@@ -57,7 +55,9 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 -   M2 — merged 7684b05: generic cargo/pickup engine slice; RT-F030/F042 remain open.
 -   M3 — merged `1037592dc48991d61ccc8900374b1f371da58368` ([PR 60](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/60)): generic finite-deposit mining/equipment extraction and replay v2; original RT-F042, client/transport/persistence integration and master M2 original acceptance remain open.
 -   M4 — merged 3e29142: generic trading engine slice; RT-F044/F045/F049 remain open.
+-   M5 — merged ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)), November 1, 2026: repairs and original upgrade pricing, profile schema 2; RT-F047/F048/F049 remain open.
 -   M6 — merged 759a66a: NEW provisional pirate state machine, not wired into WorldSimulation; RT-F060/F272/F306 remain open.
+-   M8 — merged ([PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93)), November 1, 2026: Godot HUD, derived Trading Outpost, save/load and ship condition (schema 3); native UI parity and RT-F025/F026/F068 remain open.
 -   C2 — merged 8f66688: rogue.cfg only; other arena CFGs were not pinned.
 -   C3 — merged 952d29d: same-runtime replay digests; does not establish cross-runtime determinism.
 -   C5 — merged 403499f: NEW provisional wire format v1, round-trip/truncation/fuzz checks, no transport; original RT features untouched.

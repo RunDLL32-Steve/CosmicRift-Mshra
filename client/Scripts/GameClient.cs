@@ -40,6 +40,13 @@ public partial class GameClient : Node2D
     private long _nextPickupRetryTick;
     private long _lastShipSaveTick;
     private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
+    private KillRewardDefinition _killReward = KillRewardDefinition.None;
+    private string _sectorInstanceId = "";
+    private int _killsSeen;
+    private readonly List<(string SectorInstanceId, TargetKill Kill)> _pendingKills = [];
+    private long _nextKillRetryTick;
+    private ulong _noticeExpiresMs;
+    private const ulong NoticeDurationMs = 5000;
 
     public override void _Ready()
     {
@@ -52,6 +59,7 @@ public partial class GameClient : Node2D
                 ReadDefinition("sectors/first_contact.json"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog();
+            _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
             var userArgs = OS.GetCmdlineUserArgs();
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
             foreach (var arg in userArgs)
@@ -150,6 +158,7 @@ public partial class GameClient : Node2D
                 _world.Tick(input);
                 _view.InputState = input;
                 CommitPickups();
+                CommitKills();
                 if (_world.TickNumber - _lastShipSaveTick >= ShipSaveIntervalTicks) SaveShip();
             }
             else _view.InputState = default;
@@ -167,6 +176,11 @@ public partial class GameClient : Node2D
         _camera.Position = WorldView.ToGodot(_world.Player.Position) + new Vector2(0, -35);
         _hud.Update(_world, _playCatalog);
         RefreshProfileViews();
+        if (_noticeExpiresMs != 0 && Time.GetTicksMsec() >= _noticeExpiresMs)
+        {
+            _noticeExpiresMs = 0;
+            _hud.SetNotice("");
+        }
         _renderedFrames++;
         if (_verifyOriginals && _renderedFrames == 30)
         {
@@ -281,7 +295,7 @@ public partial class GameClient : Node2D
         try
         {
             _repository = FileProfileRepository.Open(_profileRoot, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
-            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id);
+            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id) { KillReward = _killReward };
             var outcome = Await(session.OpenOrCreateAsync(LocalProfileId));
             _profileOutcome = outcome.Message;
             if (outcome.Succeeded) _session = session;
@@ -301,11 +315,13 @@ public partial class GameClient : Node2D
     public void ReopenProfileFromDisk()
     {
         if (_stationVisible) SetStationVisible(false); // undocking saves the ship; otherwise reopen exactly what is on disk
+        var dropped = _session?.Profile is null || _world is null ? null : _session.UncommittedPickups(_world.Cargo.Items);
         _repository?.Dispose();
         _repository = null;
         OpenProfile();
         _world = NewWorld(restoreSavedShip: true);
         _view.SetWorld(_world);
+        WarnDroppedCargo(dropped);
     }
 
     public void ReloadProfile()
@@ -317,8 +333,11 @@ public partial class GameClient : Node2D
         }
         var outcome = Await(_session.ReloadAsync());
         _profileOutcome = _profileStatus = outcome.Message;
+        // Units in the hold that the reloaded profile does not hold were never saved; the reconcile below drops them.
+        var dropped = outcome.Succeeded ? _session.UncommittedPickups(_world.Cargo.Items) : null;
         if (!outcome.Succeeded) _session = null;
         ReconcileHold();
+        WarnDroppedCargo(dropped);
         ApplyUpgrades();
     }
 
@@ -327,8 +346,71 @@ public partial class GameClient : Node2D
         UpgradeEffects.Apply(_catalog.Ship, _stationDefinition, _session?.Profile?.Upgrades ?? Enumerable.Empty<string>()),
         _catalog.Weapon, _catalog.Sector);
 
+    /// <summary>
+    /// Tells the player when a reload or reopen discarded cargo collected since the last save (M8 review follow-up): the pile
+    /// is already gone from space, so the units are lost.
+    /// </summary>
+    private void WarnDroppedCargo(IReadOnlyDictionary<string, int>? dropped)
+    {
+        if (dropped is null || dropped.Count == 0) return;
+        var units = dropped.Values.Sum();
+        var names = string.Join(", ", dropped.Select(entry => $"{_stationDefinition.NameOf(entry.Key)} x{entry.Value}"));
+        var message = $"Reload discarded {units} unsaved cargo unit{(units == 1 ? "" : "s")} collected since the last save ({names}).";
+        _profileStatus = $"{_profileStatus}\n{message}";
+        Notice(message, warning: true);
+    }
+
+    private void Notice(string text, bool warning = false)
+    {
+        _hud?.SetNotice(text, warning);
+        _noticeExpiresMs = Time.GetTicksMsec() + NoticeDurationMs;
+    }
+
+    /// <summary>
+    /// Pays the kill reward for every target the player destroyed, oldest first, through the idempotent transaction core.
+    /// On a refusal the kill stays queued and is retried once a second with the same transaction id, so a retry after a lost
+    /// acknowledgement is recognised as a duplicate and never paid twice.
+    /// </summary>
+    private void CommitKills(bool force = false)
+    {
+        if (_world is null) return;
+        for (; _killsSeen < _world.Kills.Count; _killsSeen++) _pendingKills.Add((_sectorInstanceId, _world.Kills[_killsSeen]));
+        if (_session?.Profile is null || _pendingKills.Count == 0 || (!force && _world.TickNumber < _nextKillRetryTick)) return;
+        while (_pendingKills.Count > 0)
+        {
+            var (instance, kill) = _pendingKills[0];
+            var result = Await(_session.GrantKillRewardAsync(instance, kill));
+            if (result is null || result.Status == TransactionStatus.Applied || result.Reason == RejectionReason.TransactionIdReused)
+            {
+                _pendingKills.RemoveAt(0);
+                if (result is { Status: TransactionStatus.Applied, IsReplay: false })
+                    Notice($"Target destroyed: +{result.CurrencyDelta:N0} credits (saved at revision {result.Revision}).");
+                continue;
+            }
+            Notice($"Kill reward is not saved yet ({result.Reason}); retrying.", warning: true);
+            _nextKillRetryTick = _world.TickNumber + WorldSimulation.TickRate;
+            if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen)
+            {
+                var reload = Await(_session.ReloadAsync());
+                if (!reload.Succeeded) _profileOutcome = reload.Message;
+            }
+            return;
+        }
+    }
+
+    public int PendingKillRewards => _pendingKills.Count;
+    public string SectorInstanceId => _sectorInstanceId;
+
     private WorldSimulation NewWorld(bool restoreSavedShip)
     {
+        // Give the outgoing sector's unpaid kills one last try; whatever still fails is lost with that sector instance.
+        CommitKills(force: true);
+        var lostKills = _pendingKills.Count;
+        _pendingKills.Clear();
+        _killsSeen = 0;
+        _nextKillRetryTick = 0;
+        _sectorInstanceId = Guid.NewGuid().ToString("N");
+        if (lostKills > 0) Notice($"{lostKills} kill reward{(lostKills == 1 ? "" : "s")} could not be saved and {(lostKills == 1 ? "was" : "were")} lost.", warning: true);
         _playCatalog = EffectiveCatalog();
         _lastShipSaveTick = 0;
         var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold());
@@ -472,7 +554,11 @@ public partial class GameClient : Node2D
 
     public override void _ExitTree()
     {
-        if (_initialized && _smokeTest is null) SaveShip();
+        if (_initialized && _smokeTest is null)
+        {
+            CommitKills(force: true);
+            SaveShip();
+        }
         _repository?.Dispose();
         _repository = null;
         if (_smokeProfileRoot is not null && DirAccess.DirExistsAbsolute(_smokeProfileRoot))

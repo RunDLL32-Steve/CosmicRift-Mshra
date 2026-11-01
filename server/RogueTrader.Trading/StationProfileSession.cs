@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using RogueTrader.Persistence;
 using RogueTrader.Simulation;
 
@@ -35,6 +37,9 @@ public sealed class StationProfileSession
     }
 
     public StationDefinition Station { get; }
+
+    /// <summary>Credits paid per destroyed sector target (queue M7 slice); <see cref="KillRewardDefinition.None"/> pays nothing.</summary>
+    public KillRewardDefinition KillReward { get; init; } = KillRewardDefinition.None;
     public StationDirectory Stations { get; }
     public CargoCatalog Cargo { get; }
     public string? ProfileId { get; private set; }
@@ -120,11 +125,8 @@ public sealed class StationProfileSession
     private TransactionResult Refused(string transactionId, RejectionReason reason) =>
         new(transactionId, TransactionStatus.Rejected, reason, false, 0, new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1);
 
-    /// <summary>
-    /// Commits units the ship's hold has gained over the profile inventory (in-space pickups) as one reward. Returns null when
-    /// there is nothing new. The hold is simulation state; the profile stays the record the HUD and station show.
-    /// </summary>
-    public async Task<TransactionResult?> CommitPickupsAsync(IReadOnlyDictionary<string, int> hold, CancellationToken ct = default)
+    /// <summary>Units the ship's hold has gained over the saved profile inventory (in-space pickups not yet committed).</summary>
+    public IReadOnlyDictionary<string, int> UncommittedPickups(IReadOnlyDictionary<string, int> hold)
     {
         ArgumentNullException.ThrowIfNull(hold);
         var profile = Profile ?? throw new InvalidOperationException("No profile is open.");
@@ -134,9 +136,52 @@ public sealed class StationProfileSession
             var delta = quantity - profile.Inventory.GetValueOrDefault(item);
             if (delta > 0) gained[item] = delta;
         }
+        return gained;
+    }
+
+    /// <summary>
+    /// Commits units the ship's hold has gained over the profile inventory (in-space pickups) as one reward. Returns null when
+    /// there is nothing new. The hold is simulation state; the profile stays the record the HUD and station show. The commit
+    /// is state-based: after a lost acknowledgement the reloaded inventory already holds the units, so nothing is granted twice.
+    /// </summary>
+    public async Task<TransactionResult?> CommitPickupsAsync(IReadOnlyDictionary<string, int> hold, CancellationToken ct = default)
+    {
+        var gained = UncommittedPickups(hold);
         if (gained.Count == 0) return null;
-        return await _processor.GrantRewardAsync(new TransactionContext(profile.ProfileId, StationAccessVerified: false),
-            new GrantRewardRequest(NewId(), profile.ProfileId, PickupSourceId, 0, gained), ct).ConfigureAwait(false);
+        var profileId = Profile!.ProfileId;
+        return await _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
+            new GrantRewardRequest(NewId(), profileId, PickupSourceId, 0, gained), ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Stable transaction id for one kill: the same sector instance and target always give the same id, so a retried or
+    /// replayed grant is recognised as a duplicate by the transaction core (persisted with the profile) and paid once.
+    /// </summary>
+    public static string KillTransactionId(string sectorInstanceId, string targetId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
+        ArgumentException.ThrowIfNullOrEmpty(targetId);
+        var id = $"kill-{sectorInstanceId}-{targetId}";
+        return id.Length <= ProfileInvariants.MaxTransactionIdLength
+            ? id
+            : "kill-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Pays <see cref="KillReward"/> for a target the player destroyed (queue M7 slice, NEW reading of the raw [Cash]
+    /// KillReward). Returns null when nothing is owed: no credits configured or another ship made the kill. Retry with the
+    /// same arguments after a refusal; the stable id makes the grant idempotent across retries, reloads and relaunches.
+    /// </summary>
+    public Task<TransactionResult?> GrantKillRewardAsync(string sectorInstanceId, TargetKill kill, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(kill);
+        var profileId = RequireProfile();
+        if (KillReward.Credits <= 0 || kill.KillerShipId != WorldSimulation.PlayerShipId) return Task.FromResult<TransactionResult?>(null);
+        return GrantAsync();
+
+        async Task<TransactionResult?> GrantAsync() => await _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
+            new GrantRewardRequest(KillTransactionId(sectorInstanceId, kill.TargetId), profileId, $"kill:{kill.TargetId}", KillReward.Credits,
+                new Dictionary<string, int>()), ct).ConfigureAwait(false);
     }
 
     /// <summary>Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change).</summary>
