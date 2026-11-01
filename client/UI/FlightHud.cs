@@ -1,5 +1,7 @@
 using Godot;
 using RogueTrader.GameData;
+using RogueTrader.Persistence;
+using RogueTrader.Trading;
 using RogueTrader.Simulation;
 
 namespace RogueTrader.Client;
@@ -11,6 +13,11 @@ public partial class FlightHud : CanvasLayer
     public event Action? ResetRequested;
     public event Action? QuitRequested;
     public event Action? OriginalContentRequested;
+    public event Action? ReloadProfileRequested;
+    private Label _credits = null!;
+    private Label _cargo = null!;
+    private Label _profileStatus = null!;
+    private string _stationHint = "";
     private Label _contentCaption = null!;
     private readonly Dictionary<string, Button> _bindingButtons = [];
     private Label _speed = null!;
@@ -26,9 +33,9 @@ public partial class FlightHud : CanvasLayer
     private string? _captureAction;
     public bool ControlsVisible => _menu.Visible;
     public bool IsCapturingKey => _captureAction is not null;
-    private static readonly Color Teal = new("62dfd1");
-    private static readonly Color TextColor = new("cedce5");
-    private static readonly Color Muted = new("7997a9");
+    internal static readonly Color Teal = new("62dfd1");
+    internal static readonly Color TextColor = new("cedce5");
+    internal static readonly Color Muted = new("7997a9");
 
     public override void _Ready()
     {
@@ -51,6 +58,13 @@ public partial class FlightHud : CanvasLayer
         metrics.AddChild(_speed);
         _telemetry = Label("", 12, Muted);
         metrics.AddChild(_telemetry);
+        metrics.AddChild(new HSeparator());
+        _credits = Label("CREDITS  -", 18, TextColor);
+        _credits.Name = "HudCredits";
+        metrics.AddChild(_credits);
+        _cargo = Label("", 12, Muted);
+        _cargo.Name = "HudCargo";
+        metrics.AddChild(_cargo);
 
         var right = Panel();
         right.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
@@ -116,8 +130,31 @@ public partial class FlightHud : CanvasLayer
             ? $"{catalog.Sector.Name}\nDestroy the practice target.\n{liveTargets} target{(liveTargets == 1 ? "" : "s")} remaining"
             : $"{catalog.Sector.Name}\nTarget destroyed.\nPractice flight through the belt.";
         _status.Text = player.IsDestroyed ? $"SHIP DESTROYED  -  {FlightInput.Display("flight_reset")} to reset"
+            : _stationHint.Length > 0 ? _stationHint
             : world.DestroyedTargets > 0 ? $"TARGET DESTROYED  /  {FlightInput.Display("flight_reset")} to restart the range" : "";
         _status.Modulate = player.IsDestroyed ? new Color("f4b66b") : TextColor;
+    }
+
+    public string CreditsText => _credits.Text;
+    public string CargoText => _cargo.Text;
+
+    /// <summary>Shows the authoritative profile (wallet, inventory, upgrades) and the ship hold's weight. Null profile: services offline.</summary>
+    public void UpdateProfile(PlayerProfile? profile, StationDefinition station, long cargoWeight, long cargoCapacity, bool docked, string profileStatus)
+    {
+        _profileStatus.Text = profileStatus;
+        if (profile is null)
+        {
+            _credits.Text = "CREDITS  -";
+            _cargo.Text = "Profile unavailable: station services offline.";
+            _stationHint = "";
+            return;
+        }
+        _credits.Text = $"CREDITS  {profile.Wallet:N0}";
+        var held = profile.Inventory.Where(p => p.Value > 0).Select(p => $"{station.NameOf(p.Key)} x{p.Value}").ToArray();
+        var upgrades = profile.Upgrades.Select(station.NameOf).ToArray();
+        _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}\n{(held.Length == 0 ? "Hold empty" : string.Join(", ", held))}"
+            + (upgrades.Length == 0 ? "" : $"\nUpgrades: {string.Join(", ", upgrades)}");
+        _stationHint = docked ? $"{station.Name.ToUpperInvariant()} IN RANGE  /  {FlightInput.Display("station_dock")} to dock" : "";
     }
 
     public void SetMenuVisible(bool visible)
@@ -152,8 +189,8 @@ public partial class FlightHud : CanvasLayer
         box.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center);
         box.OffsetLeft = -290;
         box.OffsetRight = 290;
-        box.OffsetTop = -300;
-        box.OffsetBottom = 300;
+        box.OffsetTop = -345;
+        box.OffsetBottom = 345;
         _menu.AddChild(box);
         var column = Column(box);
         column.AddChild(Label("FLIGHT PAUSED", 26, TextColor));
@@ -201,6 +238,14 @@ public partial class FlightHud : CanvasLayer
         reset.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         reset.Pressed += () => ResetRequested?.Invoke();
         actions.AddChild(reset);
+        _profileStatus = Label("", 12, Muted);
+        _profileStatus.Name = "ProfileStatus";
+        _profileStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        column.AddChild(_profileStatus);
+        var reload = Button("RELOAD SAVED PROFILE");
+        reload.Name = "ReloadProfile";
+        reload.Pressed += () => ReloadProfileRequested?.Invoke();
+        column.AddChild(reload);
         var quit = Button("QUIT");
         quit.Pressed += () => QuitRequested?.Invoke();
         column.AddChild(quit);
@@ -210,7 +255,7 @@ public partial class FlightHud : CanvasLayer
     {
         foreach (var binding in FlightInput.Bindings)
             if (_bindingButtons.TryGetValue(binding.Action, out var button)) button.Text = FlightInput.Display(binding.Action);
-        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("flight_pause")} controls";
+        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("station_dock")} dock   ·   {FlightInput.Display("flight_pause")} controls";
     }
 
     private static ProgressBar Meter(VBoxContainer parent, string caption, Color color)
@@ -227,7 +272,7 @@ public partial class FlightHud : CanvasLayer
         return bar;
     }
 
-    private static PanelContainer Panel()
+    internal static PanelContainer Panel()
     {
         var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
@@ -240,7 +285,7 @@ public partial class FlightHud : CanvasLayer
         return panel;
     }
 
-    private static VBoxContainer Column(Node parent)
+    internal static VBoxContainer Column(Node parent)
     {
         var column = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         column.AddThemeConstantOverride("separation", 6);
@@ -248,7 +293,7 @@ public partial class FlightHud : CanvasLayer
         return column;
     }
 
-    private static Label Label(string text, int fontSize, Color color)
+    internal static Label Label(string text, int fontSize, Color color)
     {
         var label = new Label { Text = text, MouseFilter = Control.MouseFilterEnum.Ignore };
         label.AddThemeFontSizeOverride("font_size", fontSize);
@@ -256,7 +301,7 @@ public partial class FlightHud : CanvasLayer
         return label;
     }
 
-    private static Button Button(string text)
+    internal static Button Button(string text)
     {
         var button = new Button { Text = text, CustomMinimumSize = new Vector2(0, 32), FocusMode = Control.FocusModeEnum.None };
         button.AddThemeFontSizeOverride("font_size", 13);

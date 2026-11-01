@@ -1,5 +1,9 @@
 # Changelog
 
+## HUD, Trading Outpost and save/load — November 1, 2026
+
+-   Queue M8: the Godot client opens a local saved profile through the transaction core and shows credits, cargo and upgrades on the HUD. Key F docks at a Trading Outpost derived from the pinned originals (four trade recipes, three repair rows, 35 upgrade and armor rows at original prices), with NEW placement, wallet, capacity, repair prices and upgrade effects listed in the file. Profile schema 3 saves hull, position and heading. Repairs at full hull are refused without charge, and collected cargo survives a failed save. [Client entry](client/UI/plan.d/m8.md), [station data](data/stations/IMPLEMENTATION_PLAN.md), [persistence entry](server/RogueTrader.Persistence/plan.d/m8.md). No native UI parity; RT-F025/F026/F041/F045/F047/F048/F049/F068 and master M2 boxes stay open; counts unchanged.
+
 ## Repairs and upgrade pricing — October 27, 2026
 
 -   Queue M5: add `RepairAsync` (priced, station-gated, idempotent wallet debit with `RepairId` recorded; profile schema 2 with a built-in 1-to-2 migration so older saves load and older builds refuse the newer file) and price the original upgrade categories (35 ITM rows) at their raw buy field in `StationPriceTable`. Repair prices are never derived from original data (raw buy 0, amount/unit undecoded). The original data names five upgrade groups, not six. [Persistence entry](server/RogueTrader.Persistence/plan.d/m5.md). RT-F047/F048/F049 and master M2 boxes stay open; counts unchanged.

@@ -6,7 +6,7 @@ namespace RogueTrader.Simulation;
 public sealed class ShipState
 {
     public string Id { get; }
-    public ShipDefinition Definition { get; }
+    public ShipDefinition Definition { get; internal set; }
     public WeaponDefinition Weapon { get; }
     public Vector2 Position { get; internal set; }
     public Vector2 Velocity { get; internal set; }

@@ -121,6 +121,39 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.GrantReward, r.TransactionId, r.ProfileId, r.SourceId, null, null, 0, r.Currency, items, shapeOk), ct);
     }
 
+    public async Task<ShipConditionResult> SaveShipConditionAsync(TransactionContext ctx, string profileId, ShipCondition ship, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        if (ship is null || !ship.IsValid || !IdOk(profileId)) return new ShipConditionResult(false, RejectionReason.InvalidRequest, -1);
+        if (!string.Equals(profileId, ctx.AuthenticatedProfileId, StringComparison.Ordinal))
+            return new ShipConditionResult(false, RejectionReason.IdentityMismatch, -1);
+        if (!_slots.TryGetValue(profileId, out var slot)) return new ShipConditionResult(false, RejectionReason.ProfileNotOpen, -1);
+        await slot.Lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var committed = slot.Committed;
+            if (committed is null || slot.NeedsReload) return new ShipConditionResult(false, RejectionReason.ProfileNotOpen, -1);
+            if (committed.Ship == ship) return new ShipConditionResult(true, RejectionReason.None, committed.Revision);
+            var next = committed with { Revision = committed.Revision + 1, Ship = ship };
+            ProfileSaveResult save;
+            try { save = await _repository.SaveAsync(next, committed.Revision, CancellationToken.None).ConfigureAwait(false); }
+            catch (Exception)
+            {
+                slot.NeedsReload = true;
+                return new ShipConditionResult(false, RejectionReason.PersistenceFailed, committed.Revision);
+            }
+            if (save.Status != ProfileSaveStatus.Saved)
+            {
+                slot.NeedsReload = true;
+                return new ShipConditionResult(false,
+                    save.Status == ProfileSaveStatus.RevisionConflict ? RejectionReason.PersistenceConflict : RejectionReason.PersistenceFailed, committed.Revision);
+            }
+            slot.Committed = next;
+            return new ShipConditionResult(true, RejectionReason.None, next.Revision);
+        }
+        finally { slot.Lock.Release(); }
+    }
+
     /// <summary>Ordinal immutable copy; null when absent or when the caller's comparer let two ordinally equal keys in.</summary>
     private static ImmutableSortedDictionary<string, int>? SnapshotItems(IReadOnlyDictionary<string, int>? source)
     {

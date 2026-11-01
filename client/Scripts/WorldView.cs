@@ -13,6 +13,8 @@ public partial class WorldView : Node2D
     private float _time;
     public ShipInput InputState { get; set; }
     public OriginalSpriteLibrary? Originals { get; set; }
+    /// <summary>Provisional station marker (queue M8); no original station art or position is claimed.</summary>
+    public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Station { get; set; }
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
 
@@ -59,6 +61,8 @@ public partial class WorldView : Node2D
         var player = ToGodot(_world.Player.Position);
         DrawStars(player);
         DrawOrigin();
+        DrawStation();
+        foreach (var pile in _world.Collectibles) DrawPile(ToGodot(pile.Position), pile.Radius);
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);
@@ -170,6 +174,25 @@ public partial class WorldView : Node2D
             DrawLine(position + new Vector2(-28, 34), position + new Vector2(28, 34), new Color("243242"), 3);
             DrawLine(position + new Vector2(-28, 34), position + new Vector2(-28 + 56 * ship.Hull / ship.Definition.Defense.MaximumHull, 34), Amber, 3);
         }
+    }
+
+    private void DrawStation()
+    {
+        if (Station is not { } station) return;
+        var centre = ToGodot(station.Position);
+        DrawArc(centre, station.DockRadius, 0, Mathf.Tau, 90, new Color(Amber, 0.10f), 1, true);
+        DrawCircle(centre, 26, new Color("1a2a36"));
+        DrawArc(centre, 26, 0, Mathf.Tau, 40, Amber.Darkened(0.2f), 2, true);
+        DrawRect(new Rect2(centre - new Vector2(9, 9), new Vector2(18, 18)), new Color(Amber, 0.55f));
+        DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, Amber.Darkened(0.25f));
+    }
+
+    private void DrawPile(Vector2 position, float radius)
+    {
+        var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 3);
+        DrawCircle(position, radius, new Color(Teal, 0.08f + 0.06f * pulse));
+        DrawArc(position, radius, 0, Mathf.Tau, 24, new Color(Teal, 0.6f), 1.5f, true);
+        DrawRect(new Rect2(position - new Vector2(4, 4), new Vector2(8, 8)), new Color("e3fff8"));
     }
 
     private void DrawBurst(Burst burst)
