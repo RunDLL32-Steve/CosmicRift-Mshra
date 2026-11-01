@@ -35,7 +35,7 @@ public sealed class ProfileSerializerTests
         };
     }
 
-    private static byte[] WithPayload(string payloadJson, int version = 1, string format = ProfileSerializer.FormatName)
+    private static byte[] WithPayload(string payloadJson, int version = PlayerProfile.CurrentSchemaVersion, string format = ProfileSerializer.FormatName)
     {
         var sha = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payloadJson))).ToLowerInvariant();
         var envelope = new JsonObject { ["format"] = format, ["schemaVersion"] = version, ["sha256"] = sha, ["payload"] = payloadJson };
@@ -354,7 +354,7 @@ public sealed class ProfileSerializerTests
         var good = Rich();
         var cases = new (string Name, PlayerProfile Profile)[]
         {
-            ("schema", good with { SchemaVersion = 2 }),
+            ("schema", good with { SchemaVersion = PlayerProfile.CurrentSchemaVersion + 1 }),
             ("id", good with { ProfileId = "bad id" }),
             ("revision", good with { Revision = -1 }),
             ("wallet", good with { Wallet = -1 }),

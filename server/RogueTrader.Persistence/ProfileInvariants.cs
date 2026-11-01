@@ -54,7 +54,7 @@ public static class ProfileInvariants
                 if (!IsWellFormedUtf16(t.TransactionId)) errors.Add(Malformed("A transaction id"));
                 if (!seen.Add(t.TransactionId)) errors.Add($"Transaction id '{Trim(t.TransactionId)}' appears more than once.");
                 if (t.ItemDeltas is null || string.IsNullOrEmpty(t.RequestFingerprint)) errors.Add($"Applied transaction '{Trim(t.TransactionId)}' is incomplete.");
-                else if (t.ItemDeltas.Keys.Any(k => k is null || !IsWellFormedUtf16(k)) || (t.UpgradeId is not null && !IsWellFormedUtf16(t.UpgradeId)))
+                else if (t.ItemDeltas.Keys.Any(k => k is null || !IsWellFormedUtf16(k)) || (t.UpgradeId is not null && !IsWellFormedUtf16(t.UpgradeId)) || (t.RepairId is not null && !IsWellFormedUtf16(t.RepairId)))
                     errors.Add(Malformed($"An id in applied transaction '{Trim(t.TransactionId)}'"));
             }
         }

@@ -27,6 +27,8 @@ internal sealed class ProfileDocumentV1
         [JsonRequired] public long WalletAfter { get; set; }
         [JsonRequired] public long Revision { get; set; }
         [JsonRequired] public DateTimeOffset AppliedAtUtc { get; set; }
+        /// <summary>Schema 2. Absent in schema 1 payloads, which <see cref="ProfileSchemaMigrations.V1ToV2"/> carries forward unchanged.</summary>
+        public string? RepairId { get; set; }
     }
 
     internal sealed class LedgerEntryDto
@@ -58,6 +60,7 @@ internal sealed class ProfileDocumentV1
             WalletAfter = t.WalletAfter,
             Revision = t.Revision,
             AppliedAtUtc = t.AppliedAtUtc,
+            RepairId = t.RepairId,
         }).ToList(),
         Ledger = p.Ledger.Select(e => new LedgerEntryDto
         {
@@ -90,7 +93,7 @@ internal sealed class ProfileDocumentV1
             { error = "An applied transaction is malformed."; return null; }
             applied.Add(new AppliedTransaction(t.TransactionId, kind, t.RequestFingerprint, t.CurrencyDelta,
                 ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, t.ItemDeltas), t.UpgradeId,
-                t.WalletAfter, t.Revision, t.AppliedAtUtc));
+                t.WalletAfter, t.Revision, t.AppliedAtUtc, t.RepairId));
         }
 
         var ledger = ImmutableList.CreateBuilder<WalletLedgerEntry>();
