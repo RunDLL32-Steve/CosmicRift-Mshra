@@ -27,6 +27,11 @@ public sealed partial class WorldSimulation
     public int DestroyedTargets { get; private set; }
     /// <summary>Every target destruction in the order it happened; a target appears at most once per world instance.</summary>
     public IReadOnlyList<TargetKill> Kills => _kills;
+    /// <summary>How many times the target group has respawned in this world (0 for the first group).</summary>
+    public int TargetWave { get; private set; }
+    /// <summary>Tick at which the destroyed target group respawns; null while any target is alive or respawn is off.</summary>
+    public long? TargetRespawnTick { get; private set; }
+    private int TargetRespawnDelayTicks => (int)MathF.Ceiling(Catalog.Sector.TargetRespawnSeconds * TickRate);
     public int AsteroidCollisions { get; private set; }
     public long ShotsFired { get; private set; }
 
@@ -64,6 +69,7 @@ public sealed partial class WorldSimulation
     public void Tick(ShipInput input)
     {
         TickNumber++;
+        if (TargetRespawnTick is { } respawnAt && TickNumber >= respawnAt) RespawnTargets();
         StepMineralSpawns();
         if (!Player.IsDestroyed)
         {
@@ -124,6 +130,43 @@ public sealed partial class WorldSimulation
         Player.Hull = MathF.Min(Player.Hull, definition.Defense.MaximumHull);
         Player.Shield = MathF.Min(Player.Shield, definition.Defense.MaximumShield);
         Player.Energy = MathF.Min(Player.Energy, definition.Reactor.MaximumEnergy);
+    }
+
+    // NEW practice-range rule: the whole group comes back together, at its configured positions, as the next wave.
+    private void RespawnTargets()
+    {
+        for (var i = 0; i < Targets.Count; i++)
+        {
+            var definition = Catalog.Sector.Targets[i];
+            Targets[i].Revive(new Vector2(definition.X, definition.Y), definition.Heading);
+        }
+        TargetWave++;
+        TargetRespawnTick = null;
+    }
+
+    /// <summary>
+    /// Carries the target group's state (hull, shield, destroyed state, wave and the time left on a pending respawn) over from
+    /// another world of the same sector, so rebuilding the world, for example on a sector reset, cannot bring destroyed targets
+    /// back early. Kill records are not copied; they belong to the world that produced them.
+    /// </summary>
+    public void CarryTargetsFrom(WorldSimulation previous)
+    {
+        ArgumentNullException.ThrowIfNull(previous);
+        if (previous.Catalog.Sector.Id != Catalog.Sector.Id || previous.Targets.Count != Targets.Count)
+            throw new ArgumentException("Targets can only be carried between worlds of the same sector.", nameof(previous));
+        for (var i = 0; i < Targets.Count; i++)
+        {
+            var from = previous.Targets[i];
+            var to = Targets[i];
+            if (from.Id != to.Id) throw new ArgumentException("Targets can only be carried between worlds of the same sector.", nameof(previous));
+            to.Hull = from.Hull;
+            to.Shield = from.Shield;
+            to.LastDamagedByShipId = from.LastDamagedByShipId;
+            to.DestroyedByShipId = from.DestroyedByShipId;
+            to.LastDamageWeaponId = from.LastDamageWeaponId;
+        }
+        TargetWave = previous.TargetWave;
+        TargetRespawnTick = previous.TargetRespawnTick is { } at ? TickNumber + Math.Max(1, at - previous.TickNumber) : null;
     }
 
     private void MovePlayer(ShipInput input)
@@ -227,7 +270,8 @@ public sealed partial class WorldSimulation
         {
             target.DestroyedByShipId = projectile.OwnerShipId;
             DestroyedTargets++;
-            _kills.Add(new TargetKill(target.Id, projectile.OwnerShipId, TickNumber));
+            _kills.Add(new TargetKill(target.Id, projectile.OwnerShipId, TickNumber, TargetWave));
+            if (TargetRespawnDelayTicks > 0 && Targets.All(t => t.IsDestroyed)) TargetRespawnTick = TickNumber + TargetRespawnDelayTicks;
         }
     }
 

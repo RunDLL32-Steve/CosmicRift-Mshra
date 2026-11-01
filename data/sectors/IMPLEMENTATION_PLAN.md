@@ -6,6 +6,8 @@ Authority: [master §18 M0/M1 engineering and M2](../../ROGUE_TRADER_2_PLAN.md),
 
 One NEW First Contact sector in `first_contact.json`: player spawn, three stationary targets and twelve static asteroid circles. The Godot build stages it into `client/GameData/sectors/`. It is separate from original Rogue.lvl/LIO/BMP. Its tuning is explicitly **NEW/provisional**. The fixture is complete for the accepted engineering prototype; no code/data changes were made in this documentation pass.
 
+November 1, 2026: `targetRespawnSeconds` (60, NEW, chosen by Steve) respawns the whole target group one minute after its last target is destroyed; 0 or absent means never. Evidence: [TargetRespawnTests.cs](../../tests/Unit/TargetRespawnTests.cs) and the client station smoke test.
+
 Evidence: M0/M1 placement, collision and target acceptance in the historical unit/source/export checks; current JSON matches the [balance ledger](../../docs/balance/PROVISIONAL_VALUES.md).
 
 ## Next and parity boundary

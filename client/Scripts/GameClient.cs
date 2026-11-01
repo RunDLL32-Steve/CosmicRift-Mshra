@@ -280,7 +280,9 @@ public partial class GameClient : Node2D
 
     private void ResetSector()
     {
-        _world = NewWorld(restoreSavedShip: false);
+        // A reset rebuilds the ship and the piles but keeps the target group as it was (destroyed targets stay down until the
+        // group's respawn timer runs out), so resetting is not a way to re-arm kill rewards.
+        _world = NewWorld(restoreSavedShip: false, carryTargetsFrom: _world);
         _view.SetWorld(_world);
         _paused = false;
         _hud.SetMenuVisible(false);
@@ -404,25 +406,37 @@ public partial class GameClient : Node2D
     public int PendingKillRewards => _pendingKills.Count;
     public string SectorInstanceId => _sectorInstanceId;
 
-    private WorldSimulation NewWorld(bool restoreSavedShip)
+    /// <param name="carryTargetsFrom">
+    /// When set (sector reset), the new world keeps that world's target group and the sector instance id stays the same, so
+    /// queued kills stay payable and already-paid targets cannot pay again. Otherwise (launch, reopen) a new instance starts.
+    /// </param>
+    private WorldSimulation NewWorld(bool restoreSavedShip, WorldSimulation? carryTargetsFrom = null)
     {
-        // Give the outgoing sector's unpaid kills and unsaved pickups one last try; whatever still fails is lost with that sector instance.
+        // Give the outgoing world's unpaid kills and unsaved pickups one last try. Pickups are per world (review R1-1): whatever
+        // still fails to save is lost with that world, even when a reset keeps the sector instance.
         CommitKills(force: true);
         CommitPickups(force: true);
         WarnLostPickups(_pickups.StartNewWorld(), "could not be saved and were lost");
         _nextPickupRetryTick = _nextPickupRetryTick == long.MaxValue ? long.MaxValue : 0;
-        var lostKills = _pendingKills.Count;
-        _pendingKills.Clear();
         _killsSeen = 0;
-        _nextKillRetryTick = 0;
-        _sectorInstanceId = Guid.NewGuid().ToString("N");
+        var lostKills = 0;
+        if (carryTargetsFrom is null)
+        {
+            // Whatever still fails is lost with the old sector instance.
+            lostKills = _pendingKills.Count;
+            _pendingKills.Clear();
+            _nextKillRetryTick = 0;
+            _sectorInstanceId = Guid.NewGuid().ToString("N");
+        }
         if (lostKills > 0) Notice($"{lostKills} kill reward{(lostKills == 1 ? "" : "s")} could not be saved and {(lostKills == 1 ? "was" : "were")} lost.", warning: true);
         _playCatalog = EffectiveCatalog();
         _lastShipSaveTick = 0;
+        // Pickup ids and mineral placement key on a new id for every world, never on the sector instance a reset keeps (R1-1).
         // NEW: mineral placement is reseeded for each world, so a reset lays the field out afresh.
         _worldInstanceId = Guid.NewGuid().ToString("N");
         var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_worldInstanceId.GetHashCode(StringComparison.Ordinal));
         var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold(), minerals: minerals);
+        if (carryTargetsFrom is not null) world.CarryTargetsFrom(carryTargetsFrom);
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
             world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
         return world;

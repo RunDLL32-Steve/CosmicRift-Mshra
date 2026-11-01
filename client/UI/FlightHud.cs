@@ -132,12 +132,15 @@ public partial class FlightHud : CanvasLayer
         _speed.Text = $"{player.Velocity.Length():000.0}  u/s";
         _telemetry.Text = $"H {player.Hull:0}   S {player.Shield:0}   E {player.Energy:0}\n60 Hz  |  Tick {world.TickNumber:N0}  |  FPS {Engine.GetFramesPerSecond()}\nPosition  {player.Position.X:0}, {player.Position.Y:0}\n{catalog.Weapon.Name}  /  {world.Projectiles.Count} shots";
         var liveTargets = world.Targets.Count(target => !target.IsDestroyed);
+        var respawnSeconds = world.TargetRespawnTick is { } respawnAt
+            ? (int)Math.Ceiling((respawnAt - world.TickNumber) / (double)WorldSimulation.TickRate) : (int?)null;
         _objective.Text = liveTargets > 0
-            ? $"{catalog.Sector.Name}\nDestroy the practice target.\n{liveTargets} target{(liveTargets == 1 ? "" : "s")} remaining"
-            : $"{catalog.Sector.Name}\nTarget destroyed.\nPractice flight through the belt.";
+            ? $"{catalog.Sector.Name}\nDestroy the practice targets.\n{liveTargets} target{(liveTargets == 1 ? "" : "s")} remaining"
+            : respawnSeconds is { } seconds ? $"{catalog.Sector.Name}\nAll targets destroyed.\nNew targets in {seconds} s"
+            : $"{catalog.Sector.Name}\nAll targets destroyed.\nPractice flight through the belt.";
         _status.Text = player.IsDestroyed ? $"SHIP DESTROYED  -  {FlightInput.Display("flight_reset")} to reset"
             : _stationHint.Length > 0 ? _stationHint
-            : world.DestroyedTargets > 0 ? $"TARGET DESTROYED  /  {FlightInput.Display("flight_reset")} to restart the range" : "";
+            : liveTargets == 0 && respawnSeconds is { } wait ? $"ALL TARGETS DESTROYED  /  new targets in {wait} s" : "";
         _status.Modulate = player.IsDestroyed ? new Color("f4b66b") : TextColor;
     }
 
