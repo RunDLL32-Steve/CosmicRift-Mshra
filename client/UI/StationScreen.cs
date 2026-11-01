@@ -11,7 +11,6 @@ namespace RogueTrader.Client;
 /// </summary>
 public partial class StationScreen : CanvasLayer
 {
-    public event Action<string, int>? BuyRequested;
     public event Action<string, int>? SellRequested;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
@@ -96,7 +95,9 @@ public partial class StationScreen : CanvasLayer
     }
 
     /// <summary>Rebuilds every row from the authoritative profile, the ship's hull and the active upgrade set.</summary>
-    public void Refresh(PlayerProfile profile, long cargoWeight, long cargoCapacity, float hull, float maximumHull, IReadOnlySet<string> activeUpgrades)
+    /// <param name="blockedUpgrade">Why an unowned upgrade cannot become active (null when it can); such rows are disabled.</param>
+    public void Refresh(PlayerProfile profile, long cargoWeight, long cargoCapacity, float hull, float maximumHull, IReadOnlySet<string> activeUpgrades,
+        Func<string, string?> blockedUpgrade)
     {
         _credits.Text = $"CREDITS  {profile.Wallet:N0}";
         _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}";
@@ -135,9 +136,11 @@ public partial class StationScreen : CanvasLayer
             foreach (var upgrade in family)
             {
                 var owned = profile.Upgrades.Contains(upgrade.Id);
-                var state = !owned ? "BUY" : activeUpgrades.Contains(upgrade.Id) ? "ACTIVE" : "OWNED";
-                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), Cell(Summary(upgrade.Effect), 200),
-                    ActionButton(state, $"upgrade:{upgrade.Id}", owned, () => UpgradeRequested?.Invoke(upgrade.Id))));
+                var blocked = owned ? null : blockedUpgrade(upgrade.Id);
+                var state = owned ? (activeUpgrades.Contains(upgrade.Id) ? "ACTIVE" : "OWNED") : blocked is null ? "BUY" : "-";
+                var button = ActionButton(state, $"upgrade:{upgrade.Id}", owned || blocked is not null, () => UpgradeRequested?.Invoke(upgrade.Id));
+                button.TooltipText = blocked ?? "";
+                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), Cell(blocked ?? Summary(upgrade.Effect), 200), button));
             }
         }
     }

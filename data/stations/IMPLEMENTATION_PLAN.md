@@ -31,4 +31,4 @@ No original resource has a positive buy price (sell is 0 or -1), so there is no 
 ## Open
 
 -   [ ] Original station placement/dock rule, recipe quantities, repair cost, starting cash and every upgrade effect (RT-F041/F045/F047/F048/F049, RT-F068).
--   [ ] Collectible piles respawn on a sector reset or upgrade install; the original respawn rule is unknown.
+-   [ ] Collectible piles respawn on a sector reset (not on an upgrade or reload); the original respawn rule is unknown.

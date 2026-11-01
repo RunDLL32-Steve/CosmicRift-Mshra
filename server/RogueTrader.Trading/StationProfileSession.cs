@@ -83,8 +83,42 @@ public sealed class StationProfileSession
         return _trading.RepairAsync(profileId, shipX, shipY, new RepairRequest(transactionId, profileId, Station.StationId, repairId), ct);
     }
 
-    public Task<TransactionResult> BuyUpgradeAsync(string upgradeId, float shipX, float shipY, CancellationToken ct = default) =>
-        _trading.BuyUpgradeAsync(RequireProfile(), shipX, shipY, new BuyUpgradeRequest(NewId(), RequireProfile(), Station.StationId, upgradeId), ct);
+    /// <summary>
+    /// Buys an upgrade only when it would become active: one with no implemented effect, or one an owned upgrade in the same
+    /// held category outranks, is refused locally and never charged (review R2-1). Already-owned ids still reach the core so
+    /// it reports <see cref="RejectionReason.UpgradeAlreadyOwned"/>.
+    /// </summary>
+    public Task<TransactionResult> BuyUpgradeAsync(string upgradeId, float shipX, float shipY, CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        var transactionId = NewId();
+        var refusal = UpgradeRefusal(upgradeId);
+        if (refusal != RejectionReason.None)
+            return Task.FromResult(Refused(transactionId, refusal));
+        return _trading.BuyUpgradeAsync(profileId, shipX, shipY, new BuyUpgradeRequest(transactionId, profileId, Station.StationId, upgradeId), ct);
+    }
+
+    /// <summary>Why buying this upgrade now would have no effect (<see cref="RejectionReason.None"/> when it would).</summary>
+    public RejectionReason UpgradeRefusal(string upgradeId)
+    {
+        var profile = Profile;
+        var upgrade = Station.Upgrades.FirstOrDefault(u => u.Id == upgradeId);
+        if (profile is null || upgrade is null || profile.Upgrades.Contains(upgradeId)) return RejectionReason.None;
+        if (upgrade.Effect == UpgradeEffect.None) return RejectionReason.UpgradeHasNoEffect;
+        var active = UpgradeEffects.Active(Station, profile.Upgrades.Append(upgradeId));
+        return active.Any(u => u.Id == upgradeId) ? RejectionReason.None : RejectionReason.UpgradeSlotHeld;
+    }
+
+    /// <summary>The owned upgrade that holds the same slot, if any.</summary>
+    public StationUpgrade? SlotHolder(string upgradeId)
+    {
+        var upgrade = Station.Upgrades.FirstOrDefault(u => u.Id == upgradeId);
+        if (upgrade is null || upgrade.HeldCategory == 0 || Profile is null) return null;
+        return UpgradeEffects.Active(Station, Profile.Upgrades).FirstOrDefault(u => u.HeldCategory == upgrade.HeldCategory && u.Id != upgradeId);
+    }
+
+    private TransactionResult Refused(string transactionId, RejectionReason reason) =>
+        new(transactionId, TransactionStatus.Rejected, reason, false, 0, new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1);
 
     /// <summary>
     /// Commits units the ship's hold has gained over the profile inventory (in-space pickups) as one reward. Returns null when

@@ -4,7 +4,7 @@ Review status: ready-for-review
 
 Scope: queue M8, Godot HUD for cargo/currency, station UI and save/load flow. See [brief](../../tasks/m8.md), [client entry](../../../client/UI/plan.d/m8.md), [station data](../../../data/stations/IMPLEMENTATION_PLAN.md) and [persistence entry](../../../server/RogueTrader.Persistence/plan.d/m8.md).
 
-Status: round 2 pushed (Steve's requested limits plus review round 1 fixes), awaiting re-review. Not merged by the author.
+Status: round 3 pushed (review round 2 fixes), awaiting re-review. Not merged by the author.
 
 ## Round 2 — November 1, 2026
 
@@ -17,4 +17,12 @@ Verified in the cloud container (SDK 8.0.133 and Godot 4.5.1 mono Linux substitu
 
 Not verified: the `verify.ps1` wrapper itself (its steps were run directly; Windows CI runs it), the Windows export, pinned SDK, runtime/native-delivery checks (paths untouched).
 
-Resume point: independent re-review of the round 2 head; M9 after merge.
+Resume point: independent re-review of the round 3 head; M9 after merge.
+
+## Round 3 — November 1, 2026
+
+-   R2-1 fixed: `StationProfileSession.BuyUpgradeAsync` refuses an upgrade that would not become active (`UpgradeHasNoEffect` for no effect yet, `UpgradeSlotHeld` when a higher-priced owned item holds its held category) before calling the core, so nothing is charged; the Upgrades tab shows such rows disabled with the reason. Unit test and smoke step.
+-   R2-2 fixed: buying an upgrade or reloading the profile no longer rebuilds the world. `WorldSimulation.ApplyPlayerDefinition` swaps the ship definition in place (same radius required; hull, shield and energy clamped to the new maxima, never refilled), so piles, targets, velocity and a destroyed state are kept. Unit test and smoke checks (same world instance, same piles after upgrade and reload). Reopening the save folder no longer saves the ship first unless docked, so it reopens exactly what is on disk.
+-   R2-3 fixed: the unused `StationScreen.BuyRequested` event is removed; `--no-incremental` builds of the solution and client report 0 warnings.
+
+Verified in the cloud container: `dotnet test tests/Unit` 850 passed, 0 failed, 5 existing skips; Godot `--smoke-test` exit 0 with CLIENT_INPUT_SMOKE_PASS, CLIENT_STATION_SMOKE_PASS and CLIENT_SMOKE_PASS; `format-check.py` FORMAT_CLEAN; TRACKERS_CONSISTENT.

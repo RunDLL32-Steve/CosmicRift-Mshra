@@ -81,12 +81,21 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var baseSpeed = readWorld().Player.Definition.Physics.MaximumSpeed;
             var upgrade = station.Upgrades.Where(u => u.Price <= session.Profile.Wallet && u.Effect.MaximumSpeed > 0).OrderBy(u => u.Price).First();
             var hullBeforeUpgrade = readWorld().Player.Hull;
+            var worldBeforeUpgrade = readWorld();
+            var pilesBeforeUpgrade = worldBeforeUpgrade.Collectibles.Select(p => p.Id).ToArray();
             Press($"upgrade:{upgrade.Id}");
             Require(session.Profile!.Upgrades.Contains(upgrade.Id), "Upgrade purchase must persist ownership.");
             Require(readWorld().Player.Definition.Physics.MaximumSpeed > baseSpeed, $"{upgrade.Name} must raise maximum speed.");
             Require(Math.Abs(readWorld().Player.Hull - hullBeforeUpgrade) < 0.01f, "Installing an upgrade must keep the ship's hull.");
             Require(FindAction($"upgrade:{upgrade.Id}").Text == "ACTIVE", "An owned upgrade must be shown as active.");
-            var unaffordable = station.Upgrades.First(u => u.Price > session.Profile.Wallet);
+            Require(ReferenceEquals(worldBeforeUpgrade, readWorld()) && readWorld().Collectibles.Select(p => p.Id).SequenceEqual(pilesBeforeUpgrade),
+                "Installing an upgrade must change the ship in place, not rebuild the world or respawn piles.");
+            var noEffect = station.Upgrades.First(u => u.Effect == RogueTrader.Trading.UpgradeEffect.None);
+            Require(FindAction($"upgrade:{noEffect.Id}").Disabled, "An upgrade with no effect must not be offered.");
+            beforeRefusal = session.Profile;
+            Press($"upgrade:{noEffect.Id}");
+            Require(ReferenceEquals(beforeRefusal, session.Profile), "An upgrade with no effect must not be charged.");
+            var unaffordable = station.Upgrades.First(u => u.Price > session.Profile.Wallet && session.UpgradeRefusal(u.Id) == RejectionReason.None);
             beforeRefusal = session.Profile;
             Press($"upgrade:{unaffordable.Id}");
             Require(ReferenceEquals(beforeRefusal, session.Profile), "A refused purchase must change nothing.");
@@ -107,11 +116,13 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(client.Paused, "Escape must pause (which saves the ship).");
             var beforeExit = session.Profile!;
+            var pilesBeforeReload = readWorld().Collectibles.Select(p => p.Id).ToArray();
             var ship = beforeExit.Ship ?? throw new InvalidOperationException("Pausing must save the ship condition.");
             Require(Math.Abs(ship.X - readWorld().Player.Position.X) < 0.01f && Math.Abs(ship.Y - readWorld().Player.Position.Y) < 0.01f
                 && Math.Abs(ship.Hull - readWorld().Player.Hull) < 0.01f, "The saved ship condition must match the paused ship.");
             hud.FindChildren("ReloadProfile", "Button", true, false).Cast<Button>().Single().EmitSignal(Button.SignalName.Pressed);
             Require(Same(beforeExit, client.Session!.Profile!), "Reload from the pause menu must return the saved profile unchanged.");
+            Require(readWorld().Collectibles.Select(p => p.Id).SequenceEqual(pilesBeforeReload), "A profile reload must not respawn collected piles.");
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();
@@ -125,7 +136,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, docking, outpost trade, repair guard, upgrade effect, refusal, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

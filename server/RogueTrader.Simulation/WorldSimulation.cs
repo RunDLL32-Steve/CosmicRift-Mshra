@@ -102,6 +102,22 @@ public sealed partial class WorldSimulation
         return true;
     }
 
+    /// <summary>
+    /// Swaps the player's ship statistics in place (for example after an upgrade is installed or a profile reload): position,
+    /// velocity, heading and world state are untouched; hull, shield and energy keep their values clamped to the new maxima;
+    /// a destroyed ship stays destroyed. The radius must not change, so collision contacts stay valid.
+    /// </summary>
+    public void ApplyPlayerDefinition(ShipDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (definition.Radius != Player.Definition.Radius)
+            throw new ArgumentException("A replacement ship definition must keep the same radius.", nameof(definition));
+        Player.Definition = definition;
+        Player.Hull = MathF.Min(Player.Hull, definition.Defense.MaximumHull);
+        Player.Shield = MathF.Min(Player.Shield, definition.Defense.MaximumShield);
+        Player.Energy = MathF.Min(Player.Energy, definition.Reactor.MaximumEnergy);
+    }
+
     private void MovePlayer(ShipInput input)
     {
         var turn = float.IsFinite(input.Turn) ? Math.Clamp(input.Turn, -1, 1) : 0;

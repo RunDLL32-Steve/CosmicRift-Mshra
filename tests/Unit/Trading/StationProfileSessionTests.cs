@@ -168,6 +168,32 @@ public sealed class StationProfileSessionTests
     }
 
     [Fact]
+    public async Task Upgrade_ThatWouldNotBecomeActive_IsRefusedWithoutCharge()
+    {
+        var station = LoadStation();
+        var session = await OpenAsync(station: station);
+        var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
+        for (var round = 0; round < 3; round++) // 9,000 credits; the hold takes 20 units at a time
+        {
+            await Give(session, trade.InputItemId, 10);
+            await session.SellAsync(trade.InputItemId, 10, station.X, station.Y);
+        }
+        var hyper = station.Upgrades.Single(u => u.Name == "Hyper AfterBurners");   // 7,500, same held category
+        var turbo = station.Upgrades.Single(u => u.Name == "Turbo AfterBurners");   // 2,500, same held category
+        var super = station.Upgrades.Single(u => u.Name == "Super AfterBurners");   // 5,000, same held category
+        Assert.Equal(turbo.HeldCategory, super.HeldCategory);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(super.Id, station.X, station.Y)).Status);
+        var before = session.Profile!;
+
+        Assert.Equal(RejectionReason.UpgradeSlotHeld, (await session.BuyUpgradeAsync(turbo.Id, station.X, station.Y)).Reason);
+        Assert.Equal(super.Id, session.SlotHolder(turbo.Id)!.Id);
+        var noEffect = station.Upgrades.First(u => u.Effect == UpgradeEffect.None && u.Price <= before.Wallet);
+        Assert.Equal(RejectionReason.UpgradeHasNoEffect, (await session.BuyUpgradeAsync(noEffect.Id, station.X, station.Y)).Reason);
+        Assert.Same(before, session.Profile);
+        Assert.Equal(RejectionReason.None, session.UpgradeRefusal(hyper.Id)); // a higher-priced item in the slot would become active
+    }
+
+    [Fact]
     public async Task ShipCondition_IsSaved_AndSurvivesRelaunch()
     {
         using var dir = new TempDirectory();
@@ -241,6 +267,26 @@ public sealed class StationProfileSessionTests
         Assert.Equal(4, hold.TotalWeight);
         Assert.Throws<ArgumentException>(() => hold.ReplaceContents([new("unknown", 1)]));
         Assert.Equal(4, hold.Quantity("b"));
+    }
+
+    [Fact]
+    public void ApplyPlayerDefinition_ChangesStatsInPlace_WithoutRespawningTheWorld()
+    {
+        var station = LoadStation();
+        var world = new WorldSimulation(TestWorld.ExternalCatalog(), station.CreateCargoCatalog());
+        world.RestorePlayer(new System.Numerics.Vector2(30, -40), 0.25f, 10);
+        TestWorld.Tick(world, 5, new ShipInput(1, 0, false));
+        var (position, velocity, piles) = (world.Player.Position, world.Player.Velocity, world.Collectibles.Count);
+        var faster = UpgradeEffects.Apply(world.Player.Definition, station, [station.Upgrades.Single(u => u.Name == "Turbo AfterBurners").Id]);
+
+        world.ApplyPlayerDefinition(faster);
+
+        Assert.Same(faster, world.Player.Definition);
+        Assert.Equal(position, world.Player.Position);
+        Assert.Equal(velocity, world.Player.Velocity);
+        Assert.Equal(10, world.Player.Hull); // not refilled, so a destroyed ship (hull 0) stays destroyed too
+        Assert.Equal(piles, world.Collectibles.Count);
+        Assert.Throws<ArgumentException>(() => world.ApplyPlayerDefinition(faster with { Radius = faster.Radius + 1 }));
     }
 
     [Fact]

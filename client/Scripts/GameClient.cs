@@ -79,7 +79,6 @@ public partial class GameClient : Node2D
             _hud.ReloadProfileRequested += () => ReloadProfile();
             AddChild(_hud);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
-            _stationScreen.BuyRequested += (item, quantity) => StationTransaction(s => s.BuyAsync(item, quantity, PlayerX, PlayerY), $"Bought {quantity} {_stationDefinition.NameOf(item)}.");
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
@@ -301,7 +300,7 @@ public partial class GameClient : Node2D
     /// <summary>Exit/relaunch boundary used by the smoke test: drops every in-memory service and reopens the save folder.</summary>
     public void ReopenProfileFromDisk()
     {
-        SetStationVisible(false);
+        if (_stationVisible) SetStationVisible(false); // undocking saves the ship; otherwise reopen exactly what is on disk
         _repository?.Dispose();
         _repository = null;
         OpenProfile();
@@ -319,7 +318,8 @@ public partial class GameClient : Node2D
         var outcome = Await(_session.ReloadAsync());
         _profileOutcome = _profileStatus = outcome.Message;
         if (!outcome.Succeeded) _session = null;
-        RebuildWorldKeepingShip();
+        ReconcileHold();
+        ApplyUpgrades();
     }
 
     /// <summary>Ship definition with the profile's active upgrades applied (NEW/provisional effects, see UpgradeEffects).</summary>
@@ -337,14 +337,14 @@ public partial class GameClient : Node2D
         return world;
     }
 
-    /// <summary>After an upgrade purchase or reload: same place, heading and hull, new ship statistics and saved hold.</summary>
-    private void RebuildWorldKeepingShip()
+    /// <summary>
+    /// After an upgrade purchase or reload: swaps the player's statistics in place, so piles, targets, position and a destroyed
+    /// ship's state are untouched (review R2-2).
+    /// </summary>
+    private void ApplyUpgrades()
     {
-        var player = _world.Player;
-        var (position, heading, hull, destroyed) = (player.Position, player.Heading, player.Hull, player.IsDestroyed);
-        _world = NewWorld(restoreSavedShip: false);
-        if (!destroyed) _world.RestorePlayer(position, heading, hull);
-        _view.SetWorld(_world);
+        _playCatalog = EffectiveCatalog();
+        _world.ApplyPlayerDefinition(_playCatalog.Ship);
     }
 
     /// <summary>Saves hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds of flight).</summary>
@@ -423,7 +423,7 @@ public partial class GameClient : Node2D
                 success = $"{_stationDefinition.NameOf(repairId)}: {restored:0} hull restored.";
                 SaveShip();
             }
-            if (result.UpgradeId is not null) RebuildWorldKeepingShip();
+            if (result.UpgradeId is not null) ApplyUpgrades();
             _stationScreen.SetStatus($"{success}  Saved at revision {result.Revision}.");
         }
         else
@@ -435,6 +435,13 @@ public partial class GameClient : Node2D
         RefreshProfileViews(rebuildStation: true);
     }
 
+    private string? BlockedUpgradeText(string upgradeId) => _session?.UpgradeRefusal(upgradeId) switch
+    {
+        RejectionReason.UpgradeHasNoEffect => "no effect yet",
+        RejectionReason.UpgradeSlotHeld => $"slot held by {_session!.SlotHolder(upgradeId)?.Name ?? "an installed upgrade"}",
+        _ => null,
+    };
+
     private static string Describe(RejectionReason reason) => reason switch
     {
         RejectionReason.InsufficientFunds => "not enough credits.",
@@ -443,6 +450,8 @@ public partial class GameClient : Node2D
         RejectionReason.UpgradeAlreadyOwned => "upgrade already installed.",
         RejectionReason.StationAccessDenied => "you are no longer docked.",
         RejectionReason.NotForSale => "not traded here.",
+        RejectionReason.UpgradeHasNoEffect => "this upgrade has no effect yet; nothing was charged.",
+        RejectionReason.UpgradeSlotHeld => "an installed upgrade already holds that slot; nothing was charged.",
         RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };
@@ -455,7 +464,7 @@ public partial class GameClient : Node2D
             $"{_profileStatus}\nSave folder: {_profileRoot}");
         if (rebuildStation && _stationVisible && profile is not null)
             _stationScreen.Refresh(profile, _world.Cargo.TotalWeight, _world.Cargo.Capacity, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull,
-                UpgradeEffects.Active(_stationDefinition, profile.Upgrades).Select(u => u.Id).ToHashSet());
+                UpgradeEffects.Active(_stationDefinition, profile.Upgrades).Select(u => u.Id).ToHashSet(), BlockedUpgradeText);
     }
 
     /// <summary>The local services do file I/O without capturing a context, so blocking here cannot deadlock the main thread.</summary>
