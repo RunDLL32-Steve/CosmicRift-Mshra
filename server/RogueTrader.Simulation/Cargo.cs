@@ -151,6 +151,21 @@ public sealed class CargoHold
 
     public int Quantity(string itemId) => _items.GetValueOrDefault(itemId);
 
+    /// <summary>
+    /// Replaces the contents with an authoritative inventory (for example the persisted profile after a station sale or a
+    /// reload). Same rules as the constructor: unknown items or negative quantities throw and leave the hold unchanged.
+    /// </summary>
+    public void ReplaceContents(IEnumerable<KeyValuePair<string, int>> inventory)
+    {
+        ArgumentNullException.ThrowIfNull(inventory);
+        var list = inventory.ToArray();
+        var weight = _catalog.WeightOf(list);
+        _items.Clear();
+        foreach (var (id, quantity) in list.Where(p => p.Value != 0))
+            _items[id] = _items.GetValueOrDefault(id) + quantity;
+        TotalWeight = weight;
+    }
+
     /// <summary>The most units of the item that can be added now (capacity and int range).</summary>
     public int MaxAccept(string itemId)
     {

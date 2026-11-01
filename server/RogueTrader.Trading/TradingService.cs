@@ -3,7 +3,7 @@ using RogueTrader.Persistence;
 namespace RogueTrader.Trading;
 
 /// <summary>
-/// Buy/sell at a station. Resolves docking from the ship position and hands the verdict to the transaction core, which owns
+/// Buy/sell, repair and upgrade purchases at a station. Resolves docking from the ship position and hands the verdict to the transaction core, which owns
 /// identity, idempotency, wallet, inventory, cargo capacity (through its <see cref="ICargoPolicy"/>) and atomic persistence.
 /// The processor is always called, even when the ship is out of range, so a retry of an already applied transaction id still
 /// returns its original result (the core's duplicate lookup precedes its proximity check).
@@ -26,5 +26,17 @@ public sealed class TradingService(ITransactionProcessor processor, StationDirec
     {
         ArgumentNullException.ThrowIfNull(request);
         return _processor.SellAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
+    }
+
+    public Task<TransactionResult> RepairAsync(string authenticatedProfileId, float shipX, float shipY, RepairRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _processor.RepairAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
+    }
+
+    public Task<TransactionResult> BuyUpgradeAsync(string authenticatedProfileId, float shipX, float shipY, BuyUpgradeRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _processor.BuyUpgradeAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
     }
 }

@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+    <ProjectReference Include="../server/RogueTrader.Trading/RogueTrader.Trading.csproj" />
     <ProjectReference Include="../shared/RogueTrader.GameData/RogueTrader.GameData.csproj" />
     <GameDefinitions Include="../data/**/*.json" />
   </ItemGroup>

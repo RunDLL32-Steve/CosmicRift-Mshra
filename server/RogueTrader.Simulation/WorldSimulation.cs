@@ -72,6 +72,21 @@ public sealed partial class WorldSimulation
         MoveProjectiles();
     }
 
+    /// <summary>
+    /// Restores player hull after an authoritative repair purchase, clamped to the hull maximum. Returns the hull actually
+    /// restored. A destroyed ship is not revived (reset handles that). The amount comes from the caller because the original
+    /// repair amount/unit is undecoded (RT-F047).
+    /// </summary>
+    public float RepairPlayerHull(float hullPoints)
+    {
+        if (!float.IsFinite(hullPoints) || hullPoints < 0)
+            throw new ArgumentOutOfRangeException(nameof(hullPoints), "Repair amount must be finite and non-negative.");
+        if (Player.IsDestroyed) return 0;
+        var before = Player.Hull;
+        Player.Hull = MathF.Min(Player.Definition.Defense.MaximumHull, before + hullPoints);
+        return Player.Hull - before;
+    }
+
     private void MovePlayer(ShipInput input)
     {
         var turn = float.IsFinite(input.Turn) ? Math.Clamp(input.Turn, -1, 1) : 0;
