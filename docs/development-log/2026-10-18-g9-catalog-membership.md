@@ -4,14 +4,14 @@ UTC readiness checkpoint October19. Branch `claim/g9-dependency-checkpoint`, bas
 
 ## Source rationale and implementation boundary
 
-Historical ArenaProbe accepted counts; Maker diagnostics injected canonical maps. Neither established full actual initialized catalog membership. This increment inspects actual server._assets after successful standalone server.init, before newArena: derive selected configured inputs and raw expected IDs with existing CSVReader, compare complete sorted200 expected/actual arrays, reject duplicates and check every actual ID lookup is the same object with matching ID. One positive66 lookup must return null with exactly its expected Warning, separated by actual TLog from unexpected Error/Exception. No second ItemInfo.Load, map injection, copied parser or synthetic66. The raw ID-column2/type18 assumptions come from inspected pinned upstream loader source (VERIFIED STATIC); they are not independently confirmed original/native semantics.
+Historical ArenaProbe accepted counts; Maker diagnostics injected canonical maps. Neither established full actual initialized catalog membership. This increment inspects actual server.\_assets after successful standalone server.init, before newArena: derive selected configured inputs and raw expected IDs with existing CSVReader, compare complete sorted200 expected/actual arrays, reject duplicates and check every actual ID lookup is the same object with matching ID. One positive66 lookup must return null with exactly its expected Warning, separated by actual TLog from unexpected Error/Exception. No second ItemInfo.Load, map injection, copied parser or synthetic66. The raw ID-column2/type18 assumptions come from inspected pinned upstream loader source (VERIFIED STATIC); they are not independently confirmed original/native semantics.
 
 Source-only rationale at server pin `bb97579efeceff1c63d781d8c1bb8dd4a5b9b849`: AssetManager.LoadItemFiles556–592 scans MAIN nested records, appends direct child data586–587 and removes Nested590, a one-hop record expansion. AssetFileFactory separately recurses directories. Missing direct child logs a skip, but Factory61 records missing files and AssetManager194–208 rejects retained IsIncomplete; no optional-success claim. ItemFile.ReadFile28–32 delegates ItemInfo.Load; NestedItem parses filename19. ItmInfo112–116 records FilesToLoad only; coordinator's exact pinned dotnetcore tracked-C# search found declaration10/add115 and no dispatcher. No runtime-tested general nested behavior is claimed.
 
-| Newly inspected pinned Git blob under dotnetcore/ | LF bytes | SHA256 |
-|---|---:|---|
-|Assets/Itm/ItemFile.cs|1038|`d680ea0eaa8e6d7b13f9529814c0bef0157faaf76ac26a053f3e68fffcb8f29c`|
-|Assets/Itm/ItmInfo.NestedItem.cs|727|`a6f5358af04daf92244a59fc8343f81e7767f38138231e11781742ddc32cfae8`|
+| Newly inspected pinned Git blob under dotnetcore/ | LF bytes | SHA256                                                             |
+| ------------------------------------------------- | -------: | ------------------------------------------------------------------ |
+| Assets/Itm/ItemFile.cs                            |     1038 | `d680ea0eaa8e6d7b13f9529814c0bef0157faaf76ac26a053f3e68fffcb8f29c` |
+| Assets/Itm/ItmInfo.NestedItem.cs                  |      727 | `a6f5358af04daf92244a59fc8343f81e7767f38138231e11781742ddc32cfae8` |
 
 Coordinator verified working CRLF→LF bytes equal pinned Git blobs; table hashes are pinned LF blob bytes, not raw working hashes. Accepted AssetManager/Factory/ItmInfo context is reused without old whole-hash/search/inventory or Maker/Ball/Portal/Uiart reruns. Canonical pin remains `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`.
 
@@ -39,20 +39,20 @@ All15 approved source/pristine/active copied input hashes were checked unchanged
 
 Complete author report/result/wrapper/build/stdout/stderr logs and source/loaded DLL byte copies are separately preserved at ignored issue `artifacts/g9-catalog-membership/author/` before reviewer reproduction overwrites wrapper defaults. Author report `original-arena-probe.json` SHA256 `8532c3187e0ce7ae12b336cd1afbfd4f7da5540479b1ef54d877a815c55b0ee2`. Independently rebuilt assembly hashes may differ; no byte-identical-build claim.
 
-| First author loaded assembly (Location recorded in original report) | SHA256 |
-|---|---|
-|Runner|`8b85b3ae913ae57b58a841d1963d384c382a4f5ffe132e0b341d1ceb577eb33e`|
-|Server|`9aaf8674216586e2e3b9e0c0ce9bcf4919a87e56d0fb2b327fc44f735b837404`|
-|Assets|`5aa1a57d5db2e5d4de5a286b9c0ed22878079812aa9d7f6529c43ab850254d93`|
+| First author loaded assembly (Location recorded in original report) | SHA256                                                             |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Runner                                                              | `8b85b3ae913ae57b58a841d1963d384c382a4f5ffe132e0b341d1ceb577eb33e` |
+| Server                                                              | `9aaf8674216586e2e3b9e0c0ce9bcf4919a87e56d0fb2b327fc44f735b837404` |
+| Assets                                                              | `5aa1a57d5db2e5d4de5a286b9c0ed22878079812aa9d7f6529c43ab850254d93` |
 
-| First author reported source | SHA256 |
-|---|---|
-|Program.cs|`616fca44b511f14a2a83302002fe132027ca6a91f57e689df32d8bd124e78d73`|
-|CatalogMembershipChecks.cs|`dcb256dcbb8a3e3b53eb75b1e3a65db95c4fa06fcda46c5a018e9291aa8f007a`|
+| First author reported source | SHA256                                                             |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Program.cs                   | `616fca44b511f14a2a83302002fe132027ca6a91f57e689df32d8bd124e78d73` |
+| CatalogMembershipChecks.cs   | `dcb256dcbb8a3e3b53eb75b1e3a65db95c4fa06fcda46c5a018e9291aa8f007a` |
 
 These first-run source and loaded assembly hashes identify the preserved original author revision, not the later round1 rework revision. The original author evidence directory is retained untouched; the separate round1 run below establishes the reworked source identities.
 
- G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375 and raw609/eight residuals unchanged. This is selected standalone initializer evidence only; no arbitrary/live/custom/native catalog closure, original gameplay or production rule acceptance. No baseline/Maker/RuntimeChecks/native/login/Godot/flight/simulation/inventory suites. Markdown tracker/link/whitespace QA is recorded in Final documentation QA below; old dated logs remain unchanged.
+G9/RT-F069/F386/F377/F378/F379 remain open,397/22/375 and raw609/eight residuals unchanged. This is selected standalone initializer evidence only; no arbitrary/live/custom/native catalog closure, original gameplay or production rule acceptance. No baseline/Maker/RuntimeChecks/native/login/Godot/flight/simulation/inventory suites. Markdown tracker/link/whitespace QA is recorded in Final documentation QA below; old dated logs remain unchanged.
 
 ## Author rework round 1 — new source revision
 
@@ -62,16 +62,16 @@ Coordinator/root inspected the narrow actual fix diff and explicitly cleared one
 
 Complete rework report/control/wrapper/build/stdout/stderr and source/loaded-DLL copies are separate at ignored `artifacts/g9-catalog-membership/author-rework-round1/`; report SHA256 `c9f6eff26ac5fc555ce7c1b087c7ca2546ddae4bc955707220b6d0f6d4c8efa1`. The original `author/` directory/report8532c318... remains unchanged. These are two author runs of two source revisions, not independent reviewer verification. R1-1 remains outstanding until the fresh reviewer reproduces the final head and issues its own verdict.
 
-| Rework actual loaded assembly | SHA256 |
-|---|---|
-|Runner|`7aa2382aace483b01a731d12a88a860de5cd9fd724297ed74ab349ce0c0f46ba`|
-|Server|`75037a4816abc8f07f41f12dfac29c80a99101f54a8bb40db0bb7c8b385944f3`|
-|Assets|`9b2fed7fa7376f88c0357719928e92e38b63450232aaf0176be7d3eef5c82f80`|
+| Rework actual loaded assembly | SHA256                                                             |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Runner                        | `7aa2382aace483b01a731d12a88a860de5cd9fd724297ed74ab349ce0c0f46ba` |
+| Server                        | `75037a4816abc8f07f41f12dfac29c80a99101f54a8bb40db0bb7c8b385944f3` |
+| Assets                        | `9b2fed7fa7376f88c0357719928e92e38b63450232aaf0176be7d3eef5c82f80` |
 
-| Final reworked source | SHA256 |
-|---|---|
-|Program.cs|`77867f51bbf8852995b417a3fed55b9372696d6f89fc973a90ccfee8b729db18`|
-|CatalogMembershipChecks.cs|`15e9a24d31e4f4f53ae4a2ed9853b83fa362ea532ed07a324d544e443c5bc50a`|
+| Final reworked source      | SHA256                                                             |
+| -------------------------- | ------------------------------------------------------------------ |
+| Program.cs                 | `77867f51bbf8852995b417a3fed55b9372696d6f89fc973a90ccfee8b729db18` |
+| CatalogMembershipChecks.cs | `15e9a24d31e4f4f53ae4a2ed9853b83fa362ea532ed07a324d544e443c5bc50a` |
 
 These final source and loaded-assembly hashes match current/preserved rework bytes; earlier table hashes label only the original revision. No C# changes followed this run. No baseline/other probe/RuntimeChecks/Maker/native suite ran. Fresh independent reproduction/CI/approval remains required.
 

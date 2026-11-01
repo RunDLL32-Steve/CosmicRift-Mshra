@@ -1,5 +1,13 @@
 {
-  "deposits": [{ "asteroidId": "rock", "resourceItemId": "fixture-ore", "quantity": 7 }],
-  "equipment": { "id": "fixture-miner", "compatibleItemIds": ["fixture-ore"], "range": 4,
-    "cycleTicks": 3, "unitsPerCycle": 2, "dropRadius": 1 }
+    "deposits": [
+        { "asteroidId": "rock", "resourceItemId": "fixture-ore", "quantity": 7 }
+    ],
+    "equipment": {
+        "id": "fixture-miner",
+        "compatibleItemIds": ["fixture-ore"],
+        "range": 4,
+        "cycleTicks": 3,
+        "unitsPerCycle": 2,
+        "dropRadius": 1
+    }
 }

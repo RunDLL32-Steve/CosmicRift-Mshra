@@ -10,6 +10,6 @@ Evidence: M0/M1 placement, collision and target acceptance in the historical uni
 
 ## Next and parity boundary
 
-- [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture; validate unchanged full original LVL delivery, native world/collision and LIO interactions through the canonical queue.
+-   [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture; validate unchanged full original LVL delivery, native world/collision and LIO interactions through the canonical queue.
 
 No new tuning is needed for the current engineering fixture. It is not canonical original content and does not complete any original per-record gameplay feature. The unchanged originals, source identities, current stage and feature-specific next steps belong in the canonical plan above; completed acceptance belongs in [CHANGELOG.md](../../CHANGELOG.md) and the master audit.

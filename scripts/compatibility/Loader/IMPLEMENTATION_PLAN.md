@@ -12,8 +12,8 @@ RT-F385 derived VehicleMaker regression is **Complete**: eight values 0→1, all
 
 ## Next and parity
 
-- [ ] **Investigating:** version-specific unknown fields, sentinels, scale/evaluator semantics and sequential VEH consumption; accepted record load is narrower than exact behavior.
-- [ ] **Not started — RT-F387:** actual native packet/download/receiver acceptance; structured parser exports are not replacement native payloads.
-- [ ] **Not started:** original flight/combat/economy parity remains with runtime/domain plans.
+-   [ ] **Investigating:** version-specific unknown fields, sentinels, scale/evaluator semantics and sequential VEH consumption; accepted record load is narrower than exact behavior.
+-   [ ] **Not started — RT-F387:** actual native packet/download/receiver acceptance; structured parser exports are not replacement native payloads.
+-   [ ] **Not started:** original flight/combat/economy parity remains with runtime/domain plans.
 
 Run from repository root only when a completed parser change requires checking: `./scripts/compatibility/run-data-loader.ps1 -Build`. This builds and executes a bounded hidden helper, writes captured logs/reports and verifies unchanged originals. No server sockets, native UI or world simulation are needed. Preserve separate report directories for future derived regressions.

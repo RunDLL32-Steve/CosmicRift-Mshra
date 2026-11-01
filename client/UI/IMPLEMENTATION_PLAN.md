@@ -12,9 +12,9 @@ Evidence: [source input record](../../artifacts/qa/original-input-source-record.
 
 ## Active outstanding work
 
-- [ ] **Investigating — RT-F025/RT-F026:** native HUD/store/selection artwork layout, original keyboard modifiers/actions and actual resolution behavior. Rendering archived UI pixels in an inspector does not integrate original UI.
-- [ ] **Investigating — RT-F023/RT-F074/RT-F075:** native color/shadow/blit/state choices before exact appearance acceptance.
-- [ ] **Not started — M2 interfaces through the selected engine:** actual original cargo, refinery/trading, repairs, upgrades and progression.
-- [ ] **Not started — M3/M6 acceptance:** verified native connection/game entry, supported resolutions/UI scaling/accessibility where required by the master.
+-   [ ] **Investigating — RT-F025/RT-F026:** native HUD/store/selection artwork layout, original keyboard modifiers/actions and actual resolution behavior. Rendering archived UI pixels in an inspector does not integrate original UI.
+-   [ ] **Investigating — RT-F023/RT-F074/RT-F075:** native color/shadow/blit/state choices before exact appearance acceptance.
+-   [ ] **Not started — M2 interfaces through the selected engine:** actual original cargo, refinery/trading, repairs, upgrades and progression.
+-   [ ] **Not started — M3/M6 acceptance:** verified native connection/game entry, supported resolutions/UI scaling/accessibility where required by the master.
 
 Presentation widgets do not own gameplay transactions/state. Preserve original categories, names and pixels; optional modern interfaces follow exact reproduction. Completed viewer navigation is history, not an active task.

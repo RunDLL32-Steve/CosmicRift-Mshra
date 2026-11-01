@@ -10,6 +10,6 @@ Evidence: M0/M1 firing/collision/energy/cooldown/attribution acceptance in the h
 
 ## Next and parity boundary
 
-- [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture while native compatibility is evaluated; validate original weapon/child/ammo chains through the canonical queue.
+-   [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture while native compatibility is evaluated; validate original weapon/child/ammo chains through the canonical queue.
 
 No new tuning is needed for the current engineering fixture. It is not canonical original content and does not complete any original per-record gameplay feature. The unchanged originals, source identities, current stage and feature-specific next steps belong in the canonical plan above; completed acceptance belongs in [CHANGELOG.md](../../CHANGELOG.md) and the master audit.

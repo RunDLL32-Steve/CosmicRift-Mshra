@@ -8,16 +8,16 @@ The user's later steering sets the destination as a **100% Rogue Trader reproduc
 
 ## Historical and new design choices
 
-| Decision | Evidence boundary | Why it belongs in the first slice |
-|---|---|---|
-| Independent orientation and velocity | COMMUNITY-inspired momentum behavior; exact integrator NEW | Turning should not redirect drift; flight feel is the critical system. |
-| Forward/reverse thrust | Generic controls VERIFIED, equal reverse capability COMMUNITY | Allows braking, retreat and lateral combat. |
-| Ship velocity inheritance | VERIFIED qualitative cannon/bomb distinction in preserved RT help; weighting/boolean prototype NEW | Preserves the proposed movement/combat relationship and makes it testable. |
-| One Interceptor | NEW ship | Minimizes art/content work while the pilot loop becomes runnable. |
-| Plasma projectile and target | NEW baseline/damage tuning | Gives collision and destruction a visible, reproducible outcome. |
-| Circular asteroid boundaries | COMMUNITY navigation inspiration; geometry/response NEW | Creates maneuvering constraints and validates collision stability. |
-| Hull/shield and debug HUD | Broad shield protection VERIFIED in RT help; overflow/tuning/UI representation NEW | Exposes damage, speed and controls for tuning. |
-| Modern bindings | NEW preset from master §5.4 | Familiar defaults; original RT bindings/modifiers remain the mandatory unfinished fidelity target (RT-F026). |
+| Decision                             | Evidence boundary                                                                                  | Why it belongs in the first slice                                                                            |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Independent orientation and velocity | COMMUNITY-inspired momentum behavior; exact integrator NEW                                         | Turning should not redirect drift; flight feel is the critical system.                                       |
+| Forward/reverse thrust               | Generic controls VERIFIED, equal reverse capability COMMUNITY                                      | Allows braking, retreat and lateral combat.                                                                  |
+| Ship velocity inheritance            | VERIFIED qualitative cannon/bomb distinction in preserved RT help; weighting/boolean prototype NEW | Preserves the proposed movement/combat relationship and makes it testable.                                   |
+| One Interceptor                      | NEW ship                                                                                           | Minimizes art/content work while the pilot loop becomes runnable.                                            |
+| Plasma projectile and target         | NEW baseline/damage tuning                                                                         | Gives collision and destruction a visible, reproducible outcome.                                             |
+| Circular asteroid boundaries         | COMMUNITY navigation inspiration; geometry/response NEW                                            | Creates maneuvering constraints and validates collision stability.                                           |
+| Hull/shield and debug HUD            | Broad shield protection VERIFIED in RT help; overflow/tuning/UI representation NEW                 | Exposes damage, speed and controls for tuning.                                                               |
+| Modern bindings                      | NEW preset from master §5.4                                                                        | Familiar defaults; original RT bindings/modifiers remain the mandatory unfinished fidelity target (RT-F026). |
 
 The [historical matrix](../original-research/MECHANICS.md) is the source of historical classifications; the [balance ledger](../balance/PROVISIONAL_VALUES.md) is the source of numeric classifications. Other modern remakes are comparative references only.
 
@@ -33,16 +33,16 @@ A build recipe is not a runnable-build observation. A successful managed compila
 
 ## M1 playtest script
 
-| Action | Observable pass condition | Master mapping |
-|---|---|---|
-| Start the exported Windows executable | Ship and sector visible, inputs responsive, no development editor needed | M1 launchable client / acceptance |
-| Accelerate then release thrust | Ship continues drifting; HUD shows persistent speed | M1 forward/momentum; §5.5 |
-| Rotate during drift | Heading changes while travel direction remains unchanged in free space | M1 rotation; §20.1 |
-| Reverse thrust | Ship brakes/changes velocity opposite its facing direction | M1 reverse; §5.5 |
-| Turn and fire during lateral drift | Projectiles travel according to configured inheritance | M1 firing; §7.2 |
-| Move through a gap and hit an asteroid | Passage possible and collision resolves without trapping/jitter | M1 asteroids/collisions; §5.5 |
-| Fire repeatedly at a target | Shield depletes before hull under NEW prototype rules; target is destroyed | M1 collisions/damage/combat |
-| Compare automated outputs | Fixed-step inputs reproduce the expected state within documented tolerance | M1 movement/combat tests; §20.1 |
+| Action                                 | Observable pass condition                                                  | Master mapping                    |
+| -------------------------------------- | -------------------------------------------------------------------------- | --------------------------------- |
+| Start the exported Windows executable  | Ship and sector visible, inputs responsive, no development editor needed   | M1 launchable client / acceptance |
+| Accelerate then release thrust         | Ship continues drifting; HUD shows persistent speed                        | M1 forward/momentum; §5.5         |
+| Rotate during drift                    | Heading changes while travel direction remains unchanged in free space     | M1 rotation; §20.1                |
+| Reverse thrust                         | Ship brakes/changes velocity opposite its facing direction                 | M1 reverse; §5.5                  |
+| Turn and fire during lateral drift     | Projectiles travel according to configured inheritance                     | M1 firing; §7.2                   |
+| Move through a gap and hit an asteroid | Passage possible and collision resolves without trapping/jitter            | M1 asteroids/collisions; §5.5     |
+| Fire repeatedly at a target            | Shield depletes before hull under NEW prototype rules; target is destroyed | M1 collisions/damage/combat       |
+| Compare automated outputs              | Fixed-step inputs reproduce the expected state within documented tolerance | M1 movement/combat tests; §20.1   |
 
 ## Current source integration — October 17, 2026
 
@@ -55,7 +55,6 @@ M2 targets the original resource generation/pickup → cargo → station sale/re
 The preserved RT catalog directly identifies Krandazite, Tellerium, Iron Ore and Wreckage, original hulls, and equipment definitions. Master §1.2 prioritizes these originals over NEW placeholder content and keeps new expansions after historical parity. The canonical snapshot is selected; validate units/sentinels and contradictory dated behavior before applying archived tuning. Decode/map originals into separate derived rendering data without altering source files, and validate full asset/UI/map parity. Record exact-file rights/notices as release provenance.
 
 Prototype geometric artwork remains a NEW engineering fixture. Local original-content inspection uses separately derived resources with canonical provenance; exact-file licenses/notices and release redistribution status remain part of the release gate. Original source bytes are never changed.
-
 
 ## Current original-content checkpoint
 

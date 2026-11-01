@@ -1,0 +1,17 @@
+# Canonical originals and derived/generated content must never be reformatted.
+data/original/
+client/OriginalContent/
+client/GameData/
+docs/original-research/ASSET_MANIFEST.json
+docs/original-research/SOURCE_MANIFEST.json
+toolchain.lock.json
+global.json
+.tools/
+artifacts/
+node_modules/
+**/bin/
+**/obj/
+**/.godot/
+package-lock.json
+# Token cannot push workflow files; owner formats these.
+.github/workflows/

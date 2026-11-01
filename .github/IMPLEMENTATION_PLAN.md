@@ -8,8 +8,8 @@ Reviewed October 13, 2026. Master: [M0 automated workflow](../ROGUE_TRADER_2_PLA
 
 ## Active outstanding work
 
-- [ ] **Not started:** hosted workflow proof once a remote exists and the definition is pushed.
-- [ ] **Not started:** focused original importer/viewer/native compatibility coverage as appropriate; current build.yml invokes the default prototype verification/export modes.
-- [ ] **Investigating:** adjust CI scope to avoid baseline gameplay simulations for documentation-only or asset-only changes, while preserving required completed-feature acceptance.
+-   [ ] **Not started:** hosted workflow proof once a remote exists and the definition is pushed.
+-   [ ] **Not started:** focused original importer/viewer/native compatibility coverage as appropriate; current build.yml invokes the default prototype verification/export modes.
+-   [ ] **Investigating:** adjust CI scope to avoid baseline gameplay simulations for documentation-only or asset-only changes, while preserving required completed-feature acceptance.
 
 Original sources remain unchanged and local canonical/native content rights are not inferred from repository access. No CI/build/test/simulation was run for this documentation review.

@@ -14,19 +14,19 @@ The user has designated this repository as the **correct canonical foundation** 
 
 ## Provenance, formats and access
 
-| Item | Observed result |
-|---|---|
-| Pinned commit | [eb1514eaae7f9b9425307d9cc043c74ecdd15e35](https://github.com/fowlmouth/cosmic-rift-assets/tree/eb1514eaae7f9b9425307d9cc043c74ecdd15e35), November 9, 2023, 17:20:19 UTC |
-| Branch | `main`; commit, not the moving branch, is the research reference |
-| Tree access | Complete recursive GitHub tree read; `truncated=false` |
-| Inventory | 327 files: 89 BLO, 53 BMP, 58 LVL, 31 CFG, 12 ITM, 36 LIO, 19 NWS, 12 RPG, 16 VEH, plus `.gitattributes` |
-| README / notices | No README, LICENSE, COPYING or NOTICE path found anywhere in the inspected complete tree |
-| GitHub license metadata | `null`; no positive redistribution grant established |
-| LFS configuration | [.gitattributes][attributes] explicitly applies Git LFS to `*.blo`, `*.lvl`, `*.bmp` |
-| Standard sprite images | No PNG, SVG or JPG files in the tree |
-| BMP images | `LVL-BMP/` contains map-preview candidates; [Rogue.bmp][rogue-bmp] points to an 11,988,054-byte payload now retrieved and viewed by the lead agent; collision/object semantics are not decoded from the image |
-| Binary access | Selected pointer texts read; four overlapping InfantryOnline payloads streamed in memory solely for SHA-256 comparison. Lead agent later fetched all 89 BLO payloads plus the RT LVL/LIO/BMP in the pinned working reference checkout; source Git status remained clean. Current selected11 BLO batch is decoded/visually inspected; all89 archive directories are inventoried. Native appearance and full runtime closure remain open. |
-| Working reference | `.tools/references/cosmic-rift-assets`, pinned at the recorded commit; originals unchanged and kept separately from the prototype's bundled assets |
+| Item                    | Observed result                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pinned commit           | [eb1514eaae7f9b9425307d9cc043c74ecdd15e35](https://github.com/fowlmouth/cosmic-rift-assets/tree/eb1514eaae7f9b9425307d9cc043c74ecdd15e35), November 9, 2023, 17:20:19 UTC                                                                                                                                                                                                                                                               |
+| Branch                  | `main`; commit, not the moving branch, is the research reference                                                                                                                                                                                                                                                                                                                                                                        |
+| Tree access             | Complete recursive GitHub tree read; `truncated=false`                                                                                                                                                                                                                                                                                                                                                                                  |
+| Inventory               | 327 files: 89 BLO, 53 BMP, 58 LVL, 31 CFG, 12 ITM, 36 LIO, 19 NWS, 12 RPG, 16 VEH, plus `.gitattributes`                                                                                                                                                                                                                                                                                                                                |
+| README / notices        | No README, LICENSE, COPYING or NOTICE path found anywhere in the inspected complete tree                                                                                                                                                                                                                                                                                                                                                |
+| GitHub license metadata | `null`; no positive redistribution grant established                                                                                                                                                                                                                                                                                                                                                                                    |
+| LFS configuration       | [.gitattributes][attributes] explicitly applies Git LFS to `*.blo`, `*.lvl`, `*.bmp`                                                                                                                                                                                                                                                                                                                                                    |
+| Standard sprite images  | No PNG, SVG or JPG files in the tree                                                                                                                                                                                                                                                                                                                                                                                                    |
+| BMP images              | `LVL-BMP/` contains map-preview candidates; [Rogue.bmp][rogue-bmp] points to an 11,988,054-byte payload now retrieved and viewed by the lead agent; collision/object semantics are not decoded from the image                                                                                                                                                                                                                           |
+| Binary access           | Selected pointer texts read; four overlapping InfantryOnline payloads streamed in memory solely for SHA-256 comparison. Lead agent later fetched all 89 BLO payloads plus the RT LVL/LIO/BMP in the pinned working reference checkout; source Git status remained clean. Current selected11 BLO batch is decoded/visually inspected; all89 archive directories are inventoried. Native appearance and full runtime closure remain open. |
+| Working reference       | `.tools/references/cosmic-rift-assets`, pinned at the recorded commit; originals unchanged and kept separately from the prototype's bundled assets                                                                                                                                                                                                                                                                                      |
 
 Raw Git URLs for these LFS-tracked assets return short pointer files. A checkout without LFS payload resolution is not an asset pack. BLO files require a format decoder/record extractor before they become Godot textures or audio. The RT BMP payload is now retrieved and viewed; it is a standard map image, and does not supply gameplay collision/object data by itself.
 
@@ -34,14 +34,14 @@ Raw Git URLs for these LFS-tracked assets return short pointer files. A checkout
 
 The following text files were read from both repositories in memory and compared after replacing CRLF with LF and removing any leading byte-order mark. All six comparisons matched exactly. The differing Git blob hashes/sizes in these text copies reflect newline encoding; they do not establish a gameplay revision difference.
 
-| This archive | InfantryOnline counterpart at commit `401633b9…` | Comparison result |
-|---|---|---|
-| [CFG/rogue.cfg][rogue-cfg] | `Incompatible Zone Archives/SilentClientCrash/rogue/rogue.cfg` | Equal after newline normalization |
-| [NWS/Rogue.nws][rogue-news] | Same RT folder / `Rogue.nws` | Equal after newline normalization |
-| [RPG/Rogue.rpg][rogue-rpg] | Same RT folder / `Rogue.rpg` | Equal after newline normalization |
-| [VEH/Rogue.veh][rogue-veh] | Same RT folder / `Rogue.veh` | Equal after newline normalization |
-| [ITM/Rogue_mp.itm][rogue-itm] | Same RT folder / `Rogue_mp.itm` | Equal after newline normalization |
-| [LIO/Rogue.lio][rogue-lio] | Same RT folder / `Rogue.lio` | Equal after newline normalization; object semantics not decoded |
+| This archive                  | InfantryOnline counterpart at commit `401633b9…`               | Comparison result                                               |
+| ----------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| [CFG/rogue.cfg][rogue-cfg]    | `Incompatible Zone Archives/SilentClientCrash/rogue/rogue.cfg` | Equal after newline normalization                               |
+| [NWS/Rogue.nws][rogue-news]   | Same RT folder / `Rogue.nws`                                   | Equal after newline normalization                               |
+| [RPG/Rogue.rpg][rogue-rpg]    | Same RT folder / `Rogue.rpg`                                   | Equal after newline normalization                               |
+| [VEH/Rogue.veh][rogue-veh]    | Same RT folder / `Rogue.veh`                                   | Equal after newline normalization                               |
+| [ITM/Rogue_mp.itm][rogue-itm] | Same RT folder / `Rogue_mp.itm`                                | Equal after newline normalization                               |
+| [LIO/Rogue.lio][rogue-lio]    | Same RT folder / `Rogue.lio`                                   | Equal after newline normalization; object semantics not decoded |
 
 [ITM/Rogue.itm][rogue-alternative-itm] is also present. It is a separate candidate whose differences from `Rogue_mp.itm` have not yet been analyzed. Do not silently substitute it for the item file selected by `CFG/rogue.cfg`.
 
@@ -51,12 +51,12 @@ The recovered mechanics and raw field values in [INFANTRYONLINE.md](INFANTRYONLI
 
 The Git LFS `oid sha256` in each fowlmouth pointer was compared with SHA-256 computed from the corresponding InfantryOnline binary stream. All four checks matched; that comparison saved or imported no binaries. The lead agent's subsequent pinned working-reference fetch is recorded separately above.
 
-| fowlmouth path | InfantryOnline path | SHA-256 / LFS OID | Result |
-|---|---|---|---|
-| [BLO/rogueships.blo][ships] | `Orphaned Archive Files/blo/rogueships.blo` | `9dae17f9e2e989992579f3048081a03311509424b5a4e7273fb639d53a76c6be` | Identical payload; 3,974,968 bytes |
-| [BLO/rogueweapons.blo][weapons] | `Orphaned Archive Files/blo/RogueWeapons.blo` | `b84037b07cf40d9ae1a30dd11ab195423ca6845811a36bcb2cecee34bdb29fd7` | Identical payload; 877,991 bytes |
-| [BLO/cruiart.blo][ui] | `Orphaned Archive Files/blo/cruiart.blo` | `eaefbbbbc065a38811ae1431b734099dce414f9e69a18dbd8d5063a75cf4179e` | Identical payload; 686,200 bytes |
-| [LVL/Rogue.lvl][rogue-level] | `Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lvl` | `7034476858b86e9b11a41eaaa0d636003eb432a4b682e45d264def8b425cf02f` | Identical payload; 1,290,994 bytes |
+| fowlmouth path                  | InfantryOnline path                                            | SHA-256 / LFS OID                                                  | Result                             |
+| ------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------- |
+| [BLO/rogueships.blo][ships]     | `Orphaned Archive Files/blo/rogueships.blo`                    | `9dae17f9e2e989992579f3048081a03311509424b5a4e7273fb639d53a76c6be` | Identical payload; 3,974,968 bytes |
+| [BLO/rogueweapons.blo][weapons] | `Orphaned Archive Files/blo/RogueWeapons.blo`                  | `b84037b07cf40d9ae1a30dd11ab195423ca6845811a36bcb2cecee34bdb29fd7` | Identical payload; 877,991 bytes   |
+| [BLO/cruiart.blo][ui]           | `Orphaned Archive Files/blo/cruiart.blo`                       | `eaefbbbbc065a38811ae1431b734099dce414f9e69a18dbd8d5063a75cf4179e` | Identical payload; 686,200 bytes   |
+| [LVL/Rogue.lvl][rogue-level]    | `Incompatible Zone Archives/SilentClientCrash/rogue/Rogue.lvl` | `7034476858b86e9b11a41eaaa0d636003eb432a4b682e45d264def8b425cf02f` | Identical payload; 1,290,994 bytes |
 
 The [research inventory](SOURCE_MANIFEST.json) preserves the earlier exact commit paths/Git blob identities; the [canonical manifest](ASSET_MANIFEST.json) adds raw text-byte hashes and LFS payload identities. Git blob SHA-1 of an LFS pointer is not the SHA-256 identity of its payload. The canonical source snapshot has been chosen; operating units, sentinels and historical version semantics still require validation.
 
@@ -78,11 +78,11 @@ No inspected file establishes a blanket original-art/audio/map redistribution gr
 
 Canonical selection, pinned provenance, six text/four binary comparisons, original payload acquisition, BMP inspection, selected importer/staging/source/standalone display, full directory inventory and bounded package/arena audits are complete within the scopes linked above. Source hashes remain unchanged. The reference is available locally; completed availability/decoding tasks are removed from active work.
 
-- [ ] **Investigating — RT-F069/F377–F379:** remaining raw/runtime reference eligibility, native audio/effects and actual delivery.
-- [ ] **Investigating — RT-F021/F022/F387:** full raw LVL native delivery, graphical trailer, world/grid/collision and object meaning; parsed tile layers/222 map links are already audited.
-- [ ] **Investigating — RT-F023–F026/F074/F075:** original native appearance, pose, control/HUD/menu semantics.
-- [ ] **Not started — canonical per-record queues:** validate original ship/item/actor/resource interactions and durable progression through the native engine route.
-- [ ] **Investigating — release provenance:** exact-file rights/notices and optional alternative Rogue.itm revision evidence; keep Rogue_mp.itm selected by canonical CFG unchanged.
+-   [ ] **Investigating — RT-F069/F377–F379:** remaining raw/runtime reference eligibility, native audio/effects and actual delivery.
+-   [ ] **Investigating — RT-F021/F022/F387:** full raw LVL native delivery, graphical trailer, world/grid/collision and object meaning; parsed tile layers/222 map links are already audited.
+-   [ ] **Investigating — RT-F023–F026/F074/F075:** original native appearance, pose, control/HUD/menu semantics.
+-   [ ] **Not started — canonical per-record queues:** validate original ship/item/actor/resource interactions and durable progression through the native engine route.
+-   [ ] **Investigating — release provenance:** exact-file rights/notices and optional alternative Rogue.itm revision evidence; keep Rogue_mp.itm selected by canonical CFG unchanged.
 
 [attributes]: https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/.gitattributes
 [rogue-cfg]: https://github.com/fowlmouth/cosmic-rift-assets/blob/eb1514eaae7f9b9425307d9cc043c74ecdd15e35/CFG/rogue.cfg

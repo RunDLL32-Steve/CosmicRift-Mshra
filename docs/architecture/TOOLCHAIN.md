@@ -2,14 +2,14 @@
 
 Master reference: [§§13.1, 17, 18 Milestone 0, 25](../../ROGUE_TRADER_2_PLAN.md). Progress: [development checklist](../development-log/PROGRESS.md).
 
-| Component | Frozen version | Rationale |
-|---|---|---|
+| Component                             | Frozen version    | Rationale                                           |
+| ------------------------------------- | ----------------- | --------------------------------------------------- |
 | Godot .NET editor + Windows templates | 4.5.1 stable, x64 | Version-matched engine, Godot.NET.Sdk and templates |
-| .NET SDK | 8.0.419 | Compatible C# 12 SDK for Godot 4.5's .NET 8 support |
-| Client, data, simulation, tests | net8.0 | Shared runtime/API baseline |
-| xUnit | 2.9.3 | Critical simulation test runner |
-| xUnit VS runner | 2.8.2 | `dotnet test` integration |
-| Microsoft.NET.Test.Sdk | 17.12.0 | Test host |
+| .NET SDK                              | 8.0.419           | Compatible C# 12 SDK for Godot 4.5's .NET 8 support |
+| Client, data, simulation, tests       | net8.0            | Shared runtime/API baseline                         |
+| xUnit                                 | 2.9.3             | Critical simulation test runner                     |
+| xUnit VS runner                       | 2.8.2             | `dotnet test` integration                           |
+| Microsoft.NET.Test.Sdk                | 17.12.0           | Test host                                           |
 
 Official sources: [Godot 4.5 C# prerequisites](https://docs.godotengine.org/en/4.5/tutorials/scripting/c_sharp/c_sharp_basics.html), [4.5.1 download archive](https://godotengine.org/download/archive/4.5.1-stable/), [Microsoft .NET 8 releases](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), [release metadata with checksums](https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json), [Godot binary release and digests](https://github.com/godotengine/godot-builds/releases/tag/4.5.1-stable).
 
