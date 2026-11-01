@@ -1,5 +1,9 @@
 # Changelog
 
+## Target respawn timer runs while docked or paused — November 1, 2026
+
+-   The one-minute target respawn countdown now keeps running while the player is docked, paused or in the inspector (`WorldSimulation.ElapseWithoutTicking`), as Steve asked. Nothing else in the world moves while it is not ticking.
+
 ## Practice target respawn — November 1, 2026
 
 -   Once all three practice targets are destroyed, the group respawns after one minute (`targetRespawnSeconds` in the sector file, NEW) and each new wave pays its kill rewards once. A sector reset no longer brings destroyed targets back or re-arms their rewards; relaunching still starts a fresh group. The HUD counts down to the next group. [Client entry](client/UI/plan.d/m9.md), [reward data](data/rewards/IMPLEMENTATION_PLAN.md). Counts unchanged.

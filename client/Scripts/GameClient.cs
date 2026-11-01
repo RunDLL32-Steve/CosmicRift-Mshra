@@ -140,7 +140,12 @@ public partial class GameClient : Node2D
         if (!_initialized) return;
         try
         {
-            if (_inspectionVisible || _stationVisible) { _view.InputState = default; return; }
+            if (_inspectionVisible || _stationVisible)
+            {
+                _view.InputState = default;
+                _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while docked or inspecting
+                return;
+            }
             if (_smokeTest is not null)
             {
                 // Acceptance mode accelerates elapsed wall time while retaining identical 60 Hz ticks.
@@ -161,7 +166,11 @@ public partial class GameClient : Node2D
                 CommitKills();
                 if (_world.TickNumber - _lastShipSaveTick >= ShipSaveIntervalTicks) SaveShip();
             }
-            else _view.InputState = default;
+            else
+            {
+                _view.InputState = default;
+                _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while paused
+            }
         }
         catch (Exception exception)
         {
