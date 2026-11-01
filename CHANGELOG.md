@@ -1,5 +1,9 @@
 # Changelog
 
+## Practice target respawn — November 1, 2026
+
+-   Once all three practice targets are destroyed, the group respawns after one minute (`targetRespawnSeconds` in the sector file, NEW) and each new wave pays its kill rewards once. A sector reset no longer brings destroyed targets back or re-arms their rewards; relaunching still starts a fresh group. The HUD counts down to the next group. [Client entry](client/UI/plan.d/m9.md), [reward data](data/rewards/IMPLEMENTATION_PLAN.md). Counts unchanged.
+
 ## First playable progression loop — November 1, 2026
 
 -   Queues M7 (kill-reward slice) and M9: destroying a practice target pays the raw rogue.cfg `[Cash] KillReward` of 75 credits once, through the idempotent transaction core with a stable per-sector-instance transaction id, and the HUD shows it. Paying it flat per kill, the practice targets and their respawn on reset/relaunch are NEW and listed in [data/rewards](data/rewards/IMPLEMENTATION_PLAN.md). A new [integration suite](tests/Integration/IMPLEMENTATION_PLAN.md) plays the loop (kill, pickup, trade, upgrade, repair), exits and relaunches from the save folder, and checks exact progression, duplicate kills, lost acknowledgements, refused saves, interrupted and corrupt saves. Reloading the profile now reports cargo it discarded because it was never saved (M8 review follow-up). [Client entry](client/UI/plan.d/m9.md). Engineering persistence acceptance only; RT-F051/F068 and master M2 boxes stay open; counts unchanged.

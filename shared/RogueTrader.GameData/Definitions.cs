@@ -56,6 +56,11 @@ public sealed record SectorDefinition
     public SpawnDefinition PlayerSpawn { get; init; } = new();
     public IReadOnlyList<TargetDefinition> Targets { get; init; } = [];
     public IReadOnlyList<AsteroidDefinition> Asteroids { get; init; } = [];
+    /// <summary>
+    /// Seconds after the last target of the group is destroyed before the whole group respawns at its starting positions;
+    /// 0 (the default) means targets never respawn. NEW/provisional practice-range rule.
+    /// </summary>
+    public float TargetRespawnSeconds { get; init; }
 }
 
 public sealed record SpawnDefinition

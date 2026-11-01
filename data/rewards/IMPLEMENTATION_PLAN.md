@@ -15,7 +15,7 @@ Authority: [master §18 Milestone 2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--r
 ## NEW/provisional (listed in the file's `newRules`)
 
 -   The raw value is paid as a flat credit amount per destroyed target. The units and formula of `[Cash]` (ShareRadius 0, SharePercent 0, PercentOfKiller 100, PercentOfTarget 1000) and `[Bounty]` are undecoded and not applied.
--   The three sector targets are NEW practice targets, not original NPCs. Each pays once per sector instance; targets come back on a sector reset or relaunch.
+-   The three sector targets are NEW practice targets, not original NPCs. Each pays once per respawn wave (transaction id `kill-<sector instance>-<wave>-<target>`). Once the whole group is destroyed it respawns at its starting positions after `targetRespawnSeconds` in `data/sectors/first_contact.json` (60 s, NEW, chosen by Steve on November 1, 2026). A sector reset keeps destroyed targets down and the timer running; a relaunch starts a fresh group (target state is not saved).
 -   A kill drops nothing.
 
 ## Open

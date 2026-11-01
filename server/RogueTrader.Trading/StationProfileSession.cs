@@ -154,14 +154,16 @@ public sealed class StationProfileSession
     }
 
     /// <summary>
-    /// Stable transaction id for one kill: the same sector instance and target always give the same id, so a retried or
-    /// replayed grant is recognised as a duplicate by the transaction core (persisted with the profile) and paid once.
+    /// Stable transaction id for one kill: the same sector instance, target wave and target always give the same id, so a
+    /// retried or replayed grant is recognised as a duplicate by the transaction core (persisted with the profile) and paid
+    /// once, while the same target in a later respawn wave is a new kill.
     /// </summary>
-    public static string KillTransactionId(string sectorInstanceId, string targetId)
+    public static string KillTransactionId(string sectorInstanceId, int wave, string targetId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
         ArgumentException.ThrowIfNullOrEmpty(targetId);
-        var id = $"kill-{sectorInstanceId}-{targetId}";
+        ArgumentOutOfRangeException.ThrowIfNegative(wave);
+        var id = $"kill-{sectorInstanceId}-{wave}-{targetId}";
         return id.Length <= ProfileInvariants.MaxTransactionIdLength
             ? id
             : "kill-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
@@ -180,7 +182,7 @@ public sealed class StationProfileSession
         return GrantAsync();
 
         async Task<TransactionResult?> GrantAsync() => await _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
-            new GrantRewardRequest(KillTransactionId(sectorInstanceId, kill.TargetId), profileId, $"kill:{kill.TargetId}", KillReward.Credits,
+            new GrantRewardRequest(KillTransactionId(sectorInstanceId, kill.Wave, kill.TargetId), profileId, $"kill:{kill.TargetId}", KillReward.Credits,
                 new Dictionary<string, int>()), ct).ConfigureAwait(false);
     }
 
