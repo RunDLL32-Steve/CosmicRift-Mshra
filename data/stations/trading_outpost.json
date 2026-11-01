@@ -1,0 +1,857 @@
+{
+  "stationId": "trading_outpost",
+  "name": "Trading Outpost",
+  "evidenceClassification": "ORIGINAL+NEW",
+  "source": "Derived by OriginalStationBuilder from pinned ITM/Rogue_mp.itm and VEH/Rogue.veh (VEH id 404); regenerate, never hand-edit.",
+  "newValues": [
+    "Position (90, 20), dock radius 150 world units.",
+    "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
+    "Hold capacity 4,000,000 raw ITM mass units.",
+    "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
+    "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
+    "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
+    "Collectible piles: placement and quantities."
+  ],
+  "x": 90,
+  "y": 20,
+  "dockRadius": 150,
+  "startingWallet": 0,
+  "cargoCapacity": 4000000,
+  "goods": [
+    {
+      "id": "2003",
+      "name": "Tellerium",
+      "unitWeight": 50000
+    },
+    {
+      "id": "2004",
+      "name": "Refined Tellerium",
+      "unitWeight": 25000
+    },
+    {
+      "id": "2005",
+      "name": "Krandazite",
+      "unitWeight": 100000
+    },
+    {
+      "id": "2006",
+      "name": "Refined Krandazite",
+      "unitWeight": 50000
+    },
+    {
+      "id": "2008",
+      "name": "Wreckage",
+      "unitWeight": 200000
+    },
+    {
+      "id": "2019",
+      "name": "Iron Ore",
+      "unitWeight": 100000
+    },
+    {
+      "id": "2020",
+      "name": "Alloy",
+      "unitWeight": 75000
+    }
+  ],
+  "trades": [
+    {
+      "id": "trade_tellerium",
+      "name": "Trade Tellerium",
+      "inputItemId": "2004",
+      "creditItemId": "18",
+      "creditName": "Tellerium Credits",
+      "creditsPerUnit": 55,
+      "rawField4": 150
+    },
+    {
+      "id": "trade_krandazite",
+      "name": "Trade Krandazite",
+      "inputItemId": "2006",
+      "creditItemId": "17",
+      "creditName": "Krandazite Credits",
+      "creditsPerUnit": 80,
+      "rawField4": 150
+    },
+    {
+      "id": "trade_wreckage",
+      "name": "Trade Wreckage",
+      "inputItemId": "2008",
+      "creditItemId": "19",
+      "creditName": "Scrap Credits",
+      "creditsPerUnit": 300,
+      "rawField4": 0
+    },
+    {
+      "id": "trade_alloy",
+      "name": "Trade Alloy",
+      "inputItemId": "2020",
+      "creditItemId": "44",
+      "creditName": "Alloy Credits",
+      "creditsPerUnit": 20,
+      "rawField4": 0
+    }
+  ],
+  "repairs": [
+    {
+      "id": "39",
+      "name": "Minor Repair",
+      "price": 50,
+      "hullPoints": 5,
+      "source": "ITM id 39 f[33]=5"
+    },
+    {
+      "id": "40",
+      "name": "Major Repair",
+      "price": 100,
+      "hullPoints": 10,
+      "source": "ITM id 40 f[33]=10"
+    },
+    {
+      "id": "43",
+      "name": "Full Repair",
+      "price": 500,
+      "hullPoints": 50,
+      "source": "ITM id 43 f[33]=50"
+    }
+  ],
+  "upgrades": [
+    {
+      "id": "1",
+      "name": "SuperBoosters",
+      "price": 10000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        80,
+        100,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0.08,
+        "maximumSpeed": 0.1,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "2",
+      "name": "TurboBoosters",
+      "price": 5000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        50,
+        50,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0.05,
+        "maximumSpeed": 0.05,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "3",
+      "name": "HyperBoosters",
+      "price": 12000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        80,
+        150,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0.08,
+        "maximumSpeed": 0.15,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "7",
+      "name": "Turbo Maneuver Thrusters",
+      "price": 5000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.05,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +5/10/15% rotation (raw block is zero)"
+    },
+    {
+      "id": "8",
+      "name": "Super Maneuver Thrusters",
+      "price": 10000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.1,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +5/10/15% rotation (raw block is zero)"
+    },
+    {
+      "id": "9",
+      "name": "Turbo Capacitor",
+      "price": 7500,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0.25,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% maximum energy (raw block is zero)"
+    },
+    {
+      "id": "10",
+      "name": "Super Capacitor",
+      "price": 15000,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0.5,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% maximum energy (raw block is zero)"
+    },
+    {
+      "id": "11",
+      "name": "Turbocharger",
+      "price": 7500,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0.25,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% energy regeneration (raw block is zero)"
+    },
+    {
+      "id": "12",
+      "name": "Supercharger",
+      "price": 15000,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0.5,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% energy regeneration (raw block is zero)"
+    },
+    {
+      "id": "14",
+      "name": "BioResonance Chamber",
+      "price": 15000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        100,
+        185,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0.1,
+        "maximumSpeed": 0.185,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "15",
+      "name": "BioBooster Pod",
+      "price": 10000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        50,
+        135,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0.05,
+        "maximumSpeed": 0.135,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "20",
+      "name": "Advanced Moltor Core",
+      "price": 20000,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0.75,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% energy regeneration (raw block is zero)"
+    },
+    {
+      "id": "21",
+      "name": "Bio Repellor Pods",
+      "price": 15000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.15,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +5/10/15% rotation (raw block is zero)"
+    },
+    {
+      "id": "22",
+      "name": "Hyper Capacitor",
+      "price": 20000,
+      "family": "Power Mods",
+      "heldCategory": 12,
+      "rawModifiers": [
+        0,
+        0,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0.75,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW tier rule: +25/50/75% maximum energy (raw block is zero)"
+    },
+    {
+      "id": "25",
+      "name": "Hyper Jump",
+      "price": 2500,
+      "family": "HyperDrive Systems",
+      "heldCategory": 18,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "2011",
+      "name": "HyperCore",
+      "price": 5000,
+      "family": "HyperDrive Systems",
+      "heldCategory": 0,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "29",
+      "name": "Hyper Beacon System",
+      "price": 3500,
+      "family": "HyperDrive Systems",
+      "heldCategory": 18,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "30",
+      "name": "Controlled Hyper Jump",
+      "price": 5000,
+      "family": "HyperDrive Systems",
+      "heldCategory": 18,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "31",
+      "name": "Hyper Recall",
+      "price": 2500,
+      "family": "HyperDrive Systems",
+      "heldCategory": 18,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "33",
+      "name": "Hyper Gate",
+      "price": 3500,
+      "family": "HyperDrive Systems",
+      "heldCategory": 18,
+      "rawModifiers": [],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "None yet: hyperdrive abilities are not implemented"
+    },
+    {
+      "id": "34",
+      "name": "Turbo Reaction Thrusters",
+      "price": 5000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        50
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.05,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "35",
+      "name": "Super Reaction Thrusters",
+      "price": 10000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        100
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.1,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "36",
+      "name": "Bio Reactor Pods",
+      "price": 15000,
+      "family": "Thruster Mods",
+      "heldCategory": 13,
+      "rawModifiers": [
+        0,
+        0,
+        150
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0,
+        "rotationSpeed": 0.15,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "61",
+      "name": "Turbo AfterBurners",
+      "price": 2500,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        0,
+        75,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0.075,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "62",
+      "name": "Super AfterBurners",
+      "price": 5000,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        0,
+        125,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0.125,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "63",
+      "name": "Hyper AfterBurners",
+      "price": 7500,
+      "family": "Engine Mods",
+      "heldCategory": 14,
+      "rawModifiers": [
+        0,
+        180,
+        0
+      ],
+      "effect": {
+        "forwardThrust": 0,
+        "maximumSpeed": 0.18,
+        "rotationSpeed": 0,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 0
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions"
+    },
+    {
+      "id": "4",
+      "name": "Duraplas Armor",
+      "price": 5000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -75,
+        -75,
+        -20
+      ],
+      "effect": {
+        "forwardThrust": -0.075,
+        "maximumSpeed": -0.075,
+        "rotationSpeed": -0.02,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 25
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "5",
+      "name": "Carbolux Armor",
+      "price": 10000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -100,
+        -100,
+        -25
+      ],
+      "effect": {
+        "forwardThrust": -0.1,
+        "maximumSpeed": -0.1,
+        "rotationSpeed": -0.025,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 50
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "6",
+      "name": "Maxilite Armor",
+      "price": 2000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -50,
+        -50,
+        -15
+      ],
+      "effect": {
+        "forwardThrust": -0.05,
+        "maximumSpeed": -0.05,
+        "rotationSpeed": -0.015,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 10
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "13",
+      "name": "Sillicate Armor",
+      "price": 12000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -60,
+        -50,
+        -25
+      ],
+      "effect": {
+        "forwardThrust": -0.06,
+        "maximumSpeed": -0.05,
+        "rotationSpeed": -0.025,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 60
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "16",
+      "name": "Tiathamate Armor",
+      "price": 15000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -100,
+        -100,
+        -35
+      ],
+      "effect": {
+        "forwardThrust": -0.1,
+        "maximumSpeed": -0.1,
+        "rotationSpeed": -0.035,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 75
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "23",
+      "name": "Bio Carapace",
+      "price": 15000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -100,
+        -100,
+        -25
+      ],
+      "effect": {
+        "forwardThrust": -0.1,
+        "maximumSpeed": -0.1,
+        "rotationSpeed": -0.025,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 75
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "24",
+      "name": "Enhanced Bio Carapace",
+      "price": 20000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -100,
+        -100,
+        -25
+      ],
+      "effect": {
+        "forwardThrust": -0.1,
+        "maximumSpeed": -0.1,
+        "rotationSpeed": -0.025,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 100
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "37",
+      "name": "Ablative Shell",
+      "price": 5000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -75,
+        -75,
+        -20
+      ],
+      "effect": {
+        "forwardThrust": -0.075,
+        "maximumSpeed": -0.075,
+        "rotationSpeed": -0.02,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 25
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    },
+    {
+      "id": "38",
+      "name": "Absorption Shell",
+      "price": 10000,
+      "family": "Hull Armor",
+      "heldCategory": 11,
+      "rawModifiers": [
+        -100,
+        -100,
+        -35
+      ],
+      "effect": {
+        "forwardThrust": -0.1,
+        "maximumSpeed": -0.1,
+        "rotationSpeed": -0.035,
+        "maximumEnergy": 0,
+        "energyRegeneration": 0,
+        "maximumHull": 50
+      },
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+    }
+  ],
+  "collectibles": [
+    {
+      "id": "pile_wreckage_launch",
+      "itemId": "2008",
+      "quantity": 9,
+      "x": 0,
+      "y": -70,
+      "radius": 14
+    },
+    {
+      "id": "pile_alloy_west",
+      "itemId": "2020",
+      "quantity": 12,
+      "x": -170,
+      "y": 20,
+      "radius": 14
+    },
+    {
+      "id": "pile_tellerium_south",
+      "itemId": "2004",
+      "quantity": 6,
+      "x": 40,
+      "y": 160,
+      "radius": 14
+    }
+  ]
+}

@@ -26,6 +26,9 @@ public partial class StationScreen : CanvasLayer
     private VBoxContainer _market = null!;
     private VBoxContainer _repairs = null!;
     private VBoxContainer _upgrades = null!;
+    private TabContainer _tabs = null!;
+
+    public void ShowTab(int index) => _tabs.CurrentTab = Math.Clamp(index, 0, _tabs.GetTabCount() - 1);
 
     public StationScreen(StationDefinition station)
     {
@@ -46,14 +49,14 @@ public partial class StationScreen : CanvasLayer
         root.AddChild(shade);
         var box = FlightHud.Panel();
         box.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center);
-        box.OffsetLeft = -330;
-        box.OffsetRight = 330;
+        box.OffsetLeft = -380;
+        box.OffsetRight = 380;
         box.OffsetTop = -290;
         box.OffsetBottom = 290;
         root.AddChild(box);
         var column = FlightHud.Column(box);
         column.AddChild(FlightHud.Label(_station.Name.ToUpperInvariant(), 26, FlightHud.TextColor));
-        column.AddChild(FlightHud.Label("DOCKED  /  PROVISIONAL STATION SERVICES", 12, FlightHud.Teal));
+        column.AddChild(FlightHud.Label("DOCKED  /  ORIGINAL DATA, PROVISIONAL RULES", 12, FlightHud.Teal));
 
         var header = new HBoxContainer();
         header.AddThemeConstantOverride("separation", 22);
@@ -69,11 +72,11 @@ public partial class StationScreen : CanvasLayer
         column.AddChild(_revision);
         column.AddChild(new HSeparator());
 
-        var tabs = new TabContainer { CustomMinimumSize = new Vector2(0, 330), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        column.AddChild(tabs);
-        _market = Page(tabs, "Market");
-        _repairs = Page(tabs, "Repairs");
-        _upgrades = Page(tabs, "Upgrades");
+        _tabs = new TabContainer { CustomMinimumSize = new Vector2(0, 330), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        column.AddChild(_tabs);
+        _market = Page(_tabs, "Trading Outpost");
+        _repairs = Page(_tabs, "Repairs");
+        _upgrades = Page(_tabs, "Upgrades");
 
         _status = FlightHud.Label("", 14, FlightHud.TextColor);
         _status.Name = "StationStatus";
@@ -92,40 +95,64 @@ public partial class StationScreen : CanvasLayer
         _status.AddThemeColorOverride("font_color", error ? new Color("f4b66b") : FlightHud.TextColor);
     }
 
-    /// <summary>Rebuilds every row from the authoritative profile and the ship's current hull.</summary>
-    public void Refresh(PlayerProfile profile, long cargoWeight, long cargoCapacity, float hull, float maximumHull)
+    /// <summary>Rebuilds every row from the authoritative profile, the ship's hull and the active upgrade set.</summary>
+    public void Refresh(PlayerProfile profile, long cargoWeight, long cargoCapacity, float hull, float maximumHull, IReadOnlySet<string> activeUpgrades)
     {
         _credits.Text = $"CREDITS  {profile.Wallet:N0}";
-        _cargo.Text = $"CARGO  {cargoWeight} / {cargoCapacity}";
+        _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}";
         _hull.Text = $"HULL  {hull:0} / {maximumHull:0}";
         _revision.Text = $"Profile {profile.ProfileId}  ·  revision {profile.Revision}  ·  every purchase is saved before it is shown";
 
         Clear(_market);
-        _market.AddChild(Row(Cell("ITEM", 150, true), Cell("HELD", 50, true), Cell("BUY", 60, true), Cell("SELL", 60, true)));
-        foreach (var good in _station.Goods)
+        _market.AddChild(FlightHud.Label("Original Trading Outpost recipes. Credits per unit are the raw original value (provisional reading).", 12, FlightHud.Muted));
+        _market.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 150, true), Cell("HELD", 50, true), Cell("CR / UNIT", 70, true)));
+        foreach (var trade in _station.Trades)
         {
-            var held = profile.Inventory.GetValueOrDefault(good.Id);
-            var buy = ActionButton(good.Buy is null ? "-" : "BUY 1", $"buy:{good.Id}", good.Buy is null, () => BuyRequested?.Invoke(good.Id, 1));
-            var sell = ActionButton(good.Sell is null ? "-" : "SELL 1", $"sell:{good.Id}", good.Sell is null || held == 0, () => SellRequested?.Invoke(good.Id, 1));
-            var sellAll = ActionButton("SELL ALL", $"sellall:{good.Id}", good.Sell is null || held == 0, () => SellRequested?.Invoke(good.Id, held));
-            _market.AddChild(Row(Cell($"{good.Name}  ({good.UnitWeight} wt)", 150), Cell(held.ToString(), 50),
-                Cell(good.Buy?.ToString("N0") ?? "-", 60), Cell(good.Sell?.ToString("N0") ?? "-", 60), buy, sell, sellAll));
+            var held = profile.Inventory.GetValueOrDefault(trade.InputItemId);
+            _market.AddChild(Row(Cell(trade.Name, 150), Cell(_station.NameOf(trade.InputItemId), 150), Cell(held.ToString(), 50),
+                Cell(trade.CreditsPerUnit.ToString("N0"), 70),
+                ActionButton("TRADE 1", $"sell:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, 1)),
+                ActionButton("TRADE ALL", $"sellall:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, held))));
         }
+        var untraded = profile.Inventory.Where(p => p.Value > 0 && _station.Trades.All(t => t.InputItemId != p.Key)).ToArray();
+        if (untraded.Length > 0)
+            _market.AddChild(FlightHud.Label("Not traded here: " + string.Join(", ", untraded.Select(p => $"{_station.NameOf(p.Key)} x{p.Value}")), 12, FlightHud.Muted));
 
         Clear(_repairs);
-        _repairs.AddChild(FlightHud.Label("Repair amounts are provisional; the original repair rule is undecoded.", 12, FlightHud.Muted));
+        var canRepair = hull > 0 && hull < maximumHull;
+        _repairs.AddChild(FlightHud.Label(canRepair
+            ? "Original repair rows; the raw amount is read as hull points and the price is provisional."
+            : hull <= 0 ? "The ship is destroyed: reset to launch a new one." : "Hull is at maximum: nothing to repair.", 12, FlightHud.Muted));
         foreach (var repair in _station.Repairs)
-            _repairs.AddChild(Row(Cell(repair.Name, 250), Cell($"{repair.Price:N0} cr", 90),
-                ActionButton("REPAIR", $"repair:{repair.Id}", false, () => RepairRequested?.Invoke(repair.Id))));
+            _repairs.AddChild(Row(Cell(repair.Name, 200), Cell($"+{repair.HullPoints:0} hull", 100), Cell($"{repair.Price:N0} cr", 90),
+                ActionButton("REPAIR", $"repair:{repair.Id}", !canRepair, () => RepairRequested?.Invoke(repair.Id))));
 
         Clear(_upgrades);
-        _upgrades.AddChild(FlightHud.Label("Ownership is saved; upgrade effects are not modelled yet.", 12, FlightHud.Muted));
-        foreach (var upgrade in _station.Upgrades)
+        _upgrades.AddChild(FlightHud.Label("Original modules and prices. Effects are provisional; one active item per slot.", 12, FlightHud.Muted));
+        foreach (var family in _station.Upgrades.GroupBy(u => u.Family))
         {
-            var owned = profile.Upgrades.Contains(upgrade.Id);
-            _upgrades.AddChild(Row(Cell(upgrade.Name, 250), Cell($"{upgrade.Price:N0} cr", 90),
-                ActionButton(owned ? "OWNED" : "BUY", $"upgrade:{upgrade.Id}", owned, () => UpgradeRequested?.Invoke(upgrade.Id))));
+            _upgrades.AddChild(FlightHud.Label(family.Key.ToUpperInvariant(), 11, FlightHud.Teal));
+            foreach (var upgrade in family)
+            {
+                var owned = profile.Upgrades.Contains(upgrade.Id);
+                var state = !owned ? "BUY" : activeUpgrades.Contains(upgrade.Id) ? "ACTIVE" : "OWNED";
+                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), Cell(Summary(upgrade.Effect), 200),
+                    ActionButton(state, $"upgrade:{upgrade.Id}", owned, () => UpgradeRequested?.Invoke(upgrade.Id))));
+            }
         }
+    }
+
+    private static string Summary(UpgradeEffect e)
+    {
+        var parts = new List<string>();
+        void Add(string name, float value) { if (value != 0) parts.Add($"{name} {value * 100:+0.#;-0.#}%"); }
+        Add("thrust", e.ForwardThrust);
+        Add("speed", e.MaximumSpeed);
+        Add("turn", e.RotationSpeed);
+        Add("energy", e.MaximumEnergy);
+        Add("regen", e.EnergyRegeneration);
+        if (e.MaximumHull != 0) parts.Add($"hull +{e.MaximumHull:0}");
+        return parts.Count == 0 ? "no effect yet" : string.Join(", ", parts);
     }
 
     private static VBoxContainer Page(TabContainer tabs, string name)

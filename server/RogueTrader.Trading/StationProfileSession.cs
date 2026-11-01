@@ -69,8 +69,19 @@ public sealed class StationProfileSession
     public Task<TransactionResult> SellAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
         _trading.SellAsync(RequireProfile(), shipX, shipY, new SellRequest(NewId(), RequireProfile(), Station.StationId, itemId, quantity), ct);
 
-    public Task<TransactionResult> RepairAsync(string repairId, float shipX, float shipY, CancellationToken ct = default) =>
-        _trading.RepairAsync(RequireProfile(), shipX, shipY, new RepairRequest(NewId(), RequireProfile(), Station.StationId, repairId), ct);
+    /// <summary>
+    /// Buys a repair only when it can restore something: a ship at full hull or destroyed is refused locally with
+    /// <see cref="RejectionReason.NothingToRepair"/> and the wallet is never charged (review R1-1).
+    /// </summary>
+    public Task<TransactionResult> RepairAsync(string repairId, float shipX, float shipY, float hull, float maximumHull, CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        var transactionId = NewId();
+        if (!float.IsFinite(hull) || hull <= 0 || hull >= maximumHull)
+            return Task.FromResult(new TransactionResult(transactionId, TransactionStatus.Rejected, RejectionReason.NothingToRepair, false, 0,
+                new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1, repairId));
+        return _trading.RepairAsync(profileId, shipX, shipY, new RepairRequest(transactionId, profileId, Station.StationId, repairId), ct);
+    }
 
     public Task<TransactionResult> BuyUpgradeAsync(string upgradeId, float shipX, float shipY, CancellationToken ct = default) =>
         _trading.BuyUpgradeAsync(RequireProfile(), shipX, shipY, new BuyUpgradeRequest(NewId(), RequireProfile(), Station.StationId, upgradeId), ct);
@@ -94,9 +105,13 @@ public sealed class StationProfileSession
             new GrantRewardRequest(NewId(), profile.ProfileId, PickupSourceId, 0, gained), ct).ConfigureAwait(false);
     }
 
-    /// <summary>Hull points the client restores for an applied repair (NEW/provisional fraction of maximum hull).</summary>
-    public float RepairHullPoints(string repairId, float maximumHull) =>
-        (Station.Repairs.FirstOrDefault(r => r.Id == repairId)?.HullRestoreFraction ?? 0f) * maximumHull;
+    /// <summary>Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change).</summary>
+    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, CancellationToken ct = default) =>
+        _processor.SaveShipConditionAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(),
+            new ShipCondition(hull, x, y, heading), ct);
+
+    /// <summary>Hull points the client restores for an applied repair (raw original amount read as hull points, NEW).</summary>
+    public float RepairHullPoints(string repairId) => Station.Repairs.FirstOrDefault(r => r.Id == repairId)?.HullPoints ?? 0f;
 
     private string RequireProfile() => ProfileId ?? throw new InvalidOperationException("No profile has been opened.");
 

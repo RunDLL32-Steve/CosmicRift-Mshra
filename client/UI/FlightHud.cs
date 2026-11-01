@@ -152,7 +152,7 @@ public partial class FlightHud : CanvasLayer
         _credits.Text = $"CREDITS  {profile.Wallet:N0}";
         var held = profile.Inventory.Where(p => p.Value > 0).Select(p => $"{station.NameOf(p.Key)} x{p.Value}").ToArray();
         var upgrades = profile.Upgrades.Select(station.NameOf).ToArray();
-        _cargo.Text = $"CARGO  {cargoWeight} / {cargoCapacity}\n{(held.Length == 0 ? "Hold empty" : string.Join(", ", held))}"
+        _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}\n{(held.Length == 0 ? "Hold empty" : string.Join(", ", held))}"
             + (upgrades.Length == 0 ? "" : $"\nUpgrades: {string.Join(", ", upgrades)}");
         _stationHint = docked ? $"{station.Name.ToUpperInvariant()} IN RANGE  /  {FlightInput.Display("station_dock")} to dock" : "";
     }

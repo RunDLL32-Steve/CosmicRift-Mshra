@@ -15,6 +15,16 @@ internal sealed class ProfileDocumentV1
     [JsonRequired] public List<AppliedTransactionDto> AppliedTransactions { get; set; } = new();
     [JsonRequired] public List<LedgerEntryDto> Ledger { get; set; } = new();
     [JsonRequired] public long NextLedgerSequence { get; set; }
+    /// <summary>Schema 3. Absent in schema 1/2 payloads (no saved ship condition).</summary>
+    public ShipConditionDto? Ship { get; set; }
+
+    internal sealed class ShipConditionDto
+    {
+        [JsonRequired] public float Hull { get; set; }
+        [JsonRequired] public float X { get; set; }
+        [JsonRequired] public float Y { get; set; }
+        [JsonRequired] public float Heading { get; set; }
+    }
 
     internal sealed class AppliedTransactionDto
     {
@@ -72,6 +82,7 @@ internal sealed class ProfileDocumentV1
             AtUtc = e.AtUtc,
         }).ToList(),
         NextLedgerSequence = p.NextLedgerSequence,
+        Ship = p.Ship is { } s ? new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading } : null,
     };
 
     /// <summary>Maps to the immutable model; returns null and an error message when the document is structurally unmappable.</summary>
@@ -116,6 +127,7 @@ internal sealed class ProfileDocumentV1
             AppliedTransactions = applied.ToImmutable(),
             Ledger = ledger.ToImmutable(),
             NextLedgerSequence = NextLedgerSequence,
+            Ship = Ship is { } s ? new ShipCondition(s.Hull, s.X, s.Y, s.Heading) : null,
         };
     }
 }

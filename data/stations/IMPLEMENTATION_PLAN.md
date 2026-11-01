@@ -1,29 +1,34 @@
-# Station fixture implementation plan
+# Station data implementation plan
 
 Authority: [master §18 Milestone 2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--rogue-trader-core-gameplay), [data plan](../IMPLEMENTATION_PLAN.md) and queue [M8 brief](../../docs/tasks/m8.md). November 1, 2026.
 
 ## Purpose
 
-`first_contact_station.json` is one **NEW/provisional** testbed station for the Godot client's HUD, station screen and save/load flow. The build stages it into `client/GameData/stations/`; `RogueTrader.Trading.StationDefinition` loads and validates it. It is not original content and completes no original feature.
+`trading_outpost.json` is the testbed station the Godot client docks at. It is a **derived output**: `RogueTrader.Trading.OriginalStationBuilder` builds it from the pinned originals (`ITM/Rogue_mp.itm`, `VEH/Rogue.veh` at `eb1514e`), and `OriginalStationTests.CommittedStationMatchesPinnedOriginals` fails if the file drifts. Regenerate with `RT_WRITE_DERIVED_STATION=1 dotnet test tests/Unit --filter CommittedStationMatchesPinnedOriginals`; never hand-edit it. The build stages it into `client/GameData/stations/`. The file is in `.prettierignore` because the oracle test compares exact bytes.
 
-## Values (all NEW/provisional)
+## From the originals
 
-| Value                                      |                                 Setting | Meaning                                                                                        |
-| ------------------------------------------ | --------------------------------------: | ---------------------------------------------------------------------------------------------- |
-| Station position                           |                                (90, 20) | World units; places the station beside the First Contact launch point.                         |
-| Dock radius                                |                                     150 | World units, inclusive; the player spawn (0, 0) is inside it so a new pilot can trade at once. |
-| Starting wallet                            |                                     500 | Credits for a newly created profile.                                                           |
-| Cargo capacity                             |                                      60 | Weight units; the world hold and the transaction core share this catalog.                      |
-| Raw ore                                    |                weight 2, buy 12, sell 8 | Fixture good.                                                                                  |
-| Ice crystals                               |                 weight 1, buy 6, sell 4 | Fixture good.                                                                                  |
-| Refined alloy                              |               weight 3, buy 40, sell 30 | Fixture good.                                                                                  |
-| Hull patch                                 |         40 credits, 25% of maximum hull | Fixture repair.                                                                                |
-| Full overhaul                              |       120 credits, 100% of maximum hull | Fixture repair.                                                                                |
-| Cargo racks / Thruster tune / Shield tuner |                 300 / 350 / 450 credits | Fixture upgrades; ownership is saved, effects are not modelled.                                |
-| Launch pile                                |        4 raw ore at (0, -70), radius 14 | Collectible on the route to the first target.                                                  |
-| West pile                                  | 8 ice crystals at (-170, 20), radius 14 | Collectible.                                                                                   |
+| Data                                                                                                  | Source                               |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Station name "Trading Outpost"                                                                        | VEH id 404                           |
+| 7 resources, names and raw mass (used as cargo weight)                                                | ITM type-4 Resources rows            |
+| 4 trade recipes (Tellerium, Krandazite, Wreckage, Alloy), input item and credit item                  | VEH id 404 trade blocks (RT-F045)    |
+| Credits per unit 55 / 80 / 300 / 20                                                                   | credit item raw f[31]                |
+| Minor / Major / Full Repair, amounts 5 / 10 / 50                                                      | ITM ids 39/40/43 raw f[33] (RT-F047) |
+| 35 upgrades: 26 Engine/Thruster/Power/HyperDrive rows and 9 Hull Armor rows, names and raw buy prices | ITM (RT-F041/F048)                   |
+| Held category and raw modifier block                                                                  | ITM f[20] and f[42..44]              |
+
+No original resource has a positive buy price (sell is 0 or -1), so there is no buy/sell market: resources are only handed in through the four recipes.
+
+## NEW/provisional (listed in the file's `newValues`)
+
+-   Position (90, 20) and dock radius 150; starting wallet 0 (CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 is the unproven alternative); hold capacity 4,000,000 raw mass units.
+-   Each recipe pays the raw f[31] value per input unit; recipe quantities and f+4 are undecoded.
+-   Repair amounts are read as hull points; price is 10 credits per point (original buy is 0). A repair at full hull or on a destroyed ship is refused without charge.
+-   Upgrade effects: f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions (armor's negative values slow the ship); maneuver thrusters +5/10/15% rotation; capacitors +25/50/75% maximum energy; chargers and the Moltor core +25/50/75% regeneration; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category is active.
+-   Collectible piles: 9 Wreckage at (0, -70), 12 Alloy at (-170, 20), 6 Refined Tellerium at (40, 160).
 
 ## Open
 
--   [ ] Replace with original station inventories, dock/proximity rule, repair amounts and upgrade effects once RT-F045/F047/F048/F049 are decoded. The original data names five upgrade groups (see [M5 entry](../../server/RogueTrader.Persistence/plan.d/m5.md)); these three fixture upgrades do not represent them.
--   [ ] Collectible piles respawn on every sector reset; the original respawn rule is unknown.
+-   [ ] Original station placement/dock rule, recipe quantities, repair cost, starting cash and every upgrade effect (RT-F041/F045/F047/F048/F049, RT-F068).
+-   [ ] Collectible piles respawn on a sector reset or upgrade install; the original respawn rule is unknown.

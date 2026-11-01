@@ -4,6 +4,7 @@ client/OriginalContent/
 client/GameData/
 docs/original-research/ASSET_MANIFEST.json
 docs/original-research/SOURCE_MANIFEST.json
+data/stations/trading_outpost.json
 toolchain.lock.json
 global.json
 .tools/

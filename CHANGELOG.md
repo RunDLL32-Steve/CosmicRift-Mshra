@@ -1,8 +1,8 @@
 # Changelog
 
-## HUD, station screen and save/load — November 1, 2026
+## HUD, Trading Outpost and save/load — November 1, 2026
 
--   Queue M8: the Godot client now opens a local saved profile (`user://profiles`) through the transaction core and shows credits, cargo and upgrades on the HUD; key F docks at a NEW/provisional Range Station with market, repair and upgrade tabs; in-space pickups are committed to the profile; the pause menu reloads the saved profile. `StationProfileSession` is the Godot-free boundary, `TradingService` also gates repairs and upgrades on docking, and the Godot smoke test now covers the full station and reload flow. [Client entry](client/UI/plan.d/m8.md), [station fixture](data/stations/IMPLEMENTATION_PLAN.md). No native UI parity or original station data; RT-F025/F026/F045/F047/F048/F049 and master M2 boxes stay open; counts unchanged.
+-   Queue M8: the Godot client opens a local saved profile through the transaction core and shows credits, cargo and upgrades on the HUD. Key F docks at a Trading Outpost derived from the pinned originals (four trade recipes, three repair rows, 35 upgrade and armor rows at original prices), with NEW placement, wallet, capacity, repair prices and upgrade effects listed in the file. Profile schema 3 saves hull, position and heading. Repairs at full hull are refused without charge, and collected cargo survives a failed save. [Client entry](client/UI/plan.d/m8.md), [station data](data/stations/IMPLEMENTATION_PLAN.md), [persistence entry](server/RogueTrader.Persistence/plan.d/m8.md). No native UI parity; RT-F025/F026/F041/F045/F047/F048/F049/F068 and master M2 boxes stay open; counts unchanged.
 
 ## Repairs and upgrade pricing — October 27, 2026
 

@@ -12,7 +12,13 @@ public static class ProfileSchemaMigrations
     /// </summary>
     public static IProfileMigration V1ToV2 { get; } = new Step(1, static p => (JsonObject)p.DeepClone());
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2];
+    /// <summary>
+    /// Schema 3 adds the optional <c>ship</c> condition (hull and position, queue M8). Older payloads simply lack it, so the step
+    /// only advances the version; an older build then refuses a schema 3 file as newer instead of quarantining it.
+    /// </summary>
+    public static IProfileMigration V2ToV3 { get; } = new Step(2, static p => (JsonObject)p.DeepClone());
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {

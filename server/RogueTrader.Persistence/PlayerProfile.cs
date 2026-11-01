@@ -5,7 +5,7 @@ namespace RogueTrader.Persistence;
 /// <summary>Immutable persisted player state. Ids are opaque strings compared ordinally; currency is <c>long</c>.</summary>
 public sealed record PlayerProfile
 {
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
     public required string ProfileId { get; init; }
@@ -14,6 +14,8 @@ public sealed record PlayerProfile
     public ImmutableSortedDictionary<string, int> Inventory { get; init; } = ImmutableSortedDictionary.Create<string, int>(StringComparer.Ordinal);
     public ImmutableSortedSet<string> Upgrades { get; init; } = ImmutableSortedSet.Create<string>(StringComparer.Ordinal);
     public string? ShipHullId { get; init; }
+    /// <summary>Schema 3: last saved ship condition; null until the client first saves one (the ship then starts at spawn).</summary>
+    public ShipCondition? Ship { get; init; }
     public ImmutableList<AppliedTransaction> AppliedTransactions { get; init; } = ImmutableList<AppliedTransaction>.Empty;
     public ImmutableList<WalletLedgerEntry> Ledger { get; init; } = ImmutableList<WalletLedgerEntry>.Empty;
     public long NextLedgerSequence { get; init; } = 1;

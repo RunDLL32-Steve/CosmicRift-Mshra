@@ -17,6 +17,7 @@ public static class ProfileInvariants
         if (p.Wallet < 0) errors.Add($"Wallet {p.Wallet} is negative.");
         if (p.ShipHullId is { Length: 0 }) errors.Add("ShipHullId is empty (use null for none).");
         if (p.ShipHullId is not null && !IsWellFormedUtf16(p.ShipHullId)) errors.Add(Malformed("ShipHullId"));
+        if (p.Ship is { IsValid: false }) errors.Add("Ship condition must have finite values and non-negative hull.");
 
         if (p.Inventory is null) errors.Add("Inventory is null.");
         else

@@ -1,4 +1,3 @@
-using RogueTrader.GameData;
 using RogueTrader.Persistence;
 using RogueTrader.Simulation;
 using RogueTrader.Trading;
@@ -7,38 +6,48 @@ using RogueTrader.UnitTests.Persistence;
 namespace RogueTrader.UnitTests.Trading;
 
 /// <summary>
-/// Queue M8 client boundary: the station session the Godot HUD and station screen drive. Uses the shipped NEW/provisional
-/// station definition (data/stations/first_contact_station.json); none of its numbers are original values.
+/// Queue M8 client boundary: the station session the Godot HUD and station screen drive, over the shipped derived Trading
+/// Outpost (data/stations/trading_outpost.json). Wallets granted below are NEW test fixtures.
 /// </summary>
 public sealed class StationProfileSessionTests
 {
     private const string Profile = "m8-pilot";
+    private const float FullHull = 100f;
 
     private static StationDefinition LoadStation() =>
-        StationDefinition.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "stations", "first_contact_station.json")));
+        StationDefinition.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "stations", "trading_outpost.json")));
 
-    private static (float X, float Y) Dock(StationDefinition s) => (s.X, s.Y);
+    private static async Task<StationProfileSession> OpenAsync(IProfileRepository? repo = null, StationDefinition? station = null)
+    {
+        var session = new StationProfileSession(repo ?? new InMemoryProfileRepository(), station ?? LoadStation(), "starter_interceptor");
+        Assert.True((await session.OpenOrCreateAsync(Profile)).Succeeded);
+        return session;
+    }
+
+    private static async Task Give(StationProfileSession session, string item, int quantity)
+    {
+        var hold = new Dictionary<string, int>(session.Profile!.Inventory) { [item] = session.Profile.Inventory.GetValueOrDefault(item) + quantity };
+        Assert.Equal(TransactionStatus.Applied, (await session.CommitPickupsAsync(hold))!.Status);
+    }
 
     [Fact]
-    public void ShippedDefinition_IsNewProvisionalAndInternallyConsistent()
+    public void ShippedDefinition_IsDerivedAndInternallyConsistent()
     {
         var station = LoadStation();
 
-        Assert.Equal("NEW", station.EvidenceClassification);
-        Assert.NotEmpty(station.Goods);
-        Assert.NotEmpty(station.Repairs);
-        Assert.NotEmpty(station.Upgrades);
+        Assert.Equal("ORIGINAL+NEW", station.EvidenceClassification);
+        Assert.NotEmpty(station.NewValues);
         var cargo = station.CreateCargoCatalog();
         Assert.All(station.Collectibles, pile => Assert.True(cargo.IsKnown(pile.ItemId)));
-        // The player spawns inside the dock radius so a new pilot can trade immediately.
+        Assert.All(station.Trades, t => Assert.Equal(t.CreditsPerUnit, station.SellPrice(t.InputItemId)));
         var sector = TestWorld.ExternalCatalog().Sector;
         Assert.True(Docking.IsDocked(station.Site, sector.PlayerSpawn.X, sector.PlayerSpawn.Y));
     }
 
     [Fact]
-    public void Definition_RejectsBadRepairFraction()
+    public void Definition_RejectsNonPositiveRepair()
     {
-        const string json = """{ "stationId": "s", "name": "S", "dockRadius": 5, "repairs": [ { "id": "r", "name": "R", "price": 1, "hullRestoreFraction": 1.5 } ] }""";
+        const string json = """{ "stationId": "s", "name": "S", "dockRadius": 5, "repairs": [ { "id": "r", "name": "R", "price": 1, "hullPoints": 0 } ] }""";
         Assert.Throws<InvalidDataException>(() => StationDefinition.FromJson(json));
     }
 
@@ -50,10 +59,9 @@ public sealed class StationProfileSessionTests
         var session = new StationProfileSession(repo, station, "starter_interceptor");
 
         var first = await session.OpenOrCreateAsync(Profile);
-        Assert.True(first.Succeeded);
-        Assert.True(first.Created);
+        Assert.True(first.Succeeded && first.Created);
         Assert.Equal(station.StartingWallet, session.Profile!.Wallet);
-        Assert.Equal("starter_interceptor", session.Profile.ShipHullId);
+        Assert.Null(session.Profile.Ship);
 
         var again = await new StationProfileSession(repo, station, "starter_interceptor").OpenOrCreateAsync(Profile);
         Assert.True(again.Succeeded);
@@ -61,108 +69,146 @@ public sealed class StationProfileSessionTests
     }
 
     [Fact]
-    public async Task StationFlow_BuySellRepairUpgrade_AreAuthoritativeAndDockGated()
+    public async Task TradingOutpost_PaysRecipeCreditsPerUnit_AndUpgradeUsesOriginalPrice()
     {
         var station = LoadStation();
-        var session = new StationProfileSession(new InMemoryProfileRepository(), station, null);
-        await session.OpenOrCreateAsync(Profile);
-        var (x, y) = Dock(station);
-        var ore = station.Goods.First(g => g.Buy is not null && g.Sell is not null);
+        var session = await OpenAsync(station: station);
+        var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
+        await Give(session, trade.InputItemId, 9);
 
-        var bought = await session.BuyAsync(ore.Id, 3, x, y);
-        Assert.Equal(TransactionStatus.Applied, bought.Status);
-        Assert.Equal(station.StartingWallet - 3 * ore.Buy!.Value, session.Profile!.Wallet);
-        Assert.Equal(3, session.Profile.Inventory[ore.Id]);
+        var sold = await session.SellAsync(trade.InputItemId, 9, station.X, station.Y);
 
-        var sold = await session.SellAsync(ore.Id, 1, x, y);
         Assert.Equal(TransactionStatus.Applied, sold.Status);
-        Assert.Equal(2, session.Profile.Inventory[ore.Id]);
+        Assert.Equal(station.StartingWallet + 9 * trade.CreditsPerUnit, session.Profile!.Wallet);
+        var affordable = station.Upgrades.Where(u => u.Price <= session.Profile.Wallet).OrderBy(u => u.Price).First();
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(affordable.Id, station.X, station.Y)).Status);
+        Assert.Equal(station.StartingWallet + 9 * trade.CreditsPerUnit - affordable.Price, session.Profile.Wallet);
+        Assert.Equal(RejectionReason.UpgradeAlreadyOwned, (await session.BuyUpgradeAsync(affordable.Id, station.X, station.Y)).Reason);
+    }
 
-        var repair = station.Repairs[0];
-        var walletBeforeRepair = session.Profile.Wallet;
-        Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(repair.Id, x, y)).Status);
-        Assert.Equal(walletBeforeRepair - repair.Price, session.Profile.Wallet);
-        Assert.Equal(repair.HullRestoreFraction * 200f, session.RepairHullPoints(repair.Id, 200f));
+    [Fact]
+    public async Task ResourceWithoutRecipe_IsNotTraded()
+    {
+        var station = LoadStation();
+        var session = await OpenAsync(station: station);
+        var noRecipe = station.Goods.First(g => station.Trades.All(t => t.InputItemId != g.Id));
+        await Give(session, noRecipe.Id, 1);
 
-        var cheapest = station.Upgrades.OrderBy(u => u.Price).First();
-        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(cheapest.Id, x, y)).Status);
-        Assert.Contains(cheapest.Id, session.Profile.Upgrades);
-        Assert.Equal(RejectionReason.UpgradeAlreadyOwned, (await session.BuyUpgradeAsync(cheapest.Id, x, y)).Reason);
+        Assert.Equal(RejectionReason.NotForSale, (await session.SellAsync(noRecipe.Id, 1, station.X, station.Y)).Reason);
+        Assert.Equal(RejectionReason.NotForSale, (await session.BuyAsync(noRecipe.Id, 1, station.X, station.Y)).Reason);
+    }
 
-        // Outside the dock radius every station service is refused and nothing changes.
-        var before = session.Profile;
-        var far = x + station.DockRadius + 1;
-        Assert.False(session.IsDocked(far, y));
-        Assert.Equal(RejectionReason.StationAccessDenied, (await session.BuyAsync(ore.Id, 1, far, y)).Reason);
-        Assert.Equal(RejectionReason.StationAccessDenied, (await session.SellAsync(ore.Id, 1, far, y)).Reason);
-        Assert.Equal(RejectionReason.StationAccessDenied, (await session.RepairAsync(repair.Id, far, y)).Reason);
-        Assert.Equal(RejectionReason.StationAccessDenied, (await session.BuyUpgradeAsync(station.Upgrades[^1].Id, far, y)).Reason);
+    [Theory]
+    [InlineData(FullHull)]
+    [InlineData(0f)]
+    public async Task Repair_AtFullHullOrDestroyed_IsRefusedWithoutCharge(float hull)
+    {
+        var station = LoadStation();
+        var session = await OpenAsync(station: station);
+        await Give(session, station.Trades[0].InputItemId, 20);
+        await session.SellAsync(station.Trades[0].InputItemId, 20, station.X, station.Y);
+        var before = session.Profile!;
+
+        var result = await session.RepairAsync(station.Repairs[^1].Id, station.X, station.Y, hull, FullHull);
+
+        Assert.Equal(RejectionReason.NothingToRepair, result.Reason);
         Assert.Same(before, session.Profile);
     }
 
     [Fact]
-    public async Task Buy_BeyondCargoCapacity_IsRefused()
+    public async Task Repair_WhenDamaged_ChargesAndReportsOriginalAmount()
     {
         var station = LoadStation();
-        var session = new StationProfileSession(new InMemoryProfileRepository(), station, null);
-        await session.OpenOrCreateAsync(Profile);
-        var heavy = station.Goods.OrderByDescending(g => g.UnitWeight).First(g => g.Buy is not null);
-        var tooMany = (int)(station.CargoCapacity / heavy.UnitWeight) + 1;
+        var session = await OpenAsync(station: station);
+        var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
+        await Give(session, trade.InputItemId, 5);
+        await session.SellAsync(trade.InputItemId, 5, station.X, station.Y);
+        var minor = station.Repairs[0];
+        var wallet = session.Profile!.Wallet;
 
-        var result = await session.BuyAsync(heavy.Id, tooMany, station.X, station.Y);
-
-        Assert.Equal(TransactionStatus.Rejected, result.Status);
-        Assert.Contains(result.Reason, new[] { RejectionReason.CargoCapacityExceeded, RejectionReason.InsufficientFunds });
+        Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(minor.Id, station.X, station.Y, 60, FullHull)).Status);
+        Assert.Equal(wallet - minor.Price, session.Profile.Wallet);
+        Assert.Equal(minor.HullPoints, session.RepairHullPoints(minor.Id));
     }
 
     [Fact]
-    public async Task CommitPickups_GrantsOnlyNewUnits_AndWorksAwayFromStation()
+    public async Task StationServices_OutsideDockRadius_AreRefused()
     {
         var station = LoadStation();
-        var session = new StationProfileSession(new InMemoryProfileRepository(), station, null);
-        await session.OpenOrCreateAsync(Profile);
+        var session = await OpenAsync(station: station);
+        var trade = station.Trades[0];
+        await Give(session, trade.InputItemId, 2);
+        var before = session.Profile;
+        var far = station.X + station.DockRadius + 1;
+
+        Assert.False(session.IsDocked(far, station.Y));
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.SellAsync(trade.InputItemId, 1, far, station.Y)).Reason);
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.RepairAsync(station.Repairs[0].Id, far, station.Y, 50, FullHull)).Reason);
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.BuyUpgradeAsync(station.Upgrades[0].Id, far, station.Y)).Reason);
+        Assert.Same(before, session.Profile);
+    }
+
+    [Fact]
+    public async Task CommitPickups_GrantsOnlyNewUnits_AndRespectsCapacity()
+    {
+        var station = LoadStation();
+        var session = await OpenAsync(station: station);
         var pile = station.Collectibles[0];
 
         Assert.Null(await session.CommitPickupsAsync(new Dictionary<string, int>()));
         var granted = await session.CommitPickupsAsync(new Dictionary<string, int> { [pile.ItemId] = pile.Quantity });
         Assert.Equal(TransactionStatus.Applied, granted!.Status);
         Assert.Equal(pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
-        Assert.Equal(station.StartingWallet, session.Profile.Wallet);
-        // Same hold again: nothing new to commit.
         Assert.Null(await session.CommitPickupsAsync(new Dictionary<string, int> { [pile.ItemId] = pile.Quantity }));
+
+        var heavy = station.Goods.OrderByDescending(g => g.UnitWeight).First();
+        var overflow = await session.CommitPickupsAsync(new Dictionary<string, int>(session.Profile.Inventory)
+            { [heavy.Id] = (int)(station.CargoCapacity / heavy.UnitWeight) + 1 });
+        Assert.Equal(RejectionReason.CargoCapacityExceeded, overflow!.Reason);
     }
 
     [Fact]
-    public async Task FileRepository_StateSurvivesRelaunch_AndReloadDiscardsNothingCommitted()
+    public async Task ShipCondition_IsSaved_AndSurvivesRelaunch()
     {
         using var dir = new TempDirectory();
         var station = LoadStation();
         PlayerProfile beforeExit;
         using (var repo = FileProfileRepository.Open(dir.Path, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn))
         {
-            var session = new StationProfileSession(repo, station, "starter_interceptor");
-            await session.OpenOrCreateAsync(Profile);
-            var good = station.Goods.First(g => g.Buy is not null);
-            await session.BuyAsync(good.Id, 2, station.X, station.Y);
-            await session.BuyUpgradeAsync(station.Upgrades[0].Id, station.X, station.Y);
-            var reload = await session.ReloadAsync();
-            Assert.True(reload.Succeeded);
-            Assert.Equal(ProfileLoadStatus.Loaded, reload.Status);
+            var session = await OpenAsync(repo, station);
+            await Give(session, station.Trades[0].InputItemId, 3);
+            var saved = await session.SaveShipAsync(42.5f, -120f, 33f, 1.25f);
+            Assert.True(saved.Saved);
+            Assert.Equal(new ShipCondition(42.5f, -120f, 33f, 1.25f), session.Profile!.Ship);
+            Assert.Equal(saved.Revision, session.Profile.Revision);
+            var unchanged = await session.SaveShipAsync(42.5f, -120f, 33f, 1.25f);
+            Assert.Equal(saved.Revision, unchanged.Revision); // identical condition is not rewritten
+            Assert.True((await session.ReloadAsync()).Succeeded);
             beforeExit = session.Profile!;
         }
 
         using (var repo = FileProfileRepository.Open(dir.Path, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn))
         {
-            var session = new StationProfileSession(repo, station, "starter_interceptor");
-            var opened = await session.OpenOrCreateAsync(Profile);
-            Assert.True(opened.Succeeded);
-            Assert.False(opened.Created);
+            var session = await OpenAsync(repo, station);
             var after = session.Profile!;
             Assert.Equal(beforeExit.Revision, after.Revision);
             Assert.Equal(beforeExit.Wallet, after.Wallet);
             Assert.Equal(beforeExit.Inventory.ToArray(), after.Inventory.ToArray());
-            Assert.Equal(beforeExit.Upgrades.ToArray(), after.Upgrades.ToArray());
+            Assert.Equal(beforeExit.Ship, after.Ship);
         }
+    }
+
+    [Fact]
+    public async Task ShipCondition_RejectsNonFiniteValues()
+    {
+        var session = await OpenAsync();
+        var before = session.Profile;
+
+        var result = await session.SaveShipAsync(float.NaN, 0, 0, 0);
+
+        Assert.False(result.Saved);
+        Assert.Equal(RejectionReason.InvalidRequest, result.Reason);
+        Assert.Same(before, session.Profile);
     }
 
     [Fact]
@@ -176,11 +222,10 @@ public sealed class StationProfileSessionTests
 
         var outcome = await session.OpenOrCreateAsync(Profile);
 
-        Assert.False(outcome.Succeeded);
-        Assert.False(outcome.Created);
+        Assert.False(outcome.Succeeded || outcome.Created);
         Assert.Equal(ProfileLoadStatus.Corrupt, outcome.Status);
         Assert.Null(session.Profile);
-        Assert.Equal(RejectionReason.ProfileNotOpen, (await session.BuyAsync(station.Goods[0].Id, 1, station.X, station.Y)).Reason);
+        Assert.Equal(RejectionReason.ProfileNotOpen, (await session.BuyUpgradeAsync(station.Upgrades[0].Id, station.X, station.Y)).Reason);
     }
 
     [Fact]
@@ -199,14 +244,17 @@ public sealed class StationProfileSessionTests
     }
 
     [Fact]
-    public void RepairPlayerHull_ClampsToMaximumAndRejectsBadAmounts()
+    public void RepairAndRestore_ClampToMaximum_AndRejectBadValues()
     {
         var world = new WorldSimulation(TestWorld.ExternalCatalog());
         var max = world.Player.Definition.Defense.MaximumHull;
 
         Assert.Equal(0, world.RepairPlayerHull(50));
-        Assert.Equal(max, world.Player.Hull);
         Assert.Throws<ArgumentOutOfRangeException>(() => world.RepairPlayerHull(float.NaN));
-        Assert.Throws<ArgumentOutOfRangeException>(() => world.RepairPlayerHull(-1));
+        Assert.True(world.RestorePlayer(new System.Numerics.Vector2(10, -20), 0.5f, max / 2));
+        Assert.Equal(max / 2, world.Player.Hull);
+        Assert.Equal(new System.Numerics.Vector2(10, -20), world.Player.Position);
+        Assert.Equal(max / 2, world.RepairPlayerHull(max * 3));
+        Assert.False(world.RestorePlayer(new System.Numerics.Vector2(0, 0), 0, 0)); // a destroyed save keeps the fresh spawn
     }
 }

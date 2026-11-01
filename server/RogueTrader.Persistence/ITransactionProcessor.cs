@@ -13,4 +13,10 @@ public interface ITransactionProcessor
     Task<TransactionResult> BuyUpgradeAsync(TransactionContext ctx, BuyUpgradeRequest r, CancellationToken ct = default);
     Task<TransactionResult> RepairAsync(TransactionContext ctx, RepairRequest r, CancellationToken ct = default);
     Task<TransactionResult> GrantRewardAsync(TransactionContext ctx, GrantRewardRequest r, CancellationToken ct = default);
+
+    /// <summary>
+    /// Saves the ship's hull and position (last write wins). Not a currency transaction: no ledger or idempotency entry, but the
+    /// same per-profile lock, compare-and-swap save and acknowledge-after-save rule apply.
+    /// </summary>
+    Task<ShipConditionResult> SaveShipConditionAsync(TransactionContext ctx, string profileId, ShipCondition ship, CancellationToken ct = default);
 }

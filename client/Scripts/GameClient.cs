@@ -35,6 +35,11 @@ public partial class GameClient : Node2D
     private string? _smokeProfileRoot;
     private string _profileStatus = "";
     private bool _stationVisible;
+    private GameCatalog _playCatalog = null!;
+    private string _profileOutcome = "";
+    private long _nextPickupRetryTick;
+    private long _lastShipSaveTick;
+    private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
 
     public override void _Ready()
     {
@@ -45,7 +50,7 @@ public partial class GameClient : Node2D
                 ReadDefinition("ships/starter_interceptor.json"),
                 ReadDefinition("weapons/plasma_cannon.json"),
                 ReadDefinition("sectors/first_contact.json"));
-            _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/first_contact_station.json"));
+            _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog();
             var userArgs = OS.GetCmdlineUserArgs();
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
@@ -58,7 +63,7 @@ public partial class GameClient : Node2D
                 _profileRoot = _smokeProfileRoot;
             }
             OpenProfile();
-            _world = NewWorld();
+            _world = NewWorld(restoreSavedShip: true);
             _originals = OriginalSpriteLibrary.LoadIfAvailable();
             _view = new WorldView { Originals = _originals, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
@@ -75,16 +80,16 @@ public partial class GameClient : Node2D
             AddChild(_hud);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.BuyRequested += (item, quantity) => StationTransaction(s => s.BuyAsync(item, quantity, PlayerX, PlayerY), $"Bought {quantity} {_stationDefinition.NameOf(item)}.");
-            _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Sold {quantity} {_stationDefinition.NameOf(item)}.");
+            _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
-            _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY), null, repair);
+            _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.CloseRequested += () => SetStationVisible(false);
             AddChild(_stationScreen);
             _hud.SetOriginalContentAvailable(_originals is not null);
             _inspector = new OriginalContentInspector(_originals) { Visible = false };
             _inspector.CloseRequested += () => SetInspectionVisible(false);
             AddChild(_inspector);
-            _hud.Update(_world, _catalog);
+            _hud.Update(_world, _playCatalog);
             RefreshProfileViews();
             var args = userArgs;
             var smokeRequested = args.Contains("--smoke-test");
@@ -94,6 +99,8 @@ public partial class GameClient : Node2D
                 else if (args[i].StartsWith("--capture=", StringComparison.Ordinal)) _capturePath = args[i][10..];
             if (args.Contains("--capture-controls")) TogglePause();
             if (args.Contains("--capture-station")) SetStationVisible(true);
+            foreach (var arg in args)
+                if (arg.StartsWith("--station-tab=", StringComparison.Ordinal) && int.TryParse(arg[14..], out var tab)) _stationScreen.ShowTab(tab);
             _verifyOriginals = args.Contains("--verify-original-content");
             if (args.Contains("--inspect-original-content") || _verifyOriginals) SetInspectionVisible(true);
             foreach (var arg in args)
@@ -144,6 +151,7 @@ public partial class GameClient : Node2D
                 _world.Tick(input);
                 _view.InputState = input;
                 CommitPickups();
+                if (_world.TickNumber - _lastShipSaveTick >= ShipSaveIntervalTicks) SaveShip();
             }
             else _view.InputState = default;
         }
@@ -158,7 +166,7 @@ public partial class GameClient : Node2D
     {
         if (!_initialized) return;
         _camera.Position = WorldView.ToGodot(_world.Player.Position) + new Vector2(0, -35);
-        _hud.Update(_world, _catalog);
+        _hud.Update(_world, _playCatalog);
         RefreshProfileViews();
         _renderedFrames++;
         if (_verifyOriginals && _renderedFrames == 30)
@@ -244,15 +252,17 @@ public partial class GameClient : Node2D
     private void TogglePause()
     {
         _paused = !_paused;
+        if (_paused) SaveShip();
         _hud.SetMenuVisible(_paused);
     }
 
     private void ResetSector()
     {
-        _world = NewWorld();
+        _world = NewWorld(restoreSavedShip: false);
         _view.SetWorld(_world);
         _paused = false;
         _hud.SetMenuVisible(false);
+        SaveShip();
     }
 
     // ---- Profile and station (queue M8) ------------------------------------------------------------------
@@ -274,17 +284,18 @@ public partial class GameClient : Node2D
             _repository = FileProfileRepository.Open(_profileRoot, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
             var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id);
             var outcome = Await(session.OpenOrCreateAsync(LocalProfileId));
-            _profileStatus = outcome.Message;
+            _profileOutcome = outcome.Message;
             if (outcome.Succeeded) _session = session;
         }
         catch (ProfileRepositoryLockedException)
         {
-            _profileStatus = "Another client owns this save folder; station services are offline.";
+            _profileOutcome = "Another client owns this save folder; station services are offline.";
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            _profileStatus = $"Save folder unavailable ({exception.Message}); station services are offline.";
+            _profileOutcome = $"Save folder unavailable ({exception.Message}); station services are offline.";
         }
+        _profileStatus = _profileOutcome;
     }
 
     /// <summary>Exit/relaunch boundary used by the smoke test: drops every in-memory service and reopens the save folder.</summary>
@@ -294,7 +305,8 @@ public partial class GameClient : Node2D
         _repository?.Dispose();
         _repository = null;
         OpenProfile();
-        ReconcileHold();
+        _world = NewWorld(restoreSavedShip: true);
+        _view.SetWorld(_world);
     }
 
     public void ReloadProfile()
@@ -305,12 +317,45 @@ public partial class GameClient : Node2D
             return;
         }
         var outcome = Await(_session.ReloadAsync());
-        _profileStatus = outcome.Message;
+        _profileOutcome = _profileStatus = outcome.Message;
         if (!outcome.Succeeded) _session = null;
-        ReconcileHold();
+        RebuildWorldKeepingShip();
     }
 
-    private WorldSimulation NewWorld() => new(_catalog, _cargo, AuthoritativeHold());
+    /// <summary>Ship definition with the profile's active upgrades applied (NEW/provisional effects, see UpgradeEffects).</summary>
+    private GameCatalog EffectiveCatalog() => new(
+        UpgradeEffects.Apply(_catalog.Ship, _stationDefinition, _session?.Profile?.Upgrades ?? Enumerable.Empty<string>()),
+        _catalog.Weapon, _catalog.Sector);
+
+    private WorldSimulation NewWorld(bool restoreSavedShip)
+    {
+        _playCatalog = EffectiveCatalog();
+        _lastShipSaveTick = 0;
+        var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold());
+        if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
+            world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
+        return world;
+    }
+
+    /// <summary>After an upgrade purchase or reload: same place, heading and hull, new ship statistics and saved hold.</summary>
+    private void RebuildWorldKeepingShip()
+    {
+        var player = _world.Player;
+        var (position, heading, hull, destroyed) = (player.Position, player.Heading, player.Hull, player.IsDestroyed);
+        _world = NewWorld(restoreSavedShip: false);
+        if (!destroyed) _world.RestorePlayer(position, heading, hull);
+        _view.SetWorld(_world);
+    }
+
+    /// <summary>Saves hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds of flight).</summary>
+    public void SaveShip()
+    {
+        if (_session?.Profile is null || _world is null) return;
+        var player = _world.Player;
+        var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading));
+        if (!result.Saved) _profileStatus = $"Ship condition could not be saved ({result.Reason}).";
+        _lastShipSaveTick = _world.TickNumber;
+    }
 
     private IEnumerable<KeyValuePair<string, int>> AuthoritativeHold() =>
         (_session?.Profile?.Inventory ?? Enumerable.Empty<KeyValuePair<string, int>>())
@@ -319,17 +364,33 @@ public partial class GameClient : Node2D
     /// <summary>The world hold always mirrors the saved inventory after a station transaction or reload.</summary>
     private void ReconcileHold() => _world.Cargo.ReplaceContents(AuthoritativeHold().ToArray());
 
+    /// <summary>
+    /// Commits newly collected cargo. On a refusal the units stay in the hold and the commit is retried once a second (after
+    /// reloading the profile when the save itself failed), so a failed save never loses cargo (review R1-3).
+    /// </summary>
     private void CommitPickups()
     {
-        if (_session?.Profile is null) return;
+        if (_session?.Profile is null || _world.TickNumber < _nextPickupRetryTick) return;
         var result = Await(_session.CommitPickupsAsync(_world.Cargo.Items));
         if (result is null) return;
-        if (result.Status != TransactionStatus.Applied)
+        if (result.Status == TransactionStatus.Applied)
         {
-            _profileStatus = $"Pickup could not be saved ({result.Reason}); cargo restored to the saved hold.";
-            ReconcileHold();
+            if (_nextPickupRetryTick > 0) _profileStatus = _profileOutcome;
+            _nextPickupRetryTick = 0;
+            return;
+        }
+        _profileStatus = $"Collected cargo is not saved yet ({result.Reason}); it stays in the hold and saving is retried.";
+        _nextPickupRetryTick = _world.TickNumber + WorldSimulation.TickRate;
+        if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen)
+        {
+            var reload = Await(_session.ReloadAsync());
+            if (!reload.Succeeded) _profileOutcome = reload.Message;
         }
     }
+
+    /// <summary>Test hook: makes the next pickup commits fail as if the save folder were unavailable.</summary>
+    public void SimulatePickupSaveFailure() => _nextPickupRetryTick = long.MaxValue;
+    public void ClearPickupSaveFailure() => _nextPickupRetryTick = 0;
 
     private void SetStationVisible(bool visible)
     {
@@ -337,14 +398,15 @@ public partial class GameClient : Node2D
         {
             if (_session?.Profile is null)
             {
-                _profileStatus = "Station services are offline: " + _profileStatus;
+                _profileStatus = $"Station services are offline: {_profileOutcome}";
                 return;
             }
             if (!_session.IsDocked(PlayerX, PlayerY)) return;
-            _stationScreen.SetStatus($"Welcome to {_stationDefinition.Name}.");
+            _stationScreen.SetStatus($"Welcome to the {_stationDefinition.Name}.");
         }
         _stationVisible = visible;
         _stationScreen.Visible = visible;
+        SaveShip();
         _hud.Visible = !visible && !_inspectionVisible;
         RefreshProfileViews(rebuildStation: true);
     }
@@ -357,9 +419,11 @@ public partial class GameClient : Node2D
         {
             if (repairId is not null)
             {
-                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId, _catalog.Ship.Defense.MaximumHull));
+                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId));
                 success = $"{_stationDefinition.NameOf(repairId)}: {restored:0} hull restored.";
+                SaveShip();
             }
+            if (result.UpgradeId is not null) RebuildWorldKeepingShip();
             _stationScreen.SetStatus($"{success}  Saved at revision {result.Revision}.");
         }
         else
@@ -379,6 +443,7 @@ public partial class GameClient : Node2D
         RejectionReason.UpgradeAlreadyOwned => "upgrade already installed.",
         RejectionReason.StationAccessDenied => "you are no longer docked.",
         RejectionReason.NotForSale => "not traded here.",
+        RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };
 
@@ -389,7 +454,8 @@ public partial class GameClient : Node2D
         _hud.UpdateProfile(profile, _stationDefinition, _world.Cargo.TotalWeight, _world.Cargo.Capacity, docked && !_stationVisible,
             $"{_profileStatus}\nSave folder: {_profileRoot}");
         if (rebuildStation && _stationVisible && profile is not null)
-            _stationScreen.Refresh(profile, _world.Cargo.TotalWeight, _world.Cargo.Capacity, _world.Player.Hull, _catalog.Ship.Defense.MaximumHull);
+            _stationScreen.Refresh(profile, _world.Cargo.TotalWeight, _world.Cargo.Capacity, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull,
+                UpgradeEffects.Active(_stationDefinition, profile.Upgrades).Select(u => u.Id).ToHashSet());
     }
 
     /// <summary>The local services do file I/O without capturing a context, so blocking here cannot deadlock the main thread.</summary>
@@ -397,6 +463,7 @@ public partial class GameClient : Node2D
 
     public override void _ExitTree()
     {
+        if (_initialized && _smokeTest is null) SaveShip();
         _repository?.Dispose();
         _repository = null;
         if (_smokeProfileRoot is not null && DirAccess.DirExistsAbsolute(_smokeProfileRoot))

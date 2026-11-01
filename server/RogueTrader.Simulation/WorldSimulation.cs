@@ -87,6 +87,21 @@ public sealed partial class WorldSimulation
         return Player.Hull - before;
     }
 
+    /// <summary>
+    /// Places the player as a saved ship condition describes, at rest. Hull is clamped to the hull maximum. A saved hull of zero
+    /// (a ship saved while destroyed) is not restored: the caller keeps the fresh spawn instead (NEW/provisional rule).
+    /// </summary>
+    public bool RestorePlayer(Vector2 position, float heading, float hull)
+    {
+        if (!float.IsFinite(position.X) || !float.IsFinite(position.Y) || !float.IsFinite(heading) || !float.IsFinite(hull) || hull <= 0)
+            return false;
+        Player.Position = position;
+        Player.Heading = MathF.IEEERemainder(heading, MathF.Tau);
+        Player.Velocity = Vector2.Zero;
+        Player.Hull = MathF.Min(Player.Definition.Defense.MaximumHull, hull);
+        return true;
+    }
+
     private void MovePlayer(ShipInput input)
     {
         var turn = float.IsFinite(input.Turn) ? Math.Clamp(input.Turn, -1, 1) : 0;
