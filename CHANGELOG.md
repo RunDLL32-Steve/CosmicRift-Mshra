@@ -2,7 +2,7 @@
 
 ## HUD, station screen and save/load — November 1, 2026
 
-- Queue M8: the Godot client now opens a local saved profile (`user://profiles`) through the transaction core and shows credits, cargo and upgrades on the HUD; key F docks at a NEW/provisional Range Station with market, repair and upgrade tabs; in-space pickups are committed to the profile; the pause menu reloads the saved profile. `StationProfileSession` is the Godot-free boundary, `TradingService` also gates repairs and upgrades on docking, and the Godot smoke test now covers the full station and reload flow. [Client entry](client/UI/plan.d/m8.md), [station fixture](data/stations/IMPLEMENTATION_PLAN.md). No native UI parity or original station data; RT-F025/F026/F045/F047/F048/F049 and master M2 boxes stay open; counts unchanged.
+-   Queue M8: the Godot client now opens a local saved profile (`user://profiles`) through the transaction core and shows credits, cargo and upgrades on the HUD; key F docks at a NEW/provisional Range Station with market, repair and upgrade tabs; in-space pickups are committed to the profile; the pause menu reloads the saved profile. `StationProfileSession` is the Godot-free boundary, `TradingService` also gates repairs and upgrades on docking, and the Godot smoke test now covers the full station and reload flow. [Client entry](client/UI/plan.d/m8.md), [station fixture](data/stations/IMPLEMENTATION_PLAN.md). No native UI parity or original station data; RT-F025/F026/F045/F047/F048/F049 and master M2 boxes stay open; counts unchanged.
 
 ## Repairs and upgrade pricing — October 27, 2026
 

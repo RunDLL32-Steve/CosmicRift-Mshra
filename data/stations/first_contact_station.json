@@ -1,82 +1,82 @@
 {
-  "stationId": "first_contact_station",
-  "name": "Range Station",
-  "evidenceClassification": "NEW",
-  "x": 90,
-  "y": 20,
-  "dockRadius": 150,
-  "startingWallet": 500,
-  "cargoCapacity": 60,
-  "goods": [
-    {
-      "id": "raw_ore",
-      "name": "Raw ore",
-      "unitWeight": 2,
-      "buy": 12,
-      "sell": 8
-    },
-    {
-      "id": "ice_crystals",
-      "name": "Ice crystals",
-      "unitWeight": 1,
-      "buy": 6,
-      "sell": 4
-    },
-    {
-      "id": "refined_alloy",
-      "name": "Refined alloy",
-      "unitWeight": 3,
-      "buy": 40,
-      "sell": 30
-    }
-  ],
-  "repairs": [
-    {
-      "id": "hull_patch",
-      "name": "Hull patch (25%)",
-      "price": 40,
-      "hullRestoreFraction": 0.25
-    },
-    {
-      "id": "full_overhaul",
-      "name": "Full overhaul",
-      "price": 120,
-      "hullRestoreFraction": 1.0
-    }
-  ],
-  "upgrades": [
-    {
-      "id": "cargo_racks",
-      "name": "Cargo racks",
-      "price": 300
-    },
-    {
-      "id": "thruster_tune",
-      "name": "Thruster tune",
-      "price": 350
-    },
-    {
-      "id": "shield_tuner",
-      "name": "Shield tuner",
-      "price": 450
-    }
-  ],
-  "collectibles": [
-    {
-      "id": "pile_ore_launch",
-      "itemId": "raw_ore",
-      "quantity": 4,
-      "x": 0,
-      "y": -70,
-      "radius": 14
-    },
-    {
-      "id": "pile_ice_west",
-      "itemId": "ice_crystals",
-      "quantity": 8,
-      "x": -170,
-      "y": 20,
-      "radius": 14
-    }
-  ]
+    "stationId": "first_contact_station",
+    "name": "Range Station",
+    "evidenceClassification": "NEW",
+    "x": 90,
+    "y": 20,
+    "dockRadius": 150,
+    "startingWallet": 500,
+    "cargoCapacity": 60,
+    "goods": [
+        {
+            "id": "raw_ore",
+            "name": "Raw ore",
+            "unitWeight": 2,
+            "buy": 12,
+            "sell": 8
+        },
+        {
+            "id": "ice_crystals",
+            "name": "Ice crystals",
+            "unitWeight": 1,
+            "buy": 6,
+            "sell": 4
+        },
+        {
+            "id": "refined_alloy",
+            "name": "Refined alloy",
+            "unitWeight": 3,
+            "buy": 40,
+            "sell": 30
+        }
+    ],
+    "repairs": [
+        {
+            "id": "hull_patch",
+            "name": "Hull patch (25%)",
+            "price": 40,
+            "hullRestoreFraction": 0.25
+        },
+        {
+            "id": "full_overhaul",
+            "name": "Full overhaul",
+            "price": 120,
+            "hullRestoreFraction": 1.0
+        }
+    ],
+    "upgrades": [
+        {
+            "id": "cargo_racks",
+            "name": "Cargo racks",
+            "price": 300
+        },
+        {
+            "id": "thruster_tune",
+            "name": "Thruster tune",
+            "price": 350
+        },
+        {
+            "id": "shield_tuner",
+            "name": "Shield tuner",
+            "price": 450
+        }
+    ],
+    "collectibles": [
+        {
+            "id": "pile_ore_launch",
+            "itemId": "raw_ore",
+            "quantity": 4,
+            "x": 0,
+            "y": -70,
+            "radius": 14
+        },
+        {
+            "id": "pile_ice_west",
+            "itemId": "ice_crystals",
+            "quantity": 8,
+            "x": -170,
+            "y": 20,
+            "radius": 14
+        }
+    ]
 }
