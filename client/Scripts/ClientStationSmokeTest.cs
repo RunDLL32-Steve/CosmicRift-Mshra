@@ -62,6 +62,53 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 $"The HUD must show the kill reward and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
             GD.Print($"STATION SMOKE PASS: destroying a target paid {reward} credits once; the replayed kill was a duplicate");
 
+            // Mining (queue M7 slice): fly onto an original Tellerium spawn's pile while saving fails, reload, then let it save.
+            resetSector();
+            await nextPhysicsFrame();
+            var refinery = station.Refinery ?? throw new InvalidOperationException("The shipped station must carry the refinery.");
+            var recipe = refinery.Recipes.Single(r => r.InputItemId == "2003");
+            var mineral = readWorld().Collectibles.FirstOrDefault(p => p.ItemId == "2003" && p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal))
+                ?? throw new InvalidOperationException("A fresh sector must hold a Tellerium pile from an original mineral spawn.");
+            client.SimulatePickupSaveFailure();
+            var pickupsBefore = readWorld().Pickups.Count;
+            Teleport(mineral.Position);
+            for (var frame = 0; frame < 30 && readWorld().Pickups.Count == pickupsBefore; frame++) await nextPhysicsFrame();
+            var mined = readWorld().Pickups.Skip(pickupsBefore).Where(p => p.PileId == mineral.Id).Sum(p => p.Quantity);
+            var savedOre = session.Profile!.Inventory.GetValueOrDefault("2003");
+            Require(mined > 0 && readWorld().Cargo.Quantity("2003") == savedOre + mined && client.PendingPickups > 0,
+                $"The mined Tellerium must be in the hold but not yet saved (mined {mined}, pending {client.PendingPickups}).");
+            client.ReloadProfile();
+            Require(readWorld().Cargo.Quantity("2003") == savedOre + mined && client.PendingPickups > 0,
+                "A reload must keep unsaved pickups queued and in the hold.");
+            client.ClearPickupSaveFailure();
+            await nextPhysicsFrame();
+            Require(session.Profile!.Inventory.GetValueOrDefault("2003") == savedOre + mined && client.PendingPickups == 0,
+                $"Once saving works the {mined} mined Tellerium must be saved exactly once.");
+            var minedPickup = readWorld().Pickups.Skip(pickupsBefore).First(p => p.PileId == mineral.Id);
+            Require((await session.GrantPickupAsync(client.SectorInstanceId, minedPickup)).IsReplay,
+                "Granting the same pickup again must be recognised as a duplicate.");
+            await nextPhysicsFrame();
+            Require(hud.NoticeText.Contains("Mined") && hud.NoticeText.Contains("Tellerium"), $"The HUD must report the mined ore, got '{hud.NoticeText}'.");
+            GD.Print($"STATION SMOKE PASS: mined {mined} Tellerium from an original spawn; it survived a failed save and a reload and was saved once");
+
+            // Refine it at the refinery (F docks there; only the Refinery page is offered).
+            Teleport(new System.Numerics.Vector2(refinery.X, refinery.Y));
+            await nextPhysicsFrame();
+            SendKey(Key.F, true);
+            SendKey(Key.F, false);
+            await nextPhysicsFrame();
+            Require(client.AtRefinery && client.Station.RefineryMode && client.Station.TitleText == refinery.Name.ToUpperInvariant(),
+                "F at the refinery must open the refinery page.");
+            Press($"refineall:{recipe.Id}");
+            var refinedUnits = session.Profile!.Inventory.GetValueOrDefault(recipe.OutputItemId);
+            Require(refinedUnits == savedOre + mined && !session.Profile.Inventory.ContainsKey("2003") && readWorld().Cargo.Quantity(recipe.OutputItemId) == refinedUnits,
+                $"Refine all must turn the {savedOre + mined} Tellerium into Refined Tellerium in profile and hold.");
+            SendKey(Key.Escape, true);
+            SendKey(Key.Escape, false);
+            await nextPhysicsFrame();
+            Require(!client.StationVisible, "Escape must undock from the refinery.");
+            GD.Print($"STATION SMOKE PASS: refined {refinedUnits} Tellerium into {station.NameOf(recipe.OutputItemId)} at the {refinery.Name}");
+
             // Dock with the native key from the spawn point (inside the provisional dock radius).
             resetSector();
             Require(readWorld().Cargo.Quantity(pile.ItemId) == pile.Quantity, "A sector reset must rebuild the hold from the saved profile.");
@@ -80,6 +127,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(session.Profile.Wallet == walletBeforeKill + reward + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
             Require(client.Station.CreditsText == $"CREDITS  {session.Profile.Wallet:N0}", "The station screen must show the saved wallet.");
             GD.Print($"STATION SMOKE PASS: {trade.Name} paid {pile.Quantity * trade.CreditsPerUnit} credits into the saved profile");
+            var refinedTrade = station.Trades.Single(t => t.InputItemId == recipe.OutputItemId);
+            var walletBeforeRefined = session.Profile.Wallet;
+            Press($"sellall:{recipe.OutputItemId}");
+            Require(session.Profile!.Wallet == walletBeforeRefined + refinedUnits * refinedTrade.CreditsPerUnit && !session.Profile.Inventory.ContainsKey(recipe.OutputItemId),
+                "Trading the refined ore must pay its recipe value per unit.");
+            GD.Print($"STATION SMOKE PASS: {refinedTrade.Name} paid {refinedUnits * refinedTrade.CreditsPerUnit} credits for the refined ore");
 
             // Repairs: refused at full hull without a charge, applied when damaged.
             var repair = station.Repairs[0];
@@ -138,16 +191,10 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var beforeExit = session.Profile!;
             var pilesBeforeReload = readWorld().Collectibles.Select(p => p.Id).ToArray();
             var ship = beforeExit.Ship ?? throw new InvalidOperationException("Pausing must save the ship condition.");
-            // Cargo collected but not yet saved (no commit runs while paused) is dropped by the reload, and the player is told.
-            var unsavedItem = station.Collectibles.First(p => p.ItemId != pile.ItemId).ItemId;
-            Require(readWorld().Cargo.Add(unsavedItem, 3).Accepted == 3, "The test must be able to place unsaved cargo in the hold.");
             Require(Math.Abs(ship.X - readWorld().Player.Position.X) < 0.01f && Math.Abs(ship.Y - readWorld().Player.Position.Y) < 0.01f
                 && Math.Abs(ship.Hull - readWorld().Player.Hull) < 0.01f, "The saved ship condition must match the paused ship.");
             hud.FindChildren("ReloadProfile", "Button", true, false).Cast<Button>().Single().EmitSignal(Button.SignalName.Pressed);
             Require(Same(beforeExit, client.Session!.Profile!), "Reload from the pause menu must return the saved profile unchanged.");
-            Require(readWorld().Cargo.Quantity(unsavedItem) == 0, "The reload must drop the unsaved cargo from the hold.");
-            Require(hud.NoticeText.Contains("Reload discarded 3 unsaved cargo units") && client.ProfileStatus.Contains("Reload discarded 3"),
-                $"The reload must say it dropped the unsaved cargo, got '{hud.NoticeText}'.");
             Require(readWorld().Collectibles.Select(p => p.Id).SequenceEqual(pilesBeforeReload), "A profile reload must not respawn collected piles.");
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
@@ -162,7 +209,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, docking, outpost trade, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload warning for unsaved cargo, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)
@@ -180,6 +227,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
     private static bool Same(PlayerProfile a, PlayerProfile b) =>
         a.Revision == b.Revision && a.Wallet == b.Wallet && a.Inventory.SequenceEqual(b.Inventory) && a.Upgrades.SequenceEqual(b.Upgrades) && a.Ship == b.Ship;
+
+    private void Teleport(System.Numerics.Vector2 position)
+    {
+        var player = readWorld().Player;
+        readWorld().RestorePlayer(position, player.Heading, player.Hull);
+    }
 
     private void Press(string action) => FindAction(action).EmitSignal(Button.SignalName.Pressed);
 

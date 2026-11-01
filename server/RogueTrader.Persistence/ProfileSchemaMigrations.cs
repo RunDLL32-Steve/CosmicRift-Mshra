@@ -18,7 +18,13 @@ public static class ProfileSchemaMigrations
     /// </summary>
     public static IProfileMigration V2ToV3 { get; } = new Step(2, static p => (JsonObject)p.DeepClone());
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3];
+    /// <summary>
+    /// Schema 4 adds the <c>Refine</c> transaction kind (queue M7 mining slice). Older payloads never contain it, so the step only
+    /// advances the version; an older build then refuses a schema 4 file as newer instead of quarantining an unknown kind as corrupt.
+    /// </summary>
+    public static IProfileMigration V3ToV4 { get; } = new Step(3, static p => (JsonObject)p.DeepClone());
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {

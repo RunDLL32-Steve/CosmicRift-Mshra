@@ -34,6 +34,12 @@ public sealed class TradingService(ITransactionProcessor processor, StationDirec
         return _processor.RepairAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
     }
 
+    public Task<TransactionResult> RefineAsync(string authenticatedProfileId, float shipX, float shipY, RefineRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _processor.RefineAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
+    }
+
     public Task<TransactionResult> BuyUpgradeAsync(string authenticatedProfileId, float shipX, float shipY, BuyUpgradeRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);

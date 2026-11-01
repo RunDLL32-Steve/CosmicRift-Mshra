@@ -16,8 +16,8 @@ public sealed record ProfileOpenOutcome(bool Succeeded, bool Created, ProfileLoa
 /// </summary>
 public sealed class StationProfileSession
 {
-    /// <summary>Reward source id for cargo the ship collected in space (NEW/provisional; original pickup ownership is open).</summary>
-    public const string PickupSourceId = "world-pickup";
+    /// <summary>Reward source id prefix for cargo the ship collected in space; the pile id follows (NEW; original pickup ownership is open).</summary>
+    public const string PickupSourcePrefix = "pickup:";
 
     private readonly TransactionProcessor _processor;
     private readonly TradingService _trading;
@@ -32,7 +32,7 @@ public sealed class StationProfileSession
         _shipHullId = shipHullId;
         Cargo = station.CreateCargoCatalog();
         _processor = new TransactionProcessor(repository, station.CreatePriceTable(), new CatalogCargoPolicy(Cargo), options ?? new PersistenceOptions(), time);
-        Stations = new StationDirectory([station.Site]);
+        Stations = new StationDirectory(station.Sites);
         _trading = new TradingService(_processor, Stations);
     }
 
@@ -125,33 +125,42 @@ public sealed class StationProfileSession
     private TransactionResult Refused(string transactionId, RejectionReason reason) =>
         new(transactionId, TransactionStatus.Rejected, reason, false, 0, new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1);
 
-    /// <summary>Units the ship's hold has gained over the saved profile inventory (in-space pickups not yet committed).</summary>
-    public IReadOnlyDictionary<string, int> UncommittedPickups(IReadOnlyDictionary<string, int> hold)
+    /// <summary>
+    /// Stable transaction id for one pickup (queue M7 mining slice): the same sector instance and pickup sequence always give the
+    /// same id, so a retried grant after a lost acknowledgement, reload or relaunch is recognised as a duplicate and applied once.
+    /// </summary>
+    public static string PickupTransactionId(string sectorInstanceId, int sequence)
     {
-        ArgumentNullException.ThrowIfNull(hold);
-        var profile = Profile ?? throw new InvalidOperationException("No profile is open.");
-        var gained = new SortedDictionary<string, int>(StringComparer.Ordinal);
-        foreach (var (item, quantity) in hold)
-        {
-            var delta = quantity - profile.Inventory.GetValueOrDefault(item);
-            if (delta > 0) gained[item] = delta;
-        }
-        return gained;
+        ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
+        ArgumentOutOfRangeException.ThrowIfNegative(sequence);
+        return StableId("pickup", $"{sectorInstanceId}-{sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
     }
 
     /// <summary>
-    /// Commits units the ship's hold has gained over the profile inventory (in-space pickups) as one reward. Returns null when
-    /// there is nothing new. The hold is simulation state; the profile stays the record the HUD and station show. The commit
-    /// is state-based: after a lost acknowledgement the reloaded inventory already holds the units, so nothing is granted twice.
+    /// Commits one pickup (a mined mineral pile or any other pile in space) to the profile through the idempotent GrantReward
+    /// core. The source id names the pile, so the ledger shows where cargo came from. Retry with the same arguments after a
+    /// refusal; the stable id makes the grant safe to repeat across retries, reloads and relaunches.
     /// </summary>
-    public async Task<TransactionResult?> CommitPickupsAsync(IReadOnlyDictionary<string, int> hold, CancellationToken ct = default)
+    public Task<TransactionResult> GrantPickupAsync(string sectorInstanceId, CargoPickup pickup, CancellationToken ct = default)
     {
-        var gained = UncommittedPickups(hold);
-        if (gained.Count == 0) return null;
-        var profileId = Profile!.ProfileId;
-        return await _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
-            new GrantRewardRequest(NewId(), profileId, PickupSourceId, 0, gained), ct).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(pickup);
+        var profileId = RequireProfile();
+        var transactionId = PickupTransactionId(sectorInstanceId, pickup.Sequence);
+        return _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
+            new GrantRewardRequest(transactionId, profileId, $"{PickupSourcePrefix}{pickup.PileId}", 0,
+                new Dictionary<string, int> { [pickup.ItemId] = pickup.Quantity }), ct);
     }
+
+    /// <summary>Refines at the refinery: one unit of the recipe's input becomes one unit of its output (NEW reading, RT-F044 open).</summary>
+    public Task<TransactionResult> RefineAsync(string recipeId, int quantity, float shipX, float shipY, CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        var refinery = Station.Refinery?.StationId ?? Station.StationId; // without a refinery the core refuses: no recipes there
+        return _trading.RefineAsync(profileId, shipX, shipY, new RefineRequest(NewId(), profileId, refinery, recipeId, quantity), ct);
+    }
+
+    public bool IsDockedAtRefinery(float shipX, float shipY) =>
+        Station.Refinery is { } refinery && Stations.IsDocked(refinery.StationId, shipX, shipY);
 
     /// <summary>
     /// Stable transaction id for one kill: the same sector instance and target always give the same id, so a retried or
@@ -161,10 +170,15 @@ public sealed class StationProfileSession
     {
         ArgumentException.ThrowIfNullOrEmpty(sectorInstanceId);
         ArgumentException.ThrowIfNullOrEmpty(targetId);
-        var id = $"kill-{sectorInstanceId}-{targetId}";
+        return StableId("kill", $"{sectorInstanceId}-{targetId}");
+    }
+
+    private static string StableId(string kind, string identity)
+    {
+        var id = $"{kind}-{identity}";
         return id.Length <= ProfileInvariants.MaxTransactionIdLength
             ? id
-            : "kill-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
+            : $"{kind}-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
     }
 
     /// <summary>

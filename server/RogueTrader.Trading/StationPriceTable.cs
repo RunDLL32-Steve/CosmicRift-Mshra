@@ -18,6 +18,7 @@ public sealed class StationPriceTable : IPriceSource
     private readonly Dictionary<(string Station, string Item), long> _sell = new();
     private readonly Dictionary<(string Station, string Upgrade), long> _upgrade = new();
     private readonly Dictionary<(string Station, string Repair), long> _repair = new();
+    private readonly Dictionary<(string Station, string Recipe), (string Input, string Output)> _refine = new();
 
     /// <summary>
     /// The original ITM categories that hold installable upgrade modules (RT-F048). The catalog names five groups here, not six:
@@ -93,6 +94,28 @@ public sealed class StationPriceTable : IPriceSource
 
     public bool TryGetRepairPrice(string stationId, string repairId, out long price) =>
         _repair.TryGetValue((stationId, repairId), out price);
+
+    public bool TryGetRefineRecipe(string stationId, string recipeId, out string inputItemId, out string outputItemId)
+    {
+        var found = _refine.TryGetValue((stationId, recipeId), out var recipe);
+        (inputItemId, outputItemId) = found ? recipe : ("", "");
+        return found;
+    }
+
+    /// <summary>Adds refinery recipes offered only at <paramref name="refineryId"/>; a repeated recipe id is refused. Returns this table.</summary>
+    public StationPriceTable WithRefineRecipes(string refineryId, IEnumerable<(string RecipeId, string InputItemId, string OutputItemId)> recipes)
+    {
+        ArgumentNullException.ThrowIfNull(recipes);
+        var batch = recipes.ToArray();
+        if (batch.Length == 0) return this;
+        if (string.IsNullOrEmpty(refineryId)) throw new ArgumentException("Refinery recipes need a refinery id.", nameof(refineryId));
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (id, input, output) in batch)
+            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(input) || string.IsNullOrEmpty(output) || !seen.Add(id) || _refine.ContainsKey((refineryId, id)))
+                throw new ArgumentException($"Invalid or duplicate refinery recipe '{id}'.", nameof(recipes));
+        foreach (var (id, input, output) in batch) _refine[(refineryId, id)] = (input, output);
+        return this;
+    }
 
     /// <summary>
     /// Adds explicit upgrade prices (NEW fixtures or hand-authored data) at every station of this table, replacing none: a repeated

@@ -32,6 +32,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         long reward;
         string sector;
         TargetKill kill;
+        CargoPickup pickup;
         using (var run = await Launch.OpenAsync(folder.Path, content))
         {
             Assert.True(run.Outcome.Created, run.Outcome.Message);
@@ -49,7 +50,8 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             var pile = content.Station.Collectibles.Single(p => p.ItemId == "2008");
             run.FlyUntil(new ShipInput(1, 0, false), w => w.Cargo.Quantity(pile.ItemId) == pile.Quantity, 600);
             run.FlyUntil(new ShipInput(-1, 0, false), w => w.Player.Velocity.Y >= 0, 600);
-            Assert.Equal(TransactionStatus.Applied, (await run.Session.CommitPickupsAsync(run.World.Cargo.Items))!.Status);
+            pickup = Assert.Single(run.World.Pickups);
+            Assert.Equal(TransactionStatus.Applied, (await run.Session.GrantPickupAsync(sector, pickup)).Status);
             Assert.Equal(pile.Quantity, run.Profile.Inventory[pile.ItemId]);
 
             // 3. Trade it at the outpost (the ship is still inside the dock radius).
@@ -98,7 +100,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             // Duplicates after relaunch: the persisted idempotency window recognises the old kill, and committed cargo is not re-granted.
             var replay = await relaunch.Session.GrantKillRewardAsync(sector, kill);
             Assert.True(replay!.IsReplay);
-            Assert.Null(await relaunch.Session.CommitPickupsAsync(relaunch.World.Cargo.Items));
+            Assert.True((await relaunch.Session.GrantPickupAsync(sector, pickup)).IsReplay);
             AssertSameProgression(beforeExit, relaunch.Profile);
         }
     }

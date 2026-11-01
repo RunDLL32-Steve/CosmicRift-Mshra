@@ -153,7 +153,7 @@ public partial class FlightHud : CanvasLayer
     }
 
     /// <summary>Shows the authoritative profile (wallet, inventory, upgrades) and the ship hold's weight. Null profile: services offline.</summary>
-    public void UpdateProfile(PlayerProfile? profile, StationDefinition station, long cargoWeight, long cargoCapacity, bool docked, string profileStatus)
+    public void UpdateProfile(PlayerProfile? profile, string dockName, StationDefinition station, long cargoWeight, long cargoCapacity, bool docked, string profileStatus)
     {
         _profileStatus.Text = profileStatus;
         if (profile is null)
@@ -168,7 +168,7 @@ public partial class FlightHud : CanvasLayer
         var upgrades = profile.Upgrades.Select(station.NameOf).ToArray();
         _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}\n{(held.Length == 0 ? "Hold empty" : string.Join(", ", held))}"
             + (upgrades.Length == 0 ? "" : $"\nUpgrades: {string.Join(", ", upgrades)}");
-        _stationHint = docked ? $"{station.Name.ToUpperInvariant()} IN RANGE  /  {FlightInput.Display("station_dock")} to dock" : "";
+        _stationHint = docked ? $"{dockName.ToUpperInvariant()} IN RANGE  /  {FlightInput.Display("station_dock")} to dock" : "";
     }
 
     public void SetMenuVisible(bool visible)
