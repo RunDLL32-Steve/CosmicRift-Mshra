@@ -8,8 +8,11 @@ public sealed partial class WorldSimulation
 {
     public const int TickRate = 60;
     public const float TickDuration = 1f / TickRate;
+    /// <summary>Ship id of the local player.</summary>
+    public const string PlayerShipId = "player";
     private readonly List<ProjectileState> _projectiles = [];
     private readonly List<CollectibleState> _collectibles;
+    private readonly List<TargetKill> _kills = [];
     private long _nextProjectileId;
 
     public GameCatalog Catalog { get; }
@@ -22,6 +25,8 @@ public sealed partial class WorldSimulation
     public CargoHold Cargo { get; }
     public long TickNumber { get; private set; }
     public int DestroyedTargets { get; private set; }
+    /// <summary>Every target destruction in the order it happened; a target appears at most once per world instance.</summary>
+    public IReadOnlyList<TargetKill> Kills => _kills;
     public int AsteroidCollisions { get; private set; }
     public long ShotsFired { get; private set; }
 
@@ -37,7 +42,7 @@ public sealed partial class WorldSimulation
         _collectibles = cargo.Collectibles.Select(spawn => new CollectibleState(spawn)).ToList();
         Collectibles = _collectibles.AsReadOnly();
         var spawn = catalog.Sector.PlayerSpawn;
-        Player = new ShipState("player", catalog.Ship, catalog.Weapon, new Vector2(spawn.X, spawn.Y), spawn.Heading)
+        Player = new ShipState(PlayerShipId, catalog.Ship, catalog.Weapon, new Vector2(spawn.X, spawn.Y), spawn.Heading)
         {
             Velocity = ClampSpeed(new Vector2(spawn.VelocityX, spawn.VelocityY), catalog.Ship.Physics.MaximumSpeed)
         };
@@ -215,6 +220,7 @@ public sealed partial class WorldSimulation
         {
             target.DestroyedByShipId = projectile.OwnerShipId;
             DestroyedTargets++;
+            _kills.Add(new TargetKill(target.Id, projectile.OwnerShipId, TickNumber));
         }
     }
 

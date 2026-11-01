@@ -24,7 +24,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.Client", "client\RogueTrader.Client.csproj", "{799C4036-7FA2-4DE1-8B99-CE38248BBC46}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.Trading", "server\RogueTrader.Trading\RogueTrader.Trading.csproj", "{8D5998C4-0899-40ED-916C-25698EC38AEE}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.Protocol", "shared\RogueTrader.Protocol\RogueTrader.Protocol.csproj", "{6A44DA71-00EA-4C19-B575-389F4E87D37A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueTrader.IntegrationTests", "tests\Integration\RogueTrader.IntegrationTests.csproj", "{1647A33A-3AB8-4E77-96A2-CB1380F384D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +74,10 @@ Global
 		{6A44DA71-00EA-4C19-B575-389F4E87D37A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A44DA71-00EA-4C19-B575-389F4E87D37A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A44DA71-00EA-4C19-B575-389F4E87D37A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1647A33A-3AB8-4E77-96A2-CB1380F384D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1647A33A-3AB8-4E77-96A2-CB1380F384D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1647A33A-3AB8-4E77-96A2-CB1380F384D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1647A33A-3AB8-4E77-96A2-CB1380F384D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8513547E-AB48-4A79-9121-97011604DA4D} = {84DB7477-1146-4361-BAF4-06D3BDAEA619}
@@ -81,5 +88,6 @@ Global
 		{18137E69-623B-48D2-B49B-BF576909D9A4} = {8785A3E8-FB63-4547-A187-66925E501B07}
 		{8D5998C4-0899-40ED-916C-25698EC38AEE} = {84DB7477-1146-4361-BAF4-06D3BDAEA619}
 		{6A44DA71-00EA-4C19-B575-389F4E87D37A} = {8FAAE6FC-F3E2-4CCA-A0B2-22ECC5B6E32D}
+		{1647A33A-3AB8-4E77-96A2-CB1380F384D5} = {8785A3E8-FB63-4547-A187-66925E501B07}
 	EndGlobalSection
 EndGlobal

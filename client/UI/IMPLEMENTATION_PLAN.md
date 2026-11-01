@@ -17,4 +17,6 @@ Evidence: [source input record](../../artifacts/qa/original-input-source-record.
 -   [ ] **Not started — M2 interfaces through the selected engine:** actual original cargo, refinery/trading, repairs, upgrades and progression.
 -   [ ] **Not started — M3/M6 acceptance:** verified native connection/game entry, supported resolutions/UI scaling/accessibility where required by the master.
 
+Testbed loop entries (Godot testbed, not native UI): [M8 HUD, station and save/load](plan.d/m8.md) and [M9 kill rewards, reload warning and loop](plan.d/m9.md).
+
 Presentation widgets do not own gameplay transactions/state. Preserve original categories, names and pixels; optional modern interfaces follow exact reproduction. Completed viewer navigation is history, not an active task.

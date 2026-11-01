@@ -1,5 +1,9 @@
 # Changelog
 
+## First playable progression loop — November 1, 2026
+
+-   Queues M7 (kill-reward slice) and M9: destroying a practice target pays the raw rogue.cfg `[Cash] KillReward` of 75 credits once, through the idempotent transaction core with a stable per-sector-instance transaction id, and the HUD shows it. Paying it flat per kill, the practice targets and their respawn on reset/relaunch are NEW and listed in [data/rewards](data/rewards/IMPLEMENTATION_PLAN.md). A new [integration suite](tests/Integration/IMPLEMENTATION_PLAN.md) plays the loop (kill, pickup, trade, upgrade, repair), exits and relaunches from the save folder, and checks exact progression, duplicate kills, lost acknowledgements, refused saves, interrupted and corrupt saves. Reloading the profile now reports cargo it discarded because it was never saved (M8 review follow-up). [Client entry](client/UI/plan.d/m9.md). Engineering persistence acceptance only; RT-F051/F068 and master M2 boxes stay open; counts unchanged.
+
 ## HUD, Trading Outpost and save/load — November 1, 2026
 
 -   Queue M8: the Godot client opens a local saved profile through the transaction core and shows credits, cargo and upgrades on the HUD. Key F docks at a Trading Outpost derived from the pinned originals (four trade recipes, three repair rows, 35 upgrade and armor rows at original prices), with NEW placement, wallet, capacity, repair prices and upgrade effects listed in the file. Profile schema 3 saves hull, position and heading. Repairs at full hull are refused without charge, and collected cargo survives a failed save. [Client entry](client/UI/plan.d/m8.md), [station data](data/stations/IMPLEMENTATION_PLAN.md), [persistence entry](server/RogueTrader.Persistence/plan.d/m8.md). No native UI parity; RT-F025/F026/F041/F045/F047/F048/F049/F068 and master M2 boxes stay open; counts unchanged.
