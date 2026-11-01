@@ -8,9 +8,9 @@ Authority: [master §18 Milestone 2](../../ROGUE_TRADER_2_PLAN.md#milestone-2--r
 
 ## From the originals
 
-| Data       | Source                                                                                                                                                                                             |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 75 credits | `CFG/rogue.cfg` `[Cash]` (line 234) `KillReward=75` at pinned `eb1514e`, read by `OriginalRewardBlock` (RT-F051). `KillRewardTests.ShippedCreditsMatchThePinnedRogueCfg` fails if the file drifts. |
+| Data       | Source                                                                                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 75 credits | `CFG/rogue.cfg` `[Cash]` section at line 234 (`KillReward=75` on line 239) at pinned `eb1514e`, read by `OriginalRewardBlock` (RT-F051). `KillRewardTests.ShippedCreditsMatchThePinnedRogueCfg` fails if the file drifts. |
 
 ## NEW/provisional (listed in the file's `newRules`)
 
