@@ -64,7 +64,7 @@ public partial class GameClient : Node2D
                 ReadDefinition("weapons/plasma_cannon.json"),
                 ReadDefinition("sectors/first_contact.json"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
-            _cargo = _stationDefinition.CreateCargoCatalog();
+            _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
             _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
             var userArgs = OS.GetCmdlineUserArgs();
@@ -317,7 +317,7 @@ public partial class GameClient : Node2D
         try
         {
             _repository = FileProfileRepository.Open(_profileRoot, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
-            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id) { KillReward = _killReward };
+            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id, _catalog.Ship.Cargo.Capacity) { KillReward = _killReward };
             var outcome = Await(session.OpenOrCreateAsync(LocalProfileId));
             _profileOutcome = outcome.Message;
             if (outcome.Succeeded) _session = session;

@@ -24,7 +24,7 @@ No original resource has a positive buy price (sell is 0 or -1), so there is no 
 
 ## NEW/provisional (listed in the file's `newValues`)
 
--   Position (90, 20) and dock radius 150; starting wallet 0 (CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 is the unproven alternative); hold capacity 4,000,000 raw mass units.
+-   Position (90, 20) and dock radius 150; starting wallet 0 (CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 is the unproven alternative); the hold cap moved to the ship (`data/ships/starter_interceptor.json` `cargo.capacity` = the Asp VEH f[48] StopWeight 2,500,000; the station keeps only the item weights).
 -   Each recipe pays the raw f[31] value per input unit; recipe quantities and f+4 are undecoded.
 -   Repair amounts are read as hull points; price is 10 credits per point (original buy is 0). A repair at full hull or on a destroyed ship is refused without charge.
 -   Upgrade effects: f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions (armor's negative values slow the ship); maneuver thrusters +5/10/15% rotation; capacitors +25/50/75% maximum energy; chargers and the Moltor core +25/50/75% regeneration; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category is active.

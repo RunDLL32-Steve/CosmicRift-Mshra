@@ -158,7 +158,7 @@ public sealed class TargetRespawnTests
     public async Task SameTargetInTheNextWave_PaysAgain_ButEachWavePaysOnce()
     {
         var station = StationDefinition.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "stations", "trading_outpost.json")));
-        var session = new StationProfileSession(new InMemoryProfileRepository(), station, "starter_interceptor") { KillReward = new KillRewardDefinition("r", 75) };
+        var session = new StationProfileSession(new InMemoryProfileRepository(), station, "starter_interceptor", TestCargo.Capacity) { KillReward = new KillRewardDefinition("r", 75) };
         Assert.True((await session.OpenOrCreateAsync("respawn-pilot")).Succeeded);
 
         Assert.False((await session.GrantKillRewardAsync("sector", new TargetKill("t1", WorldSimulation.PlayerShipId, 5, 0)))!.IsReplay);

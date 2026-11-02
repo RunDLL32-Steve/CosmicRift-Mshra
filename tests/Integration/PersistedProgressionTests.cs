@@ -281,7 +281,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         {
             var repository = FileProfileRepository.Open(folder, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
             var faulty = new FaultInjectingRepository(repository) { Mode = fault };
-            var session = new StationProfileSession(faulty, content.Station, content.Catalog.Ship.Id) { KillReward = content.Reward };
+            var session = new StationProfileSession(faulty, content.Station, content.Catalog.Ship.Id, content.Catalog.Ship.Cargo.Capacity) { KillReward = content.Reward };
             var outcome = await session.OpenOrCreateAsync(ProfileId);
             if (requireSuccess) Assert.True(outcome.Succeeded, outcome.Message);
             return new Launch(repository, faulty, session, outcome, content);
@@ -294,7 +294,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         private WorldSimulation NewWorld()
         {
             var hold = (Session.Profile?.Inventory ?? Enumerable.Empty<KeyValuePair<string, int>>()).Where(e => e.Value > 0);
-            var world = new WorldSimulation(EffectiveCatalog(), _content.Station.CreateCargoCatalog(), hold);
+            var world = new WorldSimulation(EffectiveCatalog(), _content.Station.CreateCargoCatalog(_content.Catalog.Ship.Cargo.Capacity), hold);
             if (Session.Profile?.Ship is { } ship) world.RestorePlayer(new Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
             return world;
         }

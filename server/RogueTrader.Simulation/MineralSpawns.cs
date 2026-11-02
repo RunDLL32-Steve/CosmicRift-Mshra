@@ -20,12 +20,14 @@ namespace RogueTrader.Simulation;
 /// <param name="SucceedTicks">Ticks after a successful spawn before the next attempt.</param>
 /// <param name="ClearRadius">An attempt fails when the player's centre is within this distance of the chosen point (0 = never).</param>
 /// <param name="PileRadius">Pickup radius of each pile.</param>
+/// <param name="StartingPiles">Piles placed on the spawn's first attempt, capped at <paramref name="MaxPiles"/>; 0 or 1 places one.</param>
 public sealed record MineralSpawnDefinition(string Id, string ItemId, int Quantity, int MaxPiles, float X, float Y,
-    float Width, float Height, int AttemptTicks, int SucceedTicks, float ClearRadius, float PileRadius);
+    float Width, float Height, int AttemptTicks, int SucceedTicks, float ClearRadius, float PileRadius, int StartingPiles = 0);
 
 /// <summary>
 /// Mineral spawn areas for one sector, plus the seed of their placement. Omitted from the world, no minerals appear. The world
-/// attempts every spawn on its first tick, so a fresh sector starts stocked; afterwards each spawn follows its own delays.
+/// attempts every spawn on its first tick, placing its <see cref="MineralSpawnDefinition.StartingPiles"/>, so a fresh sector
+/// starts stocked; afterwards each spawn places one pile per attempt on its own delays.
 /// </summary>
 public sealed class MineralFieldCatalog
 {
@@ -56,7 +58,7 @@ public sealed class MineralFieldCatalog
         {
             if (s is null || string.IsNullOrWhiteSpace(s.Id) || !ids.Add(s.Id) || string.IsNullOrWhiteSpace(s.ItemId))
                 throw new ArgumentException("Mineral spawns need unique ids and an item id.", nameof(spawns));
-            if (s.Quantity <= 0 || s.MaxPiles <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0)
+            if (s.Quantity <= 0 || s.MaxPiles <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0 || s.StartingPiles < 0)
                 throw new ArgumentException($"Mineral spawn '{s.Id}' needs positive quantity, pile limit and delays.", nameof(spawns));
             if (!float.IsFinite(s.X) || !float.IsFinite(s.Y) || !float.IsFinite(s.Width) || !float.IsFinite(s.Height)
                 || s.Width < 0 || s.Height < 0 || !float.IsFinite(s.ClearRadius) || s.ClearRadius < 0
@@ -140,10 +142,11 @@ public sealed partial class WorldSimulation
             var definition = spawn.Definition;
             var prefix = $"{MineralPilePrefix}{definition.Id}:";
             var alive = _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal));
-            if (alive < definition.MaxPiles && TryPlaceMineral(spawn, prefix))
-                spawn.NextAttemptTick = checked(TickNumber + definition.SucceedTicks);
-            else
-                spawn.NextAttemptTick = checked(TickNumber + definition.AttemptTicks);
+            // A spawn that has never attempted (timer still 0) stocks its starting piles; later attempts place one.
+            var wanted = spawn.NextAttemptTick == 0 ? Math.Max(1, definition.StartingPiles) : 1;
+            var placed = 0;
+            while (placed < wanted && alive + placed < definition.MaxPiles && TryPlaceMineral(spawn, prefix)) placed++;
+            spawn.NextAttemptTick = checked(TickNumber + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
         }
     }
 

@@ -10,6 +10,18 @@ public sealed record ShipDefinition
     public ShipPhysics Physics { get; init; } = new();
     public ShipDefense Defense { get; init; } = new();
     public ShipReactor Reactor { get; init; } = new();
+    public ShipCargo Cargo { get; init; } = new();
+}
+
+/// <summary>
+/// The most cargo weight the hull can hold, in raw ITM weight units (the ITM item weights use the same scale). The default is the
+/// original Asp's VEH f[48] StopWeight (2,500,000), the hull the original gives a new pilot (RPG row 1); reading StopWeight as a
+/// hard cap is NEW (RT-F030 keeps the NormalWeight encumbrance formula open).
+/// </summary>
+public sealed record ShipCargo
+{
+    public long Capacity { get; init; } = 2_500_000;
+    public string? Source { get; init; }
 }
 
 public sealed record ShipPhysics
