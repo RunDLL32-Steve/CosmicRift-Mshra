@@ -105,6 +105,36 @@ public sealed class CargoCatalog
         }
     }
 
+    /// <summary>
+    /// Whether a change from <paramref name="current"/> to <paramref name="proposed"/> is allowed: every proposed item is known with
+    /// no negative quantity, and the proposed weight is within capacity or no heavier than the current hold. The second clause keeps a
+    /// hold that is already over capacity (a save made under an older, larger cap) usable: it may refine to lighter goods or otherwise
+    /// shed weight, but nothing may make it heavier. A current inventory that cannot be weighed falls back to <see cref="Fits"/>.
+    /// </summary>
+    public bool AllowsChange(IEnumerable<KeyValuePair<string, int>> current, IReadOnlyDictionary<string, int> proposed)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(proposed);
+        long after;
+        try
+        {
+            after = WeightOf(proposed);
+        }
+        catch (Exception e) when (e is ArgumentException or OverflowException)
+        {
+            return false;
+        }
+        if (after <= Capacity) return true;
+        try
+        {
+            return after <= WeightOf(current);
+        }
+        catch (Exception e) when (e is ArgumentException or OverflowException)
+        {
+            return false;
+        }
+    }
+
     private sealed class CargoDocument
     {
         public long Capacity { get; set; }

@@ -7,6 +7,11 @@
 -   Players keep their items: wallet, hold, upgrades and ship were already saved in the profile; now cargo and kill rewards that were not saved yet also survive a quit or crash and are granted once on the next launch.
 -   NEW and still open: a player who edits or deletes files in their own save folder, or moves the system clock forward, can still cheat the local build. That ends when a dedicated server owns this state. Mineral spawn timers do not run while the game is closed (target respawn does).
 
+## Old saves over the new hold cap can refine again — November 2, 2026
+
+-   A save made under the old 4,000,000 hold cap can carry more than the Asp's new 2,500,000, and until now it could not refine at all: refining adds the refined good, so the cargo check ran and refused the whole hold. A change to the hold is now allowed when the result is within the cap or no heavier than the hold already is (`CargoCatalog.AllowsChange`, used by `CatalogCargoPolicy`). Every original refinery recipe makes the hold lighter (Tellerium 50,000 to 25,000, Krandazite 100,000 to 50,000, Iron Ore 100,000 to Alloy 75,000), so an over-cap save can refine straight away; it still cannot pick up or buy anything until it is back under the cap. No profile is rewritten and the schema is unchanged. The no-heavier rule is NEW.
+-   TASK_QUEUE.md: M7, C9 and C10 move from the active rows to the merged history.
+
 ## Smaller mineral piles, per-ship hold weight and reproducible smoke runs — November 2, 2026
 
 -   Mineral piles now hold 1 unit each, and each spawn area keeps up to 100 piles (50 for Krandazite). The LIO fields are read the other way round from before: f[18]=1 is the pile size and f[19] the most piles at a time. A fresh sector starts each spawn full, as Steve asked. Before this, a single 100-unit Tellerium pile weighed more than a whole hold.
