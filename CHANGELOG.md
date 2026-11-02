@@ -1,5 +1,9 @@
 # Changelog
 
+## Bounty and reputation rules — November 2, 2026
+
+-   Queue C9: a NEW data-driven rule file (`data/conduct/rules.json`) turns named conduct events into bounty and per-category reputation changes, and the transaction core records them once per transaction id, with clamping and no decay. Profile schema 5 saves bounty and standing; older saves open with no bounty and neutral standing. Nothing in the game raises these events yet. [Persistence entry](server/RogueTrader.Persistence/plan.d/c9.md), [data](data/conduct/IMPLEMENTATION_PLAN.md). RT-F051 stays open; counts unchanged.
+
 ## Server input validation — November 2, 2026
 
 -   Queue C8: the headless server session now refuses thrust or turn outside [-1, 1], inputs that acknowledge a snapshot the server has not produced, and submissions beyond a per-sender allowance (four per tick, bursts up to 120), all before anything is queued. A motion audit flags any tick in which the ship moves faster than its maximum speed and any move between ticks that bypassed the session. Findings are reported, not enforced. Every threshold is NEW pending approval. [Server entry](server/RogueTrader.Server/plan.d/c8.md). Counts unchanged.

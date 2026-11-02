@@ -17,6 +17,19 @@ internal sealed class ProfileDocumentV1
     [JsonRequired] public long NextLedgerSequence { get; set; }
     /// <summary>Schema 3. Absent in schema 1/2 payloads (no saved ship condition).</summary>
     public ShipConditionDto? Ship { get; set; }
+    /// <summary>Schema 5. Absent in older payloads (no bounty).</summary>
+    public long Bounty { get; set; }
+    /// <summary>Schema 5. Absent in older payloads (neutral standing).</summary>
+    public Dictionary<string, long>? Reputation { get; set; }
+
+    internal sealed class ConductDto
+    {
+        [JsonRequired] public string EventId { get; set; } = "";
+        [JsonRequired] public int Count { get; set; }
+        [JsonRequired] public long BountyDelta { get; set; }
+        [JsonRequired] public Dictionary<string, long> ReputationDeltas { get; set; } = new(StringComparer.Ordinal);
+        [JsonRequired] public long BountyAfter { get; set; }
+    }
 
     internal sealed class ShipConditionDto
     {
@@ -39,6 +52,8 @@ internal sealed class ProfileDocumentV1
         [JsonRequired] public DateTimeOffset AppliedAtUtc { get; set; }
         /// <summary>Schema 2. Absent in schema 1 payloads, which <see cref="ProfileSchemaMigrations.V1ToV2"/> carries forward unchanged.</summary>
         public string? RepairId { get; set; }
+        /// <summary>Schema 5. Present only on <c>RecordConduct</c> transactions.</summary>
+        public ConductDto? Conduct { get; set; }
     }
 
     internal sealed class LedgerEntryDto
@@ -71,6 +86,14 @@ internal sealed class ProfileDocumentV1
             Revision = t.Revision,
             AppliedAtUtc = t.AppliedAtUtc,
             RepairId = t.RepairId,
+            Conduct = t.Conduct is { } c ? new ConductDto
+            {
+                EventId = c.EventId,
+                Count = c.Count,
+                BountyDelta = c.BountyDelta,
+                ReputationDeltas = new Dictionary<string, long>(c.ReputationDeltas, StringComparer.Ordinal),
+                BountyAfter = c.BountyAfter,
+            } : null,
         }).ToList(),
         Ledger = p.Ledger.Select(e => new LedgerEntryDto
         {
@@ -83,6 +106,8 @@ internal sealed class ProfileDocumentV1
         }).ToList(),
         NextLedgerSequence = p.NextLedgerSequence,
         Ship = p.Ship is { } s ? new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading } : null,
+        Bounty = p.Bounty,
+        Reputation = p.Reputation.Count > 0 ? new Dictionary<string, long>(p.Reputation, StringComparer.Ordinal) : null,
     };
 
     /// <summary>Maps to the immutable model; returns null and an error message when the document is structurally unmappable.</summary>
@@ -96,15 +121,19 @@ internal sealed class ProfileDocumentV1
         if (upgrades.Count != Upgrades.Count) { error = "Upgrades contains duplicates or null entries."; return null; }
         foreach (var key in Inventory.Keys)
             if (key is null) { error = "Inventory contains a null key."; return null; }
+        foreach (var key in Reputation?.Keys ?? Enumerable.Empty<string>())
+            if (key is null) { error = "Reputation contains a null key."; return null; }
 
         var applied = ImmutableList.CreateBuilder<AppliedTransaction>();
         foreach (var t in AppliedTransactions)
         {
-            if (t is null || t.ItemDeltas is null || !Enum.TryParse<TransactionKind>(t.Kind, ignoreCase: false, out var kind) || !Enum.IsDefined(kind))
+            if (t is null || t.ItemDeltas is null || t.Conduct is { EventId: null } or { ReputationDeltas: null } || !Enum.TryParse<TransactionKind>(t.Kind, ignoreCase: false, out var kind) || !Enum.IsDefined(kind))
             { error = "An applied transaction is malformed."; return null; }
             applied.Add(new AppliedTransaction(t.TransactionId, kind, t.RequestFingerprint, t.CurrencyDelta,
                 ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, t.ItemDeltas), t.UpgradeId,
-                t.WalletAfter, t.Revision, t.AppliedAtUtc, t.RepairId));
+                t.WalletAfter, t.Revision, t.AppliedAtUtc, t.RepairId,
+                t.Conduct is { } c ? new ConductDelta(c.EventId, c.Count, c.BountyDelta,
+                    ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, c.ReputationDeltas), c.BountyAfter) : null));
         }
 
         var ledger = ImmutableList.CreateBuilder<WalletLedgerEntry>();
@@ -128,6 +157,8 @@ internal sealed class ProfileDocumentV1
             Ledger = ledger.ToImmutable(),
             NextLedgerSequence = NextLedgerSequence,
             Ship = Ship is { } s ? new ShipCondition(s.Hull, s.X, s.Y, s.Heading) : null,
+            Bounty = Bounty,
+            Reputation = ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, Reputation ?? []),
         };
     }
 }
