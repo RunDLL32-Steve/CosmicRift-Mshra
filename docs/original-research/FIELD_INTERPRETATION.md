@@ -35,7 +35,7 @@ For v53, active [SpeedValues.Parse][speed] reads ten fields per terrain. The com
 | f[362]        | BouncePercent        |            727 | Native collision response and scale.                        |
 | f[373]        | HyperEnergyCost      |           1100 | Energy/time units and consumption event.                    |
 
-All16 terrain blocks must remain available. The canonical CFG sets `Isometric=0`; an emulator bot's assumption about isometric Y coordinates must not be imported as original overhead geometry.
+The field-by-field evidence table for these fields (units, terrains, the -1 reverse sentinel, counter-evidence) is [FLIGHT_FIELD_EVIDENCE.md](FLIGHT_FIELD_EVIDENCE.md) (queue G8, November 2, 2026). All16 terrain blocks must remain available. The canonical CFG sets `Isometric=0`; an emulator bot's assumption about isometric Y coordinates must not be imported as original overhead geometry.
 
 The original-coordinate contract is separate from the provisional prototype's meter/unit convention. Active `LvlInfo.getTileAt`/`Arena.getTerrain` divide native coordinates by16; LVL tile width1999/height1998, offsets3/3 and LIO coordinates are retained. This establishes the current parser/server tile stride; it does not prove the whole native rendering origin/extent/collision-height policy. A one-pixel-per-tile BMP overview is not an authoritative world collision mask by image inference.
 

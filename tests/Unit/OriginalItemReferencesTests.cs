@@ -121,8 +121,8 @@ public sealed class OriginalItemReferencesTests
     public void PlasmaCannonFieldCoverageIsHonest()
     {
         var p = Of(1004);
-        Assert.Equal(99, p.NamedFields.Count);
-        Assert.Equal(128, p.UnnamedFieldIndices.Count);
+        Assert.Equal(106, p.NamedFields.Count); // 99 before G5 named f[32], f[33], f[104], f[108], f[115], f[116], f[141]
+        Assert.Equal(121, p.UnnamedFieldIndices.Count);
         Assert.Equal(227, p.NamedFields.Count + p.UnnamedFieldIndices.Count);
         Assert.Equal("ItmProjectileFields.ExplodeItem", p.NamedFields[142]);
         Assert.Equal("WeaponChainFields.AmmoItem", p.NamedFields[31]);

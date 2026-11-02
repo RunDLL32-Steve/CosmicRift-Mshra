@@ -13,3 +13,9 @@ Selection (November 2, 2026): Steve asked for the next three tasks and the coord
 Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419; global.json change not committed): `dotnet test tests/Unit` with pinned assets at `eb1514e`: 1004 passed, 0 failed, 5 existing skips. Audit script exits 0 with hashes verified.
 
 Not verified: the pinned SDK and `verify.ps1` on Windows (no client change, so no Godot smoke needed).
+
+## Round 2 — November 2, 2026
+
+-   Steve asked for the optional R1-1 to be done. `OriginalItemReferenceResolver` names deltaX/deltaY/deltaZ/deltaAngle/multiLinkMode on type-8 entries and f[32], f[33], f[104], f[108], f[115], f[116], f[141] on projectile rows. Pinned coverage counts move from 99 named / 128 unnamed to 106 / 121 (OriginalItemReferencesTests, OriginalMassDriverTests, OriginalMicroMissileChildTests). Found while testing: the asset-pair heuristic's six trailing ints swallow type-8 f[96..100] after the f[93] firing sound and overwrote the entry names; it now uses TryAdd so an already-named field keeps its name. New test `ResolverInventoryNamesTheNewFields`.
+-   Merged main again (G8 #105 row in TASK_QUEUE conflicted; both rows kept).
+-   `dotnet test tests/Unit` with pinned assets: 1010 passed, 0 failed, 5 existing skips.

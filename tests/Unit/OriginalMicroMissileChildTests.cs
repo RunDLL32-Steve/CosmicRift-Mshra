@@ -182,8 +182,8 @@ public sealed class OriginalMicroMissileChildTests
             Assert.Contains(113, c.UnnamedFieldIndices);
             Assert.Contains(114, c.UnnamedFieldIndices);
         }
-        Assert.Equal(99, Of(1045).NamedFields.Count);
-        Assert.Equal(128, Of(1045).UnnamedFieldIndices.Count);
+        Assert.Equal(106, Of(1045).NamedFields.Count); // 99 before G5 named f[32], f[33], f[104], f[108], f[115], f[116], f[141]
+        Assert.Equal(121, Of(1045).UnnamedFieldIndices.Count);
     }
 
     [RequiresOriginalAssetsFact]

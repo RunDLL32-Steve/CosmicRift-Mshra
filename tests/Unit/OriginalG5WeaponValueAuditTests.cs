@@ -121,6 +121,20 @@ public sealed class OriginalG5WeaponValueAuditTests
             Assert.Equal(2, Item(dual).Record.Int(WeaponChainFields.AmmoUsedPerShot).Value);
     }
 
+    [RequiresOriginalAssetsFact]
+    public void ResolverInventoryNamesTheNewFields()
+    {
+        var resolver = OriginalItemReferenceResolver.Load(OriginalAssets.Root!);
+        var wake = resolver.Resolve(3018);
+        foreach (var f in new[] { 98, 99, 100, 101, 102, 104, 105, 106, 107, 108 })
+            Assert.DoesNotContain(f, wake.UnnamedFieldIndices);
+        Assert.Contains("deltaX", wake.NamedFields[98]);
+        Assert.Contains("multiLinkMode", wake.NamedFields[102]);
+        var laser = resolver.Resolve(1069);
+        foreach (var f in new[] { 32, 33, 104, 108, 115, 116, 141 })
+            Assert.DoesNotContain(f, laser.UnnamedFieldIndices);
+    }
+
     [Fact]
     public void SyntheticTruncatedEntryIsRejected()
     {
