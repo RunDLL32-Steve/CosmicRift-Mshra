@@ -11,7 +11,7 @@ Selection (November 2, 2026): section A has no cloud-eligible row and section B 
 -   New `RogueTrader.Persistence.Transfers` namespace: `SectorTransferCoordinator`, `ITransferJournal`/`InMemoryTransferJournal`, `ISectorParticipant`/`InMemorySectorParticipant`, `PlayerPresence`, `TransferRecord`, `TransferManifest`, `SpawnPlacement`, `TransferInvariants`, `TransferOptions` and result/reason enums.
 -   New `tests/Unit/Persistence/SectorTransferTests.cs` (42 cases).
 
-Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419; global.json change not committed): `dotnet test tests/Unit` with pinned assets at `eb1514e` 970 passed, 0 failed, 5 existing skips; FORMAT_CLEAN; TRACKERS_CONSISTENT.
+Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419; global.json change not committed): `dotnet test tests/Unit` with pinned assets at `eb1514e` 992 passed, 0 failed, 5 existing skips (after merging main with C9 #100); FORMAT_CLEAN; TRACKERS_CONSISTENT.
 
 Not verified: the `verify.ps1` wrapper itself (Windows CI runs it), pinned SDK, Godot smoke (no client or simulation change).
 

@@ -24,7 +24,14 @@ public static class ProfileSchemaMigrations
     /// </summary>
     public static IProfileMigration V3ToV4 { get; } = new Step(3, static p => (JsonObject)p.DeepClone());
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4];
+    /// <summary>
+    /// Schema 5 adds the optional <c>bounty</c>, <c>reputation</c> and per-transaction <c>conduct</c> fields and the
+    /// <c>RecordConduct</c> kind (queue C9). Older payloads lack them (no bounty, neutral standing), so the step only advances the
+    /// version; an older build then refuses a schema 5 file as newer.
+    /// </summary>
+    public static IProfileMigration V4ToV5 { get; } = new Step(4, static p => (JsonObject)p.DeepClone());
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {
