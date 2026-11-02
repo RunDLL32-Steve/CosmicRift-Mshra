@@ -24,13 +24,14 @@ public sealed class StationProfileSession
     private readonly IProfileRepository _repository;
     private readonly string? _shipHullId;
 
-    public StationProfileSession(IProfileRepository repository, StationDefinition station, string? shipHullId,
+    /// <param name="cargoCapacity">The flown ship's hold weight cap (<c>ShipDefinition.Cargo.Capacity</c>).</param>
+    public StationProfileSession(IProfileRepository repository, StationDefinition station, string? shipHullId, long cargoCapacity,
         PersistenceOptions? options = null, TimeProvider? time = null)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         Station = station ?? throw new ArgumentNullException(nameof(station));
         _shipHullId = shipHullId;
-        Cargo = station.CreateCargoCatalog();
+        Cargo = station.CreateCargoCatalog(cargoCapacity);
         _processor = new TransactionProcessor(repository, station.CreatePriceTable(), new CatalogCargoPolicy(Cargo), options ?? new PersistenceOptions(), time);
         Stations = new StationDirectory(station.Sites);
         _trading = new TradingService(_processor, Stations);

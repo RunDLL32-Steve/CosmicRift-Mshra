@@ -51,3 +51,9 @@ internal static class TestWorld
         }
     }
 }
+
+/// <summary>The hold cap the committed starter ship flies with (data/ships/starter_interceptor.json).</summary>
+internal static class TestCargo
+{
+    internal static long Capacity => TestWorld.ExternalCatalog().Ship.Cargo.Capacity;
+}

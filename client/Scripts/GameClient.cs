@@ -43,6 +43,7 @@ public partial class GameClient : Node2D
     private bool _atRefinery;
     /// <summary>One id per WorldSimulation: pickup ids and mineral placement key on it, never on the sector instance (review R1-1).</summary>
     private string _worldInstanceId = "";
+    private int _smokeWorlds;
     private long _lastShipSaveTick;
     private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
     private KillRewardDefinition _killReward = KillRewardDefinition.None;
@@ -63,7 +64,7 @@ public partial class GameClient : Node2D
                 ReadDefinition("weapons/plasma_cannon.json"),
                 ReadDefinition("sectors/first_contact.json"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
-            _cargo = _stationDefinition.CreateCargoCatalog();
+            _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
             _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
             var userArgs = OS.GetCmdlineUserArgs();
@@ -316,7 +317,7 @@ public partial class GameClient : Node2D
         try
         {
             _repository = FileProfileRepository.Open(_profileRoot, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
-            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id) { KillReward = _killReward };
+            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id, _catalog.Ship.Cargo.Capacity) { KillReward = _killReward };
             var outcome = Await(session.OpenOrCreateAsync(LocalProfileId));
             _profileOutcome = outcome.Message;
             if (outcome.Succeeded) _session = session;
@@ -442,8 +443,12 @@ public partial class GameClient : Node2D
         _lastShipSaveTick = 0;
         // Pickup ids and mineral placement key on a new id for every world, never on the sector instance a reset keeps (R1-1).
         // NEW: mineral placement is reseeded for each world, so a reset lays the field out afresh.
-        _worldInstanceId = Guid.NewGuid().ToString("N");
-        var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_worldInstanceId.GetHashCode(StringComparison.Ordinal));
+        // The salt comes from the id's own bytes, so a logged world id replays its placement. Smoke runs number their worlds
+        // instead of drawing random ids, so every acceptance run lays the field out the same way (a random pile on the launch
+        // lane could otherwise fill the hold before the wreckage step).
+        var worldId = _smokeProfileRoot is null ? Guid.NewGuid() : SmokeWorldId(++_smokeWorlds);
+        _worldInstanceId = worldId.ToString("N");
+        var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold(), minerals: minerals);
         if (carryTargetsFrom is not null) world.CarryTargetsFrom(carryTargetsFrom);
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
@@ -514,6 +519,9 @@ public partial class GameClient : Node2D
 
     public int PendingPickups => _pickups.Count;
     public string WorldInstanceId => _worldInstanceId;
+
+    /// <summary>Fixed world ids for smoke runs; each smoke run uses a fresh profile, so they never repeat inside one save.</summary>
+    private static Guid SmokeWorldId(int number) => new(number, 0x534D, 0x4B45, 0, 0, 0, 0, 0, 0, 0, 0);
 
     /// <summary>Test hook: makes the next pickup commits fail as if the save folder were unavailable.</summary>
     public void SimulatePickupSaveFailure() => _nextPickupRetryTick = long.MaxValue;

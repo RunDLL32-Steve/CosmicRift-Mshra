@@ -6,7 +6,6 @@
   "newValues": [
     "Position (90, 20), dock radius 150 world units.",
     "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
-    "Hold capacity 4,000,000 raw ITM mass units.",
     "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
@@ -17,7 +16,6 @@
   "y": 20,
   "dockRadius": 150,
   "startingWallet": 0,
-  "cargoCapacity": 4000000,
   "goods": [
     {
       "id": "2003",
