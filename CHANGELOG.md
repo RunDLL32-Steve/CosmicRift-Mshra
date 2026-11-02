@@ -1,5 +1,9 @@
 # Changelog
 
+## Weapon and ammo value audit — November 2, 2026
+
+-   Queue G5 remainder: a [value audit](docs/original-research/G5_WEAPON_VALUE_AUDIT.md) of the original weapon, ammo and child-chain records, with the exact row, field and raw value for each open question. The MIRV/Wake Caster "offset" turns out to be one of six child-entry fields (sideways and forward offsets, height, heading change and a link mode, per the upstream parser's names); all six are now kept. Seven more raw projectile fields are exposed (ammo per shot, ammo capacity, bounce count, proximity radius, inactive time, damage mode, point-blank). The meanings of inheritedSpeed -550 and aliveTime -65, all units, trigger/expiry behavior and collision shape remain open, and the pinned ammo weights (all 0) disagree with the 2003 news notes. No firing behavior. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g5.md). Counts unchanged.
+
 ## Recoverable sector transfers — November 2, 2026
 
 -   Queue C10: a server-side model for moving a player's ship from one sector to another that survives crashes and retries. One journal entry per player says which sector owns the ship; a transfer freezes the ship in the source, reserves a checked spawn point in the destination, and only then flips ownership in a single write. After a crash, anything before that write is undone and anything after it is finished, and repeating a request never moves the ship twice. Tests crash it at every step, restart it, run two servers at once and soak it with random faults, and the ship is never lost or active in two sectors. Not wired into the game yet (there is one sector), and no original sector or gate rule is encoded; all of it is NEW. [Persistence entry](server/RogueTrader.Persistence/plan.d/c10.md). Counts unchanged.

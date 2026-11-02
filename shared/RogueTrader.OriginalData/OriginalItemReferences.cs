@@ -265,7 +265,7 @@ public sealed class OriginalItemReferenceResolver
                 if (r.Int(f).Value != 0)
                 {
                     named[f] = "multi-item entry id";
-                    named[f + OriginalWeaponChain.MultiItemOffsetInEntry] = "multi-item entry raw offset";
+                    named[f + OriginalWeaponChain.MultiItemOffsetInEntry] = "multi-item entry deltaAngle (raw)";
                 }
             try { res.MultiItemEntries = OriginalWeaponChain.MultiItemEntries(_items, item); }
             catch (OriginalItemException e) { unresolved.Add(new("MultiItemEntry", null, "", e.Message)); }
