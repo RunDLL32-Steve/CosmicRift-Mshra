@@ -89,6 +89,56 @@ public sealed class SectorPersistenceTests
         Assert.DoesNotContain(second.Collectibles, p => p.Id == mineral.Id);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(600)]
+    [InlineData(20_000)]
+    public void MineralSpawns_RunWhileDocked_ExactlyAsInFlight(int ticks)
+    {
+        // Owner rule, Nov 2 2026: mineral respawns keep running in real time while docked or paused. The ship is parked far
+        // from every spawn so flight cannot sweep a pile up and both worlds see the same clear-radius checks.
+        WorldSimulation Parked()
+        {
+            var world = ShippedWorld(salt: 9);
+            world.Tick(default);
+            foreach (var pile in world.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).Take(40).ToArray())
+            {
+                world.RestorePlayer(pile.Position, 0, world.Player.Hull);
+                world.Tick(default);
+            }
+            world.RestorePlayer(new Vector2(1e6f, 1e6f), 0, world.Player.Hull);
+            world.Tick(default);
+            return world;
+        }
+        var flying = Parked();
+        var docked = Parked();
+        var tick = docked.TickNumber;
+        TestWorld.Tick(flying, ticks);
+        docked.ElapseWithoutTicking(ticks);
+        Assert.Equal(tick, docked.TickNumber);
+        Assert.Equal(Piles(flying), Piles(docked));
+        Assert.Equal(flying.CaptureSector().MineralSpawns, docked.CaptureSector().MineralSpawns);
+        Assert.Equal(flying.CaptureSector().MineralRandomState, docked.CaptureSector().MineralRandomState);
+    }
+
+    [Fact]
+    public void ALongAbsence_RefillsEachSpawnOnlyToItsLimit()
+    {
+        var world = ShippedWorld(salt: 10);
+        world.Tick(default);
+        var full = world.Collectibles.Count;
+        foreach (var pile in world.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).Take(30).ToArray())
+        {
+            world.RestorePlayer(pile.Position, 0, world.Player.Hull);
+            world.Tick(default);
+        }
+        world.RestorePlayer(new Vector2(1e6f, 1e6f), 0, world.Player.Hull);
+        world.ElapseWithoutTicking(int.MaxValue); // about 414 days closed
+        foreach (var spawn in world.MineralSpawns)
+            Assert.True(world.Collectibles.Count(p => p.Id.StartsWith($"{WorldSimulation.MineralPilePrefix}{spawn.Id}:", StringComparison.Ordinal)) <= spawn.MaxPiles);
+        Assert.True(world.Collectibles.Count >= full - 3); // the station piles that were swept do not come back
+    }
+
     [Fact]
     public void DestroyedTargets_StayDownAcrossWorlds_UntilTheRealTimeDelayRunsOut()
     {

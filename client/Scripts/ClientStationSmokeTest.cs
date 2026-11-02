@@ -35,7 +35,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(readWorld().Cargo.Quantity(pile.ItemId) == pile.Quantity && session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0,
                 "While saving is unavailable the collected cargo must stay in the hold, uncommitted.");
             client.ClearPickupSaveFailure();
-            await nextPhysicsFrame();
+            await RewardsSaved();
             Require(session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == pile.Quantity,
                 $"Once saving works the {pile.Quantity} collected {pile.ItemId} must be committed to the profile.");
             await nextPhysicsFrame();
@@ -51,7 +51,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 await nextPhysicsFrame();
             SendKey(Key.Space, false);
             Require(readWorld().Kills.Count == 1, "Holding fire from spawn must destroy the practice target ahead.");
-            await nextPhysicsFrame();
+            await RewardsSaved();
             var reward = session.KillReward.Credits;
             Require(reward > 0 && session.Profile!.Wallet == walletBeforeKill + reward && client.PendingKillRewards == 0,
                 $"The kill must pay {reward} credits into the saved profile, got wallet {session.Profile!.Wallet} from {walletBeforeKill}.");
@@ -97,7 +97,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(readWorld().Cargo.Quantity("2003") == savedOre + mined && client.PendingPickups > 0,
                 "A reload must keep unsaved pickups queued and in the hold.");
             client.ClearPickupSaveFailure();
-            await nextPhysicsFrame();
+            await RewardsSaved();
             Require(session.Profile!.Inventory.GetValueOrDefault("2003") == savedOre + mined && client.PendingPickups == 0,
                 $"Once saving works the {mined} mined Tellerium must be saved exactly once.");
             var minedPickup = readWorld().Pickups.Skip(pickupsBefore).First(p => p.PileId == mineral.Id);
@@ -224,6 +224,8 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 && (sectorBeforeExit.TargetRespawnTicksRemaining is not > 600 || readWorld().Targets.All(t => t.IsDestroyed)),
                 "A relaunch must keep the target group, its wave and its sector instance, so no kill can pay again.");
             var reopened = client.Session?.Profile ?? throw new InvalidOperationException($"Reopen failed: {client.ProfileStatus}");
+            Require(client.PendingPickups == 0 && client.PendingKillRewards == 0,
+                "A reopen must not re-queue pickups or kills that were already saved (review R1-2).");
             Require(Same(beforeExit, reopened), "Reopening the save folder must restore the exact wallet, inventory, upgrades, ship and revision.");
             var restored = readWorld().Player;
             Require(Math.Abs(restored.Position.X - ship.X) < 0.01f && Math.Abs(restored.Position.Y - ship.Y) < 0.01f && Math.Abs(restored.Hull - ship.Hull) < 0.01f,
@@ -246,6 +248,13 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             client.ClearPickupSaveFailure();
             resetSector();
         }
+    }
+
+    /// <summary>Sector saves are coalesced to one per half second and rewards wait for them, so allow up to a second.</summary>
+    private async Task RewardsSaved()
+    {
+        await nextPhysicsFrame();
+        for (var frame = 0; frame < 60 && (client.PendingPickups > 0 || client.PendingKillRewards > 0); frame++) await nextPhysicsFrame();
     }
 
     private static bool Same(PlayerProfile a, PlayerProfile b) =>

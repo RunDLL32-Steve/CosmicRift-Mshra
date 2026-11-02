@@ -48,7 +48,7 @@ public sealed record SectorStateLoadResult(SectorStateLoadStatus Status, SectorS
 public sealed class SectorStateStore
 {
     public const int SchemaVersion = 1;
-    private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions Json = new() { WriteIndented = false };
 
     private readonly string _directory;
     private readonly TimeProvider _time;

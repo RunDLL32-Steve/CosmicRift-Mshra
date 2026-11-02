@@ -97,6 +97,10 @@ public sealed partial class WorldSimulation
     private readonly List<CargoPickup> _pickups = [];
     private readonly MineralSpawnState[] _mineralSpawns;
     private ulong _mineralRandom;
+    // Ticks that passed without ticking (docked, paused, inspecting, or the game closed): mineral timers run on real time,
+    // so they count these too (owner rule, November 2, 2026). The mineral clock is TickNumber plus this.
+    private long _mineralIdleTicks;
+    private long MineralClock => TickNumber + _mineralIdleTicks;
 
     /// <summary>Every pickup in the order it happened, mineral and other piles alike.</summary>
     public IReadOnlyList<CargoPickup> Pickups => _pickups;
@@ -136,9 +140,47 @@ public sealed partial class WorldSimulation
     /// </summary>
     private void StepMineralSpawns()
     {
-        foreach (var spawn in _mineralSpawns)
+        foreach (var spawn in _mineralSpawns) AttemptMineral(spawn, MineralClock);
+    }
+
+    /// <summary>
+    /// Lets mineral spawns run through <paramref name="ticks"/> of time in which the world did not tick: every attempt that falls
+    /// due in that time happens, in time order per spawn, exactly as it would have in flight (the player stays where they are).
+    /// A spawn that is full skips straight past the attempts that would fail, so a long gap costs little.
+    /// </summary>
+    private void ElapseMineralSpawns(long ticks)
+    {
+        var end = checked(MineralClock + ticks);
+        // Spawns share one random state, so attempts run in the order ticks would run them: earliest due first, and spawns
+        // due on the same tick in catalog order.
+        while (true)
         {
-            if (TickNumber < spawn.NextAttemptTick) continue;
+            MineralSpawnState? next = null;
+            foreach (var spawn in _mineralSpawns)
+                if (spawn.NextAttemptTick <= end && (next is null || Due(spawn) < Due(next))) next = spawn;
+            if (next is null) break;
+            var at = Due(next);
+            var prefix = $"{MineralPilePrefix}{next.Definition.Id}:";
+            if (next.NextAttemptTick != 0 && _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal)) >= next.Definition.MaxPiles)
+            {
+                // Full, and nothing removes piles while the world is not ticking: every attempt until the end fails without
+                // touching the random state, so jump to the first one after it.
+                var step = next.Definition.AttemptTicks;
+                next.NextAttemptTick = checked(at + ((end - at) / step + 1) * step);
+                continue;
+            }
+            AttemptMineral(next, at);
+        }
+        _mineralIdleTicks = checked(_mineralIdleTicks + ticks);
+
+        // A spawn that has never attempted (timer 0) is due at once, as on the first tick.
+        long Due(MineralSpawnState spawn) => Math.Max(spawn.NextAttemptTick, MineralClock + (spawn.NextAttemptTick == 0 ? 1 : 0));
+    }
+
+    private void AttemptMineral(MineralSpawnState spawn, long now)
+    {
+        {
+            if (now < spawn.NextAttemptTick) return;
             var definition = spawn.Definition;
             var prefix = $"{MineralPilePrefix}{definition.Id}:";
             var alive = _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal));
@@ -146,7 +188,7 @@ public sealed partial class WorldSimulation
             var wanted = spawn.NextAttemptTick == 0 ? Math.Max(1, definition.StartingPiles) : 1;
             var placed = 0;
             while (placed < wanted && alive + placed < definition.MaxPiles && TryPlaceMineral(spawn, prefix)) placed++;
-            spawn.NextAttemptTick = checked(TickNumber + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
+            spawn.NextAttemptTick = checked(now + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
         }
     }
 

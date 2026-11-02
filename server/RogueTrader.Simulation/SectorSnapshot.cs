@@ -48,7 +48,7 @@ public sealed partial class WorldSimulation
         Targets.Select(t => new TargetSnapshot(t.Id, t.Hull, t.Shield, t.LastDamagedByShipId, t.DestroyedByShipId, t.LastDamageWeaponId)).ToArray(),
         _collectibles.Select(p => new PileSnapshot(p.Id, p.ItemId, p.Quantity, p.Position.X, p.Position.Y, p.Radius)).ToArray(),
         _mineralSpawns.Select(s => new MineralSpawnSnapshot(s.Definition.Id,
-            s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - TickNumber), s.Placed)).ToArray(),
+            s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - MineralClock), s.Placed)).ToArray(),
         _mineralRandom,
         Asteroids.Select(a => new AsteroidSnapshot(a.Id, a.ResourceQuantity)).ToArray(),
         NextMiningPileId,
@@ -104,7 +104,7 @@ public sealed partial class WorldSimulation
         {
             if (!spawns.TryGetValue(spawn.Definition.Id, out var saved)) continue;
             spawn.Placed = Math.Max(0, saved.Placed);
-            spawn.NextAttemptTick = saved.TicksUntilAttempt <= 0 ? 0 : saved.TicksUntilAttempt;
+            spawn.NextAttemptTick = saved.TicksUntilAttempt <= 0 ? 0 : MineralClock + saved.TicksUntilAttempt;
         }
         if (_mineralSpawns.Length > 0) _mineralRandom = snapshot.MineralRandomState;
 

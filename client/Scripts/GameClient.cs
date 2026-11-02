@@ -57,6 +57,10 @@ public partial class GameClient : Node2D
     private WorldSimulation? _sectorSavedWorld;
     private int _sectorSavedPickups;
     private int _sectorSavedKills;
+    private long _sectorSavedTick;
+    /// <summary>A sector save flushes about 90 KB to disk (median ~5 ms, worst cases tens of ms), so pickups and kills share at
+    /// most one save every half second; their rewards wait for it (review R1-3).</summary>
+    private const int SectorSaveIntervalTicks = WorldSimulation.TickRate / 2;
     private IReadOnlyList<PendingPickupGrant> _otherPilotsPickups = [];
     private IReadOnlyList<PendingKillGrant> _otherPilotsKills = [];
     private const ulong NoticeDurationMs = 5000;
@@ -350,6 +354,9 @@ public partial class GameClient : Node2D
         CommitKills(force: true);
         CommitPickups(force: true);
         SaveSector();
+        // Drop the old world before the observers restart, so NewWorld's final commits cannot re-observe its pickups and kills
+        // from sequence 0 (review R1-2); everything owed comes back from the sector file instead.
+        _world = null!;
         _pickups.StartNewWorld();
         _pendingKills.Clear();
         _killsSeen = 0;
@@ -406,7 +413,7 @@ public partial class GameClient : Node2D
     private void CommitKills(bool force = false)
     {
         if (_world is null) return;
-        if (!SaveSectorIfChanged()) return; // a kill is paid only once the sector that lost the target is saved
+        if (!SaveSectorIfChanged(force)) return; // a kill is paid only once the sector that lost the target is saved
         if (_session?.Profile is null || _pendingKills.Count == 0 || (!force && _world.TickNumber < _nextKillRetryTick)) return;
         while (_pendingKills.Count > 0)
         {
@@ -534,12 +541,15 @@ public partial class GameClient : Node2D
     /// this returns true, so a crash between the two saves can neither refill the sector nor lose the reward (it is requeued
     /// from the sector file). Without a save folder nothing can be granted, so there is nothing to protect.
     /// </summary>
-    private bool SaveSectorIfChanged()
+    private bool SaveSectorIfChanged(bool force = false)
     {
         if (_world is null) return true;
         ObserveWorld();
         if (ReferenceEquals(_sectorSavedWorld, _world) && _sectorSavedPickups == _world.Pickups.Count && _sectorSavedKills == _world.Kills.Count)
             return true;
+        // Coalesce: inside the interval the new rewards simply wait (they are in the hold and queued) for the next save.
+        if (!force && ReferenceEquals(_sectorSavedWorld, _world) && _world.TickNumber - _sectorSavedTick < SectorSaveIntervalTicks)
+            return false;
         return SaveSector();
     }
 
@@ -562,6 +572,7 @@ public partial class GameClient : Node2D
         _sectorSavedWorld = _world;
         _sectorSavedPickups = _world.Pickups.Count;
         _sectorSavedKills = _world.Kills.Count;
+        _sectorSavedTick = _world.TickNumber;
         return true;
     }
 
@@ -593,7 +604,7 @@ public partial class GameClient : Node2D
     private void CommitPickups(bool force = false)
     {
         if (_world is null) return;
-        if (!SaveSectorIfChanged()) return; // cargo is granted only once the sector that lost the pile is saved
+        if (!SaveSectorIfChanged(force)) return; // cargo is granted only once the sector that lost the pile is saved
         if (_session?.Profile is null || _pickups.Count == 0 || _nextPickupRetryTick == long.MaxValue
             || (!force && _world.TickNumber < _nextPickupRetryTick)) return;
         var outcome = Await(_pickups.CommitAsync(_session));
