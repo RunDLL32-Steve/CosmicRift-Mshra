@@ -4,6 +4,10 @@
 
 -   Queue C8: the headless server session now refuses thrust or turn outside [-1, 1], inputs that acknowledge a snapshot the server has not produced, and submissions beyond a per-sender allowance (four per tick, bursts up to 120), all before anything is queued. A motion audit flags any tick in which the ship moves faster than its maximum speed and any move between ticks that bypassed the session. Findings are reported, not enforced. Every threshold is NEW pending approval. [Server entry](server/RogueTrader.Server/plan.d/c8.md). Counts unchanged.
 
+## Ignore rules for build and local files — November 2, 2026
+
+-   `.gitignore` now also covers test results and coverage (`TestResults/`, `*.trx`, coverage files), BenchmarkDotNet output, NuGet packages, Godot `.mono/`, `.import/`, crash dumps and `export_credentials.cfg`, VS Code/Rider files, more OS junk, logs and temp files. Godot `*.import`/`*.uid` files, `project.godot` and `export_presets.cfg` stay committed. No tracked file is newly ignored.
+
 ## Headless server session and tick benchmark — November 2, 2026
 
 -   Queue C6: a new `RogueTrader.Server` library runs the simulation headless in fixed 60 Hz ticks and takes client input only as queued intent for a named tick. Competing inputs for one tick resolve by highest sequence whatever the arrival order; late, stale, duplicate, too-far-ahead, over-capacity and malformed inputs are refused without changing anything. No sockets, snapshots or multiple clients yet; all queue rules are NEW. [Server entry](server/RogueTrader.Server/plan.d/c6.md).
