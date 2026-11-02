@@ -4,7 +4,7 @@ Reviewed October 13, 2026 against the current source tree and saved compatibilit
 
 ## Purpose and current code
 
-**Not started in this folder.** No dedicated RogueTrader server service/project exists here. The separate ignored pinned InfantryOnline working source and compatibility harness are the active candidate engine route, documented by [runtime](../../docs/architecture/ROGUE_RUNTIME_PLAN.md), [native client](../../docs/architecture/NATIVE_CLIENT_PLAN.md) and [package audit](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md).
+**Headless session only (queue C6, in review).** `RogueTrader.Server` is a library with `AuthoritativeSession`, a fixed 60 Hz tick loop and bounded input queue for one ship, with no sockets, transport, snapshots or multiple clients ([entry](plan.d/c6.md)). No dedicated production server service exists here. The separate ignored pinned InfantryOnline working source and compatibility harness are the active candidate engine route, documented by [runtime](../../docs/architecture/ROGUE_RUNTIME_PLAN.md), [native client](../../docs/architecture/NATIVE_CLIENT_PLAN.md) and [package audit](../../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md).
 
 ## Completed compatibility history
 

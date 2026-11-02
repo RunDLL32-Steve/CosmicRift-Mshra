@@ -1,0 +1,22 @@
+Review status: ready-for-review
+
+# Branch log: claude/project-thread-shkauf (queues C4 and C6)
+
+Scope: queue C6, headless authoritative tick loop and input queue with no sockets, and queue C4, Stopwatch simulation tick benchmark. See briefs [C4](../../tasks/c4.md) and [C6](../../tasks/c6.md), the [dated log](../2026-11-02-c4-c6.md), and the folder entries for [server](../../../server/RogueTrader.Server/plan.d/c6.md) and [load tests](../../../tests/LoadTests/plan.d/c4.md).
+
+Selection (November 2, 2026): section A has no cloud-eligible row; section B M7 is in PR #96 and M9 merged. In section C, C1 is claimed by `claim/c1-blo-reader`; C4 and C6 had no claiming branch (`git ls-remote` plus a log search of every branch for the IDs). Both are taken together because the benchmark also times the C6 session path. Neither touches the files of PR #96.
+
+## Round 1 — November 2, 2026
+
+-   C6: `AuthoritativeSession`, `SessionOptions`, `InputVerdict`, `InputCounters` in the new `RogueTrader.Server` project; 13 unit tests.
+-   C4: `RogueTrader.LoadTests` console benchmark with `world-tick` and `session-tick` scenarios, Markdown and JSON reports.
+
+Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419; global.json change not committed): solution build 0 warnings; `dotnet test tests/Unit` with pinned assets at `eb1514e` 887 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; benchmark exit 0 with BENCHMARK_REPORTED and identical digests across runs; `format-check.py` FORMAT_CLEAN; TRACKERS_CONSISTENT.
+
+Not verified: the `verify.ps1` wrapper itself (Windows CI runs it), pinned SDK, Godot smoke (no client or shared physics change).
+
+Resume point: independent review of this head. C7 (prediction/reconciliation) depends on C6 and can start after merge.
+
+## Conflict merge — November 2, 2026
+
+-   Merged `origin/main` (#96 mining, #97 respawn timer) into the branch; the only conflicts were the CHANGELOG and CONTINUATION entries, both sides kept. No code conflict. Re-run after the merge: `dotnet test tests/Unit` 904 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; benchmark exit 0 with identical digests; FORMAT_CLEAN; TRACKERS_CONSISTENT.

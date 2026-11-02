@@ -1,5 +1,10 @@
 # Changelog
 
+## Headless server session and tick benchmark — November 2, 2026
+
+-   Queue C6: a new `RogueTrader.Server` library runs the simulation headless in fixed 60 Hz ticks and takes client input only as queued intent for a named tick. Competing inputs for one tick resolve by highest sequence whatever the arrival order; late, stale, duplicate, too-far-ahead, over-capacity and malformed inputs are refused without changing anything. No sockets, snapshots or multiple clients yet; all queue rules are NEW. [Server entry](server/RogueTrader.Server/plan.d/c6.md).
+-   Queue C4: `tests/LoadTests` is a Stopwatch tick benchmark that reports the tick-time distribution with host, runtime, data hashes and revision, for the bare simulation and for the C6 session path. It reports only and asserts no threshold. [Load test entry](tests/LoadTests/plan.d/c4.md), [run](docs/development-log/2026-11-02-c4-c6.md). Counts unchanged.
+
 ## Target respawn timer runs while docked or paused — November 1, 2026
 
 -   The one-minute target respawn countdown now keeps running while the player is docked, paused or in the inspector (`WorldSimulation.ElapseWithoutTicking`), as Steve asked. Nothing else in the world moves while it is not ticking.

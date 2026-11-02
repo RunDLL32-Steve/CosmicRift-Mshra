@@ -27,6 +27,10 @@ M5 ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)) and M8 
 
 Queue M7 mining slice in review on `claude/project-thread-yaij0l` ([branch log](docs/development-log/cloud/claude-project-thread-yaij0l.md)): original LIO mineral spawns in the practice sector, per-pickup idempotent grants and the VEH 400 refinery (profile schema 4).
 
+## Server groundwork update — November 2, 2026
+
+Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) are in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.
+
 ## Next
 
 G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [initialized reset-input observation](docs/development-log/2026-10-19-g9-reset-input-observation.md) captures the selected standalone initialized object before newArena; use the [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md) and its current PR for live workflow status. PR85 conditional lifecycle source and PR76 selected catalog are accepted dated history. Follow that live workflow record before selecting remaining G9 work from the ledger; preserve earlier accepted results; native consumers/gameplay/full closure and original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.

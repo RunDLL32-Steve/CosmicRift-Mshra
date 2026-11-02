@@ -2,7 +2,7 @@
 
 Status authority: [master §13.4 network targets](../../ROGUE_TRADER_2_PLAN.md#134-network-targets), [M5](../../ROGUE_TRADER_2_PLAN.md#milestone-5--advanced-multiplayer-systems), [M6 optimization](../../ROGUE_TRADER_2_PLAN.md#milestone-6--release-preparation), and [§20.4 performance](../../ROGUE_TRADER_2_PLAN.md#204-performance-requirements). Reconcile with [canonical feature catalog](../../docs/original-research/FEATURE_CATALOG.md), [server plan](../../server/RogueTrader.Server/IMPLEMENTATION_PLAN.md), and [project progress](../../docs/development-log/PROGRESS.md). Reviewed October 13, 2026; no load runs.
 
-Module status: **Not started**. No harness or measured multiplayer capacity exists here. M0/M1 engineering acceptance is complete; earlier original-fidelity/M2/M3 gates precede load testing. The master 60 FPS, 20 snapshots/second and 16–32 player figures are goals, not validated capacity.
+Module status: **Tick benchmark only (queue C4, in review).** A Stopwatch single-ship tick benchmark exists ([entry](plan.d/c4.md)); no multiplayer load harness or measured capacity exists here. M0/M1 engineering acceptance is complete; earlier original-fidelity/M2/M3 gates precede load testing. The master 60 FPS, 20 snapshots/second and 16–32 player figures are goals, not validated capacity.
 
 ## Outstanding work
 
