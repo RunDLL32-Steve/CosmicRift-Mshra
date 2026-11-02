@@ -44,6 +44,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
             // Kill reward (queue M7 slice): the spawn faces target_alpha, so holding fire destroys it.
             resetSector();
+            Require(readWorld().Collectibles.All(p => p.Id != pile.Id), "A sector reset must not refill a collected pile.");
             var walletBeforeKill = session.Profile!.Wallet;
             SendKey(Key.Space, true);
             for (var frame = 0; frame < 900 && readWorld().Kills.Count == 0; frame++)
@@ -214,7 +215,14 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();
+            var sectorBeforeExit = readWorld().CaptureSector();
+            var instanceBeforeExit = client.SectorInstanceId;
             client.ReopenProfileFromDisk();
+            Require(readWorld().Collectibles.Select(p => p.Id).SequenceEqual(sectorBeforeExit.Piles.Select(p => p.Id)) && readWorld().Collectibles.All(p => p.Id != pile.Id),
+                "A relaunch must continue the saved sector: no collected pile may come back.");
+            Require(client.SectorInstanceId == instanceBeforeExit && readWorld().TargetWave == sectorBeforeExit.TargetWave
+                && (sectorBeforeExit.TargetRespawnTicksRemaining is not > 600 || readWorld().Targets.All(t => t.IsDestroyed)),
+                "A relaunch must keep the target group, its wave and its sector instance, so no kill can pay again.");
             var reopened = client.Session?.Profile ?? throw new InvalidOperationException($"Reopen failed: {client.ProfileStatus}");
             Require(Same(beforeExit, reopened), "Reopening the save folder must restore the exact wallet, inventory, upgrades, ship and revision.");
             var restored = readWorld().Player;
@@ -224,7 +232,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

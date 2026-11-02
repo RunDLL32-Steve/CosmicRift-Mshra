@@ -130,6 +130,8 @@ public sealed class CargoHold
     private readonly SortedDictionary<string, int> _items = new(StringComparer.Ordinal);
 
     public long Capacity => _catalog.Capacity;
+    /// <summary>The cargo rules this hold follows.</summary>
+    public CargoCatalog Catalog => _catalog;
     public long TotalWeight { get; private set; }
     /// <summary>Unused capacity; zero (never negative) when an initial inventory already exceeds it.</summary>
     public long FreeWeight => Math.Max(0, Capacity - TotalWeight);

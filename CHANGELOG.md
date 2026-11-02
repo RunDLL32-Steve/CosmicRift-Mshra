@@ -1,5 +1,12 @@
 # Changelog
 
+## The world keeps its state: no more credit farms from relaunch or reset — November 2, 2026
+
+-   Owner rule (Steve, November 2, 2026): the game will be multiplayer, so the world keeps its state for as long as the server runs. Relaunching the client, logging out or resetting the sector no longer gives back the targets, the cargo piles (about 2,700 credits of wreckage) or the mineral field. A collected pile stays gone, a destroyed target group comes back only 1 minute (real time) after the last target fell, and mineral spawns carry on with their own timers and random state instead of restocking.
+-   In the local build the client hosts the world, so the save folder stands in for the running server. The sector (`WorldSimulation.CaptureSector`/`RestoreSector`) is written to `world/<sector>.sector.json` next to the profile, under the same single-owner lock, with an atomic write, one backup generation and quarantine for unreadable files (`SectorStateStore`). It is saved before any pickup or kill reward is granted to the profile, and rewards still owed are kept in that file, so a crash between the two saves can neither refill the sector nor lose the reward. Sector reset now only puts your ship back at the spawn.
+-   Players keep their items: wallet, hold, upgrades and ship were already saved in the profile; now cargo and kill rewards that were not saved yet also survive a quit or crash and are granted once on the next launch.
+-   NEW and still open: a player who edits or deletes files in their own save folder, or moves the system clock forward, can still cheat the local build. That ends when a dedicated server owns this state. Mineral spawn timers do not run while the game is closed (target respawn does).
+
 ## Smaller mineral piles, per-ship hold weight and reproducible smoke runs — November 2, 2026
 
 -   Mineral piles now hold 1 unit each, and each spawn area keeps up to 100 piles (50 for Krandazite). The LIO fields are read the other way round from before: f[18]=1 is the pile size and f[19] the most piles at a time. A fresh sector starts each spawn full, as Steve asked. Before this, a single 100-unit Tellerium pile weighed more than a whole hold.
