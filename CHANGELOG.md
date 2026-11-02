@@ -6,6 +6,10 @@
 -   The hold's weight cap belongs to the ship now (`ShipDefinition.Cargo.Capacity`), not the station. The starter ship takes the original Asp's VEH f[48] StopWeight of 2,500,000, which is 50 Tellerium at its original ITM weight, replacing the made-up 4,000,000. Reading StopWeight as a hard cap is NEW; the half-capacity performance penalty stays open in RT-F030.
 -   Fixes a flaky station smoke test. Mineral placement was seeded from `string.GetHashCode` of a random world id, which .NET randomizes per process, so a Tellerium pile sometimes landed on the launch lane and filled the hold before the wreckage step. Placement now takes its salt from the world id's GUID bytes (`MineralFieldCatalog.ForWorld`), so a logged world id replays its field. Smoke runs number their worlds, so every acceptance run lays the field out the same way. Normal play still gets a new random field for every world.
 
+## Server input validation — November 2, 2026
+
+-   Queue C8: the headless server session now refuses thrust or turn outside [-1, 1], inputs that acknowledge a snapshot the server has not produced, and submissions beyond a per-sender allowance (four per tick, bursts up to 120), all before anything is queued. A motion audit flags any tick in which the ship moves faster than its maximum speed and any move between ticks that bypassed the session. Findings are reported, not enforced. Every threshold is NEW pending approval. [Server entry](server/RogueTrader.Server/plan.d/c8.md). Counts unchanged.
+
 ## Ignore rules for build and local files — November 2, 2026
 
 -   `.gitignore` now also covers test results and coverage (`TestResults/`, `*.trx`, coverage files), BenchmarkDotNet output, NuGet packages, Godot `.mono/`, `.import/`, crash dumps and `export_credentials.cfg`, VS Code/Rider files, more OS junk, logs and temp files. Godot `*.import`/`*.uid` files, `project.godot` and `export_presets.cfg` stay committed. No tracked file is newly ignored.

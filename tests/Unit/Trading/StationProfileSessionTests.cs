@@ -154,7 +154,7 @@ public sealed class StationProfileSessionTests
         var station = LoadStation();
         var session = await OpenAsync(station: station);
         var pile = station.Collectibles[0];
-        var pickup = new CargoPickup(0, pile.Id, pile.ItemId, 5, 5); // two grants of a full 9-unit Wreckage pile would exceed the Asp hold;
+        var pickup = new CargoPickup(0, pile.Id, pile.ItemId, 5, 5); // two grants of a full 9-unit Wreckage pile would exceed the Asp hold
 
         var granted = await session.GrantPickupAsync("sector-a", pickup);
         Assert.Equal(TransactionStatus.Applied, granted.Status);
