@@ -145,6 +145,19 @@ public sealed partial class WorldSimulation
     }
 
     /// <summary>
+    /// Counts time that passes while the world is not ticking (the player is docked, paused or in the inspector) toward a
+    /// pending target-group respawn, so the respawn delay is real elapsed time (owner rule, November 1, 2026). Nothing else
+    /// moves; the group respawns at once if the delay has run out.
+    /// </summary>
+    public void ElapseWithoutTicking(int ticks)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(ticks);
+        if (ticks == 0 || TargetRespawnTick is not { } respawnAt) return;
+        TargetRespawnTick = respawnAt - ticks;
+        if (TargetRespawnTick <= TickNumber) RespawnTargets();
+    }
+
+    /// <summary>
     /// Carries the target group's state (hull, shield, destroyed state, wave and the time left on a pending respawn) over from
     /// another world of the same sector, so rebuilding the world, for example on a sector reset, cannot bring destroyed targets
     /// back early. Kill records are not copied; they belong to the world that produced them.
