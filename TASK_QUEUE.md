@@ -42,7 +42,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 | C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests           | Cloud | C5 MERGED; C6 OPEN (hard dependency) | OPEN                                                         | [C7](docs/tasks/c7.md)   |
 | C8  | Input speed/rate/teleport validation                                                         | RogueTrader.Server       | Cloud | C5 MERGED                            | IN REVIEW (`claude/project-thread-61bdln`)                   | [C8](docs/tasks/c8.md)   |
 | C9  | Data-driven bounty/reputation rules persisted through transaction core                       | Server                   | Cloud | M1 MERGED                            | OPEN                                                         | [C9](docs/tasks/c9.md)   |
-| C10 | Recoverable sector transition and transfer model                                             | Persistence + Simulation | Cloud | M1 MERGED                            | OPEN                                                         | [C10](docs/tasks/c10.md) |
+| C10 | Recoverable sector transition and transfer model                                             | Persistence + Simulation | Cloud | M1 MERGED                            | IN REVIEW (`claude/project-thread-ajkn1w`)                   | [C10](docs/tasks/c10.md) |
 
 ## Completed queue history (not active work)
 

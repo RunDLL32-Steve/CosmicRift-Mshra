@@ -1,5 +1,9 @@
 # Changelog
 
+## Recoverable sector transfers — November 2, 2026
+
+-   Queue C10: a server-side model for moving a player's ship from one sector to another that survives crashes and retries. One journal entry per player says which sector owns the ship; a transfer freezes the ship in the source, reserves a checked spawn point in the destination, and only then flips ownership in a single write. After a crash, anything before that write is undone and anything after it is finished, and repeating a request never moves the ship twice. Tests crash it at every step, restart it, run two servers at once and soak it with random faults, and the ship is never lost or active in two sectors. Not wired into the game yet (there is one sector), and no original sector or gate rule is encoded; all of it is NEW. [Persistence entry](server/RogueTrader.Persistence/plan.d/c10.md). Counts unchanged.
+
 ## Server input validation — November 2, 2026
 
 -   Queue C8: the headless server session now refuses thrust or turn outside [-1, 1], inputs that acknowledge a snapshot the server has not produced, and submissions beyond a per-sender allowance (four per tick, bursts up to 120), all before anything is queued. A motion audit flags any tick in which the ship moves faster than its maximum speed and any move between ticks that bypassed the session. Findings are reported, not enforced. Every threshold is NEW pending approval. [Server entry](server/RogueTrader.Server/plan.d/c8.md). Counts unchanged.
