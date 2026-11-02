@@ -36,8 +36,13 @@ public sealed class SectorTransferTests
         public Dictionary<string, FaultySector> Sectors { get; } = new(StringComparer.Ordinal);
         public SectorTransferCoordinator Coordinator { get; private set; }
 
-        public World(params string[] sectors)
+        private readonly TransferOptions? _options;
+
+        public World(params string[] sectors) : this(null, sectors) { }
+
+        public World(TransferOptions? options, params string[] sectors)
         {
+            _options = options;
             Journal = new FaultyJournal(Store);
             foreach (var id in sectors.Length == 0 ? new[] { A, B } : sectors)
                 Sectors[id] = new FaultySector(new InMemorySectorParticipant(id, new[]
@@ -50,7 +55,7 @@ public sealed class SectorTransferTests
 
         public InMemorySectorParticipant Sector(string id) => Sectors[id].Inner;
 
-        public SectorTransferCoordinator Build() => new(Journal, Sectors.Values);
+        public SectorTransferCoordinator Build() => new(Journal, Sectors.Values, _options);
 
         public async Task AdmitAsync(string player = Player, string sector = A, TransferManifest? manifest = null)
         {
@@ -210,8 +215,9 @@ public sealed class SectorTransferTests
         Assert.Equal(A, r.OwnerSectorId);
         await w.AssertSettledAsync(A);
         // The aborted id is fenced on both sides: a stale coordinator cannot detach or reserve under it later.
-        Assert.False((await w.Sector(A).DetachAsync("t-1", Player, 1)).Ok);
-        Assert.False((await w.Sector(B).ReserveAsync("t-1", Player, Cargo, GateB)).Ok);
+        var key = SectorTransferCoordinator.ParticipantKey((await w.Store.LoadAsync(Player))!.Recent[^1]);
+        Assert.False((await w.Sector(A).DetachAsync(key, Player, 1)).Ok);
+        Assert.False((await w.Sector(B).ReserveAsync(key, Player, Cargo, GateB)).Ok);
         // The ship can still leave under a new id.
         Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-2"))).Status);
         await w.AssertSettledAsync(B);
@@ -255,6 +261,65 @@ public sealed class SectorTransferTests
 
         var reused = await w.Coordinator.TransferAsync(Ctx(), Req("t-1", B, A, "fixture-gate-a"));
         Assert.Equal(TransferRejection.TransferIdReused, reused.Reason);
+        await w.AssertSettledAsync(B);
+    }
+
+    [Fact]
+    public async Task Two_players_using_the_same_transfer_id_both_transfer()
+    {
+        // Review R1-1: participants once keyed decisions by the bare id, so the second player's transfer wedged in Aborting.
+        var w = new World(A, B, C);
+        const string other = "fixture-pilot-2";
+        await w.AdmitAsync();
+        await w.AdmitAsync(other);
+
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-1"))).Status);
+        var second = await w.Coordinator.TransferAsync(Ctx(other), Req("t-1", player: other));
+
+        Assert.Equal(SectorTransferStatus.Completed, second.Status);
+        Assert.False(second.IsReplay);
+        await w.AssertSettledAsync(B);
+        await w.AssertSettledAsync(B, other);
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(other), Req("t-2", B, C, "fixture-gate-c", other))).Status);
+        await w.AssertSettledAsync(C, other);
+    }
+
+    [Fact]
+    public async Task Retrying_an_id_evicted_from_the_window_is_a_new_attempt_not_a_wedge()
+    {
+        // Review R1-1: with RecentWindow = 1, t-1 leaves the window after t-2; a retry of t-1 once wedged the player.
+        var w = new World(new TransferOptions { RecentWindow = 1 }, A, B, C);
+        await w.AdmitAsync();
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-1"))).Status);
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-2", B, A, "fixture-gate-a"))).Status);
+
+        // Beyond the window the retry is applied again, like the transaction core's idempotency window.
+        var retry = await w.Coordinator.TransferAsync(Ctx(), Req("t-1"));
+        Assert.Equal(SectorTransferStatus.Completed, retry.Status);
+        Assert.False(retry.IsReplay);
+        await w.AssertSettledAsync(B);
+        Assert.Equal(4, (await w.Store.LoadAsync(Player))!.Epoch);
+
+        // A retry from the wrong sector is refused cleanly, and later transfers still work.
+        Assert.Equal(TransferRejection.NotInSourceSector, (await w.Coordinator.TransferAsync(Ctx(), Req("t-2", B, A, "fixture-gate-a") with { SourceSectorId = C })).Reason);
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-3", B, C, "fixture-gate-c"))).Status);
+        await w.AssertSettledAsync(C);
+    }
+
+    [Fact]
+    public async Task Evicted_aborted_id_retried_at_the_same_epoch_aborts_again_instead_of_wedging()
+    {
+        var w = new World(new TransferOptions { RecentWindow = 1 });
+        await w.AdmitAsync();
+        Assert.Equal(SectorTransferStatus.Aborted, (await w.Coordinator.TransferAsync(Ctx(), Req("t-1", entry: "fixture-gate-missing"))).Status);
+        Assert.Equal(SectorTransferStatus.Aborted, (await w.Coordinator.TransferAsync(Ctx(), Req("t-2", entry: "fixture-gate-missing"))).Status);
+
+        // Same player, id and epoch: the sector remembers the abort and refuses the detach; the abort finishes cleanly.
+        var retry = await w.Coordinator.TransferAsync(Ctx(), Req("t-1", entry: "fixture-gate-missing"));
+        Assert.Equal(SectorTransferStatus.Aborted, retry.Status);
+        Assert.Equal(TransferRejection.SourceRefused, retry.Reason);
+        await w.AssertSettledAsync(A);
+        Assert.Equal(SectorTransferStatus.Completed, (await w.Coordinator.TransferAsync(Ctx(), Req("t-3"))).Status);
         await w.AssertSettledAsync(B);
     }
 
@@ -509,7 +574,7 @@ public sealed class SectorTransferTests
     {
         var rng = new Random(seed);
         var sectors = new[] { A, B, C };
-        var w = new World(sectors);
+        var w = new World(new TransferOptions { RecentWindow = 4 }, sectors);
         var pilots = new[] { "fixture-pilot-1", "fixture-pilot-2", "fixture-pilot-3" };
         var manifests = pilots.ToDictionary(p => p, p => new TransferManifest(new Dictionary<string, long>
         {
@@ -534,7 +599,8 @@ public sealed class SectorTransferTests
             }
             if (rng.Next(4) == 0) w.Sectors[sectors[rng.Next(3)]].FailOnce.Add(ops[rng.Next(ops.Length)]);
 
-            var id = $"t-{seed}-{step}";
+            // Ids collide across pilots and recur after leaving the window (review R1-1).
+            var id = $"t-{rng.Next(12)}";
             await w.Coordinator.TransferAsync(Ctx(pilot), new SectorTransferRequest(id, pilot, from, to, entry));
             foreach (var p in pilots) w.AssertNeverDuplicated(p, manifests[p]);
 

@@ -12,7 +12,7 @@ public enum HoldingState
     Reserved,
 }
 
-/// <param name="TransferId">The transfer that detached, reserved or last activated this holding.</param>
+/// <param name="TransferId">Attempt key of the transfer that detached, reserved or last activated this holding.</param>
 /// <param name="Spawn">Where the ship sits or will arrive; null for a ship admitted without one.</param>
 public sealed record SectorHolding(string PlayerId, TransferManifest Manifest, long Epoch, HoldingState State, string? TransferId,
     SpawnPlacement? Spawn);
@@ -30,7 +30,7 @@ public sealed class InMemorySectorParticipant : ISectorParticipant
     private readonly object _gate = new();
     private readonly ImmutableSortedDictionary<string, SpawnPlacement> _entries;
     private readonly Dictionary<string, SectorHolding> _holdings = new(StringComparer.Ordinal);
-    // Transfer id -> true when completed, false when aborted.
+    // Attempt key (SectorTransferCoordinator.ParticipantKey) -> true when completed, false when aborted.
     private readonly Dictionary<string, bool> _decided = new(StringComparer.Ordinal);
 
     public InMemorySectorParticipant(string sectorId, IEnumerable<SpawnPlacement> entries)

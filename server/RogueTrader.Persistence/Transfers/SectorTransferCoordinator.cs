@@ -138,12 +138,12 @@ public sealed class SectorTransferCoordinator
                 case TransferPhase.Preparing:
                 {
                     DetachOutcome detached;
-                    try { detached = await source.DetachAsync(r.TransferId, r.PlayerId, r.SourceEpoch, CancellationToken.None).ConfigureAwait(false); }
+                    try { detached = await source.DetachAsync(ParticipantKey(r), r.PlayerId, r.SourceEpoch, CancellationToken.None).ConfigureAwait(false); }
                     catch (Exception) { return await AbortAsync(p, r, TransferRejection.ParticipantFailed).ConfigureAwait(false); }
                     if (!detached.Ok || detached.Manifest is null) return await AbortAsync(p, r, TransferRejection.SourceRefused).ConfigureAwait(false);
 
                     ReserveOutcome reserved;
-                    try { reserved = await destination.ReserveAsync(r.TransferId, r.PlayerId, detached.Manifest, r.DestinationEntryId, CancellationToken.None).ConfigureAwait(false); }
+                    try { reserved = await destination.ReserveAsync(ParticipantKey(r), r.PlayerId, detached.Manifest, r.DestinationEntryId, CancellationToken.None).ConfigureAwait(false); }
                     catch (Exception) { return await AbortAsync(p, r, TransferRejection.ParticipantFailed).ConfigureAwait(false); }
                     if (!reserved.Ok || reserved.Spawn is not { IsValid: true }) return await AbortAsync(p, r, TransferRejection.DestinationRefused).ConfigureAwait(false);
 
@@ -167,8 +167,8 @@ public sealed class SectorTransferCoordinator
                 {
                     try
                     {
-                        await destination.ActivateAsync(r.TransferId, r.PlayerId, p.Epoch, CancellationToken.None).ConfigureAwait(false);
-                        await source.ReleaseAsync(r.TransferId, r.PlayerId, CancellationToken.None).ConfigureAwait(false);
+                        await destination.ActivateAsync(ParticipantKey(r), r.PlayerId, p.Epoch, CancellationToken.None).ConfigureAwait(false);
+                        await source.ReleaseAsync(ParticipantKey(r), r.PlayerId, CancellationToken.None).ConfigureAwait(false);
                     }
                     catch (Exception) { return Unresolved(r.TransferId, TransferRejection.ParticipantFailed, p, r.Phase); }
                     var (next, failure) = await FinishAsync(p, r with { Phase = TransferPhase.Completed }).ConfigureAwait(false);
@@ -181,8 +181,8 @@ public sealed class SectorTransferCoordinator
                     try
                     {
                         // Cancel first so the destination is fenced before the source ship becomes active again.
-                        await destination.CancelAsync(r.TransferId, r.PlayerId, CancellationToken.None).ConfigureAwait(false);
-                        await source.RestoreAsync(r.TransferId, r.PlayerId, CancellationToken.None).ConfigureAwait(false);
+                        await destination.CancelAsync(ParticipantKey(r), r.PlayerId, CancellationToken.None).ConfigureAwait(false);
+                        await source.RestoreAsync(ParticipantKey(r), r.PlayerId, CancellationToken.None).ConfigureAwait(false);
                     }
                     catch (Exception) { return Unresolved(r.TransferId, TransferRejection.ParticipantFailed, p, r.Phase); }
                     var (next, failure) = await FinishAsync(p, r with { Phase = TransferPhase.Aborted }).ConfigureAwait(false);
@@ -241,6 +241,19 @@ public sealed class SectorTransferCoordinator
 
     private static SectorTransferResult Unresolved(string transferId, TransferRejection reason, PlayerPresence? p, TransferPhase? phase) =>
         new(transferId, SectorTransferStatus.Unresolved, reason, false, p?.OwnerSectorId, p?.Epoch ?? 0, null, phase);
+
+    /// <summary>
+    /// The key participants record decisions under: player, transfer id and the source epoch the attempt began at
+    /// (review R1-1). Transfer ids are only unique per player and only inside the Recent window, so a bare id could match
+    /// another player's or an evicted earlier attempt's decision. Every committed transfer bumps the epoch, so a key can
+    /// never name a completed attempt again; a retried id that left the window is a new attempt, as in the transaction core.
+    /// </summary>
+    public static string ParticipantKey(TransferRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        static string L(string s) => s.Length.ToString(CultureInfo.InvariantCulture) + ":" + s;
+        return L(record.PlayerId) + "|" + L(record.TransferId) + "|" + record.SourceEpoch.ToString(CultureInfo.InvariantCulture);
+    }
 
     /// <summary>Lowercase hex SHA-256 over the length-prefixed request fields.</summary>
     private static string Fingerprint(SectorTransferRequest q)

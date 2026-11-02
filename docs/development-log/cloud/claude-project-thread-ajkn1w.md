@@ -15,4 +15,11 @@ Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419;
 
 Not verified: the `verify.ps1` wrapper itself (Windows CI runs it), pinned SDK, Godot smoke (no client or simulation change).
 
+## Round 2 — November 2, 2026
+
+-   R1-1 (High): participants now record decisions under `SectorTransferCoordinator.ParticipantKey` (player, transfer id, source epoch) instead of the bare transfer id, so two players sharing an id or a retry of an id that left the Recent window can no longer wedge a player in `Aborting`. Contract text updated. Three regression tests (both review scenarios plus an evicted aborted id at the same epoch) fail on the old keying and pass now; the soaks now share ids across pilots with a window of 4. 45 transfer tests.
+-   R1-2: main (#100) merged in at 17b653b, all entries kept, C10 row IN REVIEW.
+
+Verified: `dotnet test tests/Unit` 995 passed, 0 failed, 5 skips; FORMAT_CLEAN; TRACKERS_CONSISTENT.
+
 Resume point: independent review of this head.

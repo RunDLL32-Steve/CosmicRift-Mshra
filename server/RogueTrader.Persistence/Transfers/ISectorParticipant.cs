@@ -19,7 +19,10 @@ public sealed record ReserveOutcome(bool Ok, SpawnPlacement? Spawn, string? Reas
 /// <remarks>
 /// Contract, which the coordinator's guarantees depend on:
 /// <list type="bullet">
-/// <item>Every call is idempotent per transfer id and must be durable before it returns: recovery repeats calls freely.</item>
+/// <item>Calls are keyed by an opaque attempt key, <see cref="SectorTransferCoordinator.ParticipantKey"/>: player, transfer id
+/// and source epoch. It is unique per attempt across players and across the coordinator's Recent window, and it never names
+/// a completed attempt again. "Transfer id" below means this key.</item>
+/// <item>Every call is idempotent per key and must be durable before it returns: recovery repeats calls freely.</item>
 /// <item>Detach freezes the ship (no longer simulated, cannot be damaged, traded or moved) and returns the same manifest on
 /// every repeat. It refuses unless the sector holds the player active at the given epoch.</item>
 /// <item>Reserve validates the entry and holds the arrival inactive. It refuses an invalid spawn.</item>
@@ -33,10 +36,10 @@ public interface ISectorParticipant
 {
     string SectorId { get; }
 
-    Task<DetachOutcome> DetachAsync(string transferId, string playerId, long epoch, CancellationToken ct = default);
-    Task<ReserveOutcome> ReserveAsync(string transferId, string playerId, TransferManifest manifest, string entryId, CancellationToken ct = default);
-    Task ActivateAsync(string transferId, string playerId, long epoch, CancellationToken ct = default);
-    Task ReleaseAsync(string transferId, string playerId, CancellationToken ct = default);
-    Task RestoreAsync(string transferId, string playerId, CancellationToken ct = default);
-    Task CancelAsync(string transferId, string playerId, CancellationToken ct = default);
+    Task<DetachOutcome> DetachAsync(string attemptKey, string playerId, long epoch, CancellationToken ct = default);
+    Task<ReserveOutcome> ReserveAsync(string attemptKey, string playerId, TransferManifest manifest, string entryId, CancellationToken ct = default);
+    Task ActivateAsync(string attemptKey, string playerId, long epoch, CancellationToken ct = default);
+    Task ReleaseAsync(string attemptKey, string playerId, CancellationToken ct = default);
+    Task RestoreAsync(string attemptKey, string playerId, CancellationToken ct = default);
+    Task CancelAsync(string attemptKey, string playerId, CancellationToken ct = default);
 }
