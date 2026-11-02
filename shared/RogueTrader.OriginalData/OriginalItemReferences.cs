@@ -247,6 +247,10 @@ public sealed class OriginalItemReferenceResolver
                 (ItmProjectileFields.MaxLivePerPlayer, "ItmProjectileFields.MaxLivePerPlayer"), (ItmProjectileFields.AntiRecharge, "ItmProjectileFields.AntiRecharge"),
                 (ItmProjectileFields.AntiFire, "ItmProjectileFields.AntiFire"), (ItmProjectileFields.AntiThrust, "ItmProjectileFields.AntiThrust"),
                 (ItmProjectileFields.AntiRotate, "ItmProjectileFields.AntiRotate"), (ItmProjectileFields.ExplodeItem, "ItmProjectileFields.ExplodeItem"),
+                (ItmProjectileFields.AmmoUsedPerShot, "ItmProjectileFields.AmmoUsedPerShot (upstream name, raw; G5)"), (ItmProjectileFields.AmmoCapacity, "ItmProjectileFields.AmmoCapacity (upstream name, raw; G5)"),
+                (ItmProjectileFields.BounceCount, "ItmProjectileFields.BounceCount (upstream name, raw; G5)"), (ItmProjectileFields.ProximityRadius, "ItmProjectileFields.ProximityRadius (upstream name, raw; G5)"),
+                (ItmProjectileFields.InactiveTime, "ItmProjectileFields.InactiveTime (upstream name, raw; G5)"), (ItmProjectileFields.DamageMode, "ItmProjectileFields.DamageMode (upstream name, raw; G5)"),
+                (ItmProjectileFields.PreventPointBlank, "ItmProjectileFields.PreventPointBlank (upstream name, raw; G5)"),
                 (OriginalEventInventory.ItmDamageEventStringField, "damage event string (RT-F067)"),
             })
                 named[idx] = name;
@@ -265,7 +269,9 @@ public sealed class OriginalItemReferenceResolver
                 if (r.Int(f).Value != 0)
                 {
                     named[f] = "multi-item entry id";
-                    named[f + OriginalWeaponChain.MultiItemOffsetInEntry] = "multi-item entry raw offset";
+                    string[] entryNames = ["deltaX", "deltaY", "deltaZ", "deltaAngle", "multiLinkMode"];
+                    for (var k = 1; k < OriginalWeaponChain.MultiItemEntryStride && f + k < r.FieldCount; k++)
+                        named[f + k] = $"multi-item entry {entryNames[k - 1]} (upstream name, raw; G5)";
                 }
             try { res.MultiItemEntries = OriginalWeaponChain.MultiItemEntries(_items, item); }
             catch (OriginalItemException e) { unresolved.Add(new("MultiItemEntry", null, "", e.Message)); }
@@ -289,7 +295,9 @@ public sealed class OriginalItemReferenceResolver
                 var pair = new OriginalItemAssetPair(p, r.Value(p), r.Value(p + 1), r.Ints(p + 2, n));
                 pairs.Add(pair);
                 inPair.Add(p); inPair.Add(p + 1);
-                for (var q = p; q <= pair.LastFieldIndex; q++) named[q] = "asset pair (archive, member, ints)";
+                // TryAdd: a field already named above keeps its name. The heuristic takes up to six trailing ints, which on type-8
+                // rows runs past the 3-field firing sound (f[93..95], upstream Sound) into the child entries from f[97] (G5).
+                for (var q = p; q <= pair.LastFieldIndex; q++) named.TryAdd(q, "asset pair (archive, member, ints)");
                 if (!pair.IsNone)
                     unresolved.Add(new("BloMember", p + 1, $"{pair.Archive},{pair.Member}", $"BLO/{pair.Archive}.blo member '{pair.Member}' not verified: BLO content is not read (queue C1); the tuple meaning is inferred from the VEH/computer tuples."));
             }

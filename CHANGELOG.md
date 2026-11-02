@@ -1,5 +1,9 @@
 # Changelog
 
+## Weapon and ammo value audit — November 2, 2026
+
+-   Queue G5 remainder: a [value audit](docs/original-research/G5_WEAPON_VALUE_AUDIT.md) of the original weapon, ammo and child-chain records, with the exact row, field and raw value for each open question. The MIRV/Wake Caster "offset" turns out to be one of six child-entry fields (sideways and forward offsets, height, heading change and a link mode, per the upstream parser's names); all six are now kept. Seven more raw projectile fields are exposed (ammo per shot, ammo capacity, bounce count, proximity radius, inactive time, damage mode, point-blank). The meanings of inheritedSpeed -550 and aliveTime -65, all units, trigger/expiry behavior and collision shape remain open, and the pinned ammo weights (all 0) disagree with the 2003 news notes. No firing behavior. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g5.md). Counts unchanged.
+
 ## The world keeps its state: no more credit farms from relaunch or reset — November 2, 2026
 
 -   Owner rule (Steve, November 2, 2026): the game will be multiplayer, so the world keeps its state for as long as the server runs. Relaunching the client, logging out or resetting the sector no longer gives back the targets, the cargo piles (about 2,700 credits of wreckage) or the mineral field. A collected pile stays gone, a destroyed target group comes back only 1 minute (real time) after the last target fell, and mineral spawns carry on with their own timers and random state instead of restocking.

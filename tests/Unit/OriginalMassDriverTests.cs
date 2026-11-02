@@ -124,8 +124,8 @@ public sealed class OriginalMassDriverTests
         Assert.Empty(m.ReverseReferences);
         Assert.Empty(m.VehicleReferences);
         Assert.Equal(227, m.NamedFields.Count + m.UnnamedFieldIndices.Count);
-        Assert.Equal(99, m.NamedFields.Count);
-        Assert.Equal(128, m.UnnamedFieldIndices.Count);
+        Assert.Equal(106, m.NamedFields.Count); // 99 before G5 named f[32], f[33], f[104], f[108], f[115], f[116], f[141]
+        Assert.Equal(121, m.UnnamedFieldIndices.Count);
         // the named set depends only on the type-6/227 layout
         Assert.Equal(Resolver.Value.Resolve(1004).NamedFields.Keys.Order(), m.NamedFields.Keys.Order());
     }
