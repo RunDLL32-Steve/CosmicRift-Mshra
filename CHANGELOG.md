@@ -1,5 +1,9 @@
 # Changelog
 
+## Reproducible mineral placement in smoke runs — November 2, 2026
+
+-   Fixes a flaky station smoke test. Mineral placement was seeded from `string.GetHashCode` of a random world id, which .NET randomizes per process, so a Tellerium pile sometimes landed on the launch lane and filled the hold before the wreckage step. Placement now takes its salt from the world id's GUID bytes (`MineralFieldCatalog.ForWorld`), so a logged world id replays its field. Smoke runs number their worlds, so every acceptance run lays the field out the same way. Normal play still gets a new random field for every world.
+
 ## Ignore rules for build and local files — November 2, 2026
 
 -   `.gitignore` now also covers test results and coverage (`TestResults/`, `*.trx`, coverage files), BenchmarkDotNet output, NuGet packages, Godot `.mono/`, `.import/`, crash dumps and `export_credentials.cfg`, VS Code/Rider files, more OS junk, logs and temp files. Godot `*.import`/`*.uid` files, `project.godot` and `export_presets.cfg` stay committed. No tracked file is newly ignored.

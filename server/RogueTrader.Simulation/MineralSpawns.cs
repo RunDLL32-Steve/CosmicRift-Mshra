@@ -39,6 +39,13 @@ public sealed class MineralFieldCatalog
     public IReadOnlyList<MineralSpawnDefinition> Spawns { get; }
     public ulong Seed { get; }
 
+    /// <summary>
+    /// This field reseeded for one world: <see cref="Seed"/> XOR <paramref name="worldSalt"/>. Callers pass a value that is
+    /// stable across processes (for example GUID bytes, never <c>string.GetHashCode</c>, which .NET randomizes per process),
+    /// so a logged world id or salt replays the same placement.
+    /// </summary>
+    public MineralFieldCatalog ForWorld(ulong worldSalt) => new(Spawns, Seed ^ worldSalt);
+
     public MineralFieldCatalog(IEnumerable<MineralSpawnDefinition> spawns, ulong seed)
     {
         ArgumentNullException.ThrowIfNull(spawns);

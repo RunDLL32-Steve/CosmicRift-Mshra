@@ -115,6 +115,23 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
+    public void ForWorld_SameSaltReplaysPlacement_AndADifferentSaltMovesIt()
+    {
+        static Vector2[] Placement(MineralFieldCatalog field)
+        {
+            var world = World(field, stationPiles: false);
+            world.Tick(default);
+            return world.Collectibles.Select(p => p.Position).ToArray();
+        }
+        var field = LoadMinerals();
+        var salt = BitConverter.ToUInt64(new Guid(1, 0x534D, 0x4B45, 0, 0, 0, 0, 0, 0, 0, 0).ToByteArray(), 0);
+        Assert.Equal(field.Seed ^ salt, field.ForWorld(salt).Seed);
+        Assert.Equal(field.Spawns, field.ForWorld(salt).Spawns);
+        Assert.Equal(Placement(field.ForWorld(salt)), Placement(field.ForWorld(salt)));
+        Assert.NotEqual(Placement(field.ForWorld(salt)), Placement(field.ForWorld(salt + 1)));
+    }
+
+    [Fact]
     public void WorldWithoutMinerals_HashesAsBefore()
     {
         var plain = new WorldSimulation(TestWorld.ExternalCatalog());
