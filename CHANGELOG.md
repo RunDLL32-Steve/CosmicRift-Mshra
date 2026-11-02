@@ -1,5 +1,9 @@
 # Changelog
 
+## Mining, refining and pickup rewards — November 1, 2026
+
+-   Queue M7 mining slice: the practice sector now holds the original mineral spawns (11 of the 12 `LIO/Rogue.lio` type 5 mineral rows: Tellerium, Krandazite, Iron Ore), which respawn on their own delays. Every pickup, mineral or not, is saved once through the idempotent GrantReward core with a stable per-sector-instance id, so a failed save or a reload no longer loses or duplicates cargo. A refinery (VEH id 400 recipes, LIO row 13 position) turns ore into refined goods the Trading Outpost buys; profile schema 4 adds the `Refine` kind. Every reading of the undecoded LIO fields, the map scale, one-for-one free refining and placement is NEW and listed in [data/minerals](data/minerals/IMPLEMENTATION_PLAN.md) and [data/stations](data/stations/IMPLEMENTATION_PLAN.md). RT-F042/F044 and master M2 boxes stay open; counts unchanged.
+
 ## Practice target respawn — November 1, 2026
 
 -   Once all three practice targets are destroyed, the group respawns after one minute (`targetRespawnSeconds` in the sector file, NEW) and each new wave pays its kill rewards once. A sector reset no longer brings destroyed targets back or re-arms their rewards; relaunching still starts a fresh group. The HUD counts down to the next group. [Client entry](client/UI/plan.d/m9.md), [reward data](data/rewards/IMPLEMENTATION_PLAN.md). Counts unchanged.

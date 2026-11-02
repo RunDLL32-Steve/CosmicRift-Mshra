@@ -5,7 +5,7 @@ namespace RogueTrader.Persistence;
 /// <summary>Immutable persisted player state. Ids are opaque strings compared ordinally; currency is <c>long</c>.</summary>
 public sealed record PlayerProfile
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
     public required string ProfileId { get; init; }

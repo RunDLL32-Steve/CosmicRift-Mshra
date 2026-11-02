@@ -38,16 +38,38 @@ public static class OriginalStationBuilder
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
         "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
         "Collectible piles: placement and quantities.",
+        "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
     ];
+
+    public const string RefineryId = "refinery";
+    /// <summary>Actor id that LIO type 5 rows 13 and 14 place (VEH id 400 is the Refinery).</summary>
+    public const int RefineryActor = -OriginalRefinery.VehicleId;
+    private const float RefineryDockRadius = 150;
 
     public static StationDefinition Build(string assetsRoot)
     {
         var items = OriginalItemCatalog.Load(assetsRoot);
         var veh = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, PinnedAssets.Veh), PinnedAssets.Veh.RelativePath);
-        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh));
+        var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
+        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items));
     }
 
-    public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName)
+    /// <summary>The refinery: name and recipes from VEH id 400, position from the first LIO type 5 row that places actor -400.</summary>
+    private static RefineryDefinition Refinery(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio, OriginalItemCatalog items)
+    {
+        var row = lio.First(r => r.FieldCount == OriginalMineralSpawns.FieldCount && r.Value(0) == "5" && r.Int(OriginalMineralSpawns.ItemField).Value == RefineryActor);
+        var name = veh.Single(v => v.FieldCount > 3 && v.Value(2) == OriginalRefinery.VehicleId.ToString(CultureInfo.InvariantCulture)).Value(3);
+        return new RefineryDefinition(RefineryId, string.IsNullOrWhiteSpace(name) ? "Refinery" : name,
+            (row.Int(4).Value - OriginalMineralFieldBuilder.MapCentre) * OriginalMineralFieldBuilder.MapScale,
+            (row.Int(5).Value - OriginalMineralFieldBuilder.MapCentre) * OriginalMineralFieldBuilder.MapScale, RefineryDockRadius)
+        {
+            Recipes = OriginalRefinery.FromRecords(veh, items)
+                .Select(r => new StationRefineRecipe(Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.OutputItemId.Value), r.RawField4.Value)).ToList(),
+        };
+    }
+
+    public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName,
+        RefineryDefinition? refinery = null)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(recipes);
@@ -66,7 +88,7 @@ public static class OriginalStationBuilder
             StationId = StationId,
             Name = stationName,
             EvidenceClassification = "ORIGINAL+NEW",
-            Source = $"Derived by OriginalStationBuilder from pinned {PinnedAssets.Itm.RelativePath} and {PinnedAssets.Veh.RelativePath} (VEH id {OriginalTradingPost.VehicleId}); regenerate, never hand-edit.",
+            Source = $"Derived by OriginalStationBuilder from pinned {PinnedAssets.Itm.RelativePath} and {PinnedAssets.Veh.RelativePath} (VEH id {OriginalTradingPost.VehicleId}; refinery VEH id {OriginalRefinery.VehicleId} at {OriginalSafeZones.LioRogue.RelativePath} actor {RefineryActor}); regenerate, never hand-edit.",
             NewValues = NewValueNotes,
             X = StationX,
             Y = StationY,
@@ -83,6 +105,7 @@ public static class OriginalStationBuilder
                 new CollectibleSpawn("pile_alloy_west", Key(2020), 12, -170, 20, 14),
                 new CollectibleSpawn("pile_tellerium_south", Key(2004), 6, 40, 160, 14),
             ],
+            Refinery = refinery,
         };
     }
 

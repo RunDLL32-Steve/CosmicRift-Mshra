@@ -26,10 +26,9 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 ## B. Milestone 2 loop
 
-| ID  | Task                                                       | Where                    | Run   | Depends on                               | Status snapshot        | Brief                  |
-| --- | ---------------------------------------------------------- | ------------------------ | ----- | ---------------------------------------- | ---------------------- | ---------------------- |
-| M7  | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED                            | IN REVIEW (kill slice) | [M7](docs/tasks/m7.md) |
-| M9  | Persisted progression across exit/relaunch acceptance test | Integration tests        | Local | M1–M8; do not start until all are MERGED | IN REVIEW              | [M9](docs/tasks/m9.md) |
+| ID  | Task                                                       | Where                    | Run   | Depends on    | Status snapshot                                                                        | Brief                  |
+| --- | ---------------------------------------------------------- | ------------------------ | ----- | ------------- | -------------------------------------------------------------------------------------- | ---------------------- |
+| M7  | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED | IN REVIEW (mining slice on `claude/project-thread-yaij0l`; kill slice merged in PR 94) | [M7](docs/tasks/m7.md) |
 
 ## C. Additional groundwork
 
@@ -57,6 +56,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 -   M4 — merged 3e29142: generic trading engine slice; RT-F044/F045/F049 remain open.
 -   M5 — merged ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)), November 1, 2026: repairs and original upgrade pricing, profile schema 2; RT-F047/F048/F049 remain open.
 -   M6 — merged 759a66a: NEW provisional pirate state machine, not wired into WorldSimulation; RT-F060/F272/F306 remain open.
+-   M9 — merged ([PR 94](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/94)), November 1, 2026: exit/relaunch integration suite together with the M7 kill-reward slice; engineering persistence acceptance only, RT-F051/F068 remain open.
 -   M8 — merged ([PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93)), November 1, 2026: Godot HUD, derived Trading Outpost, save/load and ship condition (schema 3); native UI parity and RT-F025/F026/F068 remain open.
 -   C2 — merged 8f66688: rogue.cfg only; other arena CFGs were not pinned.
 -   C3 — merged 952d29d: same-runtime replay digests; does not establish cross-runtime determinism.

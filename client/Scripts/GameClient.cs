@@ -38,6 +38,11 @@ public partial class GameClient : Node2D
     private GameCatalog _playCatalog = null!;
     private string _profileOutcome = "";
     private long _nextPickupRetryTick;
+    private readonly PickupCommitQueue _pickups = new();
+    private MineralFieldCatalog? _minerals;
+    private bool _atRefinery;
+    /// <summary>One id per WorldSimulation: pickup ids and mineral placement key on it, never on the sector instance (review R1-1).</summary>
+    private string _worldInstanceId = "";
     private long _lastShipSaveTick;
     private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
     private KillRewardDefinition _killReward = KillRewardDefinition.None;
@@ -60,6 +65,7 @@ public partial class GameClient : Node2D
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog();
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
+            _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
             var userArgs = OS.GetCmdlineUserArgs();
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
             foreach (var arg in userArgs)
@@ -75,6 +81,8 @@ public partial class GameClient : Node2D
             _originals = OriginalSpriteLibrary.LoadIfAvailable();
             _view = new WorldView { Originals = _originals, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
+            if (_stationDefinition.Refinery is { } refinery)
+                _view.Refinery = (new System.Numerics.Vector2(refinery.X, refinery.Y), refinery.DockRadius, refinery.Name);
             AddChild(_view);
             _view.SetWorld(_world);
             _camera = new Camera2D { Enabled = true };
@@ -88,6 +96,7 @@ public partial class GameClient : Node2D
             AddChild(_hud);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
+            _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.CloseRequested += () => SetStationVisible(false);
@@ -287,6 +296,7 @@ public partial class GameClient : Node2D
     public StationProfileSession? Session => _session;
     public StationScreen Station => _stationScreen;
     public bool StationVisible => _stationVisible;
+    public bool AtRefinery => _stationVisible && _atRefinery;
     public string ProfileStatus => _profileStatus;
     public bool Paused => _paused;
 
@@ -317,13 +327,11 @@ public partial class GameClient : Node2D
     public void ReopenProfileFromDisk()
     {
         if (_stationVisible) SetStationVisible(false); // undocking saves the ship; otherwise reopen exactly what is on disk
-        var dropped = _session?.Profile is null || _world is null ? null : _session.UncommittedPickups(_world.Cargo.Items);
         _repository?.Dispose();
         _repository = null;
         OpenProfile();
         _world = NewWorld(restoreSavedShip: true);
         _view.SetWorld(_world);
-        WarnDroppedCargo(dropped);
     }
 
     public void ReloadProfile()
@@ -335,11 +343,9 @@ public partial class GameClient : Node2D
         }
         var outcome = Await(_session.ReloadAsync());
         _profileOutcome = _profileStatus = outcome.Message;
-        // Units in the hold that the reloaded profile does not hold were never saved; the reconcile below drops them.
-        var dropped = outcome.Succeeded ? _session.UncommittedPickups(_world.Cargo.Items) : null;
         if (!outcome.Succeeded) _session = null;
+        // Unsaved pickups stay queued (and in the hold) and are granted with their own ids, so a reload loses nothing.
         ReconcileHold();
-        WarnDroppedCargo(dropped);
         ApplyUpgrades();
     }
 
@@ -348,16 +354,13 @@ public partial class GameClient : Node2D
         UpgradeEffects.Apply(_catalog.Ship, _stationDefinition, _session?.Profile?.Upgrades ?? Enumerable.Empty<string>()),
         _catalog.Weapon, _catalog.Sector);
 
-    /// <summary>
-    /// Tells the player when a reload or reopen discarded cargo collected since the last save (M8 review follow-up): the pile
-    /// is already gone from space, so the units are lost.
-    /// </summary>
-    private void WarnDroppedCargo(IReadOnlyDictionary<string, int>? dropped)
+    /// <summary>Tells the player when cargo collected in a sector could not be saved before that sector instance ended.</summary>
+    private void WarnLostPickups(IReadOnlyList<CargoPickup> lost, string why)
     {
-        if (dropped is null || dropped.Count == 0) return;
-        var units = dropped.Values.Sum();
-        var names = string.Join(", ", dropped.Select(entry => $"{_stationDefinition.NameOf(entry.Key)} x{entry.Value}"));
-        var message = $"Reload discarded {units} unsaved cargo unit{(units == 1 ? "" : "s")} collected since the last save ({names}).";
+        if (lost.Count == 0) return;
+        var units = lost.Sum(p => p.Quantity);
+        var names = string.Join(", ", lost.GroupBy(p => p.ItemId).Select(g => $"{_stationDefinition.NameOf(g.Key)} x{g.Sum(p => p.Quantity)}"));
+        var message = $"{units} collected cargo unit{(units == 1 ? "" : "s")} {why} ({names}).";
         _profileStatus = $"{_profileStatus}\n{message}";
         Notice(message, warning: true);
     }
@@ -409,8 +412,12 @@ public partial class GameClient : Node2D
     /// </param>
     private WorldSimulation NewWorld(bool restoreSavedShip, WorldSimulation? carryTargetsFrom = null)
     {
-        // Give the outgoing world's unpaid kills one last try.
+        // Give the outgoing world's unpaid kills and unsaved pickups one last try. Pickups are per world (review R1-1): whatever
+        // still fails to save is lost with that world, even when a reset keeps the sector instance.
         CommitKills(force: true);
+        CommitPickups(force: true);
+        WarnLostPickups(_pickups.StartNewWorld(), "could not be saved and were lost");
+        _nextPickupRetryTick = _nextPickupRetryTick == long.MaxValue ? long.MaxValue : 0;
         _killsSeen = 0;
         var lostKills = 0;
         if (carryTargetsFrom is null)
@@ -424,7 +431,11 @@ public partial class GameClient : Node2D
         if (lostKills > 0) Notice($"{lostKills} kill reward{(lostKills == 1 ? "" : "s")} could not be saved and {(lostKills == 1 ? "was" : "were")} lost.", warning: true);
         _playCatalog = EffectiveCatalog();
         _lastShipSaveTick = 0;
-        var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold());
+        // Pickup ids and mineral placement key on a new id for every world, never on the sector instance a reset keeps (R1-1).
+        // NEW: mineral placement is reseeded for each world, so a reset lays the field out afresh.
+        _worldInstanceId = Guid.NewGuid().ToString("N");
+        var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_worldInstanceId.GetHashCode(StringComparison.Ordinal));
+        var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold(), minerals: minerals);
         if (carryTargetsFrom is not null) world.CarryTargetsFrom(carryTargetsFrom);
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
             world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
@@ -455,32 +466,45 @@ public partial class GameClient : Node2D
         (_session?.Profile?.Inventory ?? Enumerable.Empty<KeyValuePair<string, int>>())
             .Where(entry => _cargo.IsKnown(entry.Key) && entry.Value > 0);
 
-    /// <summary>The world hold always mirrors the saved inventory after a station transaction or reload.</summary>
-    private void ReconcileHold() => _world.Cargo.ReplaceContents(AuthoritativeHold().ToArray());
+    /// <summary>The world hold is always the saved inventory plus the pickups still waiting to be saved.</summary>
+    private void ReconcileHold() =>
+        _world.Cargo.ReplaceContents(_pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()),
+            _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId)).ToArray());
 
     /// <summary>
-    /// Commits newly collected cargo. On a refusal the units stay in the hold and the commit is retried once a second (after
-    /// reloading the profile when the save itself failed), so a failed save never loses cargo (review R1-3).
+    /// Saves every pickup the world recorded (queue M7 mining slice) through the idempotent transaction core, one grant per
+    /// pickup with a stable id. On a refusal the pickup stays queued and in the hold and is retried once a second (after
+    /// reloading the profile when the save itself failed), so neither a failed save nor a reload loses or duplicates cargo.
     /// </summary>
-    private void CommitPickups()
+    private void CommitPickups(bool force = false)
     {
-        if (_session?.Profile is null || _world.TickNumber < _nextPickupRetryTick) return;
-        var result = Await(_session.CommitPickupsAsync(_world.Cargo.Items));
-        if (result is null) return;
-        if (result.Status == TransactionStatus.Applied)
+        if (_world is null) return;
+        _pickups.Observe(_worldInstanceId, _world.Pickups);
+        if (_session?.Profile is null || _pickups.Count == 0 || _nextPickupRetryTick == long.MaxValue
+            || (!force && _world.TickNumber < _nextPickupRetryTick)) return;
+        var outcome = Await(_pickups.CommitAsync(_session));
+        if (outcome.Replayed.Count > 0 || outcome.Refused.Count > 0) ReconcileHold();
+        WarnLostPickups(outcome.Refused.Select(r => r.Pickup).ToArray(), $"could not be stored ({string.Join(", ", outcome.Refused.Select(r => r.Reason).Distinct())})");
+        var mined = outcome.Applied.Where(p => p.IsMineral).ToArray();
+        if (mined.Length > 0)
+            Notice($"Mined {string.Join(", ", mined.GroupBy(p => p.ItemId).Select(g => $"{g.Sum(p => p.Quantity)} {_stationDefinition.NameOf(g.Key)}"))} (saved at revision {_session.Profile!.Revision}).");
+        if (outcome.Blocked is not { } reason)
         {
             if (_nextPickupRetryTick > 0) _profileStatus = _profileOutcome;
             _nextPickupRetryTick = 0;
             return;
         }
-        _profileStatus = $"Collected cargo is not saved yet ({result.Reason}); it stays in the hold and saving is retried.";
+        _profileStatus = $"Collected cargo is not saved yet ({reason}); it stays in the hold and saving is retried.";
         _nextPickupRetryTick = _world.TickNumber + WorldSimulation.TickRate;
-        if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen)
+        if (reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen)
         {
             var reload = Await(_session.ReloadAsync());
             if (!reload.Succeeded) _profileOutcome = reload.Message;
         }
     }
+
+    public int PendingPickups => _pickups.Count;
+    public string WorldInstanceId => _worldInstanceId;
 
     /// <summary>Test hook: makes the next pickup commits fail as if the save folder were unavailable.</summary>
     public void SimulatePickupSaveFailure() => _nextPickupRetryTick = long.MaxValue;
@@ -495,8 +519,10 @@ public partial class GameClient : Node2D
                 _profileStatus = $"Station services are offline: {_profileOutcome}";
                 return;
             }
-            if (!_session.IsDocked(PlayerX, PlayerY)) return;
-            _stationScreen.SetStatus($"Welcome to the {_stationDefinition.Name}.");
+            _atRefinery = !_session.IsDocked(PlayerX, PlayerY) && _session.IsDockedAtRefinery(PlayerX, PlayerY);
+            if (!_atRefinery && !_session.IsDocked(PlayerX, PlayerY)) return;
+            _stationScreen.SetRefineryMode(_atRefinery);
+            _stationScreen.SetStatus($"Welcome to the {(_atRefinery ? _stationDefinition.Refinery!.Name : _stationDefinition.Name)}.");
         }
         _stationVisible = visible;
         _stationScreen.Visible = visible;
@@ -553,8 +579,9 @@ public partial class GameClient : Node2D
     private void RefreshProfileViews(bool rebuildStation = false)
     {
         var profile = _session?.Profile;
-        var docked = profile is not null && _session!.IsDocked(PlayerX, PlayerY);
-        _hud.UpdateProfile(profile, _stationDefinition, _world.Cargo.TotalWeight, _world.Cargo.Capacity, docked && !_stationVisible,
+        var docked = profile is not null && (_session!.IsDocked(PlayerX, PlayerY) || _session.IsDockedAtRefinery(PlayerX, PlayerY));
+        _hud.UpdateProfile(profile, _session?.IsDocked(PlayerX, PlayerY) == false && _stationDefinition.Refinery is { } site ? site.Name : _stationDefinition.Name,
+            _stationDefinition, _world.Cargo.TotalWeight, _world.Cargo.Capacity, docked && !_stationVisible,
             $"{_profileStatus}\nSave folder: {_profileRoot}");
         if (rebuildStation && _stationVisible && profile is not null)
             _stationScreen.Refresh(profile, _world.Cargo.TotalWeight, _world.Cargo.Capacity, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull,
@@ -569,6 +596,7 @@ public partial class GameClient : Node2D
         if (_initialized && _smokeTest is null)
         {
             CommitKills(force: true);
+            CommitPickups(force: true);
             SaveShip();
         }
         _repository?.Dispose();
