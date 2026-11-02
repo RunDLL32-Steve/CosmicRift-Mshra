@@ -286,6 +286,22 @@ public sealed class CargoPickupTests
         Assert.True(policy.Fits(profile, hold.Items));
     }
 
+    [Fact]
+    public void OverCapacityHold_MayChangeOnlyIfItGetsNoHeavier()
+    {
+        var catalog = new CargoCatalog(100, [new CargoItemDefinition(OreA, 10), new CargoItemDefinition(OreB, 25)]);
+        var over = new Dictionary<string, int> { [OreA] = 15 }; // 150 > 100, e.g. a save made under a larger cap
+
+        Assert.True(catalog.AllowsChange(over, new Dictionary<string, int> { [OreA] = 5, [OreB] = 2 }));   // 100: back under the cap
+        Assert.True(catalog.AllowsChange(over, new Dictionary<string, int> { [OreA] = 10, [OreB] = 2 }));  // 150: over, but no heavier
+        Assert.False(catalog.AllowsChange(over, new Dictionary<string, int> { [OreA] = 15, [OreB] = 1 })); // 175: heavier
+        Assert.False(catalog.AllowsChange(over, new Dictionary<string, int> { ["fixture-unknown"] = 1 }));
+        Assert.False(catalog.AllowsChange(over, new Dictionary<string, int> { [OreA] = -1 }));
+        // Within capacity the current hold does not matter, even if it cannot be weighed.
+        Assert.True(catalog.AllowsChange(new Dictionary<string, int> { ["fixture-unknown"] = 1 }, new Dictionary<string, int> { [OreA] = 10 }));
+        Assert.False(catalog.AllowsChange(new Dictionary<string, int> { ["fixture-unknown"] = 1 }, new Dictionary<string, int> { [OreA] = 11 }));
+    }
+
     [RequiresOriginalAssetsFact]
     public void OriginalResourceMassesDriveTheSameRules()
     {
