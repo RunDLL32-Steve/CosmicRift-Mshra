@@ -32,3 +32,7 @@ Resume point: independent review of the C9 head.
 ## C9 conflict merge — November 2, 2026
 
 -   Merged `origin/main` (#99 gitignore, #101 C8) at Steve's request. Conflicts were docs only: CHANGELOG (both entries kept), TASK_QUEUE (C8 moved to completed history as merged in PR 101), PROGRESS and the Server plan (C8 marked merged). No code conflict. Re-run after the merge: solution build 0 warnings; `dotnet test tests/Unit` 949 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; FORMAT_CLEAN; TRACKERS_CONSISTENT.
+
+## C9 round 2 — November 2, 2026
+
+-   Review round 1 note, fixed at Steve's request: a conduct event that clamps to no change no longer saves or bumps the revision. It returns Applied with a zero `ConductDelta` and the current revision, and its id is not recorded (recording would itself need a saved revision), so a retry of the same id is evaluated again against the state at that time. New test `AnEventThatChangesNothingIsNotSavedOrRecorded`; the clamping test now checks the saturated and zero-bounty cases leave the snapshot untouched. `dotnet test tests/Unit` 950 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed.

@@ -88,16 +88,21 @@ public sealed class ConductTests
         Assert.Equal(1000, Standing(env.Snapshot, "pirate"));
         Assert.Equal(100000, flood.Conduct!.BountyDelta);
 
+        var saturated = env.Snapshot;
         var more = await Record(env, null, "civilian-destroyed");
         Assert.Equal(TransactionStatus.Applied, more.Status);
+        Assert.Same(saturated, env.Snapshot); // no change, so no save and no new revision
+        Assert.Equal(saturated.Revision, more.Revision);
         Assert.Equal(0, more.Conduct!.BountyDelta);
         Assert.Empty(more.Conduct.ReputationDeltas); // every category the event touches is already at its bound
 
         var cleared = await Record(env, null, "bounty-cleared");
         Assert.Equal(0, env.Snapshot.Bounty);
         Assert.Equal(-100000, cleared.Conduct!.BountyDelta);
+        var atZero = env.Snapshot;
         var floor = await Record(env, null, "bounty-cleared");
         Assert.Equal(0, floor.Conduct!.BountyDelta);
+        Assert.Same(atZero, env.Snapshot);
 
         // pirate +5 +5 -10 returns to neutral and is no longer stored.
         var fresh = await Env.CreateAsync(conduct: ShippedRules());
@@ -106,6 +111,36 @@ public sealed class ConductTests
         var back = await Record(fresh, null, "pirate-destroyed");
         Assert.False(fresh.Snapshot.Reputation.ContainsKey("pirate"));
         Assert.Equal(-10, back.Conduct!.ReputationDeltas["pirate"]);
+    }
+
+    [Fact]
+    public async Task AnEventThatChangesNothingIsNotSavedOrRecorded()
+    {
+        var env = await Env.CreateAsync(conduct: ShippedRules());
+        var before = env.Snapshot;
+
+        var noop = await Record(env, "conduct-noop", "bounty-cleared");
+
+        Assert.Equal(TransactionStatus.Applied, noop.Status);
+        Assert.False(noop.IsReplay);
+        Assert.Equal(0, noop.Conduct!.BountyDelta);
+        Assert.Empty(noop.Conduct.ReputationDeltas);
+        Assert.Equal(before.Revision, noop.Revision);
+        Assert.Same(before, env.Snapshot);
+        Assert.Empty(env.Snapshot.AppliedTransactions);
+        var stored = await env.Repo.LoadAsync(Fx.ProfileId);
+        ProfileAssert.Equivalent(before, stored.Profile!);
+
+        // Chosen rule: the id is not remembered, so the same id evaluates again against the current state. A retry after a
+        // bounty was raised therefore clears it; a retry while nothing changed stays a no-op.
+        var again = await Record(env, "conduct-noop", "bounty-cleared");
+        Assert.False(again.IsReplay);
+        Assert.Same(before, env.Snapshot);
+        await Record(env, null, "trader-attacked");
+        var retried = await Record(env, "conduct-noop", "bounty-cleared");
+        Assert.False(retried.IsReplay);
+        Assert.Equal(-250, retried.Conduct!.BountyDelta);
+        Assert.Equal(0, env.Snapshot.Bounty);
     }
 
     [Theory]
