@@ -1,5 +1,10 @@
 # Changelog
 
+## Headless server session and tick benchmark — November 2, 2026
+
+-   Queue C6: a new `RogueTrader.Server` library runs the simulation headless in fixed 60 Hz ticks and takes client input only as queued intent for a named tick. Competing inputs for one tick resolve by highest sequence whatever the arrival order; late, stale, duplicate, too-far-ahead, over-capacity and malformed inputs are refused without changing anything. No sockets, snapshots or multiple clients yet; all queue rules are NEW. [Server entry](server/RogueTrader.Server/plan.d/c6.md).
+-   Queue C4: `tests/LoadTests` is a Stopwatch tick benchmark that reports the tick-time distribution with host, runtime, data hashes and revision, for the bare simulation and for the C6 session path. It reports only and asserts no threshold. [Load test entry](tests/LoadTests/plan.d/c4.md), [run](docs/development-log/2026-11-02-c4-c6.md). Counts unchanged.
+
 ## Practice target respawn — November 1, 2026
 
 -   Once all three practice targets are destroyed, the group respawns after one minute (`targetRespawnSeconds` in the sector file, NEW) and each new wave pays its kill rewards once. A sector reset no longer brings destroyed targets back or re-arms their rewards; relaunching still starts a fresh group. The HUD counts down to the next group. [Client entry](client/UI/plan.d/m9.md), [reward data](data/rewards/IMPLEMENTATION_PLAN.md). Counts unchanged.

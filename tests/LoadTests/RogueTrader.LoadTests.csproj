@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Fully optimised JIT from the first call, so background tier-up cannot land inside a timed run. -->
+    <TieredCompilation>false</TieredCompilation>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+    <ProjectReference Include="../../server/RogueTrader.Server/RogueTrader.Server.csproj" />
+    <Content Include="../../data/ships/*.json" Link="data/ships/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../data/weapons/*.json" Link="data/weapons/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../data/sectors/*.json" Link="data/sectors/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
