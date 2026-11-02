@@ -308,6 +308,43 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
+    public async Task Refine_StillWorks_ForASaveOverTheHoldCap()
+    {
+        // A save made under the old 4,000,000 cap: 60 Tellerium (60 x 50,000 = 3,000,000) is over the Asp's 2,500,000 StopWeight.
+        var repo = new InMemoryProfileRepository();
+        var old = new StationProfileSession(repo, LoadStation(), "starter_interceptor", 4_000_000);
+        Assert.True((await old.OpenOrCreateAsync(Profile)).Succeeded);
+        Assert.Equal(TransactionStatus.Applied, (await old.GrantPickupAsync("old", new CargoPickup(0, "mineral:16:1", "2003", 60, 1))).Status);
+
+        var session = await OpenAsync(repo);
+        var refinery = session.Station.Refinery!;
+        var recipe = refinery.Recipes.Single(r => r.InputItemId == "2003");
+        Assert.True(session.Cargo.WeightOf(session.Profile!.Inventory) > session.Cargo.Capacity);
+
+        // Refining 10 makes the hold lighter (2,750,000) but leaves it over the cap: allowed, because it is no heavier than before.
+        Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(recipe.Id, 10, refinery.X, refinery.Y)).Status);
+        Assert.True(session.Cargo.WeightOf(session.Profile!.Inventory) > session.Cargo.Capacity);
+        Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(recipe.Id, 50, refinery.X, refinery.Y)).Status);
+        Assert.Equal(60, session.Profile!.Inventory["2004"]);
+        Assert.False(session.Profile.Inventory.ContainsKey("2003"));
+    }
+
+    [Fact]
+    public async Task OverCapSave_CannotGetHeavier()
+    {
+        var repo = new InMemoryProfileRepository();
+        var old = new StationProfileSession(repo, LoadStation(), "starter_interceptor", 4_000_000);
+        Assert.True((await old.OpenOrCreateAsync(Profile)).Succeeded);
+        Assert.Equal(TransactionStatus.Applied, (await old.GrantPickupAsync("old", new CargoPickup(0, "mineral:16:1", "2003", 60, 1))).Status);
+
+        var session = await OpenAsync(repo);
+        var before = session.Profile!;
+        var pickup = await session.GrantPickupAsync("new", new CargoPickup(0, "mineral:16:2", "2003", 1, 1));
+        Assert.Equal(RejectionReason.CargoCapacityExceeded, pickup.Reason);
+        Assert.Equal(before.Inventory.ToArray(), session.Profile!.Inventory.ToArray());
+    }
+
+    [Fact]
     public async Task RefineTransaction_SurvivesSaveAndReload_AtSchema4()
     {
         var repo = new InMemoryProfileRepository();
