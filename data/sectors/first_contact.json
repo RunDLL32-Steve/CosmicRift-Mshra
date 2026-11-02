@@ -3,6 +3,7 @@
     "name": "First Contact",
     "evidenceClassification": "NEW",
     "targetRespawnSeconds": 60,
+    "mineralHoldsInSpace": 5,
     "playerSpawn": { "x": 0, "y": 0, "heading": -1.5707963267948966 },
     "targets": [
         {

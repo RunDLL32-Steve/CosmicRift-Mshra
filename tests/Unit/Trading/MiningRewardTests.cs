@@ -105,10 +105,11 @@ public sealed class MiningRewardTests
 
         var piles = a.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).ToArray();
         var field = LoadMinerals();
-        Assert.InRange(piles.Length, field.Spawns.Sum(s => s.MaxPiles) * 3 / 4, field.Spawns.Sum(s => s.MaxPiles));
+        var limits = a.MineralPileLimits; // the sector's five-hold cap applies on top of each spawn's own limit
+        Assert.InRange(piles.Length, limits.Values.Sum() * 3 / 4, limits.Values.Sum());
         Assert.All(piles, p => Assert.Equal(1, p.Quantity));
         foreach (var spawn in field.Spawns)
-            Assert.InRange(piles.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)), 1, spawn.MaxPiles);
+            Assert.InRange(piles.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)), 1, limits[spawn.Id]);
         Assert.Equal(piles.Select(p => p.Position), b.Collectibles.Where(p => p.Id.StartsWith("mineral:", StringComparison.Ordinal)).Select(p => p.Position));
         Assert.Equal(WorldStateHasher.Hash(a), WorldStateHasher.Hash(b));
         foreach (var pile in piles)
@@ -116,6 +117,44 @@ public sealed class MiningRewardTests
         var other = World(new MineralFieldCatalog(LoadMinerals().Spawns, 7));
         other.Tick(default);
         Assert.NotEqual(piles.Select(p => p.Position), other.Collectibles.Where(p => p.Id.StartsWith("mineral:", StringComparison.Ordinal)).Select(p => p.Position));
+    }
+
+    [Fact]
+    public void ShippedSector_HoldsAboutFiveFullHoldsOfMinerals_InTheOriginalMix()
+    {
+        // Steve, Nov 2 2026: minerals keep spawning while the server runs, but max out at about enough for five ships.
+        var world = World(stationPiles: false);
+        var sector = world.Catalog.Sector;
+        Assert.Equal(5, sector.MineralHoldsInSpace);
+        var cargo = LoadStation().CreateCargoCatalog(TestCargo.Capacity);
+        var field = LoadMinerals();
+        var limits = world.MineralPileLimits;
+        var weightAtLimits = field.Spawns.Sum(s => (long)limits[s.Id] * s.Quantity * cargo.UnitWeight(s.ItemId));
+        var holds = (double)weightAtLimits / world.Catalog.Ship.Cargo.Capacity;
+        Assert.InRange(holds, 4.5, 5.5);
+        foreach (var spawn in field.Spawns)
+            Assert.InRange(limits[spawn.Id], 1, spawn.MaxPiles);
+        // Every spawn is scaled by the same factor, so Tellerium spawns (f[19]=100) keep twice the piles of Krandazite (50).
+        Assert.Equal(18, limits["16"]);
+        Assert.Equal(9, limits["27"]);
+
+        // Even after a very long time with nobody collecting, the field stays at its limits.
+        world.Tick(default);
+        world.ElapseWithoutTicking(int.MaxValue);
+        var minerals = world.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).ToArray();
+        Assert.True(minerals.Sum(p => (long)p.Quantity * cargo.UnitWeight(p.ItemId)) <= weightAtLimits);
+        foreach (var spawn in field.Spawns)
+            Assert.Equal(limits[spawn.Id], minerals.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void NoSectorCap_KeepsEachSpawnsOwnLimit()
+    {
+        var world = new WorldSimulation(TestWorld.ExternalCatalog(), LoadStation().CreateCargoCatalog(TestCargo.Capacity), minerals: LoadMinerals());
+        var uncapped = new WorldSimulation(new GameCatalog(world.Catalog.Ship, world.Catalog.Weapon, world.Catalog.Sector with { MineralHoldsInSpace = 0 }),
+            LoadStation().CreateCargoCatalog(TestCargo.Capacity), minerals: LoadMinerals());
+        Assert.All(LoadMinerals().Spawns, s => Assert.Equal(s.MaxPiles, uncapped.MineralPileLimits[s.Id]));
+        Assert.True(world.MineralPileLimits.Values.Sum() < uncapped.MineralPileLimits.Values.Sum());
     }
 
     [Fact]

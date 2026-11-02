@@ -1,5 +1,10 @@
 # Changelog
 
+## Mineral field capped at about five full holds — November 2, 2026
+
+-   Steve's rule (November 2, 2026): minerals keep spawning for as long as the server runs, but max out at about enough for five ships to fill their cargo. The sector sets `mineralHoldsInSpace: 5` (NEW), and every spawn's pile limit is scaled by the same factor, so the original mix stays as it was. The original f[19] limits stayed far above that: 1,000 piles, about 28 holds.
+-   The shipped field now holds at most 18 piles per Tellerium spawn, 9 per Krandazite spawn and 18 per Iron Ore spawn: 108 Tellerium, 18 Krandazite and 54 Iron Ore, about 5.04 holds of the starter ship's 2,500,000 weight. A fresh sector starts at those limits, and each spawn refills to its limit in real time (docked, paused or closed). The raw f[19] values stay in the derived data.
+
 ## Weapon and ammo value audit — November 2, 2026
 
 -   Queue G5 remainder: a [value audit](docs/original-research/G5_WEAPON_VALUE_AUDIT.md) of the original weapon, ammo and child-chain records, with the exact row, field and raw value for each open question. The MIRV/Wake Caster "offset" turns out to be one of six child-entry fields (sideways and forward offsets, height, heading change and a link mode, per the upstream parser's names); all six are now kept. Seven more raw projectile fields are exposed (ammo per shot, ammo capacity, bounce count, proximity radius, inactive time, damage mode, point-blank). The meanings of inheritedSpeed -550 and aliveTime -65, all units, trigger/expiry behavior and collision shape remain open, and the pinned ammo weights (all 0) disagree with the 2003 news notes. No firing behavior. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g5.md). Counts unchanged.

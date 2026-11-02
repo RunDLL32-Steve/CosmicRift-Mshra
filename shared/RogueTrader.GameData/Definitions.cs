@@ -73,6 +73,13 @@ public sealed record SectorDefinition
     /// 0 (the default) means targets never respawn. NEW/provisional practice-range rule.
     /// </summary>
     public float TargetRespawnSeconds { get; init; }
+    /// <summary>
+    /// Most minerals the sector holds in space at once, in full holds of the ship (Steve, November 2, 2026: enough for about
+    /// five ships to fill their cargo). Every spawn's pile limit is scaled by the same factor so the field's total weight at its
+    /// limits is about this many holds; a limit never rises above the spawn's own and never falls below one pile. 0 (the
+    /// default) leaves the spawns' own limits. NEW/provisional.
+    /// </summary>
+    public float MineralHoldsInSpace { get; init; }
 }
 
 public sealed record SpawnDefinition

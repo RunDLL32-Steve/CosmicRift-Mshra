@@ -108,23 +108,31 @@ public sealed partial class WorldSimulation
     /// <summary>Mineral spawn areas of this world (empty when no mineral field was supplied).</summary>
     public IReadOnlyList<MineralSpawnDefinition> MineralSpawns => _mineralSpawns.Select(s => s.Definition).ToArray();
 
+    /// <summary>Piles each spawn may have in space at once, after the sector's cap (<see cref="SectorDefinition.MineralHoldsInSpace"/>).</summary>
+    public IReadOnlyDictionary<string, int> MineralPileLimits => _mineralSpawns.ToDictionary(s => s.Definition.Id, s => s.Limit, StringComparer.Ordinal);
+
     internal ulong MineralRandomState => _mineralRandom;
     internal IEnumerable<(long NextAttemptTick, long Placed)> MineralSpawnTimers => _mineralSpawns.Select(s => (s.NextAttemptTick, s.Placed));
 
-    private sealed class MineralSpawnState(MineralSpawnDefinition definition)
+    private sealed class MineralSpawnState(MineralSpawnDefinition definition, int limit)
     {
         public MineralSpawnDefinition Definition { get; } = definition;
+        public int Limit { get; } = limit;
         public long NextAttemptTick { get; set; }
         public long Placed { get; set; }
     }
 
-    private static MineralSpawnState[] CreateMineralSpawns(MineralFieldCatalog? minerals, CargoCatalog cargo)
+    private static MineralSpawnState[] CreateMineralSpawns(MineralFieldCatalog? minerals, CargoCatalog cargo, double weightBudget)
     {
         if (minerals is null) return [];
         foreach (var spawn in minerals.Spawns)
             if (!cargo.IsKnown(spawn.ItemId))
                 throw new ArgumentException($"Mineral spawn '{spawn.Id}' names unknown cargo item '{spawn.ItemId}'.", nameof(minerals));
-        return minerals.Spawns.Select(s => new MineralSpawnState(s)).ToArray();
+        // The sector cap scales every spawn's limit by one factor, so the mix of minerals stays as the originals have it.
+        var fullWeight = minerals.Spawns.Sum(s => (double)s.MaxPiles * s.Quantity * cargo.UnitWeight(s.ItemId));
+        var factor = weightBudget > 0 && fullWeight > weightBudget ? weightBudget / fullWeight : 1;
+        return minerals.Spawns.Select(s => new MineralSpawnState(s,
+            Math.Clamp((int)Math.Round(s.MaxPiles * factor, MidpointRounding.AwayFromZero), 1, s.MaxPiles))).ToArray();
     }
 
     private void RecordPickup(CollectibleState pile, int accepted)
@@ -134,7 +142,7 @@ public sealed partial class WorldSimulation
 
     /// <summary>
     /// Runs every spawn whose attempt is due. A due attempt picks a point in the spawn's area and places a pile there unless the
-    /// spawn already has <see cref="MineralSpawnDefinition.MaxPiles"/> piles in space, the point lies inside an asteroid, or the
+    /// spawn already has its pile limit in space (<see cref="MineralPileLimits"/>), the point lies inside an asteroid, or the
     /// player is within the clear radius. Success waits <see cref="MineralSpawnDefinition.SucceedTicks"/>, failure
     /// <see cref="MineralSpawnDefinition.AttemptTicks"/>.
     /// </summary>
@@ -161,7 +169,7 @@ public sealed partial class WorldSimulation
             if (next is null) break;
             var at = Due(next);
             var prefix = $"{MineralPilePrefix}{next.Definition.Id}:";
-            if (next.NextAttemptTick != 0 && _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal)) >= next.Definition.MaxPiles)
+            if (next.NextAttemptTick != 0 && _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal)) >= next.Limit)
             {
                 // Full, and nothing removes piles while the world is not ticking: every attempt until the end fails without
                 // touching the random state, so jump to the first one after it.
@@ -187,7 +195,7 @@ public sealed partial class WorldSimulation
             // A spawn that has never attempted (timer still 0) stocks its starting piles; later attempts place one.
             var wanted = spawn.NextAttemptTick == 0 ? Math.Max(1, definition.StartingPiles) : 1;
             var placed = 0;
-            while (placed < wanted && alive + placed < definition.MaxPiles && TryPlaceMineral(spawn, prefix)) placed++;
+            while (placed < wanted && alive + placed < spawn.Limit && TryPlaceMineral(spawn, prefix)) placed++;
             spawn.NextAttemptTick = checked(now + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
         }
     }
