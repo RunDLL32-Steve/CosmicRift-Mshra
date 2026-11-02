@@ -145,14 +145,17 @@ public sealed partial class WorldSimulation
     }
 
     /// <summary>
-    /// Counts time that passes while the world is not ticking (the player is docked, paused or in the inspector) toward a
-    /// pending target-group respawn, so the respawn delay is real elapsed time (owner rule, November 1, 2026). Nothing else
-    /// moves; the group respawns at once if the delay has run out.
+    /// Counts time that passes while the world is not ticking (the player is docked, paused or in the inspector, or the game
+    /// was closed) toward a pending target-group respawn and toward the mineral spawn timers, so both run on real elapsed time
+    /// (owner rules, November 1 and 2, 2026). Mineral spawns place the piles that fall due in that time; nothing else moves
+    /// and <see cref="TickNumber"/> does not change. The group respawns at once if its delay has run out.
     /// </summary>
     public void ElapseWithoutTicking(int ticks)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(ticks);
-        if (ticks == 0 || TargetRespawnTick is not { } respawnAt) return;
+        if (ticks == 0) return;
+        ElapseMineralSpawns(ticks);
+        if (TargetRespawnTick is not { } respawnAt) return;
         TargetRespawnTick = respawnAt - ticks;
         if (TargetRespawnTick <= TickNumber) RespawnTargets();
     }

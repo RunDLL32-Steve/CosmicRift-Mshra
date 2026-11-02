@@ -1,5 +1,14 @@
 # Changelog
 
+## The world keeps its state: no more credit farms from relaunch or reset — November 2, 2026
+
+-   Owner rule (Steve, November 2, 2026): the game will be multiplayer, so the world keeps its state for as long as the server runs. Relaunching the client, logging out or resetting the sector no longer gives back the targets, the cargo piles (about 2,700 credits of wreckage) or the mineral field. A collected pile stays gone, a destroyed target group comes back only 1 minute (real time) after the last target fell, and mineral spawns carry on with their own timers and random state instead of restocking.
+-   In the local build the client hosts the world, so the save folder stands in for the running server. The sector (`WorldSimulation.CaptureSector`/`RestoreSector`) is written to `world/<sector>.sector.json` next to the profile, under the same single-owner lock, with an atomic write, one backup generation and quarantine for unreadable files (`SectorStateStore`). It is saved before any pickup or kill reward is granted to the profile, and rewards still owed are kept in that file, so a crash between the two saves can neither refill the sector nor lose the reward. Sector reset now only puts your ship back at the spawn.
+-   Mineral respawns keep running in real time while you are docked, paused or in the inspector, and while the game is closed (Steve, November 2, 2026). The piles that fall due appear exactly as they would have in flight, and each spawn still stops at its pile limit.
+-   Sector saves are coalesced to at most one every half second (each one flushes about 90 KB, median ~5 ms in the cloud container), and a reward is granted once the save covering it is done.
+-   Players keep their items: wallet, hold, upgrades and ship were already saved in the profile; now cargo and kill rewards that were not saved yet also survive a quit or crash and are granted once on the next launch.
+-   NEW and still open: a player who edits or deletes files in their own save folder, or moves the system clock forward, can still cheat the local build. That ends when a dedicated server owns this state.
+
 ## Old saves over the new hold cap can refine again — November 2, 2026
 
 -   A save made under the old 4,000,000 hold cap can carry more than the Asp's new 2,500,000, and until now it could not refine at all: refining adds the refined good, so the cargo check ran and refused the whole hold. A change to the hold is now allowed when the result is within the cap or no heavier than the hold already is (`CargoCatalog.AllowsChange`, used by `CatalogCargoPolicy`). Every original refinery recipe makes the hold lighter (Tellerium 50,000 to 25,000, Krandazite 100,000 to 50,000, Iron Ore 100,000 to Alloy 75,000), so an over-cap save can refine straight away; it still cannot pick up or buy anything until it is back under the cap. No profile is rewritten and the schema is unchanged. The no-heavier rule is NEW.
