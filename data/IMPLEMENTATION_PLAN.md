@@ -22,6 +22,6 @@ Evidence: [package audit plan](../docs/architecture/ROGUE_PACKAGE_AUDIT_PLAN.md)
 -   [ ] **Investigating — RT-F386 and broader economy:** item66 eligibility and original shop/transaction behavior remain open. The narrower compatibility sale, proximity, null-script and purchase safeguards RT-F388/F389/F390/F396 already have historical acceptance; do not repeat them as unfinished fixes.
 -   [ ] **Not started — RT-F068/M2 persistence:** demonstrate durable progression; the current standalone native host does not save it.
 
-Testbed loop data: [derived Trading Outpost and refinery](stations/IMPLEMENTATION_PLAN.md), the [kill reward](rewards/IMPLEMENTATION_PLAN.md) (raw rogue.cfg value, NEW per-kill reading) and the [mineral field](minerals/IMPLEMENTATION_PLAN.md) (original LIO mineral spawns, NEW readings).
+Testbed loop data: [derived Trading Outpost and refinery](stations/IMPLEMENTATION_PLAN.md), the [kill reward](rewards/IMPLEMENTATION_PLAN.md) (raw rogue.cfg value, NEW per-kill reading) and the [mineral field](minerals/IMPLEMENTATION_PLAN.md) (original LIO mineral spawns, NEW readings). NEW [bounty and reputation rules](conduct/IMPLEMENTATION_PLAN.md) (queue C9, no original values).
 
 Use the specific [canonical domain plans](original/IMPLEMENTATION_PLAN.md). Keep fixture JSON until a validated original route replaces the relevant engineering scope; never overwrite canonical files or balance the originals to fit prototype equations. Completed tasks leave active queues but remain in master audit, completion history and [CHANGELOG.md](../CHANGELOG.md).

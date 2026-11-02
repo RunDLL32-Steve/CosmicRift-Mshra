@@ -137,7 +137,8 @@ public sealed class StationDefinition
         return definition;
     }
 
-    public string ToJson() => JsonSerializer.Serialize(this, Json) + "\n";
+    /// <summary>LF line endings on every OS, so the derived file and its oracle test match on Windows too (review R3-2).</summary>
+    public string ToJson() => JsonSerializer.Serialize(this, Json).ReplaceLineEndings("\n") + "\n";
 
     private void Validate()
     {

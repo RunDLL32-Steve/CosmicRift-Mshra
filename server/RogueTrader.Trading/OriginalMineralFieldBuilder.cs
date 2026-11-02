@@ -19,7 +19,8 @@ public sealed record SkippedMineralSpawn(int LioRow, string Name, string Reason)
 public sealed record MineralFieldDocument(string Id, string EvidenceClassification, string Source, IReadOnlyList<string> NewRules,
     ulong Seed, IReadOnlyList<DerivedMineralSpawn> Spawns, IReadOnlyList<SkippedMineralSpawn> Skipped)
 {
-    public string ToJson() => JsonSerializer.Serialize(this, StationDefinition.Json) + "\n";
+    /// <summary>LF line endings on every OS, so the derived file and its oracle test match on Windows too (review R3-2).</summary>
+    public string ToJson() => JsonSerializer.Serialize(this, StationDefinition.Json).ReplaceLineEndings("\n") + "\n";
 }
 
 /// <summary>

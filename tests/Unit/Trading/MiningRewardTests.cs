@@ -317,7 +317,7 @@ public sealed class MiningRewardTests
         Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(refinery.Recipes[2].Id, 10, refinery.X, refinery.Y)).Status);
 
         var reopened = await OpenAsync(repo);
-        Assert.Equal(4, PlayerProfile.CurrentSchemaVersion);
+        Assert.True(PlayerProfile.CurrentSchemaVersion >= 4);
         Assert.Equal(10, reopened.Profile!.Inventory["2020"]);
         Assert.Contains(reopened.Profile.AppliedTransactions, t => t.Kind == TransactionKind.Refine);
         var bytes = ProfileSerializer.Serialize(reopened.Profile);

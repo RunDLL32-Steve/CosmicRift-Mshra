@@ -4,7 +4,12 @@
 
 -   Mineral piles now hold 1 unit each, and each spawn area keeps up to 100 piles (50 for Krandazite). The LIO fields are read the other way round from before: f[18]=1 is the pile size and f[19] the most piles at a time. A fresh sector starts each spawn full, as Steve asked. Before this, a single 100-unit Tellerium pile weighed more than a whole hold.
 -   The hold's weight cap belongs to the ship now (`ShipDefinition.Cargo.Capacity`), not the station. The starter ship takes the original Asp's VEH f[48] StopWeight of 2,500,000, which is 50 Tellerium at its original ITM weight, replacing the made-up 4,000,000. Reading StopWeight as a hard cap is NEW; the half-capacity performance penalty stays open in RT-F030.
+-   The derived station and mineral JSON are now written with LF line endings on every OS, so their pinned-data oracle tests pass under `scripts/verify.ps1` on Windows (the inherited CRLF mismatch from review R3-2).
 -   Fixes a flaky station smoke test. Mineral placement was seeded from `string.GetHashCode` of a random world id, which .NET randomizes per process, so a Tellerium pile sometimes landed on the launch lane and filled the hold before the wreckage step. Placement now takes its salt from the world id's GUID bytes (`MineralFieldCatalog.ForWorld`), so a logged world id replays its field. Smoke runs number their worlds, so every acceptance run lays the field out the same way. Normal play still gets a new random field for every world.
+
+## Bounty and reputation rules — November 2, 2026
+
+-   Queue C9: a NEW data-driven rule file (`data/conduct/rules.json`) turns named conduct events into bounty and per-category reputation changes, and the transaction core records them once per transaction id, with clamping and no decay. Profile schema 5 saves bounty and standing; older saves open with no bounty and neutral standing. Nothing in the game raises these events yet. [Persistence entry](server/RogueTrader.Persistence/plan.d/c9.md), [data](data/conduct/IMPLEMENTATION_PLAN.md). RT-F051 stays open; counts unchanged.
 
 ## Server input validation — November 2, 2026
 
