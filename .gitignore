@@ -1,15 +1,55 @@
+# Local toolchain, references and generated reports
+# (test results, benchmark and validation reports all go under artifacts/)
 .tools/
 artifacts/
+
+# .NET build output and test/benchmark results
 **/bin/
 **/obj/
-**/.godot/
-client/GameData/
-*.user
-*.suo
-.vs/
-.DS_Store
+[Tt]est[Rr]esults/
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+BenchmarkDotNet.Artifacts/
+*.nupkg
+*.snupkg
 
+# Godot (keep *.import, *.uid, project.godot and export_presets.cfg committed)
+**/.godot/
+.import/
+.mono/
+mono_crash.*
+export_credentials.cfg
+
+# Original game content copied locally (never committed)
+client/GameData/
 client/OriginalContent/
 
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+*.swp
+*~
+
+# OS files
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Python and Node
 **/__pycache__/
+*.pyc
 node_modules/

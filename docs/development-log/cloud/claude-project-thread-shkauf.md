@@ -28,3 +28,7 @@ PR 98 (C4 and C6) was merged by Steve as `adb1275`; the branch was restarted fro
 Verified in the cloud container (SDK 8.0.133 substitution as before): solution build 0 warnings; `dotnet test tests/Unit` 925 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; FORMAT_CLEAN; TRACKERS_CONSISTENT. Not verified: `verify.ps1` wrapper, pinned SDK, Godot smoke (no client change).
 
 Resume point: independent review of the C9 head.
+
+## C9 conflict merge — November 2, 2026
+
+-   Merged `origin/main` (#99 gitignore, #101 C8) at Steve's request. Conflicts were docs only: CHANGELOG (both entries kept), TASK_QUEUE (C8 moved to completed history as merged in PR 101), PROGRESS and the Server plan (C8 marked merged). No code conflict. Re-run after the merge: solution build 0 warnings; `dotnet test tests/Unit` 949 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; FORMAT_CLEAN; TRACKERS_CONSISTENT.
