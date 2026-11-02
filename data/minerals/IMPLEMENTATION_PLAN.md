@@ -21,8 +21,9 @@ The pinned NWS trade-system text (rows 77–84) says minerals "appear randomly (
 
 -   Position f[4]/f[5] read as area centre and f[6]/f[7] as area size, drawn into the 1,400-unit practice sector around an assumed 32,000-unit map centre (RT-F021 map size unverified).
 -   f[11]/f[12] read as failed-attempt and after-success delays in hundredths of a second (3000 = 30 s).
--   f[14] read as the player clear radius; f[18] as most piles alive per spawn; f[19] as units per pile.
--   Every spawn attempts on a sector's first tick; random placement avoids the NEW asteroids; up to 8 tries per attempt; the client reseeds placement per sector instance.
+-   f[14] read as the player clear radius; f[18] (1) as units per pile; f[19] (100 or 50) as most piles alive per spawn. The earlier opposite reading gave 100-unit piles heavier than a whole hold; Steve chose small piles on 2026-11-02.
+-   A fresh sector stocks every spawn with its full f[19] piles on the first tick (Steve, 2026-11-02); afterwards one pile per f[12] delay. Random placement avoids the NEW asteroids, up to 8 tries per pile. The client reseeds placement per world from the world id's GUID bytes; smoke runs use numbered world ids, so their field is the same every run.
+-   The hold cap is per ship: the starter takes the Asp VEH f[48] StopWeight (2,500,000 raw = 50 Tellerium at ITM weight 50,000). The NormalWeight encumbrance penalty (RT-F030) is not applied.
 -   Pickup radius is ItemPickupDistance at the same scale (3.5 units plus the ship radius).
 -   Row 54 (f[18]/f[19] = -1/-1) is not spawned; f[13], f[15..17], f[21], f[22] and the 350/15 tail are not applied.
 

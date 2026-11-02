@@ -42,6 +42,8 @@ public sealed class GameCatalog
         ArgumentNullException.ThrowIfNull(Ship.Physics);
         ArgumentNullException.ThrowIfNull(Ship.Defense);
         ArgumentNullException.ThrowIfNull(Ship.Reactor);
+        ArgumentNullException.ThrowIfNull(Ship.Cargo);
+        if (Ship.Cargo.Capacity <= 0) throw new ArgumentException("Ship cargo capacity must be positive.");
         ArgumentNullException.ThrowIfNull(Sector.PlayerSpawn);
         ArgumentNullException.ThrowIfNull(Sector.Targets);
         ArgumentNullException.ThrowIfNull(Sector.Asteroids);

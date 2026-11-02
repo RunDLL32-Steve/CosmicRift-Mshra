@@ -19,7 +19,7 @@ public sealed class StationProfileSessionTests
 
     private static async Task<StationProfileSession> OpenAsync(IProfileRepository? repo = null, StationDefinition? station = null)
     {
-        var session = new StationProfileSession(repo ?? new InMemoryProfileRepository(), station ?? LoadStation(), "starter_interceptor");
+        var session = new StationProfileSession(repo ?? new InMemoryProfileRepository(), station ?? LoadStation(), "starter_interceptor", TestCargo.Capacity);
         Assert.True((await session.OpenOrCreateAsync(Profile)).Succeeded);
         return session;
     }
@@ -37,7 +37,7 @@ public sealed class StationProfileSessionTests
 
         Assert.Equal("ORIGINAL+NEW", station.EvidenceClassification);
         Assert.NotEmpty(station.NewValues);
-        var cargo = station.CreateCargoCatalog();
+        var cargo = station.CreateCargoCatalog(TestCargo.Capacity);
         Assert.All(station.Collectibles, pile => Assert.True(cargo.IsKnown(pile.ItemId)));
         Assert.All(station.Trades, t => Assert.Equal(t.CreditsPerUnit, station.SellPrice(t.InputItemId)));
         var sector = TestWorld.ExternalCatalog().Sector;
@@ -56,14 +56,14 @@ public sealed class StationProfileSessionTests
     {
         var repo = new InMemoryProfileRepository();
         var station = LoadStation();
-        var session = new StationProfileSession(repo, station, "starter_interceptor");
+        var session = new StationProfileSession(repo, station, "starter_interceptor", TestCargo.Capacity);
 
         var first = await session.OpenOrCreateAsync(Profile);
         Assert.True(first.Succeeded && first.Created);
         Assert.Equal(station.StartingWallet, session.Profile!.Wallet);
         Assert.Null(session.Profile.Ship);
 
-        var again = await new StationProfileSession(repo, station, "starter_interceptor").OpenOrCreateAsync(Profile);
+        var again = await new StationProfileSession(repo, station, "starter_interceptor", TestCargo.Capacity).OpenOrCreateAsync(Profile);
         Assert.True(again.Succeeded);
         Assert.False(again.Created);
     }
@@ -154,22 +154,22 @@ public sealed class StationProfileSessionTests
         var station = LoadStation();
         var session = await OpenAsync(station: station);
         var pile = station.Collectibles[0];
-        var pickup = new CargoPickup(0, pile.Id, pile.ItemId, pile.Quantity, 5);
+        var pickup = new CargoPickup(0, pile.Id, pile.ItemId, 5, 5); // two grants of a full 9-unit Wreckage pile would exceed the Asp hold
 
         var granted = await session.GrantPickupAsync("sector-a", pickup);
         Assert.Equal(TransactionStatus.Applied, granted.Status);
-        Assert.Equal(pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
+        Assert.Equal(pickup.Quantity, session.Profile!.Inventory[pile.ItemId]);
         Assert.Equal("pickup-sector-a-0", granted.TransactionId);
         Assert.Contains(session.Profile.Ledger, e => e.TransactionId == granted.TransactionId);
         var replay = await session.GrantPickupAsync("sector-a", pickup);
         Assert.True(replay.IsReplay);
-        Assert.Equal(pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
+        Assert.Equal(pickup.Quantity, session.Profile!.Inventory[pile.ItemId]);
         // The same sequence in another sector instance is a different pickup.
         Assert.False((await session.GrantPickupAsync("sector-b", pickup)).IsReplay);
-        Assert.Equal(2 * pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
+        Assert.Equal(2 * pickup.Quantity, session.Profile!.Inventory[pile.ItemId]);
 
         var heavy = station.Goods.OrderByDescending(g => g.UnitWeight).First();
-        var overflow = await session.GrantPickupAsync("sector-a", new CargoPickup(1, "x", heavy.Id, (int)(station.CargoCapacity / heavy.UnitWeight) + 1, 9));
+        var overflow = await session.GrantPickupAsync("sector-a", new CargoPickup(1, "x", heavy.Id, (int)(TestCargo.Capacity / heavy.UnitWeight) + 1, 9));
         Assert.Equal(RejectionReason.CargoCapacityExceeded, overflow.Reason);
     }
 
@@ -250,7 +250,7 @@ public sealed class StationProfileSessionTests
         var station = LoadStation();
         File.WriteAllText(dir.File(Profile + ".profile.json"), "{ not json");
         using var repo = FileProfileRepository.Open(dir.Path, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
-        var session = new StationProfileSession(repo, station, null);
+        var session = new StationProfileSession(repo, station, null, TestCargo.Capacity);
 
         var outcome = await session.OpenOrCreateAsync(Profile);
 
@@ -279,7 +279,7 @@ public sealed class StationProfileSessionTests
     public void ApplyPlayerDefinition_ChangesStatsInPlace_WithoutRespawningTheWorld()
     {
         var station = LoadStation();
-        var world = new WorldSimulation(TestWorld.ExternalCatalog(), station.CreateCargoCatalog());
+        var world = new WorldSimulation(TestWorld.ExternalCatalog(), station.CreateCargoCatalog(TestCargo.Capacity));
         world.RestorePlayer(new System.Numerics.Vector2(30, -40), 0.25f, 10);
         TestWorld.Tick(world, 5, new ShipInput(1, 0, false));
         var (position, velocity, piles) = (world.Player.Position, world.Player.Velocity, world.Collectibles.Count);

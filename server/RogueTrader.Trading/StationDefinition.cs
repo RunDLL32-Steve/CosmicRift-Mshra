@@ -81,7 +81,6 @@ public sealed class StationDefinition
     public float Y { get; init; }
     public float DockRadius { get; init; }
     public long StartingWallet { get; init; }
-    public long CargoCapacity { get; init; }
     public IReadOnlyList<StationGood> Goods { get; init; } = [];
     public IReadOnlyList<StationTrade> Trades { get; init; } = [];
     public IReadOnlyList<StationRepair> Repairs { get; init; } = [];
@@ -95,9 +94,12 @@ public sealed class StationDefinition
     /// <summary>The station and, when present, the refinery.</summary>
     [JsonIgnore] public IReadOnlyList<StationSite> Sites => Refinery is { } refinery ? [Site, refinery.Site] : [Site];
 
-    /// <summary>Cargo rules for the world and for the transaction core; both must use the same catalog.</summary>
-    public CargoCatalog CreateCargoCatalog() =>
-        new(CargoCapacity, Goods.Select(g => new CargoItemDefinition(g.Id, g.UnitWeight)), Collectibles);
+    /// <summary>
+    /// Cargo rules for the world and for the transaction core; both must use the same catalog. The weight cap belongs to the ship
+    /// (<c>ShipDefinition.Cargo</c>), the item weights to the station's goods.
+    /// </summary>
+    public CargoCatalog CreateCargoCatalog(long cargoCapacity) =>
+        new(cargoCapacity, Goods.Select(g => new CargoItemDefinition(g.Id, g.UnitWeight)), Collectibles);
 
     /// <summary>Goods at their own prices; a Trading Outpost recipe is a sell price for its input item.</summary>
     public StationPriceTable CreatePriceTable() =>
@@ -135,7 +137,8 @@ public sealed class StationDefinition
         return definition;
     }
 
-    public string ToJson() => JsonSerializer.Serialize(this, Json) + "\n";
+    /// <summary>LF line endings on every OS, so the derived file and its oracle test match on Windows too (review R3-2).</summary>
+    public string ToJson() => JsonSerializer.Serialize(this, Json).ReplaceLineEndings("\n") + "\n";
 
     private void Validate()
     {
@@ -166,7 +169,7 @@ public sealed class StationDefinition
             if (upgrade.Effect is null) throw new InvalidDataException($"Upgrade '{upgrade.Id}' has no effect entry.");
         // Constructing the site, catalog and table runs their own checks (radius, weights, duplicates, negative prices).
         _ = Site;
-        _ = CreateCargoCatalog();
+        _ = CreateCargoCatalog(long.MaxValue);
         _ = CreatePriceTable();
     }
 }

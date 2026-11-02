@@ -26,20 +26,16 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 ## B. Milestone 2 loop
 
-| ID  | Task                                                       | Where                    | Run   | Depends on    | Status snapshot                                                                        | Brief                  |
-| --- | ---------------------------------------------------------- | ------------------------ | ----- | ------------- | -------------------------------------------------------------------------------------- | ---------------------- |
-| M7  | Initial kill/mining rewards through idempotent GrantReward | Simulation + Persistence | Cloud | M1, M6 MERGED | IN REVIEW (mining slice on `claude/project-thread-yaij0l`; kill slice merged in PR 94) | [M7](docs/tasks/m7.md) |
+No active rows: M1 to M9 are merged (see the history below).
 
 ## C. Additional groundwork
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-| ID  | Task                                                                                         | Where                    | Run   | Depends on    | Status snapshot                                              | Brief                    |
-| --- | -------------------------------------------------------------------------------------------- | ------------------------ | ----- | ------------- | ------------------------------------------------------------ | ------------------------ |
-| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData             | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md)   |
-| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests           | Cloud | C5, C6 MERGED | OPEN                                                         | [C7](docs/tasks/c7.md)   |
-| C9  | Data-driven bounty/reputation rules persisted through transaction core                       | Server                   | Cloud | M1 MERGED     | IN REVIEW (`claude/project-thread-shkauf`)                   | [C9](docs/tasks/c9.md)   |
-| C10 | Recoverable sector transition and transfer model                                             | Persistence + Simulation | Cloud | M1 MERGED     | IN REVIEW (`claude/project-thread-ajkn1w`)                   | [C10](docs/tasks/c10.md) |
+| ID  | Task                                                                                         | Where          | Run   | Depends on    | Status snapshot                                              | Brief                  |
+| --- | -------------------------------------------------------------------------------------------- | -------------- | ----- | ------------- | ------------------------------------------------------------ | ---------------------- |
+| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md) |
+| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests | Cloud | C5, C6 MERGED | OPEN                                                         | [C7](docs/tasks/c7.md) |
 
 ## Completed queue history (not active work)
 
@@ -59,6 +55,9 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 -   C3 — merged 952d29d: same-runtime replay digests; does not establish cross-runtime determinism.
 -   C4 and C6 — merged ([PR 98](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/98)), November 2, 2026: Stopwatch tick benchmark in `tests/LoadTests`, and the headless `AuthoritativeSession` with a bounded input queue in `RogueTrader.Server` (no sockets); no multiplayer capacity or production authority claim.
 -   C8 — merged ([PR 101](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/101)), November 2, 2026: NEW range, snapshot-acknowledgement and rate checks on submitted input plus a report-only motion audit in `RogueTrader.Server`; no transport.
+-   M7 — merged in two slices: kills with M9 ([PR 94](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/94)), and mining, piles, refinery and the per-ship hold weight cap ([PR 102](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/102)), November 2, 2026; RT-F030/F042/F044 remain open.
+-   C9 — merged ([PR 100](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/100)), November 2, 2026: NEW data-driven bounty/reputation rules, profile schema 5; nothing in the game raises conduct events yet, RT-F051 remains open.
+-   C10 — merged ([PR 103](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/103)), November 2, 2026: NEW recoverable sector transfer model in `RogueTrader.Persistence/Transfers`; not wired into the game (one sector).
 -   C5 — merged 403499f: NEW provisional wire format v1, round-trip/truncation/fuzz checks, no transport; original RT features untouched.
 
 ## Historical claim notes (not live claims)

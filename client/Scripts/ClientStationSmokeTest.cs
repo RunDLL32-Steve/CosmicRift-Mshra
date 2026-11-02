@@ -86,7 +86,9 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var pickupsBefore = readWorld().Pickups.Count;
             Teleport(mineral.Position);
             for (var frame = 0; frame < 30 && readWorld().Pickups.Count == pickupsBefore; frame++) await nextPhysicsFrame();
-            var mined = readWorld().Pickups.Skip(pickupsBefore).Where(p => p.PileId == mineral.Id).Sum(p => p.Quantity);
+            // Piles are 1 unit and lie close together, so the ship may sweep up several Tellerium piles at once; count them all.
+            var mined = readWorld().Pickups.Skip(pickupsBefore).Where(p => p.IsMineral && p.ItemId == "2003").Sum(p => p.Quantity);
+            Require(readWorld().Pickups.Skip(pickupsBefore).Any(p => p.PileId == mineral.Id), "The ship must have collected the Tellerium pile it was sent to.");
             var savedOre = session.Profile!.Inventory.GetValueOrDefault("2003");
             Require(mined > 0 && readWorld().Cargo.Quantity("2003") == savedOre + mined && client.PendingPickups > 0,
                 $"The mined Tellerium must be in the hold but not yet saved (mined {mined}, pending {client.PendingPickups}).");
