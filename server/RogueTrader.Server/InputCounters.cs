@@ -4,9 +4,12 @@ namespace RogueTrader.Server;
 public sealed class InputCounters
 {
     private readonly long[] _verdicts = new long[Enum.GetValues<InputVerdict>().Length];
+    private readonly long[] _motion = new long[Enum.GetValues<MotionViolationKind>().Length];
 
     /// <summary>Submissions that received <paramref name="verdict"/>.</summary>
     public long this[InputVerdict verdict] => _verdicts[(int)verdict];
+    /// <summary>Motion audit findings of <paramref name="kind"/> (queue C8).</summary>
+    public long this[MotionViolationKind kind] => _motion[(int)kind];
     /// <summary>Accepted inputs that ran as their tick's input.</summary>
     public long Applied { get; private set; }
     /// <summary>Accepted inputs dropped because a higher sequence named the same tick.</summary>
@@ -18,4 +21,5 @@ public sealed class InputCounters
     internal void CountApplied() => Applied++;
     internal void CountSuperseded(int count) => Superseded += count;
     internal void CountMissing() => MissingInputTicks++;
+    internal void Count(MotionViolationKind kind) => _motion[(int)kind]++;
 }
