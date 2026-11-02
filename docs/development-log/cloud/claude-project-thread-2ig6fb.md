@@ -4,7 +4,7 @@ Review status: ready-for-review
 
 Scope: the first playable progression loop. Queue M9 depends on M7 (kill/mining rewards through idempotent GrantReward), which was still OPEN, so this branch takes the M7 kill-reward slice and the M9 exit/relaunch acceptance together. See briefs [M7](../../tasks/m7.md) and [M9](../../tasks/m9.md), the [client entry](../../../client/UI/plan.d/m9.md), [reward data](../../../data/rewards/IMPLEMENTATION_PLAN.md) and the [integration plan](../../../tests/Integration/IMPLEMENTATION_PLAN.md).
 
-Status: PR 94 (rounds 1-2) merged November 1, 2026. Follow-up target respawn pushed as a new PR, awaiting review. Not merged by the author.
+Status: PR 94 and PR 95 (target respawn) merged November 1, 2026. Follow-up (respawn timer runs while docked or paused) pushed as a new PR, awaiting review. Not merged by the author.
 
 ## Round 1 — November 1, 2026
 
@@ -32,3 +32,7 @@ Steve chose: once the whole target group is destroyed, it respawns after one min
 Verified (same substitutions): `--no-incremental` build 0 warnings; `dotnet test tests/Unit` 874 passed, 0 failed, 5 existing skips; `tests/Integration` 6 passed; Godot import exit 0; `--smoke-test` exit 0 with the new "sector reset keeps the destroyed target down" step and all three PASS markers.
 
 Resume point: independent review of the follow-up head.
+
+## Follow-up 2: respawn timer runs while docked or paused — November 1, 2026
+
+Steve: the respawn timer should not pause while the player is docked or the game is paused (PR 95 counted simulation ticks only). `WorldSimulation.ElapseWithoutTicking(ticks)` shortens a pending respawn (respawning at once when it runs out) without moving anything else; `GameClient._PhysicsProcess` calls it with 1 for every 60 Hz physics frame in which the world does not tick (docked, paused, inspector). Unit tests cover partial and over-long idle time and the no-pending case.

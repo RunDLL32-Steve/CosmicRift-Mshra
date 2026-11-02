@@ -38,7 +38,7 @@ public sealed partial class WorldSimulation
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
-        IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null)
+        IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
@@ -62,12 +62,15 @@ public sealed partial class WorldSimulation
         foreach (var pile in _collectibles) _collectibleIds.Add(pile.Id);
         if (mining is not null) ValidateMining(mining, cargo);
         _miningEquipment = mining?.Equipment;
+        _mineralSpawns = CreateMineralSpawns(minerals, cargo);
+        _mineralRandom = minerals?.Seed ?? 0;
     }
 
     public void Tick(ShipInput input)
     {
         TickNumber++;
         if (TargetRespawnTick is { } respawnAt && TickNumber >= respawnAt) RespawnTargets();
+        StepMineralSpawns();
         if (!Player.IsDestroyed)
         {
             var previous = Player.Position;
@@ -142,6 +145,19 @@ public sealed partial class WorldSimulation
     }
 
     /// <summary>
+    /// Counts time that passes while the world is not ticking (the player is docked, paused or in the inspector) toward a
+    /// pending target-group respawn, so the respawn delay is real elapsed time (owner rule, November 1, 2026). Nothing else
+    /// moves; the group respawns at once if the delay has run out.
+    /// </summary>
+    public void ElapseWithoutTicking(int ticks)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(ticks);
+        if (ticks == 0 || TargetRespawnTick is not { } respawnAt) return;
+        TargetRespawnTick = respawnAt - ticks;
+        if (TargetRespawnTick <= TickNumber) RespawnTargets();
+    }
+
+    /// <summary>
     /// Carries the target group's state (hull, shield, destroyed state, wave and the time left on a pending respawn) over from
     /// another world of the same sector, so rebuilding the world, for example on a sector reset, cannot bring destroyed targets
     /// back early. Kill records are not copied; they belong to the world that produced them.
@@ -186,7 +202,11 @@ public sealed partial class WorldSimulation
         {
             var pile = _collectibles[index];
             if (CircleCollision.Sweep(previous, Player.Position, pile.Position, Player.Radius + pile.Radius, out _))
-                pile.Quantity -= Cargo.Add(pile.ItemId, pile.Quantity).Accepted;
+            {
+                var accepted = Cargo.Add(pile.ItemId, pile.Quantity).Accepted;
+                pile.Quantity -= accepted;
+                RecordPickup(pile, accepted);
+            }
             if (pile.Quantity == 0)
                 _collectibles.RemoveAt(index);
             else

@@ -151,15 +151,4 @@ public sealed class KillRewardTests
         Assert.NotEqual(longId, StationProfileSession.KillTransactionId(new string('s', 32), 1, new string('t', 200)));
         Assert.NotEqual(longId, StationProfileSession.KillTransactionId(new string('s', 32), 0, new string('u', 200)));
     }
-
-    [Fact]
-    public async Task UncommittedPickups_AreTheHoldUnitsTheProfileLacks()
-    {
-        var session = await OpenAsync(new InMemoryProfileRepository());
-        await session.CommitPickupsAsync(new Dictionary<string, int> { ["2008"] = 4 });
-
-        var gained = session.UncommittedPickups(new Dictionary<string, int> { ["2008"] = 6, ["2020"] = 2, ["2004"] = 0 });
-
-        Assert.Equal(new Dictionary<string, int> { ["2008"] = 2, ["2020"] = 2 }, gained);
-    }
 }

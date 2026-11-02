@@ -18,6 +18,19 @@ public sealed record StationGood(string Id, string Name, long UnitWeight, long? 
 /// </summary>
 public sealed record StationTrade(string Id, string Name, string InputItemId, string CreditItemId, string CreditName, long CreditsPerUnit, int RawField4);
 
+/// <summary>
+/// A public refinery recipe (RT-F044): <see cref="InputItemId"/> becomes <see cref="OutputItemId"/>. Name and both items are
+/// original (VEH id 400); converting one unit into one unit for free is a NEW/provisional reading (f+4 and quantities undecoded).
+/// </summary>
+public sealed record StationRefineRecipe(string Id, string Name, string InputItemId, string OutputItemId, int RawField4);
+
+/// <summary>A refinery the ship docks at separately from the station (original refineries are their own sites).</summary>
+public sealed record RefineryDefinition(string StationId, string Name, float X, float Y, float DockRadius)
+{
+    public IReadOnlyList<StationRefineRecipe> Recipes { get; init; } = [];
+    [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
+}
+
 /// <summary>A repair service. <see cref="HullPoints"/> is restored on purchase; refused at full hull.</summary>
 public sealed record StationRepair(string Id, string Name, long Price, float HullPoints, string? Source = null);
 
@@ -74,8 +87,13 @@ public sealed class StationDefinition
     public IReadOnlyList<StationRepair> Repairs { get; init; } = [];
     public IReadOnlyList<StationUpgrade> Upgrades { get; init; } = [];
     public IReadOnlyList<CollectibleSpawn> Collectibles { get; init; } = [];
+    /// <summary>Optional refinery (queue M7 mining slice); null when the data has none.</summary>
+    public RefineryDefinition? Refinery { get; init; }
 
     [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
+
+    /// <summary>The station and, when present, the refinery.</summary>
+    [JsonIgnore] public IReadOnlyList<StationSite> Sites => Refinery is { } refinery ? [Site, refinery.Site] : [Site];
 
     /// <summary>Cargo rules for the world and for the transaction core; both must use the same catalog.</summary>
     public CargoCatalog CreateCargoCatalog() =>
@@ -86,7 +104,8 @@ public sealed class StationDefinition
         new StationPriceTable(StationId, Goods.Select(g =>
                 (g.Id, g.Buy, Trades.FirstOrDefault(t => t.InputItemId == g.Id) is { } trade ? trade.CreditsPerUnit : g.Sell)))
             .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)))
-            .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)));
+            .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)))
+            .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
 
     public long? SellPrice(string itemId) =>
         Trades.FirstOrDefault(t => t.InputItemId == itemId)?.CreditsPerUnit ?? Goods.FirstOrDefault(g => g.Id == itemId)?.Sell;
@@ -95,6 +114,7 @@ public sealed class StationDefinition
         Goods.FirstOrDefault(g => g.Id == itemId)?.Name
         ?? Upgrades.FirstOrDefault(u => u.Id == itemId)?.Name
         ?? Repairs.FirstOrDefault(r => r.Id == itemId)?.Name
+        ?? Refinery?.Recipes.FirstOrDefault(r => r.Id == itemId)?.Name
         ?? itemId;
 
     internal static readonly JsonSerializerOptions Json = new()
@@ -131,6 +151,17 @@ public sealed class StationDefinition
             if (trade.CreditsPerUnit <= 0) throw new InvalidDataException($"Trade '{trade.Id}' must pay a positive amount.");
         }
         if (Trades.GroupBy(t => t.InputItemId).Any(g => g.Count() > 1)) throw new InvalidDataException("Two trades share one input item.");
+        if (Refinery is { } refinery)
+        {
+            if (refinery.StationId == StationId) throw new InvalidDataException("The refinery needs its own station id.");
+            foreach (var recipe in refinery.Recipes)
+            {
+                if (recipe is null) throw new InvalidDataException("Null refinery recipe.");
+                if (Goods.All(g => g.Id != recipe.InputItemId) || Goods.All(g => g.Id != recipe.OutputItemId) || recipe.InputItemId == recipe.OutputItemId)
+                    throw new InvalidDataException($"Refinery recipe '{recipe.Id}' must turn one station good into another.");
+            }
+            _ = refinery.Site;
+        }
         foreach (var upgrade in Upgrades)
             if (upgrade.Effect is null) throw new InvalidDataException($"Upgrade '{upgrade.Id}' has no effect entry.");
         // Constructing the site, catalog and table runs their own checks (radius, weights, duplicates, negative prices).

@@ -5,6 +5,14 @@
 -   Queue C6: a new `RogueTrader.Server` library runs the simulation headless in fixed 60 Hz ticks and takes client input only as queued intent for a named tick. Competing inputs for one tick resolve by highest sequence whatever the arrival order; late, stale, duplicate, too-far-ahead, over-capacity and malformed inputs are refused without changing anything. No sockets, snapshots or multiple clients yet; all queue rules are NEW. [Server entry](server/RogueTrader.Server/plan.d/c6.md).
 -   Queue C4: `tests/LoadTests` is a Stopwatch tick benchmark that reports the tick-time distribution with host, runtime, data hashes and revision, for the bare simulation and for the C6 session path. It reports only and asserts no threshold. [Load test entry](tests/LoadTests/plan.d/c4.md), [run](docs/development-log/2026-11-02-c4-c6.md). Counts unchanged.
 
+## Target respawn timer runs while docked or paused — November 1, 2026
+
+-   The one-minute target respawn countdown now keeps running while the player is docked, paused or in the inspector (`WorldSimulation.ElapseWithoutTicking`), as Steve asked. Nothing else in the world moves while it is not ticking.
+
+## Mining, refining and pickup rewards — November 1, 2026
+
+-   Queue M7 mining slice: the practice sector now holds the original mineral spawns (11 of the 12 `LIO/Rogue.lio` type 5 mineral rows: Tellerium, Krandazite, Iron Ore), which respawn on their own delays. Every pickup, mineral or not, is saved once through the idempotent GrantReward core with a stable per-sector-instance id, so a failed save or a reload no longer loses or duplicates cargo. A refinery (VEH id 400 recipes, LIO row 13 position) turns ore into refined goods the Trading Outpost buys; profile schema 4 adds the `Refine` kind. Every reading of the undecoded LIO fields, the map scale, one-for-one free refining and placement is NEW and listed in [data/minerals](data/minerals/IMPLEMENTATION_PLAN.md) and [data/stations](data/stations/IMPLEMENTATION_PLAN.md). RT-F042/F044 and master M2 boxes stay open; counts unchanged.
+
 ## Practice target respawn — November 1, 2026
 
 -   Once all three practice targets are destroyed, the group respawns after one minute (`targetRespawnSeconds` in the sector file, NEW) and each new wave pays its kill rewards once. A sector reset no longer brings destroyed targets back or re-arms their rewards; relaunching still starts a fresh group. The HUD counts down to the next group. [Client entry](client/UI/plan.d/m9.md), [reward data](data/rewards/IMPLEMENTATION_PLAN.md). Counts unchanged.

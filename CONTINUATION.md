@@ -25,6 +25,8 @@ Ignored local artifacts may be absent in another checkout. Historical test total
 
 M5 ([PR 92](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/92)) and M8 ([PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93)) merged: the Godot client now saves a local profile, shows credits/cargo/upgrades, docks at a derived Trading Outpost and restores the ship on relaunch. The M7 kill-reward slice and the M9 exit/relaunch acceptance suite are in review on `claude/project-thread-2ig6fb` ([branch log](docs/development-log/cloud/claude-project-thread-2ig6fb.md)). The statements above about the client not connecting trading/persistence predate these merges.
 
+Queue M7 mining slice in review on `claude/project-thread-yaij0l` ([branch log](docs/development-log/cloud/claude-project-thread-yaij0l.md)): original LIO mineral spawns in the practice sector, per-pickup idempotent grants and the VEH 400 refinery (profile schema 4).
+
 ## Server groundwork update — November 2, 2026
 
 Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) are in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.

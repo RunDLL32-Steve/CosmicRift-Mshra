@@ -106,6 +106,14 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.Repair, r.TransactionId, r.ProfileId, r.StationId, r.RepairId, null, 0, 0, null, shapeOk), ct);
     }
 
+    public Task<TransactionResult> RefineAsync(TransactionContext ctx, RefineRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.RecipeId) && r.Quantity > 0;
+        return ExecuteAsync(ctx, new Req(TransactionKind.Refine, r.TransactionId, r.ProfileId, r.StationId, r.RecipeId, null, r.Quantity, 0, null, shapeOk), ct);
+    }
+
     public Task<TransactionResult> GrantRewardAsync(TransactionContext ctx, GrantRewardRequest r, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -324,6 +332,23 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     repairId = q.ItemId;
                     currencyDelta = -price;
                     walletAfter = c.Wallet - price;
+                    break;
+                }
+                case TransactionKind.Refine:
+                {
+                    if (!_prices.TryGetRefineRecipe(q.Place!, q.ItemId!, out var input, out var output)
+                        || !IdOk(input) || !IdOk(output) || input == output) return RejectionReason.NotForSale;
+                    inventory.TryGetValue(input, out var held);
+                    if (held < q.Quantity) return RejectionReason.InsufficientInventory;
+                    if (held == q.Quantity) inventory.Remove(input);
+                    else inventory[input] = held - q.Quantity;
+                    inventory.TryGetValue(output, out var made);
+                    inventory[output] = checked(made + q.Quantity);
+                    deltas[input] = -q.Quantity;
+                    deltas[output] = q.Quantity;
+                    currencyDelta = 0;
+                    walletAfter = c.Wallet;
+                    increases = true;
                     break;
                 }
                 case TransactionKind.GrantReward:

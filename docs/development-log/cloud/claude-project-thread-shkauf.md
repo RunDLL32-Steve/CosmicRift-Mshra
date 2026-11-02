@@ -16,3 +16,7 @@ Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419;
 Not verified: the `verify.ps1` wrapper itself (Windows CI runs it), pinned SDK, Godot smoke (no client or shared physics change).
 
 Resume point: independent review of this head. C7 (prediction/reconciliation) depends on C6 and can start after merge.
+
+## Conflict merge — November 2, 2026
+
+-   Merged `origin/main` (#96 mining, #97 respawn timer) into the branch; the only conflicts were the CHANGELOG and CONTINUATION entries, both sides kept. No code conflict. Re-run after the merge: `dotnet test tests/Unit` 904 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; benchmark exit 0 with identical digests; FORMAT_CLEAN; TRACKERS_CONSISTENT.

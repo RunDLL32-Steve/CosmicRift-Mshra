@@ -109,6 +109,38 @@ public sealed class TargetRespawnTests
     }
 
     [Fact]
+    public void TimeWithoutTicking_CountsTowardTheRespawn()
+    {
+        var world = World(2);
+        FireUntil(world, 1);
+        var tick = world.TickNumber;
+        var due = world.TargetRespawnTick!.Value;
+
+        world.ElapseWithoutTicking(WorldSimulation.TickRate); // one second docked or paused
+        Assert.Equal(due - WorldSimulation.TickRate, world.TargetRespawnTick);
+        Assert.True(world.Targets[0].IsDestroyed);
+        Assert.Equal(tick, world.TickNumber);
+
+        world.ElapseWithoutTicking(10 * WorldSimulation.TickRate); // more than the time left
+        Assert.False(world.Targets[0].IsDestroyed);
+        Assert.Equal(1, world.TargetWave);
+        Assert.Null(world.TargetRespawnTick);
+        Assert.Equal(tick, world.TickNumber);
+    }
+
+    [Fact]
+    public void TimeWithoutTicking_DoesNothingWithoutAPendingRespawn()
+    {
+        var world = World(2, new TargetDefinition { Id = "near" }, new TargetDefinition { Id = "far", X = 900, Y = 900 });
+        FireUntil(world, 1);
+        world.ElapseWithoutTicking(100 * WorldSimulation.TickRate);
+
+        Assert.True(world.Targets[0].IsDestroyed);
+        Assert.Equal(0, world.TargetWave);
+        Assert.Throws<ArgumentOutOfRangeException>(() => world.ElapseWithoutTicking(-1));
+    }
+
+    [Fact]
     public void CarryTargetsFrom_RefusesAnotherSector()
     {
         var other = new WorldSimulation(TestWorld.Catalog(sector: new SectorDefinition { Id = "elsewhere", Targets = [new TargetDefinition { Id = "t1" }] }));
