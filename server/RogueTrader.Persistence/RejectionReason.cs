@@ -11,4 +11,6 @@ public enum RejectionReason
     UpgradeHasNoEffect,
     /// <summary>Refused by the station session: an owned upgrade already holds the slot and would stay active (review R2-1).</summary>
     UpgradeSlotHeld,
+    /// <summary>The conduct rules do not define the event, the count is out of range, or no rules are configured (queue C9).</summary>
+    UnknownConductEvent,
 }

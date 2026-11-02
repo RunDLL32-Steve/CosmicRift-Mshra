@@ -11,7 +11,7 @@ namespace RogueTrader.Persistence;
 /// only after the repository reports the new state saved.
 /// </summary>
 public sealed class TransactionProcessor(IProfileRepository repository, IPriceSource prices, ICargoPolicy cargo,
-    PersistenceOptions options, TimeProvider? time = null) : ITransactionProcessor
+    PersistenceOptions options, TimeProvider? time = null, IConductRules? conduct = null) : ITransactionProcessor
 {
     private static readonly ImmutableSortedDictionary<string, int> NoItems = ImmutableSortedDictionary.Create<string, int>(StringComparer.Ordinal);
 
@@ -20,6 +20,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     private readonly ICargoPolicy _cargo = cargo ?? throw new ArgumentNullException(nameof(cargo));
     private readonly PersistenceOptions _options = Validate(options);
     private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly IConductRules? _conduct = conduct;
     private readonly ConcurrentDictionary<string, ProfileSlot> _slots = new(StringComparer.Ordinal);
 
     private static PersistenceOptions Validate(PersistenceOptions? o)
@@ -129,6 +130,14 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.GrantReward, r.TransactionId, r.ProfileId, r.SourceId, null, null, 0, r.Currency, items, shapeOk), ct);
     }
 
+    public Task<TransactionResult> RecordConductAsync(TransactionContext ctx, RecordConductRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.SourceId) && IdOk(r.EventId) && r.Count > 0;
+        return ExecuteAsync(ctx, new Req(TransactionKind.RecordConduct, r.TransactionId, r.ProfileId, r.SourceId, r.EventId, null, r.Count, 0, null, shapeOk), ct);
+    }
+
     public async Task<ShipConditionResult> SaveShipConditionAsync(TransactionContext ctx, string profileId, ShipCondition ship, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -187,11 +196,12 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     private sealed record Req(TransactionKind Kind, string? TransactionId, string? ProfileId, string? Place, string? ItemId,
         string? UpgradeId, int Quantity, long Currency, IReadOnlyDictionary<string, int>? Items, bool ShapeOk)
     {
-        public bool NeedsStation => Kind != TransactionKind.GrantReward;
+        public bool NeedsStation => Kind is not (TransactionKind.GrantReward or TransactionKind.RecordConduct);
     }
 
     private sealed record Plan(long CurrencyDelta, long WalletAfter, ImmutableSortedDictionary<string, int> NewInventory,
-        ImmutableSortedDictionary<string, int> ItemDeltas, ImmutableSortedSet<string> NewUpgrades, string? UpgradeId, bool QuantityIncreases, string? RepairId = null);
+        ImmutableSortedDictionary<string, int> ItemDeltas, ImmutableSortedSet<string> NewUpgrades, string? UpgradeId, bool QuantityIncreases,
+        long Bounty, ImmutableSortedDictionary<string, long> Reputation, string? RepairId = null, ConductDelta? Conduct = null);
 
     private async Task<TransactionResult> ExecuteAsync(TransactionContext ctx, Req q, CancellationToken ct)
     {
@@ -215,7 +225,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                 if (!string.Equals(done.TransactionId, q.TransactionId, StringComparison.Ordinal)) continue;
                 return string.Equals(done.RequestFingerprint, fingerprint, StringComparison.Ordinal)
                     ? new TransactionResult(done.TransactionId, TransactionStatus.Applied, RejectionReason.None, true,
-                        done.CurrencyDelta, done.ItemDeltas, done.UpgradeId, done.WalletAfter, done.Revision, done.RepairId)
+                        done.CurrencyDelta, done.ItemDeltas, done.UpgradeId, done.WalletAfter, done.Revision, done.RepairId, done.Conduct)
                     : Reject(q.TransactionId, RejectionReason.TransactionIdReused, committed);
             }
 
@@ -227,10 +237,13 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             var now = _time.GetUtcNow();
             var revision = committed.Revision + 1;
             var applied = committed.AppliedTransactions.Add(new AppliedTransaction(q.TransactionId!, q.Kind, fingerprint,
-                plan!.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, now, plan.RepairId));
+                plan!.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, now, plan.RepairId, plan.Conduct));
             if (applied.Count > _options.IdempotencyWindow) applied = applied.RemoveRange(0, applied.Count - _options.IdempotencyWindow);
-            var ledger = committed.Ledger.Add(new WalletLedgerEntry(committed.NextLedgerSequence, q.TransactionId!, q.Kind,
-                plan.CurrencyDelta, plan.WalletAfter, now));
+            // Conduct moves no currency, so it writes no wallet ledger entry and cannot push currency history out of retention.
+            var writesLedger = q.Kind != TransactionKind.RecordConduct;
+            var ledger = writesLedger
+                ? committed.Ledger.Add(new WalletLedgerEntry(committed.NextLedgerSequence, q.TransactionId!, q.Kind, plan.CurrencyDelta, plan.WalletAfter, now))
+                : committed.Ledger;
             if (ledger.Count > _options.LedgerRetention) ledger = ledger.RemoveRange(0, ledger.Count - _options.LedgerRetention);
             var next = committed with
             {
@@ -238,9 +251,11 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                 Wallet = plan.WalletAfter,
                 Inventory = plan.NewInventory,
                 Upgrades = plan.NewUpgrades,
+                Bounty = plan.Bounty,
+                Reputation = plan.Reputation,
                 AppliedTransactions = applied,
                 Ledger = ledger,
-                NextLedgerSequence = committed.NextLedgerSequence + 1,
+                NextLedgerSequence = writesLedger ? committed.NextLedgerSequence + 1 : committed.NextLedgerSequence,
             };
 
             // 9. Persist; acknowledge only after the save returns.
@@ -260,7 +275,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             }
             slot.Committed = next;
             return new TransactionResult(q.TransactionId!, TransactionStatus.Applied, RejectionReason.None, false,
-                plan.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, plan.RepairId);
+                plan.CurrencyDelta, plan.ItemDeltas, plan.UpgradeId, plan.WalletAfter, revision, plan.RepairId, plan.Conduct);
         }
         finally { slot.Lock.Release(); }
     }
@@ -276,6 +291,9 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         var upgrades = c.Upgrades;
         string? upgradeId = null;
         string? repairId = null;
+        var bounty = c.Bounty;
+        var reputation = c.Reputation;
+        ConductDelta? conduct = null;
         long currencyDelta;
         long walletAfter;
         var increases = false;
@@ -364,6 +382,23 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     }
                     break;
                 }
+                case TransactionKind.RecordConduct:
+                {
+                    if (_conduct is null || !_conduct.TryApply(q.ItemId!, q.Quantity, c.Bounty, c.Reputation, out bounty, out reputation)
+                        || bounty < 0 || reputation is null || reputation.Values.Any(v => v == 0))
+                        return RejectionReason.UnknownConductEvent;
+                    var changes = ImmutableSortedDictionary.CreateBuilder<string, long>(StringComparer.Ordinal);
+                    foreach (var category in c.Reputation.Keys.Union(reputation.Keys, StringComparer.Ordinal))
+                    {
+                        c.Reputation.TryGetValue(category, out var before);
+                        reputation.TryGetValue(category, out var after);
+                        if (after != before) changes[category] = checked(after - before);
+                    }
+                    conduct = new ConductDelta(q.ItemId!, q.Quantity, checked(bounty - c.Bounty), changes.ToImmutable(), bounty);
+                    currencyDelta = 0;
+                    walletAfter = c.Wallet;
+                    break;
+                }
                 default:
                     return RejectionReason.InvalidRequest;
             }
@@ -377,7 +412,8 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         // 7. Cargo (all-or-nothing).
         if (increases && !_cargo.Fits(c, newInventory)) return RejectionReason.CargoCapacityExceeded;
 
-        plan = new Plan(currencyDelta, walletAfter, newInventory, deltas.ToImmutable(), upgrades, upgradeId, increases, repairId);
+        plan = new Plan(currencyDelta, walletAfter, newInventory, deltas.ToImmutable(), upgrades, upgradeId, increases, bounty, reputation,
+            repairId, conduct);
         return RejectionReason.None;
     }
 

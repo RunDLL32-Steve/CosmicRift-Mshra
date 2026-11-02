@@ -1,5 +1,9 @@
 # Changelog
 
+## Bounty and reputation rules — November 2, 2026
+
+-   Queue C9: a NEW data-driven rule file (`data/conduct/rules.json`) turns named conduct events into bounty and per-category reputation changes, and the transaction core records them once per transaction id, with clamping and no decay. Profile schema 5 saves bounty and standing; older saves open with no bounty and neutral standing. Nothing in the game raises these events yet. [Persistence entry](server/RogueTrader.Persistence/plan.d/c9.md), [data](data/conduct/IMPLEMENTATION_PLAN.md). RT-F051 stays open; counts unchanged.
+
 ## Headless server session and tick benchmark — November 2, 2026
 
 -   Queue C6: a new `RogueTrader.Server` library runs the simulation headless in fixed 60 Hz ticks and takes client input only as queued intent for a named tick. Competing inputs for one tick resolve by highest sequence whatever the arrival order; late, stale, duplicate, too-far-ahead, over-capacity and malformed inputs are refused without changing anything. No sockets, snapshots or multiple clients yet; all queue rules are NEW. [Server entry](server/RogueTrader.Server/plan.d/c6.md).

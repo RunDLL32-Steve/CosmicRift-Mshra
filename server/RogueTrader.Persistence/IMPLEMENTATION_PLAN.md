@@ -6,6 +6,8 @@ Module status: **Engine-side persistence core implemented and unit-tested (Octob
 
 ## Outstanding work
 
+-   [ ] **Not started beyond the engine** — master §10 bounty and reputation: queue C9 adds NEW conduct rules, `RecordConductAsync` and profile schema 5 ([entry](plan.d/c9.md)). Game events, payouts, protected sectors and reputation effects remain open; RT-F051 original semantics remain open.
+
 -   [ ] **Investigating** — RT-F068: selected original character/progression lifecycle and historical backend evidence. `OriginalProgressionEvidence` now pins client/config policy text, and `OriginalProgressionIds` plus `ProfileContentValidator` provide an explicit NEW membership-binding seam ([RT-F068 record](plan.d/rt-f068.md)). Repositories and transactions do not invoke that validator; historical backend schema, native ordering and wipe/exchange policy remain open.
 -   [ ] **In progress** — M2 persistence interfaces and isolated safe local save/load: the interfaces (`IProfileRepository`, `IPriceSource`, `ICargoPolicy`) and file/in-memory repositories are done and tested; catalog membership can now be checked through the optional validator; still open are validated original policy/price/cargo semantics, validation at repository/session boundaries and gameplay/UI integration.
 -   [ ] **Investigating** — RT-F035/RT-F043/RT-F049–RT-F050/RT-F054: hull exchange, death/drop, resale/spec/team prune and warp/transfer retention policy. Resolve original event ordering, raw flags, sentinel values and integer currency semantics before defining retained state. Client bank/pose is not progression state without evidence.

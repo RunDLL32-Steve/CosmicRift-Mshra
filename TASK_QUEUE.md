@@ -34,15 +34,13 @@ This file schedules unfinished queue items. Each active row links to one actiona
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-| ID  | Task                                                                                         | Where                    | Run   | Depends on                           | Status snapshot                                              | Brief                    |
-| --- | -------------------------------------------------------------------------------------------- | ------------------------ | ----- | ------------------------------------ | ------------------------------------------------------------ | ------------------------ |
-| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData             | Cloud | G2 MERGED                            | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md)   |
-| C4  | Stopwatch simulation tick benchmark; no new packages; report thresholds, do not assert them  | LoadTests                | Cloud | C3 MERGED                            | IN REVIEW (`claude/project-thread-shkauf`)                   | [C4](docs/tasks/c4.md)   |
-| C6  | Headless authoritative tick loop and input queue; no sockets                                 | RogueTrader.Server       | Cloud | C3, C5 MERGED                        | IN REVIEW (`claude/project-thread-shkauf`)                   | [C6](docs/tasks/c6.md)   |
-| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests           | Cloud | C5 MERGED; C6 OPEN (hard dependency) | OPEN                                                         | [C7](docs/tasks/c7.md)   |
-| C8  | Input speed/rate/teleport validation                                                         | RogueTrader.Server       | Cloud | C5 MERGED                            | OPEN                                                         | [C8](docs/tasks/c8.md)   |
-| C9  | Data-driven bounty/reputation rules persisted through transaction core                       | Server                   | Cloud | M1 MERGED                            | OPEN                                                         | [C9](docs/tasks/c9.md)   |
-| C10 | Recoverable sector transition and transfer model                                             | Persistence + Simulation | Cloud | M1 MERGED                            | OPEN                                                         | [C10](docs/tasks/c10.md) |
+| ID  | Task                                                                                         | Where                    | Run   | Depends on    | Status snapshot                                              | Brief                    |
+| --- | -------------------------------------------------------------------------------------------- | ------------------------ | ----- | ------------- | ------------------------------------------------------------ | ------------------------ |
+| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData             | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md)   |
+| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests           | Cloud | C5, C6 MERGED | OPEN                                                         | [C7](docs/tasks/c7.md)   |
+| C8  | Input speed/rate/teleport validation                                                         | RogueTrader.Server       | Cloud | C5 MERGED     | OPEN                                                         | [C8](docs/tasks/c8.md)   |
+| C9  | Data-driven bounty/reputation rules persisted through transaction core                       | Server                   | Cloud | M1 MERGED     | IN REVIEW (`claude/project-thread-shkauf`)                   | [C9](docs/tasks/c9.md)   |
+| C10 | Recoverable sector transition and transfer model                                             | Persistence + Simulation | Cloud | M1 MERGED     | OPEN                                                         | [C10](docs/tasks/c10.md) |
 
 ## Completed queue history (not active work)
 
@@ -60,6 +58,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 -   M8 — merged ([PR 93](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/93)), November 1, 2026: Godot HUD, derived Trading Outpost, save/load and ship condition (schema 3); native UI parity and RT-F025/F026/F068 remain open.
 -   C2 — merged 8f66688: rogue.cfg only; other arena CFGs were not pinned.
 -   C3 — merged 952d29d: same-runtime replay digests; does not establish cross-runtime determinism.
+-   C4 and C6 — merged ([PR 98](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/98)), November 2, 2026: Stopwatch tick benchmark in `tests/LoadTests`, and the headless `AuthoritativeSession` with a bounded input queue in `RogueTrader.Server` (no sockets); no multiplayer capacity or production authority claim.
 -   C5 — merged 403499f: NEW provisional wire format v1, round-trip/truncation/fuzz checks, no transport; original RT features untouched.
 
 ## Historical claim notes (not live claims)

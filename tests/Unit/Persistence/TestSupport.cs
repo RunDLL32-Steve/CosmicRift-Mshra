@@ -133,6 +133,8 @@ internal static class ProfileAssert
         Assert.Equal(expected.NextLedgerSequence, actual.NextLedgerSequence);
         Assert.Equal(expected.Inventory.ToArray(), actual.Inventory.ToArray());
         Assert.Equal(expected.Upgrades.ToArray(), actual.Upgrades.ToArray());
+        Assert.Equal(expected.Bounty, actual.Bounty);
+        Assert.Equal(expected.Reputation.ToArray(), actual.Reputation.ToArray());
         Assert.Equal(expected.Ledger.ToArray(), actual.Ledger.ToArray());
         Assert.Equal(expected.AppliedTransactions.Count, actual.AppliedTransactions.Count);
         for (var i = 0; i < expected.AppliedTransactions.Count; i++)
@@ -148,6 +150,11 @@ internal static class ProfileAssert
             Assert.Equal(e.WalletAfter, a.WalletAfter);
             Assert.Equal(e.Revision, a.Revision);
             Assert.Equal(e.AppliedAtUtc, a.AppliedAtUtc);
+            Assert.Equal(e.Conduct?.EventId, a.Conduct?.EventId);
+            Assert.Equal(e.Conduct?.Count, a.Conduct?.Count);
+            Assert.Equal(e.Conduct?.BountyDelta, a.Conduct?.BountyDelta);
+            Assert.Equal(e.Conduct?.BountyAfter, a.Conduct?.BountyAfter);
+            Assert.Equal(e.Conduct?.ReputationDeltas.ToArray(), a.Conduct?.ReputationDeltas.ToArray());
         }
     }
 }
@@ -167,7 +174,7 @@ internal sealed class Env
 
     /// <summary>Builds the fixtures. With <paramref name="createProfile"/> the profile is created in the repository first.</summary>
     public static async Task<Env> CreateAsync(long wallet = 1000, IProfileRepository? repo = null, PersistenceOptions? options = null,
-        bool createProfile = true, FixturePriceSource? prices = null, FixtureCargoPolicy? cargo = null)
+        bool createProfile = true, FixturePriceSource? prices = null, FixtureCargoPolicy? cargo = null, IConductRules? conduct = null)
     {
         options ??= new PersistenceOptions();
         repo ??= new InMemoryProfileRepository(options);
@@ -179,7 +186,7 @@ internal sealed class Env
         prices ??= new FixturePriceSource();
         cargo ??= new FixtureCargoPolicy();
         var time = new FixedTimeProvider(new DateTimeOffset(2030, 1, 2, 3, 4, 5, TimeSpan.Zero)); // NEW fixture clock
-        var proc = new TransactionProcessor(repo, prices, cargo, options, time);
+        var proc = new TransactionProcessor(repo, prices, cargo, options, time, conduct);
         var opened = await proc.OpenProfileAsync(Fx.ProfileId);
         Assert.True(opened.Succeeded);
         return new Env { Repo = repo, Proc = proc, Prices = prices, Cargo = cargo, Options = options, Time = time };
