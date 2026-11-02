@@ -29,7 +29,7 @@ Queue M7 mining slice in review on `claude/project-thread-yaij0l` ([branch log](
 
 ## Server groundwork update — November 2, 2026
 
-Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) are in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.
+Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) merged in [PR 98](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/98); C9 (bounty and reputation rules) is in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.
 
 ## Next
 

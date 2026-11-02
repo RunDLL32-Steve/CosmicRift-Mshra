@@ -1,0 +1,39 @@
+{
+    "version": "new-provisional-1",
+    "note": "NEW/provisional queue C9 fixture. Every number here is invented; the original bounty mathematics (RT-F051) are not recovered. Categories follow master section 10.2.",
+    "categories": ["civilian", "trader", "miner", "mercenary", "pirate"],
+    "minimumReputation": -1000,
+    "maximumReputation": 1000,
+    "maximumBounty": 100000,
+    "events": [
+        {
+            "id": "practice-target-destroyed",
+            "reputation": { "mercenary": 2 },
+            "note": "NEW"
+        },
+        {
+            "id": "pirate-destroyed",
+            "reputation": { "mercenary": 10, "pirate": -10 },
+            "note": "NEW"
+        },
+        {
+            "id": "trader-attacked",
+            "bounty": 250,
+            "reputation": { "trader": -20, "civilian": -10, "pirate": 5 },
+            "note": "NEW"
+        },
+        {
+            "id": "civilian-destroyed",
+            "bounty": 1000,
+            "reputation": { "civilian": -50, "pirate": 15 },
+            "note": "NEW"
+        },
+        { "id": "cargo-sold", "reputation": { "trader": 1 }, "note": "NEW" },
+        { "id": "ore-mined", "reputation": { "miner": 1 }, "note": "NEW" },
+        {
+            "id": "bounty-cleared",
+            "bounty": -100000,
+            "note": "NEW: clears the whole bounty; who may trigger it is not decided"
+        }
+    ]
+}

@@ -15,6 +15,9 @@ public interface ITransactionProcessor
     Task<TransactionResult> RefineAsync(TransactionContext ctx, RefineRequest r, CancellationToken ct = default);
     Task<TransactionResult> GrantRewardAsync(TransactionContext ctx, GrantRewardRequest r, CancellationToken ct = default);
 
+    /// <summary>Applies one conduct event to bounty and reputation through the conduct rules (queue C9); no station needed.</summary>
+    Task<TransactionResult> RecordConductAsync(TransactionContext ctx, RecordConductRequest r, CancellationToken ct = default);
+
     /// <summary>
     /// Saves the ship's hull and position (last write wins). Not a currency transaction: no ledger or idempotency entry, but the
     /// same per-profile lock, compare-and-swap save and acknowledge-after-save rule apply.
