@@ -15,6 +15,8 @@ public partial class WorldView : Node2D
     public OriginalSpriteLibrary? Originals { get; set; }
     /// <summary>Provisional station marker (queue M8); no original station art or position is claimed.</summary>
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Station { get; set; }
+    /// <summary>Provisional refinery marker (queue M7 mining slice), drawn like the station.</summary>
+    public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Refinery { get; set; }
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
 
@@ -61,8 +63,11 @@ public partial class WorldView : Node2D
         var player = ToGodot(_world.Player.Position);
         DrawStars(player);
         DrawOrigin();
-        DrawStation();
-        foreach (var pile in _world.Collectibles) DrawPile(ToGodot(pile.Position), pile.Radius);
+        DrawStation(Station, Amber);
+        DrawStation(Refinery, new Color("e06a5a"));
+        foreach (var pile in _world.Collectibles)
+            if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(ToGodot(pile.Position), pile.Radius);
+            else DrawPile(ToGodot(pile.Position), pile.Radius);
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);
@@ -176,15 +181,24 @@ public partial class WorldView : Node2D
         }
     }
 
-    private void DrawStation()
+    private void DrawStation((System.Numerics.Vector2 Position, float DockRadius, string Name)? site, Color color)
     {
-        if (Station is not { } station) return;
+        if (site is not { } station) return;
         var centre = ToGodot(station.Position);
-        DrawArc(centre, station.DockRadius, 0, Mathf.Tau, 90, new Color(Amber, 0.10f), 1, true);
+        DrawArc(centre, station.DockRadius, 0, Mathf.Tau, 90, new Color(color, 0.10f), 1, true);
         DrawCircle(centre, 26, new Color("1a2a36"));
-        DrawArc(centre, 26, 0, Mathf.Tau, 40, Amber.Darkened(0.2f), 2, true);
-        DrawRect(new Rect2(centre - new Vector2(9, 9), new Vector2(18, 18)), new Color(Amber, 0.55f));
-        DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, Amber.Darkened(0.25f));
+        DrawArc(centre, 26, 0, Mathf.Tau, 40, color.Darkened(0.2f), 2, true);
+        DrawRect(new Rect2(centre - new Vector2(9, 9), new Vector2(18, 18)), new Color(color, 0.55f));
+        DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, color.Darkened(0.25f));
+    }
+
+    /// <summary>Mineral piles: the pickup radius is small (scaled original ItemPickupDistance), so a larger glow marks them.</summary>
+    private void DrawMineral(Vector2 position, float radius)
+    {
+        var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 2);
+        DrawCircle(position, 12, new Color(Amber, 0.07f + 0.05f * pulse));
+        DrawArc(position, Mathf.Max(radius, 6), 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);
+        DrawRect(new Rect2(position - new Vector2(3, 3), new Vector2(6, 6)), new Color("ffe2b8"));
     }
 
     private void DrawPile(Vector2 position, float radius)

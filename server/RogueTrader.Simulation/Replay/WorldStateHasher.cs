@@ -66,6 +66,17 @@ public static class WorldStateHasher
             hash = Add(hash, pile.Position.Y);
             hash = Add(hash, pile.Radius);
         }
+        // Mineral spawns (queue M7) are hashed only when configured, so digests of worlds without them are unchanged.
+        if (world.MineralSpawns.Count > 0)
+        {
+            hash = Add(hash, unchecked((long)world.MineralRandomState));
+            foreach (var (next, placed) in world.MineralSpawnTimers)
+            {
+                hash = Add(hash, next);
+                hash = Add(hash, placed);
+            }
+            hash = Add(hash, world.Pickups.Count);
+        }
         return hash;
     }
 

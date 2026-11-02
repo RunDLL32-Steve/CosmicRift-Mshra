@@ -14,6 +14,7 @@ public partial class StationScreen : CanvasLayer
     public event Action<string, int>? SellRequested;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
+    public event Action<string, int>? RefineRequested;
     public event Action? CloseRequested;
 
     private readonly StationDefinition _station;
@@ -25,6 +26,9 @@ public partial class StationScreen : CanvasLayer
     private VBoxContainer _market = null!;
     private VBoxContainer _repairs = null!;
     private VBoxContainer _upgrades = null!;
+    private VBoxContainer _refinery = null!;
+    private Label _title = null!;
+    private bool _refineryMode;
     private TabContainer _tabs = null!;
 
     public void ShowTab(int index) => _tabs.CurrentTab = Math.Clamp(index, 0, _tabs.GetTabCount() - 1);
@@ -54,7 +58,9 @@ public partial class StationScreen : CanvasLayer
         box.OffsetBottom = 290;
         root.AddChild(box);
         var column = FlightHud.Column(box);
-        column.AddChild(FlightHud.Label(_station.Name.ToUpperInvariant(), 26, FlightHud.TextColor));
+        _title = FlightHud.Label(_station.Name.ToUpperInvariant(), 26, FlightHud.TextColor);
+        _title.Name = "StationTitle";
+        column.AddChild(_title);
         column.AddChild(FlightHud.Label("DOCKED  /  ORIGINAL DATA, PROVISIONAL RULES", 12, FlightHud.Teal));
 
         var header = new HBoxContainer();
@@ -76,6 +82,8 @@ public partial class StationScreen : CanvasLayer
         _market = Page(_tabs, "Trading Outpost");
         _repairs = Page(_tabs, "Repairs");
         _upgrades = Page(_tabs, "Upgrades");
+        _refinery = Page(_tabs, "Refinery");
+        SetRefineryMode(_refineryMode);
 
         _status = FlightHud.Label("", 14, FlightHud.TextColor);
         _status.Name = "StationStatus";
@@ -87,6 +95,19 @@ public partial class StationScreen : CanvasLayer
         close.Pressed += () => CloseRequested?.Invoke();
         column.AddChild(close);
     }
+
+    /// <summary>At the refinery only the Refinery page is offered; at the station every page but it (queue M7 mining slice).</summary>
+    public void SetRefineryMode(bool refinery)
+    {
+        _refineryMode = refinery;
+        if (_tabs is null) return;
+        for (var i = 0; i < _tabs.GetTabCount(); i++) _tabs.SetTabHidden(i, (i == 3) != refinery);
+        _tabs.CurrentTab = refinery ? 3 : 0;
+        _title.Text = (refinery && _station.Refinery is { } site ? site.Name : _station.Name).ToUpperInvariant();
+    }
+
+    public bool RefineryMode => _refineryMode;
+    public string TitleText => _title.Text;
 
     public void SetStatus(string text, bool error = false)
     {
@@ -118,6 +139,21 @@ public partial class StationScreen : CanvasLayer
         var untraded = profile.Inventory.Where(p => p.Value > 0 && _station.Trades.All(t => t.InputItemId != p.Key)).ToArray();
         if (untraded.Length > 0)
             _market.AddChild(FlightHud.Label("Not traded here: " + string.Join(", ", untraded.Select(p => $"{_station.NameOf(p.Key)} x{p.Value}")), 12, FlightHud.Muted));
+
+        Clear(_refinery);
+        if (_station.Refinery is { } refinery)
+        {
+            _refinery.AddChild(FlightHud.Label("Original refinery recipes. One input unit becomes one output unit, free (provisional reading).", 12, FlightHud.Muted));
+            _refinery.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 120, true), Cell("HELD", 50, true), Cell("OUTPUT", 130, true)));
+            foreach (var recipe in refinery.Recipes)
+            {
+                var held = profile.Inventory.GetValueOrDefault(recipe.InputItemId);
+                _refinery.AddChild(Row(Cell(recipe.Name, 150), Cell(_station.NameOf(recipe.InputItemId), 120), Cell(held.ToString(), 50),
+                    Cell(_station.NameOf(recipe.OutputItemId), 130),
+                    ActionButton("REFINE 1", $"refine:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, 1)),
+                    ActionButton("REFINE ALL", $"refineall:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, held))));
+            }
+        }
 
         Clear(_repairs);
         var canRepair = hull > 0 && hull < maximumHull;

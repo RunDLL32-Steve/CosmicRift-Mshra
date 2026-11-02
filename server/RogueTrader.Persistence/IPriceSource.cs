@@ -13,4 +13,11 @@ public interface IPriceSource
         price = 0;
         return false;
     }
+
+    /// <summary>Input and output item of one refinery recipe; false means the recipe is not offered here. Not offered unless a source overrides it.</summary>
+    bool TryGetRefineRecipe(string stationId, string recipeId, out string inputItemId, out string outputItemId)
+    {
+        inputItemId = outputItemId = "";
+        return false;
+    }
 }

@@ -2,7 +2,7 @@
   "stationId": "trading_outpost",
   "name": "Trading Outpost",
   "evidenceClassification": "ORIGINAL+NEW",
-  "source": "Derived by OriginalStationBuilder from pinned ITM/Rogue_mp.itm and VEH/Rogue.veh (VEH id 404); regenerate, never hand-edit.",
+  "source": "Derived by OriginalStationBuilder from pinned ITM/Rogue_mp.itm and VEH/Rogue.veh (VEH id 404; refinery VEH id 400 at LIO/Rogue.lio actor -400); regenerate, never hand-edit.",
   "newValues": [
     "Position (90, 20), dock radius 150 world units.",
     "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
@@ -10,7 +10,8 @@
     "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
-    "Collectible piles: placement and quantities."
+    "Collectible piles: placement and quantities.",
+    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
   ],
   "x": 90,
   "y": 20,
@@ -853,5 +854,35 @@
       "y": 160,
       "radius": 14
     }
-  ]
+  ],
+  "refinery": {
+    "stationId": "refinery",
+    "name": "Refinery",
+    "x": -229.59999,
+    "y": -672.7,
+    "dockRadius": 150,
+    "recipes": [
+      {
+        "id": "refine_tellerium",
+        "name": "Refine Tellerium",
+        "inputItemId": "2003",
+        "outputItemId": "2004",
+        "rawField4": 150
+      },
+      {
+        "id": "refine_krandazite",
+        "name": "Refine Krandazite",
+        "inputItemId": "2005",
+        "outputItemId": "2006",
+        "rawField4": 150
+      },
+      {
+        "id": "refine_iron_ore",
+        "name": "Refine Iron Ore",
+        "inputItemId": "2019",
+        "outputItemId": "2020",
+        "rawField4": 0
+      }
+    ]
+  }
 }

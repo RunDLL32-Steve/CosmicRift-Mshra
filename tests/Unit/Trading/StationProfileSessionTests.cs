@@ -26,8 +26,8 @@ public sealed class StationProfileSessionTests
 
     private static async Task Give(StationProfileSession session, string item, int quantity)
     {
-        var hold = new Dictionary<string, int>(session.Profile!.Inventory) { [item] = session.Profile.Inventory.GetValueOrDefault(item) + quantity };
-        Assert.Equal(TransactionStatus.Applied, (await session.CommitPickupsAsync(hold))!.Status);
+        var pickup = new CargoPickup(0, "fixture-pile", item, quantity, 0);
+        Assert.Equal(TransactionStatus.Applied, (await session.GrantPickupAsync(Guid.NewGuid().ToString("N"), pickup)).Status);
     }
 
     [Fact]
@@ -149,22 +149,28 @@ public sealed class StationProfileSessionTests
     }
 
     [Fact]
-    public async Task CommitPickups_GrantsOnlyNewUnits_AndRespectsCapacity()
+    public async Task GrantPickup_AppliesOnce_AndRespectsCapacity()
     {
         var station = LoadStation();
         var session = await OpenAsync(station: station);
         var pile = station.Collectibles[0];
+        var pickup = new CargoPickup(0, pile.Id, pile.ItemId, pile.Quantity, 5);
 
-        Assert.Null(await session.CommitPickupsAsync(new Dictionary<string, int>()));
-        var granted = await session.CommitPickupsAsync(new Dictionary<string, int> { [pile.ItemId] = pile.Quantity });
-        Assert.Equal(TransactionStatus.Applied, granted!.Status);
+        var granted = await session.GrantPickupAsync("sector-a", pickup);
+        Assert.Equal(TransactionStatus.Applied, granted.Status);
         Assert.Equal(pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
-        Assert.Null(await session.CommitPickupsAsync(new Dictionary<string, int> { [pile.ItemId] = pile.Quantity }));
+        Assert.Equal("pickup-sector-a-0", granted.TransactionId);
+        Assert.Contains(session.Profile.Ledger, e => e.TransactionId == granted.TransactionId);
+        var replay = await session.GrantPickupAsync("sector-a", pickup);
+        Assert.True(replay.IsReplay);
+        Assert.Equal(pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
+        // The same sequence in another sector instance is a different pickup.
+        Assert.False((await session.GrantPickupAsync("sector-b", pickup)).IsReplay);
+        Assert.Equal(2 * pile.Quantity, session.Profile!.Inventory[pile.ItemId]);
 
         var heavy = station.Goods.OrderByDescending(g => g.UnitWeight).First();
-        var overflow = await session.CommitPickupsAsync(new Dictionary<string, int>(session.Profile.Inventory)
-            { [heavy.Id] = (int)(station.CargoCapacity / heavy.UnitWeight) + 1 });
-        Assert.Equal(RejectionReason.CargoCapacityExceeded, overflow!.Reason);
+        var overflow = await session.GrantPickupAsync("sector-a", new CargoPickup(1, "x", heavy.Id, (int)(station.CargoCapacity / heavy.UnitWeight) + 1, 9));
+        Assert.Equal(RejectionReason.CargoCapacityExceeded, overflow.Reason);
     }
 
     [Fact]
