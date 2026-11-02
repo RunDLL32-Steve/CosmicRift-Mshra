@@ -7,6 +7,12 @@
 -   Drop expiry is saved with the sector and keeps running while docked, paused or closed, like the spawn timers. A sector saved before this change gives its piles a full 720 s from the next launch, so a field stocked under the old limits drains back down.
 -   NEW: there is no terrain map yet, so the open-space expiry applies everywhere; a drop that would land in an asteroid uses up a try; the player count is 1 until a dedicated server supplies it.
 
+## Zone-Assets Rogue Trader comparison — November 2, 2026
+
+-   Research note [ZONE_ASSETS_COMPARISON.md](docs/original-research/ZONE_ASSETS_COMPARISON.md). The Rogue Trader files in InfantryOnline/Zone-Assets (`401633b`) are the same revision as our canonical pin: CFG, ITM, VEH, RPG, LIO and NWS differ only in line endings, and `Rogue.lvl`, `cruiart.blo` and `UtilityEffects.blo` have the same SHA-256. Ammo still has no weight in any copy, and mineral weights are unchanged.
+-   Decoding the map settles G8 item 6: the Rogue LVL uses only terrains 0, 9, 10 and 15, which sit on the LIO repair docks, space docks, refineries and trading posts. The orphan `roguetrader.lvl` is an older version-5 build of the same map with the same walls.
+-   The InfantryOnline emulator's LIO hide names read the mineral rows differently from our builder: 1-unit drops (f[21]) placed in clumps of 15 or 10, an area refilling only when empty, map-wide caps of 100 Tellerium, 100 Iron Ore and 50 Krandazite, five spawns gated on 40–80 players, and dropped items expiring after 720 s in open space. Steve adopted this reading on November 3 (entry above).
+
 ## Weapon and ammo value audit — November 2, 2026
 
 -   Queue G5 remainder: a [value audit](docs/original-research/G5_WEAPON_VALUE_AUDIT.md) of the original weapon, ammo and child-chain records, with the exact row, field and raw value for each open question. The MIRV/Wake Caster "offset" turns out to be one of six child-entry fields (sideways and forward offsets, height, heading change and a link mode, per the upstream parser's names); all six are now kept. Seven more raw projectile fields are exposed (ammo per shot, ammo capacity, bounce count, proximity radius, inactive time, damage mode, point-blank). The meanings of inheritedSpeed -550 and aliveTime -65, all units, trigger/expiry behavior and collision shape remain open, and the pinned ammo weights (all 0) disagree with the 2003 news notes. No firing behavior. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g5.md). Counts unchanged.
