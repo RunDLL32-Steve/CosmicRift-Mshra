@@ -36,3 +36,8 @@ Resume point: independent review of the C9 head.
 ## C9 round 2 — November 2, 2026
 
 -   Review round 1 note, fixed at Steve's request: a conduct event that clamps to no change no longer saves or bumps the revision. It returns Applied with a zero `ConductDelta` and the current revision, and its id is not recorded (recording would itself need a saved revision), so a retry of the same id is evaluated again against the state at that time. New test `AnEventThatChangesNothingIsNotSavedOrRecorded`; the clamping test now checks the saturated and zero-bounty cases leave the snapshot untouched. `dotnet test tests/Unit` 950 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed.
+
+## C9 round 3 — November 2, 2026
+
+-   R2-1 (major) fixed: a no-change conduct event is no longer acknowledged as Applied. It is refused with the new `RejectionReason.NoConductChange`, with no save, no revision change and no recorded id, so no caller can take that id as done. This keeps Steve's request (no revision for an event that changes nothing) without the idempotency hole. Applied ids still replay their first outcome. Test `AnEventThatChangesNothingIsRefusedWithoutASave` replaces the round 2 test.
+    Checks: `dotnet test tests/Unit` 950 passed, 0 failed, 5 existing skips; `dotnet test tests/Integration` 6 passed; FORMAT_CLEAN; TRACKERS_CONSISTENT.

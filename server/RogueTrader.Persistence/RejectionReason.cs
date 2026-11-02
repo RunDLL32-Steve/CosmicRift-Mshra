@@ -13,4 +13,6 @@ public enum RejectionReason
     UpgradeSlotHeld,
     /// <summary>The conduct rules do not define the event, the count is out of range, or no rules are configured (queue C9).</summary>
     UnknownConductEvent,
+    /// <summary>The conduct event would change nothing (every value already at its bound), so nothing is saved or recorded (queue C9).</summary>
+    NoConductChange,
 }

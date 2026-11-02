@@ -233,11 +233,11 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
             var reason = Evaluate(ctx, q, committed, out var plan);
             if (reason != RejectionReason.None) return Reject(q.TransactionId, reason, committed);
 
-            // A conduct event that clamps to no change (for example bounty-cleared at bounty 0) is acknowledged without a save:
-            // the revision does not move and the id is not recorded, because recording it would itself be a saved revision.
+            // A conduct event that clamps to no change (for example bounty-cleared at bounty 0) is refused with NoConductChange: no
+            // save, no new revision. It is a refusal, not an Applied acknowledgement, so no caller can read the id as done; recording
+            // it would itself need a saved revision (review R2-1).
             if (plan!.Conduct is { BountyDelta: 0, ReputationDeltas.Count: 0 })
-                return new TransactionResult(q.TransactionId!, TransactionStatus.Applied, RejectionReason.None, false, 0, NoItems, null,
-                    committed.Wallet, committed.Revision, null, plan.Conduct);
+                return Reject(q.TransactionId, RejectionReason.NoConductChange, committed);
 
             // 8. Build the next immutable state.
             var now = _time.GetUtcNow();
