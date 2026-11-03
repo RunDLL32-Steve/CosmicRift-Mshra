@@ -1,6 +1,6 @@
 # C1 raw archive reader — November 2, 2026
 
-Review status: local verification passed; independent exact-head review pending. No publication, original fidelity or milestone completion is claimed.
+Review status: local verification passed; independent exact-head verdict is in the [C1 review](2026-11-02-c1-review.md). No publication, original fidelity or milestone completion is claimed.
 
 ## Scope and preservation
 
@@ -34,8 +34,8 @@ All89 original archive checks executed; no C1 asset test skipped. Five pre-exist
 
 Unavailable matrix models were substituted explicitly: Sonnet5.5/Medium→GPT-6.1 Sol/Medium for the approved utility and pin generation; Opus5.5/High→GPT-6.1 Terra/High for unfamiliar format/security review after Astra capacity was unavailable; Haiku5.5/Medium→GPT-6.1 Sol/Medium for verified status documentation. Source, metadata and documentation ownership were disjoint; builds were serialized. Root inspected actual source/tests and reproduced evidence rather than accepting completion messages alone.
 
-Independent reviewer has re-derived all89 pointer identities and all1262 directory/member tuples with zero mismatches. Final diff and applicable independent test reruns still require exact-head review. No author self-merge.
+Independent reviewer has re-derived all89 pointer identities and all1262 directory/member tuples with zero mismatches. The reviewer also reran the focused21 cases, full units1043/0/5, decoder10, staging4 and integrity46 at `55a1218`, all passing as recorded separately. The final status-only reconciliation requires a documentation re-review against that tested source. No author self-merge.
 
 ## Resume / publication boundary
 
-Finish exact-head independent review and address any findings before scoped acceptance. Publication remains unauthorized: no push, PR or main merge. Before any PR-ready BBQ marker, run the required sprint integration and validation and record its actual verdict. C1 never completes RT-F023/RT-F069 or native dependency closure.
+Use the [C1 review](2026-11-02-c1-review.md) for the exact accepted head and per-clause evidence; author status-only reconciliation does not change source, tests or canonical data. Publication remains unauthorized: no push, PR or main merge. Before any PR-ready BBQ marker, run the required sprint integration and validation and record its actual verdict. C1 never completes RT-F023/RT-F069 or native dependency closure.
