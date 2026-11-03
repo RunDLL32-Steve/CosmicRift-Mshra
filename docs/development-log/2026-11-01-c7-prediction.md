@@ -1,6 +1,6 @@
 # C7 prediction work — November 1–2, 2026
 
-Review status: implementation and local verification complete; exact-head independent review pending. No original feature/milestone completion or PR-ready claim.
+Review status: independently approved for author commit `6d9e905`. The [review record](2026-11-02-c7-review.md) gives the verified scope, finding resolution and rerun results. Publication remains pending.
 
 Scope: [C7 brief](../tasks/c7.md), [approved motion-only design](../architecture/C7_PREDICTION_RECONCILIATION.md), master §13.3 / §18 M3. Branch `codex/c7-prediction-reconciliation` began at `0a192dc9` and merged `f18cf74`; latest main `8135f3e` was merged as `a4e2691`, preserving the newer G5/sector/cargo history and resolving only CHANGELOG/TASK_QUEUE text conflicts. All policies/fixtures are NEW/provisional. Registry 397/22/375 unchanged.
 
@@ -22,4 +22,4 @@ No additional native client, compatibility/runtime/delivery, multiplayer transpo
 
 ## Resume / publication boundary
 
-Finish exact-head independent review; its record is [C7 review](2026-11-02-c7-review.md). The pure motion-only component is implemented and locally verified. Live renderer/transport/ownership/context/reconnect and original/master M3 acceptance remain open; registry397/22/375 unchanged. Keep the branch local until publication is authorized. Run sprint integration/validation before any PR-ready BBQ marker; no sprint pass, push or main merge is claimed.
+The local motion-only review is complete for `6d9e905`. [C7 review](2026-11-02-c7-review.md). Live renderer integration, transport, ownership, reconnect and original/master M3 acceptance remain open. The registry remains at 397/22/375. Keep the branch local until publication is authorized. Run sprint integration and validation before any PR-ready BBQ marker.
