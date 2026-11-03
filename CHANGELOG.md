@@ -1,5 +1,9 @@
 # Changelog
 
+## Controlled-ship prediction groundwork — November 1, 2026
+
+-   Queue C7 is IN PROGRESS: add a pure controlled-ship motion predictor with bounded queued intent, authoritative correction, expired-tick removal, suffix replay and stale/duplicate snapshot handling. Prediction and authority share fixed-step movement and swept asteroid collision; Fire remains outbound intent with no predicted combat effects. The C5 wire format is unchanged. Focused checks passed 50/50 (36 prediction, 14 existing movement); full verification exited 1 with two inherited newline-oracle failures, while independent review and remaining gate checks are pending. [Evidence](docs/development-log/2026-11-01-c7-prediction.md). No transport, renderer integration, original feature or master M3 acceptance; counts unchanged.
+
 ## Bounty and reputation rules — November 2, 2026
 
 -   Queue C9: a NEW data-driven rule file (`data/conduct/rules.json`) turns named conduct events into bounty and per-category reputation changes, and the transaction core records them once per transaction id, with clamping and no decay. Profile schema 5 saves bounty and standing; older saves open with no bounty and neutral standing. Nothing in the game raises these events yet. [Persistence entry](server/RogueTrader.Persistence/plan.d/c9.md), [data](data/conduct/IMPLEMENTATION_PLAN.md). RT-F051 stays open; counts unchanged.

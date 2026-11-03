@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RogueTrader.Protocol/RogueTrader.Protocol.csproj" />
+    <ProjectReference Include="../../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
+  </ItemGroup>
+</Project>

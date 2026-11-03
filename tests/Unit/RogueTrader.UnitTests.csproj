@@ -16,6 +16,7 @@
     <ProjectReference Include="../../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
     <ProjectReference Include="../../shared/RogueTrader.OriginalData/RogueTrader.OriginalData.csproj" />
     <ProjectReference Include="../../shared/RogueTrader.Protocol/RogueTrader.Protocol.csproj" />
+    <ProjectReference Include="../../shared/RogueTrader.Prediction/RogueTrader.Prediction.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Persistence/RogueTrader.Persistence.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Trading/RogueTrader.Trading.csproj" />
     <ProjectReference Include="../../server/RogueTrader.AI/RogueTrader.AI.csproj" />

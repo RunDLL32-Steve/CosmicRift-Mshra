@@ -25,6 +25,8 @@ The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, 
 
 The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, optional generic mining extraction, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. [Queue M3 mining](docs/development-log/2026-10-18-m3-mining.md) uses explicitly NEW deposit/equipment definitions, finite authoritative quantities and collectible drops; original mining rules remain open. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
 
+C7 is **IN PROGRESS**: a separate pure prediction library now predicts controlled-ship motion from queued input and reconciles authoritative snapshots through the same fixed-step movement/collision code used by C6. Focused checks passed 50/50 (36 prediction, 14 existing movement); independent review and the full gate remain pending. No sockets or renderer integration are included. See [C7 evidence](docs/development-log/2026-11-01-c7-prediction.md). All rules, bounds and fixtures are NEW/provisional; original feature counts remain unchanged.
+
 ## Code map
 
 | Area                                             | Source                                                                                                               |
@@ -35,6 +37,7 @@ The playable test range has no station UI, mining loop or save-game progression.
 | Validated provisional JSON definitions           | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md)                  |
 | Profile repositories and transaction core        | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)                                                 |
 | Generic station transactions                     | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md)                                                         |
+| Motion prediction; no renderer/transport integration | [Prediction](shared/RogueTrader.Prediction/IMPLEMENTATION_PLAN.md) |
 | Message codec; no live transport                 | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)                                                       |
 | Provisional controller; no client integration    | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)                                                                   |
 | Headless session and input queue; no transport   | [Server](server/RogueTrader.Server/IMPLEMENTATION_PLAN.md), [tick benchmark](tests/LoadTests/IMPLEMENTATION_PLAN.md) |
