@@ -178,10 +178,11 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(readWorld().TickNumber == dockedTick, "The world must not advance while docked.");
 
             var trade = station.Trades.Single(t => t.InputItemId == pile.ItemId);
+            var walletBeforeTrade = session.Profile!.Wallet; // after the kill reward and the destruction cost above
             Press($"sellall:{pile.ItemId}");
             Require(session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0,
                 "Trade all must hand the whole input stack in.");
-            Require(session.Profile.Wallet == walletBeforeKill + reward + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
+            Require(session.Profile.Wallet == walletBeforeTrade + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
             Require(client.Station.CreditsText == $"CREDITS  {session.Profile.Wallet:N0}", "The station screen must show the saved wallet.");
             GD.Print($"STATION SMOKE PASS: {trade.Name} paid {pile.Quantity * trade.CreditsPerUnit} credits into the saved profile");
             var refinedTrade = station.Trades.Single(t => t.InputItemId == recipe.OutputItemId);
