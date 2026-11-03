@@ -6,10 +6,14 @@ Selection (November 3, 2026): Steve asked to resolve the conflicts on PR #111 (G
 
 ## Round 1 — November 3, 2026
 
--   Expected column: pinned VEH/ITM values through the emulator's readings (IOS bb97579 `ZoneServer/Game/Arena/Bot/MovementController.cs`, `Protocol/Helpers/Math.cs:207–233`, `Game/Objects/Vehicle.Computer.cs:75–84`, `Game/Arena/ScriptArena.cs:1250–1254`), re-read in a scratch clone. RECONSTRUCTED, not native.
+-   Expected column: pinned VEH/ITM values through the emulator's readings (IOS bb97579 `ZoneServer/Game/Arena/Bot/MovementController.cs`, `Protocol/Helpers/Math.cs:207–233`, `Game/Objects/Vehicle.Computer.cs:75–84`; the `Game/Arena/ScriptArena.cs:1248–1254` fire-timing check is commented out there and is not used as evidence), re-read in a scratch clone. RECONSTRUCTED, not native.
 -   Observed column: measured by running `WorldSimulation` with the shipped ship and weapon in an empty sector (top speed, acceleration both ways, time to top speed, turn rate, coasting, fire interval).
 -   Result: 2 MATCH (reverse equals forward; no drag in open space), 7 MISMATCH (top speed, acceleration, time to top speed, turn rate, bounce, map crossing time, fire interval), the rest MISSING or OPEN. The largest gap is scale: the practice sector draws the original map at 1,400/32,000 while the ship flies at near-pixel speed.
 
 Verified in the cloud container (SDK 8.0.133 substituted for the pinned 8.0.419; global.json change not committed): `dotnet test tests/Unit` with pinned assets and the LVL LFS content: 1060 passed (10 new), 0 failed, 5 existing skips. `format-check.py` FORMAT_CLEAN, `check-trackers.py` TRACKERS_CONSISTENT. Skipped: `verify.ps1` and the Godot smoke, because nothing in the client or the simulation changed.
 
 Not verified / still open: every native unit (needs the original client, G1); default key bindings; HUD layout; projectile speed and lifetime units.
+
+## Round 2 — November 3, 2026
+
+-   Review R1-1: the `ScriptArena.cs` fire-timing check is inside a block comment at bb97579, so W1 now rests on the bot path alone and its confidence is Low. The verdict is still MISMATCH (0.20 s vs 0.25 s).
