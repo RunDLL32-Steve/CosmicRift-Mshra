@@ -20,8 +20,6 @@ public static class OriginalStationBuilder
     private const float StationX = 90, StationY = 20, DockRadius = 150;
     /// <summary>CFG [Event] FirstTimeInvSetup runs setcash=0; RPG f[38]=3499 (upstream name CashAdjustment) is the unproven alternative.</summary>
     private const long StartingWallet = 0;
-    /// <summary>Raw ITM mass units: 20 Wreckage (200,000 each).</summary>
-    private const long CargoCapacity = 4_000_000;
     /// <summary>Repair rows have raw buy 0 (no dock cost); price = 10 credits per raw amount point.</summary>
     private const long RepairPricePerPoint = 10;
     /// <summary>Raw modifier f[42..44] read as thousandths of forward thrust / maximum speed / rotation speed.</summary>
@@ -33,7 +31,6 @@ public static class OriginalStationBuilder
     [
         "Position (90, 20), dock radius 150 world units.",
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
-        "Hold capacity 4,000,000 raw ITM mass units.",
         "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
         "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
@@ -94,7 +91,6 @@ public static class OriginalStationBuilder
             Y = StationY,
             DockRadius = DockRadius,
             StartingWallet = StartingWallet,
-            CargoCapacity = CargoCapacity,
             Goods = goods,
             Trades = trades,
             Repairs = repairs,

@@ -22,7 +22,7 @@ public sealed class KillRewardTests
 
     private static async Task<StationProfileSession> OpenAsync(IProfileRepository repo, KillRewardDefinition? reward = null)
     {
-        var session = new StationProfileSession(repo, LoadStation(), "starter_interceptor") { KillReward = reward ?? LoadReward() };
+        var session = new StationProfileSession(repo, LoadStation(), "starter_interceptor", TestCargo.Capacity) { KillReward = reward ?? LoadReward() };
         Assert.True((await session.OpenOrCreateAsync(Profile)).Succeeded);
         return session;
     }

@@ -78,6 +78,15 @@ public sealed class OriginalHullCatalogTests
     }
 
     [RequiresOriginalAssetsFact]
+    public void StarterShipHold_IsTheAspStopWeight()
+    {
+        // data/ships/starter_interceptor.json takes its hold cap from the Asp, the hull of RPG row 1 (NEW: StopWeight as the cap).
+        var asp = Catalog.Value.ByName("Asp");
+        Assert.Equal(new OriginalInt(48, 2500000, false), asp.StopWeight);
+        Assert.Equal(asp.StopWeight.Value, TestWorld.ExternalCatalog().Ship.Cargo.Capacity);
+    }
+
+    [RequiresOriginalAssetsFact]
     public void AspMatchesFieldInterpretationRawValues()
     {
         var asp = Catalog.Value.ByName("Asp");

@@ -43,6 +43,7 @@ public partial class GameClient : Node2D
     private bool _atRefinery;
     /// <summary>One id per WorldSimulation: pickup ids and mineral placement key on it, never on the sector instance (review R1-1).</summary>
     private string _worldInstanceId = "";
+    private int _smokeWorlds;
     private long _lastShipSaveTick;
     private const int ShipSaveIntervalTicks = WorldSimulation.TickRate * 10;
     private KillRewardDefinition _killReward = KillRewardDefinition.None;
@@ -51,6 +52,17 @@ public partial class GameClient : Node2D
     private readonly List<(string SectorInstanceId, TargetKill Kill)> _pendingKills = [];
     private long _nextKillRetryTick;
     private ulong _noticeExpiresMs;
+    // Sector state outlives every world (owner rule, Nov 2 2026): it is saved before any reward leaves it for a profile.
+    private SectorStateStore? _sectorStore;
+    private WorldSimulation? _sectorSavedWorld;
+    private int _sectorSavedPickups;
+    private int _sectorSavedKills;
+    private long _sectorSavedTick;
+    /// <summary>A sector save flushes about 90 KB to disk (median ~5 ms, worst cases tens of ms), so pickups and kills share at
+    /// most one save every half second; their rewards wait for it (review R1-3).</summary>
+    private const int SectorSaveIntervalTicks = WorldSimulation.TickRate / 2;
+    private IReadOnlyList<PendingPickupGrant> _otherPilotsPickups = [];
+    private IReadOnlyList<PendingKillGrant> _otherPilotsKills = [];
     private const ulong NoticeDurationMs = 5000;
 
     public override void _Ready()
@@ -63,7 +75,7 @@ public partial class GameClient : Node2D
                 ReadDefinition("weapons/plasma_cannon.json"),
                 ReadDefinition("sectors/first_contact.json"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
-            _cargo = _stationDefinition.CreateCargoCatalog();
+            _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
             _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
             var userArgs = OS.GetCmdlineUserArgs();
@@ -77,7 +89,7 @@ public partial class GameClient : Node2D
                 _profileRoot = _smokeProfileRoot;
             }
             OpenProfile();
-            _world = NewWorld(restoreSavedShip: true);
+            _world = NewWorld(restoreSavedShip: true, loadSector: true);
             _originals = OriginalSpriteLibrary.LoadIfAvailable();
             _view = new WorldView { Originals = _originals, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
@@ -289,9 +301,9 @@ public partial class GameClient : Node2D
 
     private void ResetSector()
     {
-        // A reset rebuilds the ship and the piles but keeps the target group as it was (destroyed targets stay down until the
-        // group's respawn timer runs out), so resetting is not a way to re-arm kill rewards.
-        _world = NewWorld(restoreSavedShip: false, carryTargetsFrom: _world);
+        // A reset only puts the player's ship back at the spawn. The sector itself (targets, their respawn timer, piles, mineral
+        // field) carries on exactly as it was, so resetting cannot re-arm kill rewards or refill cargo (owner rule, Nov 2 2026).
+        _world = NewWorld(restoreSavedShip: false, loadSector: false);
         _view.SetWorld(_world);
         _paused = false;
         _hud.SetMenuVisible(false);
@@ -316,7 +328,9 @@ public partial class GameClient : Node2D
         try
         {
             _repository = FileProfileRepository.Open(_profileRoot, new PersistenceOptions(), ProfileSchemaMigrations.BuiltIn);
-            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id) { KillReward = _killReward };
+            // The sector file shares the save folder's single-owner lock: a second client never reads or writes it.
+            _sectorStore = new SectorStateStore(_profileRoot);
+            var session = new StationProfileSession(_repository, _stationDefinition, _catalog.Ship.Id, _catalog.Ship.Cargo.Capacity) { KillReward = _killReward };
             var outcome = Await(session.OpenOrCreateAsync(LocalProfileId));
             _profileOutcome = outcome.Message;
             if (outcome.Succeeded) _session = session;
@@ -336,10 +350,21 @@ public partial class GameClient : Node2D
     public void ReopenProfileFromDisk()
     {
         if (_stationVisible) SetStationVisible(false); // undocking saves the ship; otherwise reopen exactly what is on disk
+        // What a quit does (see _ExitTree), then forget everything held in memory, as a relaunched process would.
+        CommitKills(force: true);
+        CommitPickups(force: true);
+        SaveSector();
+        // Drop the old world before the observers restart, so NewWorld's final commits cannot re-observe its pickups and kills
+        // from sequence 0 (review R1-2); everything owed comes back from the sector file instead.
+        _world = null!;
+        _pickups.StartNewWorld();
+        _pendingKills.Clear();
+        _killsSeen = 0;
         _repository?.Dispose();
         _repository = null;
+        _sectorStore = null;
         OpenProfile();
-        _world = NewWorld(restoreSavedShip: true);
+        _world = NewWorld(restoreSavedShip: true, loadSector: true);
         _view.SetWorld(_world);
     }
 
@@ -388,7 +413,7 @@ public partial class GameClient : Node2D
     private void CommitKills(bool force = false)
     {
         if (_world is null) return;
-        for (; _killsSeen < _world.Kills.Count; _killsSeen++) _pendingKills.Add((_sectorInstanceId, _world.Kills[_killsSeen]));
+        if (!SaveSectorIfChanged(force)) return; // a kill is paid only once the sector that lost the target is saved
         if (_session?.Profile is null || _pendingKills.Count == 0 || (!force && _world.TickNumber < _nextKillRetryTick)) return;
         while (_pendingKills.Count > 0)
         {
@@ -415,37 +440,59 @@ public partial class GameClient : Node2D
     public int PendingKillRewards => _pendingKills.Count;
     public string SectorInstanceId => _sectorInstanceId;
 
-    /// <param name="carryTargetsFrom">
-    /// When set (sector reset), the new world keeps that world's target group and the sector instance id stays the same, so
-    /// queued kills stay payable and already-paid targets cannot pay again. Otherwise (launch, reopen) a new instance starts.
-    /// </param>
-    private WorldSimulation NewWorld(bool restoreSavedShip, WorldSimulation? carryTargetsFrom = null)
+    /// <summary>
+    /// Builds a new world that continues the sector (owner rule, November 2, 2026: the world keeps its state for as long as the
+    /// server runs). A reset (<paramref name="loadSector"/> false) carries the live world's sector over; a launch or reopen
+    /// loads the saved sector from the save folder, lets the target respawn timer run for the real time that passed since it
+    /// was saved, and requeues the rewards that were taken from it but not yet saved to the profile. Only a save folder with
+    /// no sector file (or an unreadable one, which is quarantined) starts a fresh sector with a new sector instance id.
+    /// </summary>
+    private WorldSimulation NewWorld(bool restoreSavedShip, bool loadSector)
     {
-        // Give the outgoing world's unpaid kills and unsaved pickups one last try. Pickups are per world (review R1-1): whatever
-        // still fails to save is lost with that world, even when a reset keeps the sector instance.
+        // Give the outgoing world's unpaid kills and unsaved pickups one last try; whatever is still unsaved stays queued.
         CommitKills(force: true);
         CommitPickups(force: true);
-        WarnLostPickups(_pickups.StartNewWorld(), "could not be saved and were lost");
-        _nextPickupRetryTick = _nextPickupRetryTick == long.MaxValue ? long.MaxValue : 0;
-        _killsSeen = 0;
-        var lostKills = 0;
-        if (carryTargetsFrom is null)
+        SectorSnapshot? sector = null;
+        var offline = TimeSpan.Zero;
+        if (!loadSector && _world is not null) sector = _world.CaptureSector();
+        else if (LoadSector() is { } saved)
         {
-            // Whatever still fails is lost with the old sector instance.
-            lostKills = _pendingKills.Count;
-            _pendingKills.Clear();
-            _nextKillRetryTick = 0;
-            _sectorInstanceId = Guid.NewGuid().ToString("N");
+            sector = saved.Sector;
+            _sectorInstanceId = saved.SectorInstanceId;
+            offline = _sectorStore!.UtcNow - saved.SavedAtUtc;
+            _pickups.Restore(saved.PendingPickups.Where(p => p.ProfileId == LocalProfileId).Select(p => (p.WorldInstanceId, p.Pickup)));
+            foreach (var kill in saved.PendingKills.Where(k => k.ProfileId == LocalProfileId))
+                if (!_pendingKills.Contains((kill.SectorInstanceId, kill.Kill))) _pendingKills.Add((kill.SectorInstanceId, kill.Kill));
+            _otherPilotsPickups = saved.PendingPickups.Where(p => p.ProfileId != LocalProfileId).ToArray();
+            _otherPilotsKills = saved.PendingKills.Where(k => k.ProfileId != LocalProfileId).ToArray();
         }
-        if (lostKills > 0) Notice($"{lostKills} kill reward{(lostKills == 1 ? "" : "s")} could not be saved and {(lostKills == 1 ? "was" : "were")} lost.", warning: true);
+        else
+        {
+            _sectorInstanceId = Guid.NewGuid().ToString("N");
+            _otherPilotsPickups = [];
+            _otherPilotsKills = [];
+        }
+        _pickups.ContinueInNewWorld();
+        _nextPickupRetryTick = _nextPickupRetryTick == long.MaxValue ? long.MaxValue : 0;
+        _nextKillRetryTick = 0;
+        _killsSeen = 0;
         _playCatalog = EffectiveCatalog();
         _lastShipSaveTick = 0;
-        // Pickup ids and mineral placement key on a new id for every world, never on the sector instance a reset keeps (R1-1).
-        // NEW: mineral placement is reseeded for each world, so a reset lays the field out afresh.
-        _worldInstanceId = Guid.NewGuid().ToString("N");
-        var minerals = _minerals is null ? null : new MineralFieldCatalog(_minerals.Spawns, _minerals.Seed ^ (ulong)_worldInstanceId.GetHashCode(StringComparison.Ordinal));
-        var world = new WorldSimulation(_playCatalog, _cargo, AuthoritativeHold(), minerals: minerals);
-        if (carryTargetsFrom is not null) world.CarryTargetsFrom(carryTargetsFrom);
+        // Pickup ids key on a new id for every world, never on the sector instance (pickup sequences restart per world, R1-1).
+        // The id also seeds the mineral placement of a fresh sector; a continued sector keeps its own random state. The salt
+        // comes from the id's own bytes, so a logged world id replays its placement. Smoke runs number their worlds instead of
+        // drawing random ids, so every acceptance run lays the field out the same way.
+        var worldId = _smokeProfileRoot is null ? Guid.NewGuid() : SmokeWorldId(++_smokeWorlds);
+        _worldInstanceId = worldId.ToString("N");
+        var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
+        // The hold is the saved inventory plus the pickups still owed to the profile.
+        var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals);
+        if (sector is not null && !world.RestoreSector(sector))
+            Notice("The saved sector belongs to another sector and was not used.", warning: true);
+        // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
+        if (offline > TimeSpan.Zero) world.ElapseWithoutTicking((int)Math.Min(int.MaxValue, Math.Ceiling(offline.TotalSeconds * WorldSimulation.TickRate)));
+        _sectorSavedWorld = null;
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
             world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
         return world;
@@ -461,9 +508,78 @@ public partial class GameClient : Node2D
         _world.ApplyPlayerDefinition(_playCatalog.Ship);
     }
 
-    /// <summary>Saves hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds of flight).</summary>
+    /// <summary>The saved sector, or null (with a notice when it was unreadable) when the sector must start afresh.</summary>
+    private SectorStateDocument? LoadSector()
+    {
+        if (_sectorStore is null) return null;
+        try
+        {
+            var result = _sectorStore.Load(_catalog.Sector.Id);
+            if (result.Status is SectorStateLoadStatus.Corrupt or SectorStateLoadStatus.RecoveredFromBackup)
+            {
+                _profileStatus = $"{_profileStatus}\n{result.Message}";
+                Notice(result.Message, warning: true);
+            }
+            return result.Document;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Notice($"Sector state could not be read ({exception.Message}); the sector starts afresh.", warning: true);
+            return null;
+        }
+    }
+
+    /// <summary>Queues the pickups and kills the world recorded since the last call.</summary>
+    private void ObserveWorld()
+    {
+        _pickups.Observe(_worldInstanceId, _world.Pickups);
+        for (; _killsSeen < _world.Kills.Count; _killsSeen++) _pendingKills.Add((_sectorInstanceId, _world.Kills[_killsSeen]));
+    }
+
+    /// <summary>
+    /// Saves the sector when the world has recorded a pickup or kill since the last sector save. Rewards are granted only after
+    /// this returns true, so a crash between the two saves can neither refill the sector nor lose the reward (it is requeued
+    /// from the sector file). Without a save folder nothing can be granted, so there is nothing to protect.
+    /// </summary>
+    private bool SaveSectorIfChanged(bool force = false)
+    {
+        if (_world is null) return true;
+        ObserveWorld();
+        if (ReferenceEquals(_sectorSavedWorld, _world) && _sectorSavedPickups == _world.Pickups.Count && _sectorSavedKills == _world.Kills.Count)
+            return true;
+        // Coalesce: inside the interval the new rewards simply wait (they are in the hold and queued) for the next save.
+        if (!force && ReferenceEquals(_sectorSavedWorld, _world) && _world.TickNumber - _sectorSavedTick < SectorSaveIntervalTicks)
+            return false;
+        return SaveSector();
+    }
+
+    /// <summary>Writes the sector state (on every pickup and kill, pause, dock, undock, reset, quit and every ten seconds of flight).</summary>
+    private bool SaveSector()
+    {
+        if (_world is null || _sectorStore is null) return _sectorStore is null;
+        ObserveWorld();
+        try
+        {
+            _sectorStore.Save(new SectorStateDocument(_sectorInstanceId, _sectorStore.UtcNow, _world.CaptureSector(),
+                _otherPilotsPickups.Concat(_pickups.Pending.Select(p => new PendingPickupGrant(LocalProfileId, p.WorldInstanceId, p.Pickup))).ToArray(),
+                _otherPilotsKills.Concat(_pendingKills.Select(k => new PendingKillGrant(LocalProfileId, k.SectorInstanceId, k.Kill))).ToArray()));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _profileStatus = $"Sector state could not be saved ({exception.Message}); rewards wait until it is.";
+            return false;
+        }
+        _sectorSavedWorld = _world;
+        _sectorSavedPickups = _world.Pickups.Count;
+        _sectorSavedKills = _world.Kills.Count;
+        _sectorSavedTick = _world.TickNumber;
+        return true;
+    }
+
+    /// <summary>Saves the sector, then hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds of flight).</summary>
     public void SaveShip()
     {
+        SaveSector();
         if (_session?.Profile is null || _world is null) return;
         var player = _world.Player;
         var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading));
@@ -488,7 +604,7 @@ public partial class GameClient : Node2D
     private void CommitPickups(bool force = false)
     {
         if (_world is null) return;
-        _pickups.Observe(_worldInstanceId, _world.Pickups);
+        if (!SaveSectorIfChanged(force)) return; // cargo is granted only once the sector that lost the pile is saved
         if (_session?.Profile is null || _pickups.Count == 0 || _nextPickupRetryTick == long.MaxValue
             || (!force && _world.TickNumber < _nextPickupRetryTick)) return;
         var outcome = Await(_pickups.CommitAsync(_session));
@@ -514,6 +630,9 @@ public partial class GameClient : Node2D
 
     public int PendingPickups => _pickups.Count;
     public string WorldInstanceId => _worldInstanceId;
+
+    /// <summary>Fixed world ids for smoke runs; each smoke run uses a fresh profile, so they never repeat inside one save.</summary>
+    private static Guid SmokeWorldId(int number) => new(number, 0x534D, 0x4B45, 0, 0, 0, 0, 0, 0, 0, 0);
 
     /// <summary>Test hook: makes the next pickup commits fail as if the save folder were unavailable.</summary>
     public void SimulatePickupSaveFailure() => _nextPickupRetryTick = long.MaxValue;

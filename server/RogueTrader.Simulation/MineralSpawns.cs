@@ -20,12 +20,14 @@ namespace RogueTrader.Simulation;
 /// <param name="SucceedTicks">Ticks after a successful spawn before the next attempt.</param>
 /// <param name="ClearRadius">An attempt fails when the player's centre is within this distance of the chosen point (0 = never).</param>
 /// <param name="PileRadius">Pickup radius of each pile.</param>
+/// <param name="StartingPiles">Piles placed on the spawn's first attempt, capped at <paramref name="MaxPiles"/>; 0 or 1 places one.</param>
 public sealed record MineralSpawnDefinition(string Id, string ItemId, int Quantity, int MaxPiles, float X, float Y,
-    float Width, float Height, int AttemptTicks, int SucceedTicks, float ClearRadius, float PileRadius);
+    float Width, float Height, int AttemptTicks, int SucceedTicks, float ClearRadius, float PileRadius, int StartingPiles = 0);
 
 /// <summary>
 /// Mineral spawn areas for one sector, plus the seed of their placement. Omitted from the world, no minerals appear. The world
-/// attempts every spawn on its first tick, so a fresh sector starts stocked; afterwards each spawn follows its own delays.
+/// attempts every spawn on its first tick, placing its <see cref="MineralSpawnDefinition.StartingPiles"/>, so a fresh sector
+/// starts stocked; afterwards each spawn places one pile per attempt on its own delays.
 /// </summary>
 public sealed class MineralFieldCatalog
 {
@@ -39,6 +41,13 @@ public sealed class MineralFieldCatalog
     public IReadOnlyList<MineralSpawnDefinition> Spawns { get; }
     public ulong Seed { get; }
 
+    /// <summary>
+    /// This field reseeded for one world: <see cref="Seed"/> XOR <paramref name="worldSalt"/>. Callers pass a value that is
+    /// stable across processes (for example GUID bytes, never <c>string.GetHashCode</c>, which .NET randomizes per process),
+    /// so a logged world id or salt replays the same placement.
+    /// </summary>
+    public MineralFieldCatalog ForWorld(ulong worldSalt) => new(Spawns, Seed ^ worldSalt);
+
     public MineralFieldCatalog(IEnumerable<MineralSpawnDefinition> spawns, ulong seed)
     {
         ArgumentNullException.ThrowIfNull(spawns);
@@ -49,7 +58,7 @@ public sealed class MineralFieldCatalog
         {
             if (s is null || string.IsNullOrWhiteSpace(s.Id) || !ids.Add(s.Id) || string.IsNullOrWhiteSpace(s.ItemId))
                 throw new ArgumentException("Mineral spawns need unique ids and an item id.", nameof(spawns));
-            if (s.Quantity <= 0 || s.MaxPiles <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0)
+            if (s.Quantity <= 0 || s.MaxPiles <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0 || s.StartingPiles < 0)
                 throw new ArgumentException($"Mineral spawn '{s.Id}' needs positive quantity, pile limit and delays.", nameof(spawns));
             if (!float.IsFinite(s.X) || !float.IsFinite(s.Y) || !float.IsFinite(s.Width) || !float.IsFinite(s.Height)
                 || s.Width < 0 || s.Height < 0 || !float.IsFinite(s.ClearRadius) || s.ClearRadius < 0
@@ -88,6 +97,10 @@ public sealed partial class WorldSimulation
     private readonly List<CargoPickup> _pickups = [];
     private readonly MineralSpawnState[] _mineralSpawns;
     private ulong _mineralRandom;
+    // Ticks that passed without ticking (docked, paused, inspecting, or the game closed): mineral timers run on real time,
+    // so they count these too (owner rule, November 2, 2026). The mineral clock is TickNumber plus this.
+    private long _mineralIdleTicks;
+    private long MineralClock => TickNumber + _mineralIdleTicks;
 
     /// <summary>Every pickup in the order it happened, mineral and other piles alike.</summary>
     public IReadOnlyList<CargoPickup> Pickups => _pickups;
@@ -127,16 +140,55 @@ public sealed partial class WorldSimulation
     /// </summary>
     private void StepMineralSpawns()
     {
-        foreach (var spawn in _mineralSpawns)
+        foreach (var spawn in _mineralSpawns) AttemptMineral(spawn, MineralClock);
+    }
+
+    /// <summary>
+    /// Lets mineral spawns run through <paramref name="ticks"/> of time in which the world did not tick: every attempt that falls
+    /// due in that time happens, in time order per spawn, exactly as it would have in flight (the player stays where they are).
+    /// A spawn that is full skips straight past the attempts that would fail, so a long gap costs little.
+    /// </summary>
+    private void ElapseMineralSpawns(long ticks)
+    {
+        var end = checked(MineralClock + ticks);
+        // Spawns share one random state, so attempts run in the order ticks would run them: earliest due first, and spawns
+        // due on the same tick in catalog order.
+        while (true)
         {
-            if (TickNumber < spawn.NextAttemptTick) continue;
+            MineralSpawnState? next = null;
+            foreach (var spawn in _mineralSpawns)
+                if (spawn.NextAttemptTick <= end && (next is null || Due(spawn) < Due(next))) next = spawn;
+            if (next is null) break;
+            var at = Due(next);
+            var prefix = $"{MineralPilePrefix}{next.Definition.Id}:";
+            if (next.NextAttemptTick != 0 && _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal)) >= next.Definition.MaxPiles)
+            {
+                // Full, and nothing removes piles while the world is not ticking: every attempt until the end fails without
+                // touching the random state, so jump to the first one after it.
+                var step = next.Definition.AttemptTicks;
+                next.NextAttemptTick = checked(at + ((end - at) / step + 1) * step);
+                continue;
+            }
+            AttemptMineral(next, at);
+        }
+        _mineralIdleTicks = checked(_mineralIdleTicks + ticks);
+
+        // A spawn that has never attempted (timer 0) is due at once, as on the first tick.
+        long Due(MineralSpawnState spawn) => Math.Max(spawn.NextAttemptTick, MineralClock + (spawn.NextAttemptTick == 0 ? 1 : 0));
+    }
+
+    private void AttemptMineral(MineralSpawnState spawn, long now)
+    {
+        {
+            if (now < spawn.NextAttemptTick) return;
             var definition = spawn.Definition;
             var prefix = $"{MineralPilePrefix}{definition.Id}:";
             var alive = _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal));
-            if (alive < definition.MaxPiles && TryPlaceMineral(spawn, prefix))
-                spawn.NextAttemptTick = checked(TickNumber + definition.SucceedTicks);
-            else
-                spawn.NextAttemptTick = checked(TickNumber + definition.AttemptTicks);
+            // A spawn that has never attempted (timer still 0) stocks its starting piles; later attempts place one.
+            var wanted = spawn.NextAttemptTick == 0 ? Math.Max(1, definition.StartingPiles) : 1;
+            var placed = 0;
+            while (placed < wanted && alive + placed < definition.MaxPiles && TryPlaceMineral(spawn, prefix)) placed++;
+            spawn.NextAttemptTick = checked(now + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
         }
     }
 

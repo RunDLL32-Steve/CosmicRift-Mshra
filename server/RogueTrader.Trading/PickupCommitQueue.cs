@@ -48,6 +48,31 @@ public sealed class PickupCommitQueue
         return lost;
     }
 
+    /// <summary>
+    /// Starts observing a new world of the same sector while keeping the unsaved pickups of earlier worlds queued with their own
+    /// ids (the sector is kept, so those units are still owed to the player and cannot be picked up again).
+    /// </summary>
+    public void ContinueInNewWorld() => _seen = 0;
+
+    /// <summary>Unsaved pickups, oldest first, with the world each came from (written with the sector state).</summary>
+    public IReadOnlyList<(string WorldInstanceId, CargoPickup Pickup)> Pending => _pending.ToArray();
+
+    /// <summary>
+    /// Queues pickups recovered from a saved sector after a relaunch, behind any already queued and skipping exact repeats. Their
+    /// ids are unchanged, so one that reached the profile before the relaunch is recognised as a duplicate and granted once.
+    /// </summary>
+    public void Restore(IEnumerable<(string WorldInstanceId, CargoPickup Pickup)> pending)
+    {
+        ArgumentNullException.ThrowIfNull(pending);
+        foreach (var entry in pending)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(entry.WorldInstanceId);
+            ArgumentNullException.ThrowIfNull(entry.Pickup);
+            if (!_pending.Any(p => p.WorldInstanceId == entry.WorldInstanceId && p.Pickup.Sequence == entry.Pickup.Sequence))
+                _pending.Add(entry);
+        }
+    }
+
     /// <summary>Units held in the ship but not yet saved, by item (ordinal order).</summary>
     public IReadOnlyDictionary<string, int> PendingUnits()
     {

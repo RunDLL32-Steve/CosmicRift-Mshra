@@ -35,7 +35,7 @@ For v53, active [SpeedValues.Parse][speed] reads ten fields per terrain. The com
 | f[362]        | BouncePercent        |            727 | Native collision response and scale.                        |
 | f[373]        | HyperEnergyCost      |           1100 | Energy/time units and consumption event.                    |
 
-All16 terrain blocks must remain available. The canonical CFG sets `Isometric=0`; an emulator bot's assumption about isometric Y coordinates must not be imported as original overhead geometry.
+The field-by-field evidence table for these fields (units, terrains, the -1 reverse sentinel, counter-evidence) is [FLIGHT_FIELD_EVIDENCE.md](FLIGHT_FIELD_EVIDENCE.md) (queue G8, November 2, 2026). All16 terrain blocks must remain available. The canonical CFG sets `Isometric=0`; an emulator bot's assumption about isometric Y coordinates must not be imported as original overhead geometry.
 
 The original-coordinate contract is separate from the provisional prototype's meter/unit convention. Active `LvlInfo.getTileAt`/`Arena.getTerrain` divide native coordinates by16; LVL tile width1999/height1998, offsets3/3 and LIO coordinates are retained. This establishes the current parser/server tile stride; it does not prove the whole native rendering origin/extent/collision-height policy. A one-pixel-per-tile BMP overview is not an authoritative world collision mask by image inference.
 
@@ -70,7 +70,7 @@ The active [Projectile loader][projectile] maps f[54] fireDelay, f[94] inherited
 | 61 /1001 Disruptor Mine       |       400 |              0 |              0 |      6000 | maxLivePerPlayer3; anti recharge/fire/thrust/rotate150 each                                           |
 | 156 /1076 Disabler            |       450 |           1000 |           2000 |      2000 | antiThrust300, antiRotate0; description also names maneuver thrusters                                 |
 
-Searches of active `dotnetcore` source find inheritedSpeed/aliveTime declared and parsed, but no complete native projectile-motion/sentinel evaluator. Do not turn -550 into a negative percentage or -65 into a negative TTL. Native projectile defaults, weighted inheritance, trigger conditions and lifetime modes remain open even though their actual source numbers are available.
+Searches of active `dotnetcore` source find inheritedSpeed/aliveTime declared and parsed, but no complete native projectile-motion/sentinel evaluator. Do not turn -550 into a negative percentage or -65 into a negative TTL. Native projectile defaults, weighted inheritance, trigger conditions and lifetime modes remain open even though their actual source numbers are available. The [G5 value audit](G5_WEAPON_VALUE_AUDIT.md) records every negative f[94]/f[110] row, the ammo records, the trigger/lifetime fields and the type-8 entry fields (upstream deltaX/deltaY/deltaZ/deltaAngle/multiLinkMode) with their open questions.
 
 Current emulator [WeaponController][weapon] multiplies fireDelay/reloadDelay by10 for bot millisecond scheduling and divides muzzleVelocity by1000 for integer lead aiming. These are **current bot behavior**. A candidate Plasma Cannon interval250ms follows that reference, not validated original player firing. Track field/raw value, candidate conversion, evaluator provenance and native acceptance separately.
 
