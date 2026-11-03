@@ -19,6 +19,7 @@ public sealed class StationPriceTable : IPriceSource
     private readonly Dictionary<(string Station, string Upgrade), long> _upgrade = new();
     private readonly Dictionary<(string Station, string Repair), long> _repair = new();
     private readonly Dictionary<(string Station, string Hull), long> _ship = new();
+    private readonly Dictionary<(string Station, string Hull), IReadOnlyCollection<string>> _shipRequirement = new();
     private readonly Dictionary<(string Station, string Recipe), (string Input, string Output)> _refine = new();
 
     /// <summary>
@@ -95,6 +96,28 @@ public sealed class StationPriceTable : IPriceSource
 
     public bool TryGetShipPrice(string stationId, string hullId, out long price) =>
         _ship.TryGetValue((stationId, hullId), out price);
+
+    public bool TryGetShipRequirement(string stationId, string hullId, out IReadOnlyCollection<string> requiresOneOf)
+    {
+        var found = _shipRequirement.TryGetValue((stationId, hullId), out var hulls);
+        requiresOneOf = hulls ?? [];
+        return found;
+    }
+
+    /// <summary>Adds "must own one of" hull requirements at every station of this table; a repeated or empty entry is refused.</summary>
+    public StationPriceTable WithShipRequirements(IEnumerable<(string HullId, IReadOnlyCollection<string> RequiresOneOf)> requirements)
+    {
+        ArgumentNullException.ThrowIfNull(requirements);
+        var batch = requirements.ToArray();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (hull, anyOf) in batch)
+            if (string.IsNullOrEmpty(hull) || anyOf is null || anyOf.Count == 0 || anyOf.Any(string.IsNullOrEmpty) || !seen.Add(hull))
+                throw new ArgumentException($"Invalid or duplicate ship requirement for '{hull}'.", nameof(requirements));
+        foreach (var (hull, anyOf) in batch)
+            foreach (var station in _stationIds)
+                _shipRequirement[(station, hull)] = anyOf.ToArray();
+        return this;
+    }
 
     public bool TryGetRepairPrice(string stationId, string repairId, out long price) =>
         _repair.TryGetValue((stationId, repairId), out price);

@@ -23,6 +23,7 @@ public sealed class OwnedShipSessionTests
     {
         var json = JsonNode.Parse(File.ReadAllText(DataFile("stations", "trading_outpost.json")))!.AsObject();
         json["startingWallet"] = 1000; // NEW test fixture wallet (the shipped outpost starts pilots at 0)
+        // Replaces the shipped original hulls with one NEW fixture hull that has no requirement.
         json["ships"] = new JsonArray(new JsonObject { ["hullId"] = SecondHull, ["name"] = "Fixture Hull", ["price"] = 900, ["source"] = "NEW test fixture" });
         return StationDefinition.FromJson(json.ToJsonString());
     }
@@ -38,7 +39,8 @@ public sealed class OwnedShipSessionTests
     public void TheShippedRosterFliesTheStarterAndEveryDefinitionMatchesItsHull()
     {
         var roster = ShipRoster.FromJson(File.ReadAllText(DataFile("ships", "roster.json")));
-        Assert.Equal(Starter, roster.StarterHullId);
+        Assert.Equal("2002", roster.StarterHullId); // the original Asp
+        Assert.NotNull(roster.Find(Starter));       // older saves keep flying the Interceptor
         foreach (var entry in roster.Ships)
         {
             var catalog = GameCatalog.FromJson(File.ReadAllText(DataFile("ships", entry.Definition)),
@@ -57,13 +59,15 @@ public sealed class OwnedShipSessionTests
         Assert.ThrowsAny<Exception>(() => ShipRoster.FromJson(json));
 
     [Fact]
-    public void TheShippedStationSellsNoHullsAndKeepsItsDerivedJsonUnchanged()
+    public void TheShippedStationRoundTripsItsHullsAndPrices()
     {
         var text = File.ReadAllText(DataFile("stations", "trading_outpost.json"));
         var station = StationDefinition.FromJson(text);
-        Assert.Null(station.Ships);
         Assert.Equal(text.ReplaceLineEndings("\n"), station.ToJson());
-        Assert.False(station.CreatePriceTable().TryGetShipPrice(station.StationId, Starter, out _));
+        Assert.Equal(12, station.Ships!.Count);
+        var table = station.CreatePriceTable();
+        Assert.All(station.Ships, s => Assert.True(table.TryGetShipPrice(station.StationId, s.HullId, out var p) && p == s.Price));
+        Assert.False(table.TryGetShipPrice(station.StationId, Starter, out _)); // the Interceptor is not sold
     }
 
     [Fact]

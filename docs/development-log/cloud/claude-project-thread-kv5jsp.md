@@ -8,4 +8,6 @@ Files: `server/RogueTrader.Persistence` (schema 6, migration, pre-migration copy
 
 Verified in the cloud: `dotnet test tests/Unit` and `tests/Integration` pass (original-asset tests skip without the pinned assets). Godot smoke: see the PR.
 
-Resume point: add the 12 original hulls (ITM rows 181-192) to the roster with `OriginalShipPhysics.From(hull)` once G10 merges.
+Part 2 (stacked on G10, #114): the 12 original hulls derived by `OriginalShipBuilder` into `data/ships/original_*.json` and `roster.json`, plus 12 hull exchanges on the Trading Outpost (`trading_outpost.json` regenerated) with the original same-race rule. Godot headless smoke passes, including the picker, the destruction cost and the Ship Hulls page.
+
+Resume point: after #114 merges, merge main. Open questions for Steve: decoding radius, shield and energy, per-race starting weapons, and whether to convert an old Interceptor into an Asp.

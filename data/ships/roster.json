@@ -1,9 +1,57 @@
 {
-    "starterHullId": "starter_interceptor",
-    "ships": [
-        {
-            "hullId": "starter_interceptor",
-            "definition": "starter_interceptor.json"
-        }
-    ]
+  "starterHullId": "2002",
+  "ships": [
+    {
+      "hullId": "2002",
+      "definition": "original_asp.json"
+    },
+    {
+      "hullId": "2011",
+      "definition": "original_excelsior.json"
+    },
+    {
+      "hullId": "2012",
+      "definition": "original_ravager.json"
+    },
+    {
+      "hullId": "2000",
+      "definition": "original_hornet.json"
+    },
+    {
+      "hullId": "2001",
+      "definition": "original_skithist.json"
+    },
+    {
+      "hullId": "2004",
+      "definition": "original_mastakith.json"
+    },
+    {
+      "hullId": "2010",
+      "definition": "original_tarthist.json"
+    },
+    {
+      "hullId": "2003",
+      "definition": "original_kragath.json"
+    },
+    {
+      "hullId": "2005",
+      "definition": "original_rak_kir.json"
+    },
+    {
+      "hullId": "2006",
+      "definition": "original_rip_pir.json"
+    },
+    {
+      "hullId": "2008",
+      "definition": "original_zap_pir.json"
+    },
+    {
+      "hullId": "2009",
+      "definition": "original_zag_gir.json"
+    },
+    {
+      "hullId": "starter_interceptor",
+      "definition": "starter_interceptor.json"
+    }
+  ]
 }

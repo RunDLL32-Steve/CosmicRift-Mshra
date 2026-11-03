@@ -126,6 +126,8 @@ public partial class GameClient : Node2D
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
+            _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
+                $"Bought the {_stationDefinition.NameOf(hull)}. It waits in your hangar; choose it in the ship picker when the game loads.");
             _stationScreen.CloseRequested += () => SetStationVisible(false);
             AddChild(_stationScreen);
             _hud.SetOriginalContentAvailable(_originals is not null);
@@ -837,6 +839,8 @@ public partial class GameClient : Node2D
         RejectionReason.NotForSale => "not traded here.",
         RejectionReason.UpgradeHasNoEffect => "this upgrade has no effect yet; nothing was charged.",
         RejectionReason.UpgradeSlotHeld => "an installed upgrade already holds that slot; nothing was charged.",
+        RejectionReason.ShipAlreadyOwned => "you already own that hull.",
+        RejectionReason.ShipRequirementNotMet => "you need a hull of the same race first.",
         RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };

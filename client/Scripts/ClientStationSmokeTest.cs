@@ -233,6 +233,20 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(client.Station.StatusText.Contains("not enough credits"), $"The refusal must be explained, got '{client.Station.StatusText}'.");
             GD.Print($"STATION SMOKE PASS: {upgrade.Name} bought at its original price and its effect applied; unaffordable purchase refused");
 
+            // Ship Hulls page: the twelve original exchanges at their original price, open only to a pilot of the same race.
+            var hulls = station.Ships ?? throw new InvalidOperationException("The shipped station must sell the original hulls.");
+            var active = session.Profile!.ShipHullId!;
+            var sameRace = hulls.First(h => h.HullId != active && h.RequiresOneOf!.Contains(active));
+            var otherRace = hulls.First(h => !h.RequiresOneOf!.Any(session.Profile.OwnedShips.ContainsKey));
+            Require(hulls.Count == 12 && FindAction($"ship:{active}").Disabled && FindAction($"ship:{otherRace.HullId}").Disabled
+                && !FindAction($"ship:{sameRace.HullId}").Disabled,
+                "The Ship Hulls page must list 12 hulls, mark the owned one and close hulls of another race.");
+            beforeRefusal = session.Profile;
+            Press($"ship:{sameRace.HullId}");
+            Require(sameRace.Price > beforeRefusal.Wallet && ReferenceEquals(beforeRefusal, session.Profile) && client.Station.StatusText.Contains("not enough credits"),
+                $"An unaffordable hull must be refused and change nothing, got '{client.Station.StatusText}'.");
+            GD.Print($"STATION SMOKE PASS: the Ship Hulls page sells the original hulls at {sameRace.Price:N0} credits to a same-race pilot only");
+
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();

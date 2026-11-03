@@ -38,7 +38,11 @@ public sealed record StationRepair(string Id, string Name, long Price, float Hul
 /// A hull the station sells (schema 6 owned ships). A player owns at most one of each; <see cref="Source"/> says where the
 /// price comes from. <see cref="HullId"/> must name a ship definition the client can fly.
 /// </summary>
-public sealed record StationShip(string HullId, string Name, long Price, string? Source = null);
+public sealed record StationShip(string HullId, string Name, long Price, string? Source = null)
+{
+    /// <summary>The buyer must already own one of these hulls (the original same-race exchange rule); null means no requirement.</summary>
+    public IReadOnlyList<string>? RequiresOneOf { get; init; }
+}
 
 /// <summary>
 /// Provisional effect of one upgrade, as fractions of the base ship value (0.1 = +10%) except <see cref="MaximumHull"/>
@@ -116,6 +120,7 @@ public sealed class StationDefinition
             .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)))
             .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)))
             .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)))
+            .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)))
             .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
 
     public long? SellPrice(string itemId) =>

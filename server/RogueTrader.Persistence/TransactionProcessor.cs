@@ -470,6 +470,8 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     if (c.OwnedShips.ContainsKey(q.ItemId!)) return RejectionReason.ShipAlreadyOwned;
                     if (!_prices.TryGetShipPrice(q.Place!, q.ItemId!, out var price)) return RejectionReason.NotForSale;
                     if (price < 0) return RejectionReason.InvalidPrice;
+                    if (_prices.TryGetShipRequirement(q.Place!, q.ItemId!, out var requiresOneOf) && !requiresOneOf.Any(c.OwnedShips.ContainsKey))
+                        return RejectionReason.ShipRequirementNotMet;
                     if (c.Wallet < price) return RejectionReason.InsufficientFunds;
                     // A new hull waits at the spawn with a full hull. A player with no ship at all starts flying it.
                     owned = owned.Add(q.ItemId!, null);

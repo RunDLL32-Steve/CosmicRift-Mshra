@@ -27,4 +27,11 @@ public interface IPriceSource
         price = 0;
         return false;
     }
+
+    /// <summary>Hulls of which the buyer must already own one to buy this hull here; false means no requirement.</summary>
+    bool TryGetShipRequirement(string stationId, string hullId, out IReadOnlyCollection<string> requiresOneOf)
+    {
+        requiresOneOf = [];
+        return false;
+    }
 }

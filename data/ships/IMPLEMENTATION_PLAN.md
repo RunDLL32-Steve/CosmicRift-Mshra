@@ -8,6 +8,10 @@ One NEW Interceptor engineering fixture in `starter_interceptor.json`. The Godot
 
 Evidence: M0/M1 historical 41-unit-case and source/export acceptance; current JSON matches the [balance ledger](../../docs/balance/PROVISIONAL_VALUES.md).
 
+## Original hulls (owned ships, November 3, 2026)
+
+`original_*.json` and `roster.json` are derived by `OriginalShipBuilder` from the pinned originals (oracle `tests/Unit/Trading/OriginalShipTests.cs`); regenerate, never hand-edit. Each file lists its placeholders in `newValues`. The Interceptor stays on the roster for saves that own it; new pilots start in the Asp.
+
 ## Next and parity boundary
 
 -   [ ] **Deferred replacement until validated original route:** Preserve this accepted fixture while native compatibility is evaluated; validate all twelve original hulls and exchanges in the canonical queue.

@@ -48,7 +48,8 @@ public static class OriginalStationBuilder
         var items = OriginalItemCatalog.Load(assetsRoot);
         var veh = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, PinnedAssets.Veh), PinnedAssets.Veh.RelativePath);
         var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
-        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items));
+        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items),
+            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items));
     }
 
     /// <summary>The refinery: name and recipes from VEH id 400, position from the first LIO type 5 row that places actor -400.</summary>
@@ -66,7 +67,7 @@ public static class OriginalStationBuilder
     }
 
     public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName,
-        RefineryDefinition? refinery = null)
+        RefineryDefinition? refinery = null, IReadOnlyList<StationShip>? ships = null)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(recipes);
@@ -102,6 +103,7 @@ public static class OriginalStationBuilder
                 new CollectibleSpawn("pile_tellerium_south", Key(2004), 6, 40, 160, 14),
             ],
             Refinery = refinery,
+            Ships = ships,
         };
     }
 

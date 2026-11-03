@@ -21,4 +21,6 @@ public enum RejectionReason
     ShipNotOwned,
     /// <summary>The destroyed hull is not the ship the player is flying, so no penalty is taken.</summary>
     ShipNotActive,
+    /// <summary>The hull can only be bought by a player who already owns one of the hulls it requires (original same-race rule).</summary>
+    ShipRequirementNotMet,
 }
