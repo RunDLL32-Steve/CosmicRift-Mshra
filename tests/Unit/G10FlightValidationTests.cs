@@ -118,6 +118,32 @@ public sealed class G10FlightValidationTests
         Assert.Equal(OriginalShipPhysics.FireIntervalSeconds(OriginalProjectile.Of(Items.Value.ById(1004))), catalog.Weapon.CooldownSeconds);
     }
 
+    // name, top speed px/s, forward = reverse acceleration px/s², turn deg/s (from the G8 raw oracle through the emulator units)
+    [RequiresOriginalAssetsTheory]
+    [InlineData("Asp", 325.0, 168.7, 207.0)]
+    [InlineData("Excelsior", 357.5, 168.7, 207.0)]
+    [InlineData("Ravager", 325.0, 157.5, 207.0)]
+    [InlineData("Hornet", 325.0, 187.5, 248.4)]
+    [InlineData("Skithist", 335.0, 168.7, 207.0)]
+    [InlineData("Mastakith", 325.0, 168.7, 269.1)]
+    [InlineData("Tarthist", 325.0, 168.7, 207.0)]
+    [InlineData("Kragath", 325.0, 157.5, 207.0)]
+    [InlineData("Rak'Kir", 325.0, 187.5, 240.0)]
+    [InlineData("Rip'Pir", 330.0, 168.7, 207.0)]
+    [InlineData("Zap'Pir", 325.0, 157.5, 207.0)]
+    [InlineData("Zag'Gir", 335.0, 168.7, 207.0)]
+    public void EveryOriginalHullHasItsOwnPhysics(string name, double top, double acceleration, double turnDegrees)
+    {
+        var all = OriginalShipPhysics.All(Hulls.Value);
+        Assert.Equal(12, all.Count);
+        var physics = all[name];
+        Assert.Equal(top, physics.MaximumSpeed, 3);
+        Assert.Equal(acceleration, physics.ForwardThrust / physics.Mass, 3);
+        Assert.Equal(physics.ForwardThrust, physics.ReverseThrust);
+        Assert.Equal(turnDegrees, physics.RotationSpeed * 180 / Math.PI, 1);
+        Assert.Equal(0.727f, physics.AsteroidRestitution);
+    }
+
     [Fact]
     public void PrototypeSectorCrossingTimeUsesTheMineralFieldScale()
     {

@@ -30,6 +30,13 @@ public static class OriginalShipPhysics
         };
     }
 
+    /// <summary>Every original hull's physics, keyed by hull name (the twelve selectable hulls).</summary>
+    public static IReadOnlyDictionary<string, ShipPhysics> All(OriginalHullCatalog hulls)
+    {
+        ArgumentNullException.ThrowIfNull(hulls);
+        return hulls.Hulls.ToDictionary(h => h.Name, From);
+    }
+
     /// <summary>
     /// Seconds between shots for a projectile's fireDelay, read as 10 ms units (the emulator's <c>fireDelay × 10</c> ms in
     /// <c>Vehicle.Computer.cs</c>; RECONSTRUCTED, one live path).
