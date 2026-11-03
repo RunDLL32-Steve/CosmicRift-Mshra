@@ -67,6 +67,8 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var killedTarget = readWorld().Kills[0].TargetId;
             var instanceBeforeReset = client.SectorInstanceId;
             var worldBeforeReset = client.WorldInstanceId;
+            var damaged = readWorld().Player.Definition.Defense.MaximumHull - 15;
+            readWorld().RestorePlayer(readWorld().Player.Position, readWorld().Player.Heading, damaged);
             resetSector();
             await nextPhysicsFrame();
             Require(client.WorldInstanceId != worldBeforeReset,
@@ -74,7 +76,10 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(readWorld().Targets.Single(t => t.Id == killedTarget).IsDestroyed && client.SectorInstanceId == instanceBeforeReset,
                 "A sector reset must keep destroyed targets down and keep the sector instance, so the kill cannot pay again.");
             Require(session.Profile!.Wallet == walletBeforeKill + reward, "A sector reset must not pay any kill again.");
-            GD.Print("STATION SMOKE PASS: a sector reset keeps the destroyed target down and pays nothing again");
+            Require(Math.Abs(readWorld().Player.Hull - damaged) < 0.01f && session.Profile.Ship is { } resetShip && Math.Abs(resetShip.Hull - damaged) < 0.01f,
+                $"A sector reset must keep the ship's hull damage (Steve, Nov 3 2026), got {readWorld().Player.Hull}.");
+            readWorld().RestorePlayer(readWorld().Player.Position, readWorld().Player.Heading, readWorld().Player.Definition.Defense.MaximumHull);
+            GD.Print("STATION SMOKE PASS: a sector reset keeps the destroyed target down, keeps hull damage and pays nothing again");
 
             // Mining (queue M7 slice): fly onto an original Tellerium spawn's pile while saving fails, reload, then let it save.
             resetSector();

@@ -303,7 +303,11 @@ public partial class GameClient : Node2D
     {
         // A reset only puts the player's ship back at the spawn. The sector itself (targets, their respawn timer, piles, mineral
         // field) carries on exactly as it was, so resetting cannot re-arm kill rewards or refill cargo (owner rule, Nov 2 2026).
+        // The ship keeps its hull damage too, so a reset is not a free repair (Steve, Nov 3 2026). A destroyed ship (hull 0)
+        // still respawns with a full hull, as before (NEW/provisional).
+        var hull = _world.Player.IsDestroyed ? 0 : _world.Player.Hull;
         _world = NewWorld(restoreSavedShip: false, loadSector: false);
+        if (hull > 0) _world.RestorePlayer(_world.Player.Position, _world.Player.Heading, hull);
         _view.SetWorld(_world);
         _paused = false;
         _hud.SetMenuVisible(false);
