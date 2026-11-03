@@ -6,8 +6,11 @@ namespace RogueTrader.Simulation;
 public sealed record TargetSnapshot(string Id, float Hull, float Shield, string? LastDamagedByShipId = null,
     string? DestroyedByShipId = null, string? LastDamageWeaponId = null);
 
-/// <summary>One pile still lying in space in a <see cref="SectorSnapshot"/>.</summary>
-public sealed record PileSnapshot(string Id, string ItemId, int Quantity, float X, float Y, float Radius);
+/// <summary>
+/// One pile still lying in space in a <see cref="SectorSnapshot"/>. <paramref name="ExpiresInTicks"/> is the time left before an
+/// unpicked mineral drop vanishes; null for a pile that never expires.
+/// </summary>
+public sealed record PileSnapshot(string Id, string ItemId, int Quantity, float X, float Y, float Radius, long? ExpiresInTicks = null);
 
 /// <summary>
 /// One mineral spawn's timer in a <see cref="SectorSnapshot"/>. <paramref name="TicksUntilAttempt"/> is 0 only for a spawn that
@@ -46,7 +49,8 @@ public sealed partial class WorldSimulation
         TargetWave,
         TargetRespawnTick is { } at ? Math.Max(1, at - TickNumber) : null,
         Targets.Select(t => new TargetSnapshot(t.Id, t.Hull, t.Shield, t.LastDamagedByShipId, t.DestroyedByShipId, t.LastDamageWeaponId)).ToArray(),
-        _collectibles.Select(p => new PileSnapshot(p.Id, p.ItemId, p.Quantity, p.Position.X, p.Position.Y, p.Radius)).ToArray(),
+        _collectibles.Select(p => new PileSnapshot(p.Id, p.ItemId, p.Quantity, p.Position.X, p.Position.Y, p.Radius,
+            p.ExpiresAt is { } at ? Math.Max(1, at - MineralClock) : null)).ToArray(),
         _mineralSpawns.Select(s => new MineralSpawnSnapshot(s.Definition.Id,
             s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - MineralClock), s.Placed)).ToArray(),
         _mineralRandom,
@@ -95,7 +99,10 @@ public sealed partial class WorldSimulation
                 || _collectibles.Any(p => p.Id == pile.Id))
                 continue;
             _collectibleIds.Add(pile.Id);
-            _collectibles.Add(new CollectibleState(new CollectibleSpawn(pile.Id, pile.ItemId!, pile.Quantity, pile.X, pile.Y, pile.Radius)));
+            _collectibles.Add(new CollectibleState(new CollectibleSpawn(pile.Id, pile.ItemId!, pile.Quantity, pile.X, pile.Y, pile.Radius))
+            {
+                ExpiresAt = RestoredExpiry(pile),
+            });
         }
 
         var spawns = (snapshot.MineralSpawns ?? []).Where(s => s is not null).GroupBy(s => s.Id, StringComparer.Ordinal)
@@ -116,6 +123,21 @@ public sealed partial class WorldSimulation
         NextMiningPileId = Math.Max(NextMiningPileId, snapshot.NextMiningPileId);
         NextMineTick = Math.Max(0, snapshot.TicksUntilNextMine);
         return true;
+    }
+
+    /// <summary>
+    /// When a restored pile expires. A mineral drop saved before drops expired (no expiry in the snapshot) gets its spawn's full
+    /// life from now, so a field saved under the older, much larger limits drains back to the original ones.
+    /// </summary>
+    private long? RestoredExpiry(PileSnapshot pile)
+    {
+        if (pile.ExpiresInTicks is > 0 and var left) return checked(MineralClock + left);
+        if (!pile.Id.StartsWith(MineralPilePrefix, StringComparison.Ordinal)) return null;
+        var rest = pile.Id[MineralPilePrefix.Length..];
+        var colon = rest.LastIndexOf(':');
+        var spawnId = colon < 0 ? rest : rest[..colon];
+        var life = _mineralSpawns.FirstOrDefault(s => s.Definition.Id == spawnId)?.Definition.ExpireTicks ?? 0;
+        return life > 0 ? checked(MineralClock + life) : null;
     }
 
     private static float Finite(float value, float minimum, float maximum) =>
