@@ -213,7 +213,7 @@ public sealed class ConductTests
         var decoded = ProfileSerializer.Decode(System.Text.Encoding.UTF8.GetBytes(envelope.ToJsonString()), Array.Empty<IProfileMigration>());
 
         Assert.True(decoded.Succeeded);
-        Assert.Equal(5, decoded.Profile!.SchemaVersion);
+        Assert.Equal(PlayerProfile.CurrentSchemaVersion, decoded.Profile!.SchemaVersion);
         Assert.Equal(0, decoded.Profile.Bounty);
         Assert.Empty(decoded.Profile.Reputation);
         Assert.Contains(decoded.Diagnostics, d => d.Code == DiagnosticCode.MigrationApplied);

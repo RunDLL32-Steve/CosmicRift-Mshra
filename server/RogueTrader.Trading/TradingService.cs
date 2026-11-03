@@ -45,4 +45,10 @@ public sealed class TradingService(ITransactionProcessor processor, StationDirec
         ArgumentNullException.ThrowIfNull(request);
         return _processor.BuyUpgradeAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
     }
+
+    public Task<TransactionResult> BuyShipAsync(string authenticatedProfileId, float shipX, float shipY, BuyShipRequest request, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return _processor.BuyShipAsync(new TransactionContext(authenticatedProfileId, _stations.IsDocked(request.StationId, shipX, shipY)), request, ct);
+    }
 }

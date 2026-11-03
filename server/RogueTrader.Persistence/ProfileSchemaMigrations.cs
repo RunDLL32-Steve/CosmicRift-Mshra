@@ -31,7 +31,23 @@ public static class ProfileSchemaMigrations
     /// </summary>
     public static IProfileMigration V4ToV5 { get; } = new Step(4, static p => (JsonObject)p.DeepClone());
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5];
+    /// <summary>
+    /// Schema 6 adds <c>ownedShips</c> (one of each hull, Steve, Nov 3 2026) and the <c>BuyShip</c> and <c>ShipDestroyed</c> kinds.
+    /// Every existing field is carried over unchanged: the hull a schema 5 profile flies becomes its only owned ship, still active,
+    /// and its saved condition stays in <c>ship</c>. A profile with no hull owns no ship. The file on disk is not touched here;
+    /// the repository keeps a copy of the pre-migration file before the first save at the new version.
+    /// </summary>
+    public static IProfileMigration V5ToV6 { get; } = new Step(5, static p =>
+    {
+        var next = (JsonObject)p.DeepClone();
+        var owned = new JsonObject();
+        if (next["shipHullId"] is JsonValue hull && hull.TryGetValue<string>(out var hullId) && hullId.Length > 0)
+            owned[hullId] = null;
+        next["ownedShips"] = owned;
+        return next;
+    });
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5, V5ToV6];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {

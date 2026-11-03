@@ -100,6 +100,7 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
             if (decoded.Succeeded)
             {
                 diagnostics.AddRange(WithPath(decoded.Diagnostics, primary));
+                PreserveBeforeMigration(primary, id, decoded, diagnostics);
                 if (IdentityMismatch(decoded.Profile!, id, primary, diagnostics))
                     return new ProfileLoadResult(ProfileLoadStatus.Corrupt, null, diagnostics);
                 _coordinator.SetTracked(id, decoded.Profile!.Revision);
@@ -125,6 +126,7 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
                 var profile = decoded.Profile!;
                 if (IdentityMismatch(profile, id, backup, diagnostics))
                     return new ProfileLoadResult(ProfileLoadStatus.Corrupt, null, diagnostics);
+                PreserveBeforeMigration(backup, id, decoded, diagnostics);
                 try { WriteAtomic(id, ProfileSerializer.Serialize(profile)); }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -182,6 +184,36 @@ public sealed class FileProfileRepository : IProfileRepository, IDisposable
         diagnostics.Add(new PersistenceDiagnostic(DiagnosticCode.InvariantViolation,
             $"The file holds profile '{profile.ProfileId}', not '{requestedId}'; it was left untouched.", path));
         return true;
+    }
+
+    /// <summary>
+    /// Keeps a byte-for-byte copy of a save written by an older schema before anything is written at the current one, as
+    /// <c>&lt;id&gt;.profile.schema&lt;N&gt;.json</c> next to the save. An existing copy is never overwritten, so the first
+    /// pre-migration file of each schema survives every later save. Failing to copy is reported, never fatal: the migration
+    /// itself loses nothing, and the backup generation still holds the old file after the first save.
+    /// </summary>
+    private void PreserveBeforeMigration(string source, string id, ProfileDecodeResult decoded, List<PersistenceDiagnostic> diagnostics)
+    {
+        if (!decoded.Diagnostics.Any(d => d.Code == DiagnosticCode.MigrationApplied)) return;
+        try
+        {
+            var bytes = File.ReadAllBytes(source);
+            using var doc = System.Text.Json.JsonDocument.Parse(bytes);
+            var version = doc.RootElement.GetProperty("schemaVersion").GetInt32();
+            var copy = Path.Combine(_root, $"{id}.profile.schema{version.ToString(CultureInfo.InvariantCulture)}.json");
+            if (File.Exists(copy)) return;
+            var temp = copy + ".tmp";
+            using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
+            {
+                stream.Write(bytes);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temp, copy);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException or FormatException)
+        {
+            diagnostics.Add(new PersistenceDiagnostic(DiagnosticCode.IoFailure, "Could not keep a copy of the pre-migration save: " + ex.Message, source));
+        }
     }
 
     private ProfileDecodeResult ReadAndDecode(string path) => ProfileSerializer.Decode(File.ReadAllBytes(path), _migrations);

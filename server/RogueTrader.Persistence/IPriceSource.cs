@@ -20,4 +20,11 @@ public interface IPriceSource
         inputItemId = outputItemId = "";
         return false;
     }
+
+    /// <summary>Price of one hull at this station (schema 6); false means the hull is not sold here. Not sold unless a source overrides it.</summary>
+    bool TryGetShipPrice(string stationId, string hullId, out long price)
+    {
+        price = 0;
+        return false;
+    }
 }

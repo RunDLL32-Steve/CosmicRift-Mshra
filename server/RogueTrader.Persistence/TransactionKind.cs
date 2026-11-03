@@ -1,3 +1,3 @@
 namespace RogueTrader.Persistence;
 
-public enum TransactionKind { Buy, Sell, BuyUpgrade, GrantReward, Repair, Refine, RecordConduct }
+public enum TransactionKind { Buy, Sell, BuyUpgrade, GrantReward, Repair, Refine, RecordConduct, BuyShip, ShipDestroyed }

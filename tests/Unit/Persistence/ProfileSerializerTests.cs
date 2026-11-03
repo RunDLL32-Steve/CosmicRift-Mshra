@@ -27,6 +27,9 @@ public sealed class ProfileSerializerTests
             Inventory = Env.Items((Fx.OreA, 3), (Fx.OddItem, 7)),
             Upgrades = ImmutableSortedSet.Create(StringComparer.Ordinal, Fx.UpgradeX, Fx.UpgradeY),
             ShipHullId = Fx.Hull,
+            Ship = new ShipCondition(42.5f, 10, -20, 1.25f),
+            OwnedShips = ImmutableSortedDictionary.Create<string, ShipCondition?>(StringComparer.Ordinal)
+                .Add(Fx.Hull, null).Add("fixture-hull-2", new ShipCondition(7, 300, 400, -0.5f)).Add("fixture-hull-3", null),
             AppliedTransactions = ImmutableList.Create(applied, upgrade),
             Ledger = ImmutableList.Create(
                 new WalletLedgerEntry(1, "fixture-tx-1", TransactionKind.Buy, -30, 70, applied.AppliedAtUtc),

@@ -18,6 +18,22 @@ public static class ProfileInvariants
         if (p.ShipHullId is { Length: 0 }) errors.Add("ShipHullId is empty (use null for none).");
         if (p.ShipHullId is not null && !IsWellFormedUtf16(p.ShipHullId)) errors.Add(Malformed("ShipHullId"));
         if (p.Ship is { IsValid: false }) errors.Add("Ship condition must have finite values and non-negative hull.");
+        if (p.OwnedShips is null) errors.Add("OwnedShips is null.");
+        else
+        {
+            if (!ReferenceEquals(p.OwnedShips.KeyComparer, StringComparer.Ordinal)) errors.Add("OwnedShips does not use the ordinal comparer.");
+            foreach (var (hull, parked) in p.OwnedShips)
+            {
+                if (string.IsNullOrEmpty(hull)) errors.Add("OwnedShips contains an empty hull id.");
+                else if (!IsWellFormedUtf16(hull)) errors.Add(Malformed("An owned hull id"));
+                if (parked is { IsValid: false }) errors.Add($"Parked condition of '{hull}' must have finite values and non-negative hull.");
+                if (parked is not null && string.Equals(hull, p.ShipHullId, StringComparison.Ordinal))
+                    errors.Add($"The active ship '{hull}' has a parked condition; its condition belongs in Ship.");
+            }
+            // One of each, and the active ship is always one the player owns (Steve, Nov 3 2026).
+            if (p.ShipHullId is not null && !p.OwnedShips.ContainsKey(p.ShipHullId)) errors.Add($"The active ship '{p.ShipHullId}' is not owned.");
+            if (p.ShipHullId is null && p.OwnedShips.Count > 0) errors.Add("The profile owns ships but none is active.");
+        }
 
         if (p.Bounty < 0) errors.Add($"Bounty {p.Bounty} is negative.");
         if (p.Reputation is null) errors.Add("Reputation is null.");

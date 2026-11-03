@@ -1,0 +1,9 @@
+{
+    "starterHullId": "starter_interceptor",
+    "ships": [
+        {
+            "hullId": "starter_interceptor",
+            "definition": "starter_interceptor.json"
+        }
+    ]
+}
