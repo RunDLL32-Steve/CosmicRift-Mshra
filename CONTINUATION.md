@@ -31,7 +31,13 @@ Queue M7 mining slice in review on `claude/project-thread-yaij0l` ([branch log](
 
 Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) merged in [PR 98](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/98); C9 (bounty and reputation rules) is in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.
 
+## C1 local checkpoint — November 2, 2026
+
+C1 raw BLO directory/member reader has **local verification passed / awaiting independent exact-commit review** on the scoped local branch. All 89 pinned archives / 1,262 members were actually checked; the full unit run passed 1,043, failed zero and skipped five unrelated key supplementals. Decoder 10/10, staging 4/4 and foundational integrity 46/46 passed. The [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [dated log](docs/development-log/2026-11-02-c1-blo-reader.md) define the evidence and boundaries. No extraction, pixels, reference resolution, native/gameplay verification or feature completion follows; 397/22/375 unchanged. No publication is approved; the branch is unpushed and unmerged.
+
 ## Next
+
+For C1, finish independent exact-commit review and record its verdict before treating the queue slice as accepted. Publication requires the owner's authorization and the applicable PR/sprint gate. Do not reimplement the locally verified reader or close RT-F023/RT-F069 from raw byte access. Preserve unrelated local C7 work; its main queue row remains OPEN.
 
 G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [initialized reset-input observation](docs/development-log/2026-10-19-g9-reset-input-observation.md) captures the selected standalone initialized object before newArena; use the [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md) and its current PR for live workflow status. PR85 conditional lifecycle source and PR76 selected catalog are accepted dated history. Follow that live workflow record before selecting remaining G9 work from the ledger; preserve earlier accepted results; native consumers/gameplay/full closure and original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.
 

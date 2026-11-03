@@ -25,6 +25,10 @@ The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, 
 
 The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, optional generic mining extraction, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. [Queue M3 mining](docs/development-log/2026-10-18-m3-mining.md) uses explicitly NEW deposit/equipment definitions, finite authoritative quantities and collectible drops; original mining rules remain open. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
 
+## C1 raw BLO reader — November 2, 2026
+
+C1 has **local verification passed / awaiting independent exact-commit review**. The pure C# reader preserves owned archive bytes, full raw directory name fields, zero-based member ordinals, offsets, lengths and payload hashes for all **89 pinned archives / 1,262 members**. Canonical reads require an exact allowlisted path and length/SHA-256 verification; unverified parsing is explicit. See the [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [local evidence](docs/development-log/2026-11-02-c1-blo-reader.md). This is raw directory/member access only: no extraction, pixels, dependency resolution or native/gameplay acceptance. The branch is unpublished and unmerged; RT-F023/RT-F069 and all original feature/milestone checkboxes remain unchanged.
+
 ## Code map
 
 | Area                                             | Source                                                                                                               |

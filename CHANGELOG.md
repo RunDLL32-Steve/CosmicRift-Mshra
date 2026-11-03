@@ -1,5 +1,10 @@
 # Changelog
 
+## C1 raw BLO directory/member reader — November 2, 2026
+
+-   Queue C1: a pure C# reader preserves the original bytes and complete raw name fields of all 89 pinned BLO archives (87 v2 / two v1), with 1,262 ordinal member identities, payload copies and SHA-256 hashes. Canonical reads verify exact allowlisted path, length and hash; malformed spans and nonempty overlaps reject before member hashing. Latin-1 `Name` is a NEW diagnostic projection; original non-ASCII encoding is unproven.
+-   Local verification passed: 21 new C1 xUnit cases; the full unit run passed 1,043, failed zero and skipped five unrelated key supplementals (1,048 total), with the canonical C1 fact executing all 89 archives / 1,262 members. Decoder 10/10, staging 4/4 and foundational integrity 46/46 passed. Independent exact-commit review remains pending; publication is unapproved and no push or merge occurred. [Contract](docs/original-research/C1_BLO_READER_CONTRACT.md), [dated evidence](docs/development-log/2026-11-02-c1-blo-reader.md). No extraction, decoding, native checks or gameplay acceptance; 397/22/375 unchanged.
+
 ## Weapon and ammo value audit — November 2, 2026
 
 -   Queue G5 remainder: a [value audit](docs/original-research/G5_WEAPON_VALUE_AUDIT.md) of the original weapon, ammo and child-chain records, with the exact row, field and raw value for each open question. The MIRV/Wake Caster "offset" turns out to be one of six child-entry fields (sideways and forward offsets, height, heading change and a link mode, per the upstream parser's names); all six are now kept. Seven more raw projectile fields are exposed (ammo per shot, ammo capacity, bounce count, proximity radius, inactive time, damage mode, point-blank). The meanings of inheritedSpeed -550 and aliveTime -65, all units, trigger/expiry behavior and collision shape remain open, and the pinned ammo weights (all 0) disagree with the 2003 news notes. No firing behavior. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g5.md). Counts unchanged.
