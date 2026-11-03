@@ -67,6 +67,7 @@ public sealed class UpgradeEffectsTests
         var ship = new ShipDefinition();
         var boosted = UpgradeEffects.Apply(ship, station, [station.Upgrades.Single(u => u.Name == "TurboBoosters").Id]);
         Assert.Equal(ship.Physics.ForwardThrust * 1.05f, boosted.Physics.ForwardThrust, 3);
+        Assert.Equal(ship.Physics.ReverseThrust * 1.05f, boosted.Physics.ReverseThrust, 3); // reverse follows forward
         Assert.Equal(ship.Physics.MaximumSpeed * 1.05f, boosted.Physics.MaximumSpeed, 3);
 
         var armored = UpgradeEffects.Apply(ship, station, [station.Upgrades.Single(u => u.Name == "Duraplas Armor").Id]);
