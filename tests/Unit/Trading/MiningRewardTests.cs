@@ -105,6 +105,28 @@ public sealed class MiningRewardTests
     // ---- Simulation --------------------------------------------------------------------------------------------------
 
     [Fact]
+    public void ShippedSpawns_TakeEachRuleFromItsOwnRawColumn()
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(Data("minerals", "mineral_spawns.json"));
+        foreach (var spawn in document.RootElement.GetProperty("spawns").EnumerateArray())
+        {
+            var raw = spawn.GetProperty("source").GetProperty("raw");
+            int F(int index) => raw.GetProperty($"f{index}").GetInt32();
+            Assert.Equal(F(21), spawn.GetProperty("quantity").GetInt32()); // HideQuantity, not f[18]
+            Assert.Equal(F(18), spawn.GetProperty("maxInArea").GetInt32());
+            Assert.Equal(F(19), spawn.GetProperty("maxInLevel").GetInt32());
+            Assert.Equal(F(27), spawn.GetProperty("clumpQuantity").GetInt32());
+            Assert.Equal(F(14), spawn.GetProperty("minPlayers").GetInt32());
+            Assert.Equal(F(15), spawn.GetProperty("maxPlayers").GetInt32());
+            Assert.Equal(F(10), spawn.GetProperty("initialCount").GetInt32());
+            Assert.Equal(F(13), spawn.GetProperty("probability").GetInt32());
+            Assert.Equal(F(11) * 6, spawn.GetProperty("attemptTicks").GetInt32()); // x100 ms at 60 Hz
+            Assert.Equal(F(12) * 6, spawn.GetProperty("succeedTicks").GetInt32());
+            Assert.Equal(F(20).ToString(System.Globalization.CultureInfo.InvariantCulture), spawn.GetProperty("itemId").GetString());
+        }
+    }
+
+    [Fact]
     public void FreshSector_DropsOneClumpPerActiveSpawn_AndPlacementIsReproducible()
     {
         var a = World();
