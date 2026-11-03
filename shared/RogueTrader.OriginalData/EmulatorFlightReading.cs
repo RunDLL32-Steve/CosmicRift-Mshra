@@ -4,8 +4,8 @@ namespace RogueTrader.OriginalData;
 /// Queue G10 (flight slice): one hull's raw VEH flight block read through the InfantryOnline emulator's unit chain
 /// (bb97579, <c>dotnetcore/ZoneServer/Game/Arena/Bot/MovementController.cs</c> and <c>Protocol/Helpers/Math.cs</c>). The
 /// emulator is a reconstruction written against the native client, not the native client, so every derived number here is
-/// RECONSTRUCTED; the raw inputs stay available through <see cref="Block"/>. No code was copied. Nothing in the game uses
-/// this reading yet; it is the "expected" column of docs/original-research/G10_VALIDATION.md.
+/// RECONSTRUCTED; the raw inputs stay available through <see cref="Block"/>. No code was copied. It is the "expected" column of
+/// docs/original-research/G10_VALIDATION.md, and RogueTrader.Trading.OriginalShipPhysics turns it into the ship's physics.
 /// </summary>
 /// <remarks>
 /// Unit chain (FLIGHT_FIELD_EVIDENCE.md section 1): position in pixels, 16 per LVL tile; velocity in thousandths of a pixel

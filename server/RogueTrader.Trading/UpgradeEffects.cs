@@ -35,6 +35,9 @@ public static class UpgradeEffects
             Physics = ship.Physics with
             {
                 ForwardThrust = Scale(ship.Physics.ForwardThrust, Sum(e => e.ForwardThrust)),
+                // Engine upgrades raise reverse thrust too: the original reverse value is "same as forward" (BackwardThrust -1, owner
+                // decision 2026-11-02), so it follows the upgraded forward thrust.
+                ReverseThrust = Scale(ship.Physics.ReverseThrust, Sum(e => e.ForwardThrust)),
                 MaximumSpeed = Scale(ship.Physics.MaximumSpeed, Sum(e => e.MaximumSpeed)),
                 RotationSpeed = Scale(ship.Physics.RotationSpeed, Sum(e => e.RotationSpeed)),
             },
