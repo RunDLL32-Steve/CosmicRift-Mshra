@@ -484,8 +484,11 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                 {
                     if (!string.Equals(c.ShipHullId, q.ItemId, StringComparison.Ordinal)) return RejectionReason.ShipNotActive;
                     // Steve, Nov 3 2026: the ship respawns with its weapons, and all purchased items remain; the player loses 20% of
-                    // the credits they hold. Upgrades, inventory and owned ships are untouched; the ship returns to the spawn.
+                    // the credits they hold, and the cargo in the hold (minerals and every other hold item) is lost with the ship.
+                    // Upgrades and owned ships are untouched; the ship returns to the spawn.
                     var penalty = c.Wallet / 100 * DestructionPenaltyPercent + c.Wallet % 100 * DestructionPenaltyPercent / 100;
+                    foreach (var (item, held) in c.Inventory) deltas[item] = -held;
+                    inventory.Clear();
                     ship = null;
                     currencyDelta = -penalty;
                     walletAfter = c.Wallet - penalty;

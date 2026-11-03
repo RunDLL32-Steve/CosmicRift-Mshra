@@ -86,6 +86,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var activeHull = session.Profile!.ShipHullId ?? throw new InvalidOperationException("A new profile must fly its starter hull.");
             Require(session.Profile.OwnedShips.Keys.SequenceEqual(new[] { activeHull }) && client.ActiveHullId == activeHull,
                 "A new profile must own exactly its starter hull and fly it.");
+            readWorld().DamagePlayer(5);
             client.ShowShipPicker();
             var pickerTick = readWorld().TickNumber;
             var pickerWorld = client.WorldInstanceId;
@@ -94,28 +95,10 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 "The ship picker must list the owned hull and hold the world still while it is open.");
             Require(client.Picker.Press(activeHull) && !client.ShipPickerVisible && client.WorldInstanceId == pickerWorld,
                 "Choosing the ship already flown must close the picker and keep the same world.");
-            GD.Print("STATION SMOKE PASS: the ship picker lists the owned hull, pauses the world and flies the chosen ship");
-
-            // A destroyed ship costs 20% of the credits held, saved once, then respawns at the spawn with a full hull, keeping
-            // weapons, upgrades and cargo (Steve, Nov 3 2026).
-            var beforeDeath = session.Profile!;
-            var worldBeforeDeath = client.WorldInstanceId;
-            readWorld().DamagePlayer(float.MaxValue);
-            for (var frame = 0; frame < 10 && client.WorldInstanceId == worldBeforeDeath; frame++) await nextPhysicsFrame();
-            var penalty = beforeDeath.Wallet / 100 * TransactionProcessor.DestructionPenaltyPercent + beforeDeath.Wallet % 100 * TransactionProcessor.DestructionPenaltyPercent / 100;
-            var afterDeath = session.Profile!;
-            Require(beforeDeath.Wallet > 0 && afterDeath.Wallet == beforeDeath.Wallet - penalty && afterDeath.Ledger[^1].Kind == TransactionKind.ShipDestroyed,
-                $"A destroyed ship must cost {penalty} credits (20% of {beforeDeath.Wallet}), got wallet {afterDeath.Wallet}.");
-            Require(afterDeath.Inventory.SequenceEqual(beforeDeath.Inventory) && afterDeath.Upgrades.SequenceEqual(beforeDeath.Upgrades)
-                && afterDeath.OwnedShips.Keys.SequenceEqual(beforeDeath.OwnedShips.Keys) && !client.DestructionPending,
-                "A destroyed ship must keep its cargo, upgrades and owned ships.");
-            Require(client.WorldInstanceId != worldBeforeDeath && !readWorld().Player.IsDestroyed
-                && Math.Abs(readWorld().Player.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f,
-                "A destroyed ship must respawn with a full hull.");
-            await nextPhysicsFrame();
-            Require(hud.NoticeText.Contains("Ship destroyed") && hud.CreditsText == $"CREDITS  {afterDeath.Wallet:N0}",
-                $"The HUD must report the loss and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
-            GD.Print($"STATION SMOKE PASS: a destroyed ship cost {penalty:N0} credits (20%) once and respawned with its cargo and upgrades");
+            Require(Math.Abs(readWorld().Player.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f
+                && session.Profile!.Ship is { } pickedShip && Math.Abs(pickedShip.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f,
+                $"The picked ship must enter the game at full hull, and that must be saved, got {readWorld().Player.Hull}.");
+            GD.Print("STATION SMOKE PASS: the ship picker lists the owned hull, pauses the world and flies the chosen ship at full hull");
 
             // Mining (queue M7 slice): fly onto an original Tellerium spawn's pile while saving fails, reload, then let it save.
             resetSector();
@@ -178,7 +161,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(readWorld().TickNumber == dockedTick, "The world must not advance while docked.");
 
             var trade = station.Trades.Single(t => t.InputItemId == pile.ItemId);
-            var walletBeforeTrade = session.Profile!.Wallet; // after the kill reward and the destruction cost above
+            var walletBeforeTrade = session.Profile!.Wallet; // after the kill reward above
             Press($"sellall:{pile.ItemId}");
             Require(session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0,
                 "Trade all must hand the whole input stack in.");
@@ -252,6 +235,32 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(!client.StationVisible && !client.Paused, "Escape must undock without pausing.");
 
+            // A destroyed ship costs 20% of the credits held, saved once, then respawns at the spawn with a full hull, keeping
+            // weapons and upgrades; the cargo in the hold is lost (Steve, Nov 3 2026).
+            // Load the hold first through the same server grant a pickup uses, so there is cargo to lose.
+            var lootResult = await session.GrantPickupAsync("smoke-destruction", new CargoPickup(1, "smoke-loot", pile.ItemId, pile.Quantity, 0));
+            Require(lootResult.Status == TransactionStatus.Applied && session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == pile.Quantity,
+                "The smoke cargo grant must be saved before the destruction.");
+            var beforeDeath = session.Profile!;
+            var worldBeforeDeath = client.WorldInstanceId;
+            readWorld().DamagePlayer(float.MaxValue);
+            for (var frame = 0; frame < 10 && client.WorldInstanceId == worldBeforeDeath; frame++) await nextPhysicsFrame();
+            var penalty = beforeDeath.Wallet / 100 * TransactionProcessor.DestructionPenaltyPercent + beforeDeath.Wallet % 100 * TransactionProcessor.DestructionPenaltyPercent / 100;
+            var afterDeath = session.Profile!;
+            Require(beforeDeath.Wallet > 0 && afterDeath.Wallet == beforeDeath.Wallet - penalty && afterDeath.Ledger[^1].Kind == TransactionKind.ShipDestroyed,
+                $"A destroyed ship must cost {penalty} credits (20% of {beforeDeath.Wallet}), got wallet {afterDeath.Wallet}.");
+            Require(afterDeath.Inventory.Count == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0 && client.PendingPickups == 0
+                && afterDeath.Upgrades.SequenceEqual(beforeDeath.Upgrades)
+                && afterDeath.OwnedShips.Keys.SequenceEqual(beforeDeath.OwnedShips.Keys) && !client.DestructionPending,
+                "A destroyed ship must lose its cargo and keep its upgrades and owned ships.");
+            Require(client.WorldInstanceId != worldBeforeDeath && !readWorld().Player.IsDestroyed
+                && Math.Abs(readWorld().Player.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f,
+                "A destroyed ship must respawn with a full hull.");
+            await nextPhysicsFrame();
+            Require(hud.NoticeText.Contains("Ship destroyed") && hud.CreditsText == $"CREDITS  {afterDeath.Wallet:N0}",
+                $"The HUD must report the loss and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
+            GD.Print($"STATION SMOKE PASS: a destroyed ship cost {penalty:N0} credits (20%) once, lost its cargo and respawned with its upgrades");
+
             // Fly a little so the saved position differs from spawn, then save/load.
             SendKey(Key.W, true);
             for (var frame = 0; frame < 20; frame++) await nextPhysicsFrame();
@@ -290,7 +299,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker at full hull, destruction penalty with cargo loss, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

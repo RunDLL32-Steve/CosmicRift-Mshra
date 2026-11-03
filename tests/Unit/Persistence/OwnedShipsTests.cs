@@ -95,7 +95,7 @@ public sealed class OwnedShipsTests
     }
 
     [Fact]
-    public async Task ADestroyedShipKeepsWeaponsUpgradesCargoAndOwnedShipsAndRespawnsAtFullHull()
+    public async Task ADestroyedShipLosesItsCargoKeepsWeaponsUpgradesAndOwnedShipsAndRespawnsAtFullHull()
     {
         var env = await Env.CreateAsync(wallet: 2000);
         await env.Buy(null, Fx.OreA, 3);
@@ -104,10 +104,11 @@ public sealed class OwnedShipsTests
         await env.SaveShip(12, 50, 60, 0.5f);
         var before = env.Snapshot;
 
-        await env.Destroyed("destroyed-1");
+        var result = await env.Destroyed("destroyed-1");
 
         var after = env.Snapshot;
-        Assert.Equal(before.Inventory, after.Inventory);
+        Assert.Empty(after.Inventory); // the cargo is lost with the ship (Steve, Nov 3 2026)
+        Assert.Equal(-3, result.ItemDeltas[Fx.OreA]);
         Assert.Equal(before.Upgrades, after.Upgrades);
         Assert.Equal(before.OwnedShips, after.OwnedShips);
         Assert.Equal(before.ShipHullId, after.ShipHullId);

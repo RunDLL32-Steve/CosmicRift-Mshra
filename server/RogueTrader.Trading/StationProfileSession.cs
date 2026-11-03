@@ -239,7 +239,7 @@ public sealed class StationProfileSession
 
     /// <summary>
     /// Records that the active ship was destroyed (Steve, Nov 3 2026): the core takes 20% of the credits held, once per
-    /// destruction id, and puts the ship back at the spawn with a full hull; weapons, upgrades and cargo stay. Retry with the
+    /// destruction id, and puts the ship back at the spawn with a full hull; weapons and upgrades stay and the hold is emptied. Retry with the
     /// same arguments after a refusal.
     /// </summary>
     public Task<TransactionResult> RecordShipDestroyedAsync(string worldInstanceId, long tick, CancellationToken ct = default)

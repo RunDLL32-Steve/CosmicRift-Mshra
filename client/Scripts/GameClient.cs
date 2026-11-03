@@ -716,6 +716,9 @@ public partial class GameClient : Node2D
             _world = NewWorld(restoreSavedShip: true, loadSector: false);
             _view.SetWorld(_world);
         }
+        // The chosen ship enters the game at full hull (Steve, Nov 3 2026). A reset during play still keeps hull damage.
+        _world.RestorePlayer(_world.Player.Position, _world.Player.Heading, _world.Player.Definition.Defense.MaximumHull);
+        SaveShip();
         _shipPickerVisible = false;
         _shipPicker.Visible = false;
         _hud.Visible = !_stationVisible && !_inspectionVisible;
@@ -735,11 +738,21 @@ public partial class GameClient : Node2D
         _pendingDestruction ??= (_worldInstanceId, _world.TickNumber);
         if (_session?.Profile is null)
         {
-            // Offline (no save folder): there is no wallet to charge and nothing is kept, so the ship simply respawns.
-            Respawn("Ship destroyed. Station services are offline, so nothing was charged.");
+            // Offline (no save folder): there is no wallet to charge; the unsaved cargo is lost with the ship.
+            _pickups.StartNewWorld();
+            Respawn("Ship destroyed and its cargo lost. Station services are offline, so no credits were charged.");
             return true;
         }
         if (_world.TickNumber < _nextDestructionRetryTick) return false;
+        // Cargo picked up before the destruction is saved first, so the destruction removes it with the rest of the hold and
+        // no late grant can bring it back after the respawn (Steve, Nov 3 2026: cargo is lost with the ship).
+        CommitPickups(force: true);
+        if (_pickups.Count > 0)
+        {
+            Notice("Ship destroyed; saving the cargo it held before recording the loss. Retrying.", warning: true);
+            _nextDestructionRetryTick = _world.TickNumber + WorldSimulation.TickRate;
+            return false;
+        }
         var (world, tick) = _pendingDestruction.Value;
         var result = Await(_session.RecordShipDestroyedAsync(world, tick));
         if (result.Status != TransactionStatus.Applied)
@@ -753,7 +766,8 @@ public partial class GameClient : Node2D
             }
             return false;
         }
-        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits). Respawned with all weapons and cargo.");
+        var lostUnits = -result.ItemDeltas.Values.Where(v => v < 0).Sum();
+        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")}. Respawned at full hull with all weapons and upgrades.");
         return true;
     }
 
