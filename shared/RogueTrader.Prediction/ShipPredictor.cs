@@ -11,7 +11,8 @@ public enum ReconciliationVerdict
     Accepted,
     Stale,
     InvalidSnapshot,
-    InvalidAcknowledgement
+    InvalidAcknowledgement,
+    InvalidMotion
 }
 
 /// <summary>
@@ -51,7 +52,7 @@ public sealed class ShipPredictor
 
     /// <summary>
     /// Issues one immutable intent for the next tick and predicts its motion. Invalid controls, a full queue or exhausted
-    /// uint identifiers return false without consuming identifiers or changing any prediction state.
+    /// uint identifiers, or nonfinite derived motion, return false without consuming identifiers or changing prediction state.
     /// Fire is carried in the message only. Resubmit the returned message itself when transport requires a retry.
     /// </summary>
     public bool TryPredict(float thrust, float turn, InputFlags flags, [NotNullWhen(true)] out PlayerInput? input)
@@ -61,18 +62,21 @@ public sealed class ShipPredictor
             (flags & ~InputFlags.Fire) != 0 || _pending.Count >= MaxPending ||
             PredictedTick == uint.MaxValue || LastIssuedSequence == uint.MaxValue)
             return false;
-        input = new PlayerInput(PredictedTick + 1, LastIssuedSequence + 1, LastAcceptedServerTick, thrust, turn, flags);
-        var ship = Predict(Ship, input);
-        _pending.Add(input);
+        var intent = new PlayerInput(PredictedTick + 1, LastIssuedSequence + 1, LastAcceptedServerTick, thrust, turn, flags);
+        var ship = Predict(Ship, intent);
+        if (!HasFiniteMotion(ship)) return false;
+        _pending.Add(intent);
         Ship = ship;
-        PredictedTick = input.ClientTick;
-        LastIssuedSequence = input.Sequence;
+        PredictedTick = intent.ClientTick;
+        LastIssuedSequence = intent.Sequence;
+        input = intent;
         return true;
     }
 
     /// <summary>
     /// Corrects to a newer server baseline, expires every completed tick (including lost inputs), then replays its suffix once.
-    /// Rejection is atomic. An acknowledgement may stay unchanged or name a retained issued intent whose tick has completed.
+    /// Rejection is atomic, including nonfinite derived replay motion (InvalidMotion). An acknowledgement may stay unchanged
+    /// or name a retained issued intent whose tick has completed.
     /// </summary>
     public ReconciliationVerdict Reconcile(WorldSnapshot snapshot)
     {
@@ -90,6 +94,7 @@ public sealed class ShipPredictor
         for (var i = completed; i < _pending.Count; i++)
         {
             ship = Predict(ship, _pending[i]);
+            if (!HasFiniteMotion(ship)) return ReconciliationVerdict.InvalidMotion;
             tick = _pending[i].ClientTick;
         }
         _pending.RemoveRange(0, completed);
@@ -117,12 +122,15 @@ public sealed class ShipPredictor
         {
             if (entity.EntityId != id) continue;
             if (found || entity.Kind != EntityKind.Ship ||
-                !float.IsFinite(entity.X) || !float.IsFinite(entity.Y) || !float.IsFinite(entity.VelX) ||
-                !float.IsFinite(entity.VelY) || !float.IsFinite(entity.Rotation) || !float.IsFinite(entity.Hull) || !float.IsFinite(entity.Shield))
+                !HasFiniteMotion(entity) || !float.IsFinite(entity.Hull) || !float.IsFinite(entity.Shield))
                 return false;
             ship = entity;
             found = true;
         }
         return found;
     }
+
+    private static bool HasFiniteMotion(EntityState ship) =>
+        float.IsFinite(ship.X) && float.IsFinite(ship.Y) && float.IsFinite(ship.VelX) &&
+        float.IsFinite(ship.VelY) && float.IsFinite(ship.Rotation);
 }

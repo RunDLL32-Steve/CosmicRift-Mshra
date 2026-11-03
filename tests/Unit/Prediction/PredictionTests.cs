@@ -410,4 +410,63 @@ public sealed class PredictionTests
         Assert.Equal(1, authority.World.ShotsFired);
         Assert.Equal(Ship(authority), predictor.Ship);
     }
+
+    [Fact]
+    public void NonfiniteDerivedMotionRejectsIssueWithoutConsumingIdentifiersAndAllowsSafeRetry()
+    {
+        // NEW numeric-boundary fixture: individually finite rotation and turn rate overflow when added during motion.
+        var catalog = TestWorld.Catalog(ship: new ShipDefinition
+        {
+            Physics = new ShipPhysics { RotationSpeed = float.MaxValue }
+        });
+        var authority = new AuthoritativeSession(new WorldSimulation(catalog));
+        var baseline = Snapshot(authority) with { Entities = [Ship(authority) with { Rotation = float.MaxValue }] };
+        var predictor = new ShipPredictor(catalog, ControlledId, baseline, 2);
+        var before = State(predictor);
+
+        Assert.False(predictor.TryPredict(0, 1, InputFlags.Fire, out var rejected));
+        Assert.Null(rejected);
+        Assert.Equal(before, State(predictor));
+
+        var safe = Issue(predictor, 0, 0);
+        Assert.Equal(1u, safe.ClientTick);
+        Assert.Equal(1u, safe.Sequence);
+        Assert.Equal(1, predictor.PendingCount);
+        Assert.True(float.IsFinite(predictor.Ship.Rotation));
+        Assert.Equal(ReconciliationVerdict.Accepted, predictor.Reconcile(new WorldSnapshot(1, 1, [predictor.Ship])));
+        Assert.Equal(0, predictor.PendingCount);
+    }
+
+    [Fact]
+    public void NonfiniteReplayRejectsCorrectionAtomicallyAndRetainsQueueForSafeCorrection()
+    {
+        // NEW numeric-boundary fixture: this pending turn is finite from the original pose, but not from the correction.
+        var catalog = TestWorld.Catalog(ship: new ShipDefinition
+        {
+            Physics = new ShipPhysics { RotationSpeed = float.MaxValue }
+        });
+        var authority = new AuthoritativeSession(new WorldSimulation(catalog));
+        var predictor = Predictor(authority);
+        var first = Issue(predictor, 0, 0);
+        var second = Issue(predictor, 0, 1);
+        Assert.Equal(InputVerdict.Accepted, authority.Submit(first));
+        authority.Step();
+        var valid = Snapshot(authority);
+        var correction = valid with { Entities = [valid.Entities[0] with { Rotation = float.MaxValue }] };
+        var before = State(predictor);
+
+        Assert.Equal(ReconciliationVerdict.InvalidMotion, predictor.Reconcile(correction));
+        Assert.Equal(before, State(predictor));
+
+        Assert.Equal(ReconciliationVerdict.Accepted, predictor.Reconcile(valid));
+        Assert.Equal(1u, predictor.LastAcceptedServerTick);
+        Assert.Equal(1u, predictor.LastAcknowledgedSequence);
+        Assert.Equal(1, predictor.PendingCount);
+        Assert.Equal(2u, predictor.PredictedTick);
+        Assert.Equal(InputVerdict.Accepted, authority.Submit(second));
+        authority.Step();
+        Assert.Equal(Ship(authority), predictor.Ship);
+        Assert.Equal(ReconciliationVerdict.Accepted, predictor.Reconcile(Snapshot(authority)));
+        Assert.Equal(0, predictor.PendingCount);
+    }
 }
