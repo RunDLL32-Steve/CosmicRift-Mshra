@@ -1,5 +1,9 @@
 # Changelog
 
+## A sector reset keeps hull damage — November 3, 2026
+
+-   Steve's rule (November 3, 2026): resetting the sector puts your ship back at the spawn with the hull it had, so a reset is no longer a free repair. A destroyed ship still comes back with a full hull (NEW/provisional, unchanged). Repairs stay at the station.
+
 ## Original map reader: walls, terrain zones and map objects — November 3, 2026
 
 -   Queue G6: the game can now read the original Rogue Trader map file (`LVL/Rogue.lvl`, 1999 × 1998 tiles of 16 pixels) and its object list (`LIO/Rogue.lio`). `OriginalLevel` keeps every byte of the map (header, the 222 art references, the three tile layers and 22,356 placed-object records), `OriginalCollisionGrid` answers per tile whether it is a wall (116,065 wall tiles), its vision value and its terrain zone (open space 0, repair dock 9, space dock 10, refinery/trade zone 15), and `OriginalLio` reads all 81 map objects (warp fields, spawns, sounds, texts, planets) with their position and size. Every refinery, trading post and repair dock spawn point lands inside its matching terrain zone, which cross-checks the two files. A broken or unknown file version is refused with a clear reason. Data only: nothing in the game uses the map yet, and field meanings follow the community server's reader, not the original client. [OriginalData entry](shared/RogueTrader.OriginalData/plan.d/g6.md). Counts unchanged.
