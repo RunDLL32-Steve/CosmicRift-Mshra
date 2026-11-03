@@ -9,7 +9,8 @@ namespace RogueTrader.UnitTests;
 /// Queue G10 flight and weapon slice: the "observed" column of docs/original-research/G10_VALIDATION.md is measured here by
 /// running the prototype <see cref="WorldSimulation"/>, and the "expected" column is the pinned originals read through the
 /// emulator's unit chain (<see cref="EmulatorFlightReading"/>, RECONSTRUCTED). The verdict test fails if either side moves,
-/// so the table cannot silently go stale. Nothing here changes gameplay.
+/// so the table cannot silently go stale. Since the second slice the shipped ship and weapon take their values from
+/// <see cref="OriginalShipPhysics"/>, and <c>ShippedShipAndWeaponAreTheOriginalAspAndPlasmaCannon</c> keeps the JSON in step.
 /// </summary>
 public sealed class G10FlightValidationTests
 {
@@ -87,28 +88,43 @@ public sealed class G10FlightValidationTests
     [Fact]
     public void PrototypeFlightIsMeasuredAsTheTableSays()
     {
-        Assert.Equal(360, ObservedTopSpeed(), 3);
-        Assert.Equal(120, ObservedAcceleration(1), 3);
-        Assert.Equal(120, ObservedAcceleration(-1), 3); // reverse equals forward (owner decision, already true)
-        Assert.Equal(3.0, ObservedSecondsToTopSpeed(), 3);
-        Assert.Equal(3.3 * 180 / Math.PI, ObservedTurnDegreesPerSecond(), 2); // 189.08 deg/s
+        Assert.Equal(325, ObservedTopSpeed(), 3);
+        Assert.Equal(168.7, ObservedAcceleration(1), 2);
+        Assert.Equal(168.7, ObservedAcceleration(-1), 2); // reverse equals forward (owner decision)
+        Assert.Equal(116 / 60.0, ObservedSecondsToTopSpeed(), 3); // 325 / 168.7 = 1.926 s, reached on tick 116
+        Assert.Equal(207, ObservedTurnDegreesPerSecond(), 2);
         Assert.Equal(1.0, ObservedCoastRetainedPerSecond(), 5); // no drag in open space
-        Assert.Equal(0.2, ObservedFireIntervalSeconds(), 3);
+        Assert.Equal(0.25, ObservedFireIntervalSeconds(), 3);
         var catalog = TestWorld.ExternalCatalog();
-        Assert.Equal(0.25f, catalog.Ship.Physics.AsteroidRestitution);
+        Assert.Equal(0.727f, catalog.Ship.Physics.AsteroidRestitution);
         Assert.Equal(700, catalog.Weapon.MuzzleVelocity);
         Assert.Equal(2.5f, catalog.Weapon.LifetimeSeconds);
         Assert.True(catalog.Weapon.InheritsShipVelocity);
         Assert.Equal(14, catalog.Ship.Radius);
     }
 
+    [RequiresOriginalAssetsFact]
+    public void ShippedShipAndWeaponAreTheOriginalAspAndPlasmaCannon()
+    {
+        var catalog = TestWorld.ExternalCatalog();
+        var expected = OriginalShipPhysics.From(Hulls.Value.ByName("Asp"));
+        var actual = catalog.Ship.Physics;
+        Assert.Equal(expected.Mass, actual.Mass);
+        Assert.Equal(expected.ForwardThrust, actual.ForwardThrust, 2);
+        Assert.Equal(expected.ReverseThrust, actual.ReverseThrust, 2);
+        Assert.Equal(expected.RotationSpeed, actual.RotationSpeed, 6);
+        Assert.Equal(expected.MaximumSpeed, actual.MaximumSpeed);
+        Assert.Equal(expected.AsteroidRestitution, actual.AsteroidRestitution);
+        Assert.Equal(OriginalShipPhysics.FireIntervalSeconds(OriginalProjectile.Of(Items.Value.ById(1004))), catalog.Weapon.CooldownSeconds);
+    }
+
     [Fact]
     public void PrototypeSectorCrossingTimeUsesTheMineralFieldScale()
     {
         // The practice sector draws the 32,000-unit original map into 1,400 units (OriginalMineralFieldBuilder.MapScale),
-        // so the prototype crosses the drawn map in under four seconds.
+        // so the prototype crosses the drawn map in a little over four seconds.
         Assert.Equal(1400 / 32000.0, OriginalMineralFieldBuilder.MapScale, 6);
-        Assert.Equal(3.89, 1400 / ObservedTopSpeed(), 2);
+        Assert.Equal(4.31, 1400 / ObservedTopSpeed(), 2);
     }
 
     // ---- Expected: the originals through the emulator's unit chain -------------------------------------------------
@@ -188,16 +204,16 @@ public sealed class G10FlightValidationTests
         const double originalMapWidth = 1999.0 * OriginalCollisionGrid.TileSizePixels;
         var rows = new (string Row, double Observed, double Expected, Verdict Status)[]
         {
-            ("F1 top speed (units/s vs px/s)", ObservedTopSpeed(), asp.TopSpeedPixelsPerSecond, Verdict.Mismatch),
-            ("F2 forward acceleration", ObservedAcceleration(1), asp.ForwardAccelerationPixelsPerSecondSquared, Verdict.Mismatch),
+            ("F1 top speed (units/s vs px/s)", ObservedTopSpeed(), asp.TopSpeedPixelsPerSecond, Verdict.Match),
+            ("F2 forward acceleration", ObservedAcceleration(1), asp.ForwardAccelerationPixelsPerSecondSquared, Verdict.Match),
             ("F3 reverse equals forward", ObservedAcceleration(-1) / ObservedAcceleration(1),
                 asp.ReverseAccelerationPixelsPerSecondSquared / asp.ForwardAccelerationPixelsPerSecondSquared, Verdict.Match),
-            ("F4 seconds to top speed", ObservedSecondsToTopSpeed(), asp.SecondsToTopSpeed, Verdict.Mismatch),
-            ("F5 turn rate", ObservedTurnDegreesPerSecond(), asp.TurnDegreesPerSecond, Verdict.Mismatch),
+            ("F4 seconds to top speed", ObservedSecondsToTopSpeed(), asp.SecondsToTopSpeed, Verdict.Match),
+            ("F5 turn rate", ObservedTurnDegreesPerSecond(), asp.TurnDegreesPerSecond, Verdict.Match),
             ("F6 drag in open space", ObservedCoastRetainedPerSecond(), asp.FrictionRetainedPerSecond(10), Verdict.Match),
-            ("F9 bounce keeps", TestWorld.ExternalCatalog().Ship.Physics.AsteroidRestitution, asp.WallBounceRetained, Verdict.Mismatch),
+            ("F9 bounce keeps", TestWorld.ExternalCatalog().Ship.Physics.AsteroidRestitution, asp.WallBounceRetained, Verdict.Match),
             ("F10 seconds to cross the map", 1400 / ObservedTopSpeed(), originalMapWidth / asp.TopSpeedPixelsPerSecond, Verdict.Mismatch),
-            ("W1 fire interval (s)", ObservedFireIntervalSeconds(), plasma.FireDelay.Value * 10 / 1000.0, Verdict.Mismatch),
+            ("W1 fire interval (s)", ObservedFireIntervalSeconds(), plasma.FireDelay.Value * 10 / 1000.0, Verdict.Match),
         };
         foreach (var row in rows)
             Assert.True(Compare(row.Observed, row.Expected) == row.Status,
