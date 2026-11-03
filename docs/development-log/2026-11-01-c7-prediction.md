@@ -1,6 +1,6 @@
 # C7 prediction work — November 1–2, 2026
 
-Review status: independently approved for author commit `6d9e905`. The [review record](2026-11-02-c7-review.md) gives the verified scope, finding resolution and rerun results. Publication remains pending.
+Review status: prior source review approved `6d9e905`; the later user-requested [completion audit](2026-11-02-c7-completion-audit.md) rechecks all original C7 clauses and the strengthened latency/loss evidence. Publication remains pending.
 
 Scope: [C7 brief](../tasks/c7.md), [approved motion-only design](../architecture/C7_PREDICTION_RECONCILIATION.md), master §13.3 / §18 M3. Branch `codex/c7-prediction-reconciliation` began at `0a192dc9` and merged `f18cf74`; latest main `8135f3e` was merged as `a4e2691`, preserving the newer G5/sector/cargo history and resolving only CHANGELOG/TASK_QUEUE text conflicts. All policies/fixtures are NEW/provisional. Registry 397/22/375 unchanged.
 
@@ -20,6 +20,18 @@ Root ran unmodified `scripts/verify.ps1` to completion, **exit0**: solution buil
 
 No additional native client, compatibility/runtime/delivery, multiplayer transport, benchmarks or export checks: those paths did not change and no original feature or release/milestone boundary is accepted. Shared motion extraction is covered by existing movement/C6 tests and the required Godot smoke. No canonical bytes changed. Root inspected the actual source/guard/test diffs and evidence, preserving the primary checkout's unrelated edits.
 
+## Completion audit — November 2
+
+The user requested an explicit completeness check. A fresh Astra High auditor compared the original brief at main `8135f3e` with the actual component and prior tests. The original brief permits a pure motion-only library without transport/rendering; however, R2-1 identified a genuine evidence gap: each useful snapshot in the older tests was reconciled immediately after capture, without ongoing issuance during a two-way delayed backlog. Prior test totals alone did not close that case.
+
+Added `tests/Unit/Prediction/PredictionNetworkScheduleTests.cs` (three cases). Encoded C5 packets traverse deterministic, strictly positive-delay queues in both directions against real C6 authority, seeded at tick1/ack40. The 48-clock case interleaves continued issuance and useful delayed corrections, checks an independent WorldSimulation replay, and freezes a prediction that the later live authority must match before its snapshot arrives. It ends with exact convergence without terminal reconciliation. Two 600-clock cases combine dropped/duplicated/reordered messages, snapshot blackout, capacity declines, and bounded caller lead replenishment. After clock150 they apply 424 and423 additional controls respectively, with112 useful delayed corrections each and no server rate/lead/queue-limit violations. Fixture numbers are NEW/provisional.
+
+The caller lead requirement is now explicit in the design. C6 rejects late tick-addressed commands; the component does not implement live clock synchronization or choose a transport pacing policy. The schedules supply that policy explicitly, rather than passing a run containing only neutral missing-input ticks.
+
+The test author ran the new cases:3 passed,0 failed/skipped (`artifacts/test-results/c7-two-way-network.trx`). Root ran the current complete unit suite with pinned SDK8.0.419 and hydrated originals: **1063 passed,0 failed,5 supplemental-key skips**,1068 total, exit0 (`artifacts/test-results/c7-completion-unit.trx`); one cached NU1900 feed warning. This phase changes only tests/documentation. The production C# source/project and solution diff against `c5f6ea2` is empty; status documentation under those folders also changes. The prior successful full wrapper, integration6 and Godot smoke therefore remain dated evidence for identical production code; no fresh full-wrapper/Godot result is claimed for the extra tests.
+
+Original C7 acceptance closure is recorded per clause in the [independent completion audit](2026-11-02-c7-completion-audit.md), with its exact reviewed head and independent test reports. No code defect was found by this audit and no production code was changed. Global counts397/22/375 and original/master M3 checkboxes remain unchanged.
+
 ## Resume / publication boundary
 
-The local motion-only review is complete for `6d9e905`. [C7 review](2026-11-02-c7-review.md). Live renderer integration, transport, ownership, reconnect and original/master M3 acceptance remain open. The registry remains at 397/22/375. Keep the branch local until publication is authorized. Run sprint integration and validation before any PR-ready BBQ marker.
+Source review for `6d9e905` is historical; use the [completion audit](2026-11-02-c7-completion-audit.md) for the current acceptance verdict and exact head. Live renderer integration, transport, ownership, reconnect and original/master M3 acceptance remain open. The registry remains at 397/22/375. Keep the branch local until publication is authorized. Run sprint integration and validation before any PR-ready BBQ marker.

@@ -18,6 +18,10 @@ A fresh predictor starts at the accepted snapshot tick with an empty pending que
 
 Compute the next motion in scratch state, requiring finite derived position, velocity and rotation before publishing an intent or consuming a tick/sequence. Finite inputs and definitions can still overflow intermediate arithmetic; reject that issue atomically and return no intent. The shared authoritative motion formula is unchanged. Queue the message and advance predicted motion once only after this check. The caller may submit that same immutable message to C6. With a full queue or an exhausted `uint` tick or sequence, decline prediction before changing any state. Capacity becomes available when an authoritative snapshot covers pending ticks. Keeping the last issued sequence independently of the queue prevents reuse after inputs expire. C6 accepts more general per-tick submissions, including multiple sequences, but this predictor emits a single local intent per tick. [C6 input selection and watermark](../../server/RogueTrader.Server/AuthoritativeSession.cs) · [Session bounds](../../server/RogueTrader.Server/SessionOptions.cs)
 
+## Scheduling inputs for delivery
+
+`TryPredict` assigns the next predicted tick; it does not synchronize clocks or choose transport deadlines. C6 accepts an input only before its assigned tick runs. A caller that issues tick N just as the server runs tick N will therefore miss that tick whenever delivery has positive latency. The caller must establish and maintain an input lead within C6's `MaxInputLeadTicks`, and handle a full pending queue by waiting for a usable correction rather than reusing an identifier. Choosing that lead and performing live clock/transport synchronization belong to the caller integration. The deterministic C7 schedules explicitly supply a lead and exercise delayed traffic, missed inputs and recovery; they do not establish automatic latency compensation for a live client.
+
 ## Accepting a snapshot
 
 1. Compare against the **last accepted server tick**. Ignore a repeated or older tick. A snapshot newer than the accepted baseline can still correct earlier ticks within the current prediction window.
