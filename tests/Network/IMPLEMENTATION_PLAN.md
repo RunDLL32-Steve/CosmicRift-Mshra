@@ -8,11 +8,11 @@ Module status: **In-memory prediction coverage exists; live network acceptance n
 
 -   [ ] **Investigating** — settle native-client compatibility/trust boundary and expected protocol revision; [field interpretation](../../docs/original-research/FIELD_INTERPRETATION.md) distinguishes emulator client motion from eventual server authority. Unit/coordinate/yaw/timing/sentinel and bank/state semantics cannot be inferred from packets or provisional data alone.
 -   [ ] **Not started** — M3 connection/authentication/version mismatch, spawn, malformed/stale input rejection and authority validation. Client input must not directly overwrite world, damage, currency or inventory.
--   [ ] **In progress (pure C7 slice only)** — deterministic correction/replay, stale/duplicate delivery, lost input/snapshot and acknowledgement validation are covered against the actual C6 authority. Focused cases pass; independent review/full gate remain pending. Live transport, reconnect and independent-client combat/shared mining/NPC acceptance remain open.
+-   [ ] **In progress (pure C7 slice only)** — deterministic correction/replay, stale/duplicate delivery, lost input/snapshot and acknowledgement validation are covered against the actual C6 authority. Local verification passed (52 focused cases: 38 prediction, 14 movement); independent exact-head review remains pending. Live transport, reconnect and independent-client combat/shared mining/NPC acceptance remain open.
 -   [ ] **Not started** — original transition/ownership/visibility/progression cases RT-F050–RT-F058/RT-F064–RT-F068: invalid warps, team/spec prune, failed transfers, duplicate commands/rewards, retained inventory and reconnect state.
 -   [ ] **Not started** — exact evidence/master/catalog reconciliation after implemented tests pass. Keep original record identities/categories/raw values traceable; narrower successful connections cannot complete all original multiplayer behavior.
 
-Completion history: C7 has focused in-memory evidence, with review/full gate pending; no live network feature or master M3 acceptance is complete. [Prior prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) covers local engineering only. No builds/launches/simulations rerun for this review.
+Completion history: C7 has focused in-memory evidence, with local verification passed and independent exact-head review pending; no live network feature or master M3 acceptance is complete. [Prior prototype acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation) covers local engineering only. No builds/launches/simulations rerun for this review.
 
 ## Source audit — October 17, 2026
 

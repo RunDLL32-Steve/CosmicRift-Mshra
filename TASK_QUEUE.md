@@ -32,10 +32,10 @@ No active rows: M1 to M9 are merged (see the history below).
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-| ID  | Task                                                                                         | Where          | Run   | Depends on    | Status snapshot                                              | Brief                  |
-| --- | -------------------------------------------------------------------------------------------- | -------------- | ----- | ------------- | ------------------------------------------------------------ | ---------------------- |
-| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md) |
-| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests | Cloud | C5, C6 MERGED | IN PROGRESS locally: `codex/c7-prediction-reconciliation`; numerical guard/review pending | [C7](docs/tasks/c7.md) |
+| ID  | Task                                                                                         | Where          | Run   | Depends on    | Status snapshot                                                                     | Brief                  |
+| --- | -------------------------------------------------------------------------------------------- | -------------- | ----- | ------------- | ----------------------------------------------------------------------------------- | ---------------------- |
+| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check                        | [C1](docs/tasks/c1.md) |
+| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests | Cloud | C5, C6 MERGED | VERIFIED LOCALLY, awaiting review/publication: `codex/c7-prediction-reconciliation` | [C7](docs/tasks/c7.md) |
 
 ## Completed queue history (not active work)
 

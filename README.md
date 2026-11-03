@@ -25,24 +25,24 @@ The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, 
 
 The playable test range has no station UI, mining loop or save-game progression. Source modules now provide cargo pickup, optional generic mining extraction, persistence/transactions, trading, replay, binary message serialization and provisional pirate AI. [Queue M3 mining](docs/development-log/2026-10-18-m3-mining.md) uses explicitly NEW deposit/equipment definitions, finite authoritative quantities and collectible drops; original mining rules remain open. They have focused test source and dated implementation evidence, but are not connected into a complete client gameplay loop. The dedicated production server, transport/authentication, original NPC behavior and multiplayer acceptance remain unfinished.
 
-C7 is **IN PROGRESS**: a separate pure prediction library now predicts controlled-ship motion from queued input and reconciles authoritative snapshots through the same fixed-step movement/collision code used by C6. Focused checks passed 50/50 (36 prediction, 14 existing movement); independent review and the full gate remain pending. No sockets or renderer integration are included. See [C7 evidence](docs/development-log/2026-11-01-c7-prediction.md). All rules, bounds and fixtures are NEW/provisional; original feature counts remain unchanged.
+C7 is **IMPLEMENTED / LOCAL VERIFICATION PASSED**: a separate pure prediction library predicts controlled-ship motion from queued input and reconciles authoritative snapshots through the same fixed-step movement/collision code used by C6. R1-1 rejects nonfinite derived motion atomically during issue/replay. 52 focused cases passed, zero failed/skipped (38 prediction, 14 movement). Full verification exited 0: 1,060 unit cases passed, zero failed, five key skips (1,065 total); integration passed 6/6 with no skips; Godot import/smoke exited 0 (three input, 11 station, six flight checks). The build had zero errors and six NU1900 unreachable vulnerability-feed warnings; the root-certificate diagnostic was nonfatal. See [C7 evidence](docs/development-log/2026-11-01-c7-prediction.md) and the [independent review record](docs/development-log/2026-11-02-c7-review.md); exact-head review is pending. No sockets or renderer integration are included. Rules, bounds and fixtures are NEW/provisional; original feature counts remain unchanged.
 
 ## Code map
 
-| Area                                             | Source                                                                                                               |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Godot input/rendering/HUD and original inspector | [client](client/IMPLEMENTATION_PLAN.md)                                                                              |
-| Fixed 60 Hz simulation, cargo and replay         | [Simulation](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md)                                                   |
-| Raw original records and reference guards        | [OriginalData](shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md)                                               |
-| Validated provisional JSON definitions           | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md)                  |
-| Profile repositories and transaction core        | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)                                                 |
-| Generic station transactions                     | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md)                                                         |
-| Motion prediction; no renderer/transport integration | [Prediction](shared/RogueTrader.Prediction/IMPLEMENTATION_PLAN.md) |
-| Message codec; no live transport                 | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)                                                       |
-| Provisional controller; no client integration    | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)                                                                   |
-| Headless session and input queue; no transport   | [Server](server/RogueTrader.Server/IMPLEMENTATION_PLAN.md), [tick benchmark](tests/LoadTests/IMPLEMENTATION_PLAN.md) |
-| Derived upstream tooling and checks              | [compatibility](scripts/compatibility/IMPLEMENTATION_PLAN.md)                                                        |
-| Focused regression source                        | [unit tests](tests/Unit/IMPLEMENTATION_PLAN.md)                                                                      |
+| Area                                                 | Source                                                                                                               |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Godot input/rendering/HUD and original inspector     | [client](client/IMPLEMENTATION_PLAN.md)                                                                              |
+| Fixed 60 Hz simulation, cargo and replay             | [Simulation](server/RogueTrader.Simulation/IMPLEMENTATION_PLAN.md)                                                   |
+| Raw original records and reference guards            | [OriginalData](shared/RogueTrader.OriginalData/IMPLEMENTATION_PLAN.md)                                               |
+| Validated provisional JSON definitions               | [GameData](shared/RogueTrader.GameData/IMPLEMENTATION_PLAN.md), [data](data/IMPLEMENTATION_PLAN.md)                  |
+| Profile repositories and transaction core            | [Persistence](server/RogueTrader.Persistence/IMPLEMENTATION_PLAN.md)                                                 |
+| Generic station transactions                         | [Trading](server/RogueTrader.Trading/IMPLEMENTATION_PLAN.md)                                                         |
+| Motion prediction; no renderer/transport integration | [Prediction](shared/RogueTrader.Prediction/IMPLEMENTATION_PLAN.md)                                                   |
+| Message codec; no live transport                     | [Protocol](shared/RogueTrader.Protocol/IMPLEMENTATION_PLAN.md)                                                       |
+| Provisional controller; no client integration        | [AI](server/RogueTrader.AI/IMPLEMENTATION_PLAN.md)                                                                   |
+| Headless session and input queue; no transport       | [Server](server/RogueTrader.Server/IMPLEMENTATION_PLAN.md), [tick benchmark](tests/LoadTests/IMPLEMENTATION_PLAN.md) |
+| Derived upstream tooling and checks                  | [compatibility](scripts/compatibility/IMPLEMENTATION_PLAN.md)                                                        |
+| Focused regression source                            | [unit tests](tests/Unit/IMPLEMENTATION_PLAN.md)                                                                      |
 
 ## Canonical content and acceptance
 
