@@ -1,9 +1,11 @@
 # Changelog
 
-## Mineral field capped at about five full holds — November 2, 2026
+## The mineral field follows the original server's rules — November 3, 2026
 
--   Steve's rule (November 2, 2026): minerals keep spawning for as long as the server runs, but max out at about enough for five ships to fill their cargo. The sector sets `mineralHoldsInSpace: 5` (NEW), and every spawn's pile limit is scaled by the same factor, so the original mix stays as it was. The original f[19] limits stayed far above that: 1,000 piles, about 28 holds.
--   The shipped field now holds at most 18 piles per Tellerium spawn, 9 per Krandazite spawn and 18 per Iron Ore spawn: 108 Tellerium, 18 Krandazite and 54 Iron Ore, about 5.04 holds of the starter ship's 2,500,000 weight. A fresh sector starts at those limits, and each spawn refills to its limit in real time (docked, paused or closed). The raw f[19] values stay in the derived data.
+-   Steve asked for the mineral field to follow the InfantryOnline emulator's reading of the Rogue.lio hide rows (from the Zone-Assets comparison, now in this change). This replaces the "about five full holds" cap from earlier in the same change. Each drop is 1 unit (f[21]). A spawn drops a clump of 15 (Krandazite 10) in a small box around a random point in its area, and an area refills only once it is empty (f[18]=1). The whole sector holds at most 100 Tellerium, 100 Iron Ore and 50 Krandazite (f[19]). f[14] is now read as the fewest players the spawn needs (0, 40, 60 or 80), not a clear radius, so in single player only Tellerium A-C, Krandazite A and Iron Ore A-C run. Drops vanish 720 s after landing ([Terrain0] PrizeExpire). Failed tries wait 300 s and the next try after a success comes 300 s later (f[11]/f[12] read as tenths of a second). Tellerium SpawnG, skipped before, is now included.
+-   A fresh sector starts with one clump per active spawn, about 45 Tellerium, 10 Krandazite and 45 Iron Ore, not every spawn full.
+-   Drop expiry is saved with the sector and keeps running while docked, paused or closed, like the spawn timers. A sector saved before this change gives its piles a full 720 s from the next launch, so a field stocked under the old limits drains back down.
+-   NEW: there is no terrain map yet, so the open-space expiry applies everywhere; a drop that would land in an asteroid uses up a try; the player count is 1 until a dedicated server supplies it.
 
 ## Weapon and ammo value audit — November 2, 2026
 

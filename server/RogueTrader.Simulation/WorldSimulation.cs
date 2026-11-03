@@ -62,7 +62,7 @@ public sealed partial class WorldSimulation
         foreach (var pile in _collectibles) _collectibleIds.Add(pile.Id);
         if (mining is not null) ValidateMining(mining, cargo);
         _miningEquipment = mining?.Equipment;
-        _mineralSpawns = CreateMineralSpawns(minerals, cargo, (double)catalog.Sector.MineralHoldsInSpace * catalog.Ship.Cargo.Capacity);
+        _mineralSpawns = CreateMineralSpawns(minerals, cargo);
         _mineralRandom = minerals?.Seed ?? 0;
     }
 

@@ -90,7 +90,6 @@ public sealed class GameCatalog
             Finite(target.X, target.Y, target.Heading);
         }
         Nonnegative(Sector.TargetRespawnSeconds, "target respawn seconds");
-        Nonnegative(Sector.MineralHoldsInSpace, "mineral holds in space");
         if (Sector.TargetRespawnSeconds * 60 > int.MaxValue) throw new ArgumentException("target respawn seconds is too large.");
         foreach (var asteroid in Sector.Asteroids)
         {

@@ -126,7 +126,7 @@ public sealed class SectorPersistenceTests
     {
         var world = ShippedWorld(salt: 10);
         world.Tick(default);
-        var full = world.Collectibles.Count;
+        var stationPiles = world.Collectibles.Count(p => !p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal));
         foreach (var pile in world.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).Take(30).ToArray())
         {
             world.RestorePlayer(pile.Position, 0, world.Player.Hull);
@@ -135,8 +135,10 @@ public sealed class SectorPersistenceTests
         world.RestorePlayer(new Vector2(1e6f, 1e6f), 0, world.Player.Hull);
         world.ElapseWithoutTicking(int.MaxValue); // about 414 days closed
         foreach (var spawn in world.MineralSpawns)
-            Assert.True(world.Collectibles.Count(p => p.Id.StartsWith($"{WorldSimulation.MineralPilePrefix}{spawn.Id}:", StringComparison.Ordinal)) <= spawn.MaxPiles);
-        Assert.True(world.Collectibles.Count >= full - 3); // the station piles that were swept do not come back
+            Assert.True(world.Collectibles.Count(p => p.Id.StartsWith($"{WorldSimulation.MineralPilePrefix}{spawn.Id}:", StringComparison.Ordinal)) <= spawn.ClumpQuantity);
+        Assert.True(world.Collectibles.Count(p => p.ItemId == "2003") <= 100);
+        Assert.True(world.Collectibles.Count(p => p.ItemId == "2005") <= 50);
+        Assert.True(world.Collectibles.Count(p => !p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) <= stationPiles);
     }
 
     [Fact]

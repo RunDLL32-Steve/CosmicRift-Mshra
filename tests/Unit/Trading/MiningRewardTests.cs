@@ -39,8 +39,9 @@ public sealed class MiningRewardTests
         return new(TestWorld.ExternalCatalog(), cargo, minerals: minerals ?? LoadMinerals());
     }
 
-    private static MineralSpawnDefinition Spawn(string id = "s", float x = 0, float y = -150, int quantity = 4, float clear = 0) =>
-        new(id, "2003", quantity, 1, x, y, 0, 0, 30, 120, clear, 3.5f);
+    // NEW fixture: a point area (width 0) that drops one pile per event and refills only when empty, like the original rows.
+    private static MineralSpawnDefinition Spawn(string id = "s", float x = 0, float y = -150, int quantity = 4, float minDistance = 0) =>
+        new(id, "2003", quantity, x, y, 0, 0, 30, 120, 3.5f, MaxInArea: 1, MinPlayerDistance: minDistance);
 
     // ---- Derived data ------------------------------------------------------------------------------------------------
 
@@ -70,19 +71,27 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
-    public void ShippedMineralField_IsLabelledAndReadsTheRawFields()
+    public void ShippedMineralField_IsLabelledAndReadsTheRawFieldsAsTheEmulatorDoes()
     {
         var document = Data("minerals", "mineral_spawns.json");
-        Assert.Contains("\"evidenceClassification\": \"ORIGINAL+NEW\"", document);
-        Assert.Contains("\"lioRow\": 54", document); // the -1/-1 row is listed as skipped, not spawned
+        Assert.Contains("\"evidenceClassification\": \"ORIGINAL+RECONSTRUCTED+NEW\"", document);
         var minerals = LoadMinerals();
-        Assert.Equal(11, minerals.Spawns.Count);
+        Assert.Equal(12, minerals.Spawns.Count); // Tellerium SpawnG (f[18]/f[19] = -1, no limits) is spawned too now
         var a = minerals.Spawns.Single(s => s.Id == "16"); // row 15 "Global Tellerium SpawnA"
-        Assert.Equal(("2003", 1, 100, 100, 1800, 3600), (a.ItemId, a.Quantity, a.MaxPiles, a.StartingPiles, a.AttemptTicks, a.SucceedTicks));
+        // f[21]=1 unit per drop, f[11]=3000 and f[12]=6000 tenths of a second, f[10]=1 initial event, f[18]=1 per area,
+        // f[19]=100 in the sector, f[27]=15 drops per event, f[14..15] 0..500 players, [Terrain0] PrizeExpire=720 s.
+        Assert.Equal(("2003", 1, 300 * 60, 600 * 60, 1, 1, 100, 15, 0, 500, 720L * 60, 1),
+            (a.ItemId, a.Quantity, a.AttemptTicks, a.SucceedTicks, a.InitialCount, a.MaxInArea, a.MaxInLevel, a.ClumpQuantity,
+                a.MinPlayers, a.MaxPlayers, a.ExpireTicks, a.Probability));
+        Assert.Equal(350 * OriginalMineralFieldBuilder.MapScale, a.ClumpRadius);
+        Assert.Equal((0f, 0f), (a.MinPlayerDistance, a.MaxPlayerDistance)); // f[16]=0 and f[17]=99999: no distance checks
         Assert.Equal(new Vector2(3280 * OriginalMineralFieldBuilder.MapScale, -5840 * OriginalMineralFieldBuilder.MapScale), new Vector2(a.X, a.Y));
         Assert.Equal(80 * OriginalMineralFieldBuilder.MapScale, a.PileRadius);
+        Assert.Equal((10, 50), (minerals.Spawns.Single(s => s.Id == "27").ClumpQuantity, minerals.Spawns.Single(s => s.Id == "27").MaxInLevel));
         var cargo = LoadStation().CreateCargoCatalog(TestCargo.Capacity);
         Assert.All(minerals.Spawns, s => Assert.True(cargo.IsKnown(s.ItemId)));
+        // Single player, the spawns that need 40-80 players stay quiet: Tellerium A-C, Krandazite A and Iron A-C run.
+        Assert.Equal(new[] { "14", "15", "16", "17", "26", "27", "54" }, minerals.Spawns.Where(s => s.MinPlayers <= 1).Select(s => s.Id).Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -96,7 +105,7 @@ public sealed class MiningRewardTests
     // ---- Simulation --------------------------------------------------------------------------------------------------
 
     [Fact]
-    public void FreshSector_IsStockedOnTheFirstTick_AndPlacementIsReproducible()
+    public void FreshSector_DropsOneClumpPerActiveSpawn_AndPlacementIsReproducible()
     {
         var a = World();
         var b = World();
@@ -104,12 +113,25 @@ public sealed class MiningRewardTests
         b.Tick(default);
 
         var piles = a.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).ToArray();
-        var field = LoadMinerals();
-        var limits = a.MineralPileLimits; // the sector's five-hold cap applies on top of each spawn's own limit
-        Assert.InRange(piles.Length, limits.Values.Sum() * 3 / 4, limits.Values.Sum());
         Assert.All(piles, p => Assert.Equal(1, p.Quantity));
-        foreach (var spawn in field.Spawns)
-            Assert.InRange(piles.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)), 1, limits[spawn.Id]);
+        Assert.All(piles, p => Assert.Equal(a.TickNumber + 720 * 60, p.ExpiresAt));
+        // The emulator's arena start: 3 x 15 Tellerium, 10 Krandazite, 3 x 15 Iron Ore. A drop that would land in an asteroid
+        // uses up a try, so a clump whose box is mostly rock comes up short: Iron SpawnA's area sits on asteroid_12 in this
+        // sector's (NEW) layout and usually drops nothing.
+        Assert.InRange(piles.Count(p => p.ItemId == "2003"), 40, 45);
+        Assert.InRange(piles.Count(p => p.ItemId == "2005"), 8, 10);
+        Assert.InRange(piles.Count(p => p.ItemId == "2019"), 25, 45);
+        foreach (var spawn in LoadMinerals().Spawns)
+        {
+            var mine = piles.Where(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)).ToArray();
+            if (spawn.MinPlayers > 1) Assert.Empty(mine);
+            else Assert.InRange(mine.Length, spawn.Id == "14" ? 0 : 1, spawn.ClumpQuantity);
+            // A clump lands in its box around an anchor inside the area.
+            Assert.All(mine, p => Assert.True(MathF.Abs(p.Position.X - spawn.X) <= spawn.Width / 2 + spawn.ClumpRadius / 2 + 0.01f
+                && MathF.Abs(p.Position.Y - spawn.Y) <= spawn.Height / 2 + spawn.ClumpRadius / 2 + 0.01f));
+            if (mine.Length > 1)
+                Assert.True(mine.Max(p => p.Position.X) - mine.Min(p => p.Position.X) <= spawn.ClumpRadius + 0.01f);
+        }
         Assert.Equal(piles.Select(p => p.Position), b.Collectibles.Where(p => p.Id.StartsWith("mineral:", StringComparison.Ordinal)).Select(p => p.Position));
         Assert.Equal(WorldStateHasher.Hash(a), WorldStateHasher.Hash(b));
         foreach (var pile in piles)
@@ -120,41 +142,91 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
-    public void ShippedSector_HoldsAboutFiveFullHoldsOfMinerals_InTheOriginalMix()
+    public void ShippedField_NeverHoldsMoreThanTheSectorCaps_AndRefillsOnlyEmptyAreas()
     {
-        // Steve, Nov 2 2026: minerals keep spawning while the server runs, but max out at about enough for five ships.
         var world = World(stationPiles: false);
-        var sector = world.Catalog.Sector;
-        Assert.Equal(5, sector.MineralHoldsInSpace);
-        var cargo = LoadStation().CreateCargoCatalog(TestCargo.Capacity);
-        var field = LoadMinerals();
-        var limits = world.MineralPileLimits;
-        var weightAtLimits = field.Spawns.Sum(s => (long)limits[s.Id] * s.Quantity * cargo.UnitWeight(s.ItemId));
-        var holds = (double)weightAtLimits / world.Catalog.Ship.Cargo.Capacity;
-        Assert.InRange(holds, 4.5, 5.5);
-        foreach (var spawn in field.Spawns)
-            Assert.InRange(limits[spawn.Id], 1, spawn.MaxPiles);
-        // Every spawn is scaled by the same factor, so Tellerium spawns (f[19]=100) keep twice the piles of Krandazite (50).
-        Assert.Equal(18, limits["16"]);
-        Assert.Equal(9, limits["27"]);
-
-        // Even after a very long time with nobody collecting, the field stays at its limits.
         world.Tick(default);
-        world.ElapseWithoutTicking(int.MaxValue);
-        var minerals = world.Collectibles.Where(p => p.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)).ToArray();
-        Assert.True(minerals.Sum(p => (long)p.Quantity * cargo.UnitWeight(p.ItemId)) <= weightAtLimits);
-        foreach (var spawn in field.Spawns)
-            Assert.Equal(limits[spawn.Id], minerals.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)));
+        var field = LoadMinerals();
+        // Nobody collects for a long time: drops expire after 12 minutes and each area refills once empty, never past the caps.
+        for (var hour = 0; hour < 6; hour++)
+        {
+            world.ElapseWithoutTicking(3600 * WorldSimulation.TickRate);
+            var piles = world.Collectibles.ToArray();
+            Assert.True(piles.Count(p => p.ItemId == "2003") <= 100);
+            Assert.True(piles.Count(p => p.ItemId == "2019") <= 100);
+            Assert.True(piles.Count(p => p.ItemId == "2005") <= 50);
+            foreach (var spawn in field.Spawns)
+                Assert.True(piles.Count(p => p.Id.StartsWith($"mineral:{spawn.Id}:", StringComparison.Ordinal)) <= spawn.ClumpQuantity,
+                    $"Spawn {spawn.Id} dropped a second clump while its area still held one.");
+        }
+
+        // With enough players the gated spawns run too, and the sector caps hold across all of them.
+        var crowded = World(stationPiles: false);
+        crowded.PlayersInSector = 100;
+        crowded.RestorePlayer(new Vector2(1e6f, 1e6f), 0, crowded.Player.Hull);
+        for (var tick = 0; tick < 4 * 3600 * WorldSimulation.TickRate; tick += 600)
+        {
+            crowded.ElapseWithoutTicking(600);
+            Assert.True(crowded.Collectibles.Count(p => p.ItemId == "2005") <= 50);
+            // Tellerium G has no caps (-1) and is held back only by expiry. The capped spawns stop once the sector holds 100
+            // units of Tellerium (G's included); a clump that starts just under the cap can overshoot it by at most 14.
+            Assert.True(crowded.Collectibles.Count(p => p.ItemId == "2003" && !p.Id.StartsWith("mineral:85:", StringComparison.Ordinal)) <= 100 + 14);
+        }
+        Assert.Contains(crowded.Collectibles, p => p.Id.StartsWith("mineral:84:", StringComparison.Ordinal)); // Krandazite B needs 60
     }
 
     [Fact]
-    public void NoSectorCap_KeepsEachSpawnsOwnLimit()
+    public void AMinedOutArea_RefillsOnItsNextAttempt_AndAFullOneWaits()
     {
-        var world = new WorldSimulation(TestWorld.ExternalCatalog(), LoadStation().CreateCargoCatalog(TestCargo.Capacity), minerals: LoadMinerals());
-        var uncapped = new WorldSimulation(new GameCatalog(world.Catalog.Ship, world.Catalog.Weapon, world.Catalog.Sector with { MineralHoldsInSpace = 0 }),
-            LoadStation().CreateCargoCatalog(TestCargo.Capacity), minerals: LoadMinerals());
-        Assert.All(LoadMinerals().Spawns, s => Assert.Equal(s.MaxPiles, uncapped.MineralPileLimits[s.Id]));
-        Assert.True(world.MineralPileLimits.Values.Sum() < uncapped.MineralPileLimits.Values.Sum());
+        var world = World(new MineralFieldCatalog([Spawn()], 1), stationPiles: false);
+        world.Tick(default); // tick 1: the initial event drops the pile at (0, -150)
+        Assert.Equal("mineral:s:1", Assert.Single(world.Collectibles).Id);
+        TestWorld.Tick(world, 100); // attempts on ticks 31, 61 and 91 fail: the area still holds the pile
+        Assert.Equal("mineral:s:1", Assert.Single(world.Collectibles).Id);
+        world.RestorePlayer(new Vector2(0, -150), 0, world.Player.Hull);
+        world.Tick(default); // tick 102: picked up
+        Assert.Equal((0, "mineral:s:1", "2003", 4), (world.Pickups[0].Sequence, world.Pickups[0].PileId, world.Pickups[0].ItemId, world.Pickups[0].Quantity));
+        Assert.True(world.Pickups[0].IsMineral);
+        world.RestorePlayer(new Vector2(500, 500), 0, world.Player.Hull);
+        while (world.TickNumber < 120) world.Tick(default);
+        Assert.Empty(world.Collectibles);
+        world.Tick(default); // tick 121: the next attempt finds the area empty
+        Assert.Equal("mineral:s:2", Assert.Single(world.Collectibles).Id);
+    }
+
+    [Fact]
+    public void Drops_ExpireAfterTheirLife_AndThenTheAreaRefills()
+    {
+        var world = World(new MineralFieldCatalog([Spawn() with { ExpireTicks = 50 }], 1), stationPiles: false);
+        world.RestorePlayer(new Vector2(500, 500), 0, world.Player.Hull);
+        world.Tick(default);
+        Assert.Equal(51, Assert.Single(world.Collectibles).ExpiresAt);
+        TestWorld.Tick(world, 49);
+        Assert.Single(world.Collectibles);
+        world.Tick(default); // tick 51: gone
+        Assert.Empty(world.Collectibles);
+        TestWorld.Tick(world, 10); // tick 61: the next attempt drops a new one
+        Assert.Equal("mineral:s:2", Assert.Single(world.Collectibles).Id);
+    }
+
+    [Fact]
+    public void Attempt_FailsWithTooFewPlayers_OrAPlayerTooClose_OrTheSectorFull()
+    {
+        var gated = World(new MineralFieldCatalog([Spawn() with { MinPlayers = 40 }], 1), stationPiles: false);
+        TestWorld.Tick(gated, 100);
+        Assert.Empty(gated.Collectibles);
+        gated.PlayersInSector = 40;
+        TestWorld.Tick(gated, 30);
+        Assert.Single(gated.Collectibles);
+
+        var near = World(new MineralFieldCatalog([Spawn("near", 0, 0, minDistance: 10)], 1), stationPiles: false);
+        TestWorld.Tick(near, 100);
+        Assert.Empty(near.Collectibles); // the ship sits on it
+
+        var capped = World(new MineralFieldCatalog([Spawn("a") with { MaxInLevel = 4 }, Spawn("b", 40, -150) with { MaxInLevel = 4 }], 1), stationPiles: false);
+        capped.RestorePlayer(new Vector2(500, 500), 0, capped.Player.Hull);
+        TestWorld.Tick(capped, 200);
+        Assert.Equal("mineral:a:1", Assert.Single(capped.Collectibles).Id); // a's 4 units fill the sector cap, so b never drops
     }
 
     [Fact]
@@ -186,43 +258,13 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
-    public void PickedUpMineral_IsLogged_AndRespawnsAfterTheSucceedDelay()
-    {
-        var world = World(new MineralFieldCatalog([Spawn()], 1), stationPiles: false);
-        world.Tick(default); // tick 1: the pile appears at (0, -150), in the ship's path
-        Assert.Equal("mineral:s:1", Assert.Single(world.Collectibles, p => p.Id.StartsWith("mineral:", StringComparison.Ordinal)).Id);
-        for (var i = 0; i < 600 && world.Pickups.Count == 0; i++) world.Tick(new ShipInput(1, 0, false));
-
-        var pickup = Assert.Single(world.Pickups);
-        Assert.Equal((0, "mineral:s:1", "2003", 4), (pickup.Sequence, pickup.PileId, pickup.ItemId, pickup.Quantity));
-        Assert.True(pickup.IsMineral);
-        Assert.Equal(4, world.Cargo.Quantity("2003"));
-        Assert.DoesNotContain(world.Collectibles, p => p.Id.StartsWith("mineral:", StringComparison.Ordinal));
-
-        // The next attempt is due 120 ticks after the spawn on tick 1, i.e. on tick 121.
-        while (world.TickNumber < 120) world.Tick(default);
-        Assert.DoesNotContain(world.Collectibles, p => p.Id.StartsWith("mineral:", StringComparison.Ordinal));
-        world.Tick(default);
-        Assert.Contains(world.Collectibles, p => p.Id == "mineral:s:2");
-    }
-
-    [Fact]
-    public void Attempt_FailsWhileAPileRemains_OrThePlayerIsTooClose()
-    {
-        var world = World(new MineralFieldCatalog([Spawn(), Spawn("near", 0, 0, clear: 10)], 1));
-        world.Tick(default);
-        Assert.Contains(world.Collectibles, p => p.Id == "mineral:s:1");
-        Assert.DoesNotContain(world.Collectibles, p => p.Id.StartsWith("mineral:near:", StringComparison.Ordinal)); // ship sits on it
-        for (var i = 0; i < 400; i++) world.Tick(default);
-        Assert.Single(world.Collectibles, p => p.Id.StartsWith("mineral:s:", StringComparison.Ordinal)); // max one pile at a time
-    }
-
-    [Fact]
     public void Catalog_RejectsBadSpawns_AndUnknownItems()
     {
         Assert.Throws<ArgumentException>(() => new MineralFieldCatalog([Spawn() with { Quantity = 0 }], 1));
         Assert.Throws<ArgumentException>(() => new MineralFieldCatalog([Spawn(), Spawn()], 1));
         Assert.Throws<ArgumentException>(() => new MineralFieldCatalog([Spawn() with { PileRadius = 0 }], 1));
+        Assert.Throws<ArgumentException>(() => new MineralFieldCatalog([Spawn() with { MaxInLevel = -2 }], 1));
+        Assert.Throws<ArgumentException>(() => new MineralFieldCatalog([Spawn() with { ExpireTicks = -1 }], 1));
         Assert.Throws<ArgumentException>(() => World(new MineralFieldCatalog([Spawn() with { ItemId = "nope" }], 1)));
     }
 
