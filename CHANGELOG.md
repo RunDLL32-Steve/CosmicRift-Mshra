@@ -1,5 +1,9 @@
 # Changelog
 
+## Flight and weapon check against the originals — November 3, 2026
+
+-   Queue G10, first slice: a [validation table](docs/original-research/G10_VALIDATION.md) compares the prototype's flight, weapon, controls and HUD with the original files read the way the InfantryOnline emulator reads them. The prototype numbers are measured by running the simulation, and a test fails if either side changes. Two rows match the original reading (reverse thrust equals forward thrust, and ships coast without drag in open space). The rest differ or are missing: the Asp's top speed reads as 325 px/s against the prototype's 360, it reaches it in 1.9 s against 3.0 s, it turns at 207°/s against 189°/s, it bounces keeping 73 % of its speed against 25 %, and the Plasma Cannon fires every 250 ms against 200 ms. The biggest gap is scale: the practice sector shrinks the original map about 23 times, so it takes 4 s to cross instead of about 98 s. Strafe, hyper, dock terrains and the original HUD are not in the prototype yet. Nothing in the game changes; the table lists questions only the original game can answer. Counts unchanged.
+
 ## A sector reset keeps hull damage — November 3, 2026
 
 -   Steve's rule (November 3, 2026): resetting the sector puts your ship back at the spawn with the hull it had, so a reset is no longer a free repair. A destroyed ship still comes back with a full hull (NEW/provisional, unchanged). Repairs stay at the station.
