@@ -34,7 +34,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 
 | ID  | Task                                                                                         | Where          | Run   | Depends on    | Status snapshot                                              | Brief                  |
 | --- | -------------------------------------------------------------------------------------------- | -------------- | ----- | ------------- | ------------------------------------------------------------ | ---------------------- |
-| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN in queue snapshot; prior claim note requires live check | [C1](docs/tasks/c1.md) |
+| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN (claim abandoned: `claim/c1-blo-reader` released November 3, 2026; reserved for Codex) | [C1](docs/tasks/c1.md) |
 | C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests | Cloud | C5, C6 MERGED | OPEN                                                         | [C7](docs/tasks/c7.md) |
 
 ## Completed queue history (not active work)
@@ -65,6 +65,7 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 The prior queue contained the following branch/PR notes. Its observation time was not recorded, so none is asserted current. Check `git ls-remote`, current branch logs and open PRs before selecting an item. Old names are preserved here only to prevent accidental claim loss:
 
 -   `claim/c1-blo-reader` (C1); `claim/g6-level-reader` (G6); `claim/g8a-format-audit` (subscope of G8); `claim/g11-hull-reference-resolution` (unrowed G11, ambiguous).
+-   `claim/c1-blo-reader` was released by its owner (Steve) on November 3, 2026: its only commits were two empty `CLAIM C1` markers from October 15, 2026, with no implementation, no open PR and no history shared with current main. Its newest commit now starts `RELEASE`, so it no longer claims C1. Steve is handing C1 to Codex.
 -   `claim/g2-original-hulls` and `claim/m1-persistence-core` conflicted with already-merged queue rows in that old snapshot; reconcile with current main.
 -   `cloud/rt-f063-space-storm-audit`, `cloud/rt-f064-los-radar-fields`, `cloud/rt-f065-safe-zone-docking`, `cloud/rt-f068-progression-contract`, `cloud/rt-f076-plasma-cannon-item`, and `cloud/rt-f077-f080-micromissile-children` were listed as claims; inspect live status before touching any related ID.
 -   `local/bbq-cooked-workflow` was listed as workflow tooling with no RT-ID.
