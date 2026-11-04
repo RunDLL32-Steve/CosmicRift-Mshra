@@ -227,10 +227,14 @@ public sealed class StationProfileSession
                 new Dictionary<string, int>()), ct).ConfigureAwait(false);
     }
 
-    /// <summary>Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change).</summary>
-    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, CancellationToken ct = default) =>
+    /// <summary>
+    /// Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change), marked with the coordinate
+    /// version it was flown in (<see cref="ShipCondition.MapPixels"/> on the full-size map, the default).
+    /// </summary>
+    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, int coordinateVersion = ShipCondition.MapPixels,
+        CancellationToken ct = default) =>
         _processor.SaveShipConditionAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(),
-            new ShipCondition(hull, x, y, heading), ct);
+            new ShipCondition(hull, x, y, heading, coordinateVersion), ct);
 
     /// <summary>Buys a hull sold at the station (one of each); the player keeps flying the current ship until they select it.</summary>
     public Task<TransactionResult> BuyShipAsync(string hullId, float shipX, float shipY, CancellationToken ct = default) =>

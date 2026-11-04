@@ -80,7 +80,6 @@ public partial class GameClient : Node2D
     private GameCatalog _practiceCatalog = null!;
     /// <summary>Sector id of the 1,400-unit practice sector the game flew before the full-size map; its save is moved onto the map once.</summary>
     private const string LegacySectorId = "first_contact";
-    private bool _sectorMigrated;
     private MinimapView _minimap = null!;
 
     public override void _Ready()
@@ -564,12 +563,10 @@ public partial class GameClient : Node2D
         _sectorSavedWorld = null;
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
         {
-            // A ship saved in the old practice sector keeps its hull and heading but starts at the original spawn: its position
-            // was in the old 1,400-unit coordinates, and on the full map it would stand somewhere it never was.
-            var position = _sectorMigrated ? world.Player.Position : new System.Numerics.Vector2(ship.X, ship.Y);
-            world.RestorePlayer(position, ship.Heading, ship.Hull);
+            // Each saved ship carries its own coordinate version (review R1-2): one saved in the old practice sector keeps its
+            // hull and heading but starts at the spawn, whichever ship it is and whenever it is next flown.
+            world.RestorePlayer(ShipPlacement.Position(ship, _map, world.Player.Position), ship.Heading, ship.Hull);
         }
-        _sectorMigrated = false;
         return world;
     }
 
@@ -589,24 +586,17 @@ public partial class GameClient : Node2D
         if (_sectorStore is null) return null;
         try
         {
-            var result = _sectorStore.Load(_catalog.Sector.Id);
+            // The sector this save folder knew before the full-size map is carried over only when the map's sector was never
+            // saved here; a corrupt map save starts afresh and never rewinds to the older one (review R1-1). Its piles are moved
+            // onto the map by RestoreSector, so moving to the original map never refills the field or drops a pile.
+            var result = _map is not null ? _sectorStore.LoadOrMigrate(_catalog.Sector.Id, LegacySectorId) : _sectorStore.Load(_catalog.Sector.Id);
             if (result.Status is SectorStateLoadStatus.Corrupt or SectorStateLoadStatus.RecoveredFromBackup)
             {
                 _profileStatus = $"{_profileStatus}\n{result.Message}";
                 Notice(result.Message, warning: true);
             }
-            if (result.Document is null && _map is not null && _catalog.Sector.Id != LegacySectorId)
-            {
-                // The sector this save folder knew before the full-size map: carry it over once (its piles are moved onto the
-                // map by RestoreSector), so moving to the original map never refills the field or drops a pile.
-                var legacy = _sectorStore.Load(LegacySectorId);
-                if (legacy.Document is { } old)
-                {
-                    _sectorMigrated = true;
-                    Notice("The sector was moved onto the full-size Rogue map; your ship starts at Cold Harbor.");
-                    return old with { Sector = old.Sector with { SectorId = _catalog.Sector.Id } };
-                }
-            }
+            if (result.Status == SectorStateLoadStatus.Migrated)
+                Notice("The sector was moved onto the full-size Rogue map; ships saved in the old sector start at Cold Harbor.");
             return result.Document;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -670,7 +660,7 @@ public partial class GameClient : Node2D
         if (_session?.Profile is null || _world is null) return;
         var player = _world.Player;
         if (player.IsDestroyed) return; // a wreck is recorded as a destruction (CommitDestruction), never saved as a condition
-        var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading));
+        var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading, ShipPlacement.CoordinateVersionFor(_map)));
         if (!result.Saved) _profileStatus = $"Ship condition could not be saved ({result.Reason}).";
         _lastShipSaveTick = _world.TickNumber;
     }

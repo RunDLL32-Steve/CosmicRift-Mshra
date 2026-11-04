@@ -128,6 +128,45 @@ public sealed class OwnedShipSessionTests
     }
 
     [Fact]
+    public async Task EveryOwnedShipMovesOntoTheMapOnItsOwn_EvenAfterAFailedProfileWrite()
+    {
+        // Review R1-2 on #118: the coordinate version belongs to each saved ship, not to the sector load.
+        var station = StationSellingASecondHull();
+        var repo = new RogueTrader.UnitTests.Persistence.FaultInjectingProfileRepository(new InMemoryProfileRepository());
+        var session = await OpenAsync(station, repo);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyShipAsync(SecondHull, station.X, station.Y)).Status);
+        var map = TestWorld.RogueMap;
+        var spawn = new System.Numerics.Vector2(1888, 1728);
+
+        // Both ships were last saved in the old practice sector (as every schema 6 save was).
+        Assert.True((await session.SaveShipAsync(30, 120, -80, 0.5f, ShipCondition.LegacyPracticeSector)).Saved);
+        Assert.True((await session.SelectShipAsync(SecondHull)).Saved);
+        Assert.True((await session.SaveShipAsync(20, -50, 60, 1f, ShipCondition.LegacyPracticeSector)).Saved);
+
+        // The sector is saved on the map, then the profile write fails: the ship is still a practice-sector ship and starts at
+        // the spawn with its hull and heading, instead of standing at (-50, 60) on the map.
+        repo.Mode = RogueTrader.UnitTests.Persistence.FaultMode.FailBeforeWrite;
+        Assert.False((await session.SaveShipAsync(20, 1900, 1700, 1f)).Saved);
+        Assert.True((await session.ReloadAsync()).Succeeded);
+        repo.Mode = RogueTrader.UnitTests.Persistence.FaultMode.None;
+        var active = session.Profile!.Ship!;
+        Assert.Equal((20f, 1f, ShipCondition.LegacyPracticeSector), (active.Hull, active.Heading, active.CoordinateVersion));
+        Assert.Equal(spawn, ShipPlacement.Position(active, map, spawn));
+
+        // The parked starter moves on its own when it is next flown, whichever ship moved first.
+        Assert.True((await session.SaveShipAsync(20, 1900, 1700, 1f)).Saved); // flown on the map now
+        Assert.Equal(new System.Numerics.Vector2(1900, 1700), ShipPlacement.Position(session.Profile!.Ship!, map, spawn));
+        Assert.True((await session.SelectShipAsync(Starter)).Saved);
+        var starter = session.Profile!.Ship!;
+        Assert.Equal((30f, 0.5f, ShipCondition.LegacyPracticeSector), (starter.Hull, starter.Heading, starter.CoordinateVersion));
+        Assert.Equal(spawn, ShipPlacement.Position(starter, map, spawn));
+        Assert.Equal(ShipCondition.MapPixels, session.Profile.OwnedShips[SecondHull]!.CoordinateVersion);
+        // Without a map (the practice sector) a practice-sector position is used as saved, and a map position is not.
+        Assert.Equal(new System.Numerics.Vector2(120, -80), ShipPlacement.Position(starter, null, spawn));
+        Assert.Equal(spawn, ShipPlacement.Position(session.Profile.OwnedShips[SecondHull]!, null, spawn));
+    }
+
+    [Fact]
     public async Task EachShipCarriesItsOwnHoldCap()
     {
         var session = await OpenAsync(StationSellingASecondHull());

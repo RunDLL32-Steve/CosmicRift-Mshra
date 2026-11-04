@@ -9,7 +9,7 @@ namespace RogueTrader.Simulation;
 /// scaled by the hull's bounce (VEH BouncePercent / 1000) and the move is taken again from the old position. The emulator's
 /// 0.7 vertical factor is an isometric screen detail of its renderer and is not applied to this top-down view (NEW).
 /// </summary>
-internal static class MapCollision
+public static class MapCollision
 {
     /// <summary>
     /// Checks the move from <paramref name="previous"/> to the ship's current position and bounces it off a wall. Returns true
@@ -33,22 +33,55 @@ internal static class MapCollision
     }
 
     /// <summary>
-    /// The first point of a straight move that lies on a blocked tile, as a fraction of the move, sampled every half tile and
-    /// at the end. A move that starts on a blocked tile hits at once.
+    /// Where a straight move first enters a blocked tile, as a fraction of the move (review R1-3). The move walks the tile grid
+    /// exactly (Amanatides and Woo), so no blocked tile it crosses is ever skipped, however short the cut through it. A move
+    /// that passes exactly through a tile corner counts as entering every tile that meets there, so a shot cannot slip
+    /// diagonally between two blocked tiles. A move that starts on a blocked tile, or ends at a non-finite point, hits at once.
     /// </summary>
-    internal static bool Sweep(SectorMap map, Vector2 start, Vector2 end, out float fraction)
+    public static bool Sweep(SectorMap map, Vector2 start, Vector2 end, out float fraction)
     {
+        ArgumentNullException.ThrowIfNull(map);
         fraction = 0;
-        if (map.IsBlocked(start)) return true;
-        var length = Vector2.Distance(start, end);
-        var steps = Math.Max(1, (int)MathF.Ceiling(length / (SectorMap.TileSize / 2f)));
-        for (var i = 1; i <= steps; i++)
+        if (map.IsBlocked(start) || !float.IsFinite(end.X) || !float.IsFinite(end.Y)) return true;
+        const float size = SectorMap.TileSize;
+        var (x, y) = SectorMap.TileOf(start);
+        var d = end - start;
+        int stepX = Math.Sign(d.X), stepY = Math.Sign(d.Y);
+        var tMaxX = stepX == 0 ? float.PositiveInfinity : ((stepX > 0 ? (x + 1) * size : x * size) - start.X) / d.X;
+        var tMaxY = stepY == 0 ? float.PositiveInfinity : ((stepY > 0 ? (y + 1) * size : y * size) - start.Y) / d.Y;
+        var tDeltaX = stepX == 0 ? float.PositiveInfinity : size / MathF.Abs(d.X);
+        var tDeltaY = stepY == 0 ? float.PositiveInfinity : size / MathF.Abs(d.Y);
+        while (true)
         {
-            var t = (float)i / steps;
-            if (!map.IsBlocked(Vector2.Lerp(start, end, t))) continue;
-            fraction = t;
-            return true;
+            var t = MathF.Min(tMaxX, tMaxY);
+            if (!(t <= 1)) return false; // the move ends inside the current (open) tile
+            bool blocked;
+            if (tMaxX < tMaxY)
+            {
+                x += stepX;
+                tMaxX += tDeltaX;
+                blocked = map.IsBlockedTile(x, y);
+            }
+            else if (tMaxY < tMaxX)
+            {
+                y += stepY;
+                tMaxY += tDeltaY;
+                blocked = map.IsBlockedTile(x, y);
+            }
+            else
+            {
+                // Exactly through a corner: the two side tiles and the diagonal one all meet the move here.
+                blocked = map.IsBlockedTile(x + stepX, y) || map.IsBlockedTile(x, y + stepY) || map.IsBlockedTile(x + stepX, y + stepY);
+                x += stepX;
+                y += stepY;
+                tMaxX += tDeltaX;
+                tMaxY += tDeltaY;
+            }
+            if (blocked)
+            {
+                fraction = Math.Clamp(t, 0, 1);
+                return true;
+            }
         }
-        return false;
     }
 }

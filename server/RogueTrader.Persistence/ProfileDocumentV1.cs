@@ -39,6 +39,8 @@ internal sealed class ProfileDocumentV1
         [JsonRequired] public float X { get; set; }
         [JsonRequired] public float Y { get; set; }
         [JsonRequired] public float Heading { get; set; }
+        /// <summary>Schema 7; absent in older payloads, which were all saved in the practice sector's coordinates.</summary>
+        public int? CoordinateVersion { get; set; }
     }
 
     internal sealed class AppliedTransactionDto
@@ -113,8 +115,11 @@ internal sealed class ProfileDocumentV1
         OwnedShips = p.OwnedShips.ToDictionary(o => o.Key, o => ToDto(o.Value), StringComparer.Ordinal),
     };
 
+    private static ShipCondition FromDto(ShipConditionDto c) =>
+        new(c.Hull, c.X, c.Y, c.Heading, c.CoordinateVersion ?? ShipCondition.LegacyPracticeSector);
+
     private static ShipConditionDto? ToDto(ShipCondition? s) =>
-        s is null ? null : new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading };
+        s is null ? null : new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading, CoordinateVersion = s.CoordinateVersion };
 
     /// <summary>Maps to the immutable model; returns null and an error message when the document is structurally unmappable.</summary>
     public PlayerProfile? ToProfile(out string? error)
@@ -134,7 +139,7 @@ internal sealed class ProfileDocumentV1
         foreach (var (hull, parked) in OwnedShips)
         {
             if (hull is null) { error = "OwnedShips contains a null hull id."; return null; }
-            owned[hull] = parked is { } c ? new ShipCondition(c.Hull, c.X, c.Y, c.Heading) : null;
+            owned[hull] = parked is { } c ? FromDto(c) : null;
         }
 
         var applied = ImmutableList.CreateBuilder<AppliedTransaction>();
@@ -169,7 +174,7 @@ internal sealed class ProfileDocumentV1
             AppliedTransactions = applied.ToImmutable(),
             Ledger = ledger.ToImmutable(),
             NextLedgerSequence = NextLedgerSequence,
-            Ship = Ship is { } s ? new ShipCondition(s.Hull, s.X, s.Y, s.Heading) : null,
+            Ship = Ship is { } s ? FromDto(s) : null,
             Bounty = Bounty,
             Reputation = ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, Reputation ?? []),
             OwnedShips = owned.ToImmutable(),

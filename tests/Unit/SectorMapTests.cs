@@ -117,6 +117,77 @@ public sealed class SectorMapTests
         Assert.Empty(world.Projectiles); // the 80-pixel gap to the wall is crossed in well under 30 ticks
     }
 
+    /// <summary>A small map with the given blocked tiles (NEW fixture).</summary>
+    private static SectorMap Blocked(int width, int height, params (int X, int Y)[] walls)
+    {
+        var tiles = new byte[width * height];
+        foreach (var (x, y) in walls) tiles[y * width + x] = SectorMap.BlockedBit;
+        return new SectorMap(width, height, tiles, Expire);
+    }
+
+    [Fact]
+    public void Sweep_CatchesAShortCutThroughABlockedTileCorner()
+    {
+        // Review R1-3: both ends are open, but the segment crosses tile (1, 0) between x = 16 and about x = 16.05.
+        var map = Blocked(4, 4, (1, 0));
+        Assert.False(map.IsBlocked(new Vector2(15, 14.9f)) || map.IsBlocked(new Vector2(17, 17)));
+        Assert.True(MapCollision.Sweep(map, new Vector2(15, 14.9f), new Vector2(17, 17), out var fraction));
+        Assert.Equal(0.5f, fraction, 4); // it enters the tile at x = 16
+        Assert.False(MapCollision.Sweep(map, new Vector2(15, 17), new Vector2(17, 17.5f), out _)); // passes below it
+    }
+
+    [Fact]
+    public void Sweep_CannotSlipDiagonallyBetweenTwoBlockedTiles()
+    {
+        var map = Blocked(4, 4, (1, 0), (0, 1));
+        Assert.True(MapCollision.Sweep(map, new Vector2(8, 8), new Vector2(24, 24), out var fraction));
+        Assert.Equal(0.5f, fraction, 4); // exactly through the corner (16, 16)
+        Assert.True(MapCollision.Sweep(map, new Vector2(24, 24), new Vector2(8, 8), out _)); // and back
+    }
+
+    [Fact]
+    public void Sweep_NeverMissesABlockedPointThatDenseSamplingFinds()
+    {
+        var random = new Random(1234);
+        var walls = Enumerable.Range(0, 60).Select(_ => (random.Next(20), random.Next(20))).ToArray();
+        var map = Blocked(20, 20, walls);
+        for (var trial = 0; trial < 4000; trial++)
+        {
+            var start = new Vector2(random.NextSingle() * 320, random.NextSingle() * 320);
+            var end = start + new Vector2(random.NextSingle() - 0.5f, random.NextSingle() - 0.5f) * 120;
+            var hit = MapCollision.Sweep(map, start, end, out var fraction);
+            float? sampled = null;
+            for (var i = 0; i <= 2048 && sampled is null; i++)
+                if (map.IsBlocked(Vector2.Lerp(start, end, i / 2048f))) sampled = i / 2048f;
+            if (sampled is { } first)
+            {
+                Assert.True(hit, $"Sweep missed the blocked point at {first} of {start} -> {end}.");
+                Assert.True(fraction <= first + 1e-3f, $"Sweep hit at {fraction}, after the blocked point at {first}.");
+            }
+            if (hit && !map.IsBlocked(start))
+                Assert.True(map.IsBlocked(Vector2.Lerp(start, end, Math.Min(1, fraction + 1e-3f))) || fraction >= 0.999f
+                    || CornerOrEdge(Vector2.Lerp(start, end, fraction)), $"Sweep reported a wall at {fraction} of {start} -> {end} with none there.");
+        }
+
+        static bool CornerOrEdge(Vector2 p) => MathF.Abs(p.X / 16 - MathF.Round(p.X / 16)) < 1e-3f || MathF.Abs(p.Y / 16 - MathF.Round(p.Y / 16)) < 1e-3f;
+    }
+
+    [Theory]
+    [InlineData(450, true)]  // in front of the wall column at x = 480..496: hit
+    [InlineData(560, false)] // behind it: the wall takes the shot
+    public void Shots_HitTheNearerOfAWallAndATarget(float targetX, bool hit)
+    {
+        var sector = new SectorDefinition
+        {
+            PlayerSpawn = new SpawnDefinition { X = 400, Y = 320, Heading = 0 },
+            Targets = [new TargetDefinition { Id = "fixture-target", X = targetX, Y = 320, Radius = 20, Hull = 100, Shield = 40 }],
+        };
+        var world = new WorldSimulation(TestWorld.Catalog(sector: sector), new CargoCatalog(1000, [new(Ore, 1)]), map: Fixture());
+        for (var tick = 0; tick < 120; tick++) world.Tick(new ShipInput(0, 0, true));
+        var target = world.Targets.Single();
+        Assert.Equal(hit, target.Shield < 40 || target.Hull < 100);
+    }
+
     [Fact]
     public void RestoringOntoAWall_KeepsTheSpawnButStillRestoresTheHull()
     {
