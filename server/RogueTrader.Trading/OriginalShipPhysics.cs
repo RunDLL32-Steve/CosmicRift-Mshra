@@ -24,6 +24,7 @@ public static class OriginalShipPhysics
             Mass = Mass,
             ForwardThrust = (float)(reading.ForwardAccelerationPixelsPerSecondSquared * Mass),
             ReverseThrust = (float)(reading.ReverseAccelerationPixelsPerSecondSquared * Mass),
+            StrafeThrust = (float)(reading.StrafeAccelerationPixelsPerSecondSquared * Mass),
             RotationSpeed = (float)(reading.TurnDegreesPerSecond * Math.PI / 180),
             MaximumSpeed = (float)reading.TopSpeedPixelsPerSecond,
             AsteroidRestitution = (float)reading.WallBounceRetained,

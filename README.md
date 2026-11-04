@@ -21,7 +21,7 @@ Default export produces `artifacts/windows/FirstContact/RogueTrader2.exe` and `F
 
 ## Current behavior
 
-The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, A/Left and D/Right rotate, Space fire, Escape pause/settings, R reset. The settings panel remaps these controls and saves bindings in Godot's `user://` location. F2 opens the original-content inspector when staged assets are available. Native historical controls remain a separate fidelity task.
+The client has provisional flight/combat controls: W/Up thrust, S/Down reverse, A/Left and D/Right rotate, Q/E strafe, Space fire, Escape pause/settings, R reset. Q/E are NEW remappable defaults; existing saved Q/E bindings take priority and leave the corresponding strafe action unbound. The settings panel saves bindings in Godot's `user://` location. F2 opens the original-content inspector when staged assets are available. Native historical controls remain a separate fidelity task.
 
 Selecting a hull now displays its matching canonical sprite by vehicle ID, including Hangar switches and restored profiles. Legacy hulls without an original mapping use the geometric fallback. See the [bounded renderer regression and limits](docs/development-log/2026-11-04-selected-hull-sprite.md); original banking/pose semantics and full hull parity remain open.
 

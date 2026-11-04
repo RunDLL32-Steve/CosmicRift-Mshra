@@ -12,13 +12,15 @@ public readonly record struct StateCheckpoint(long Tick, ulong Hash);
 /// </summary>
 public sealed class SimulationRecording
 {
-    /// <summary>Version 3 adds the Shift boost as bit 1 of the input flag byte. Version 2 recordings (mine flag 0 or 1) still read.</summary>
-    public const int FormatVersion = 3;
-    private const int PreviousFormatVersion = 2;
+    /// <summary>Version 4 adds the full-precision strafe axis. Versions 2 and 3 remain readable.</summary>
+    public const int FormatVersion = 4;
+    private const int HyperFormatVersion = 3;
+    private const int LegacyFormatVersion = 2;
     // NEW/provisional: default digest cadence of once per simulated second; no original value exists.
     public const int DefaultCheckpointInterval = WorldSimulation.TickRate;
     private static readonly byte[] Magic = "RTRP"u8.ToArray();
-    private const int InputBytes = 10;
+    private const int LegacyInputBytes = 10;
+    private const int InputBytes = 14;
     private const int CheckpointBytes = 16;
 
     public int CheckpointInterval { get; }
@@ -54,8 +56,9 @@ public sealed class SimulationRecording
             {
                 writer.Write(input.Thrust);
                 writer.Write(input.Turn);
+                writer.Write(input.Strafe);
                 writer.Write(input.Fire ? (byte)1 : (byte)0);
-                // Flag byte: bit 0 mine, bit 1 Shift boost (version 3).
+                // Flag byte: bit 0 mine, bit 1 Shift boost (versions 3 and 4).
                 writer.Write((byte)((input.Mine ? 1 : 0) | (input.Hyper ? 2 : 0)));
             }
             writer.Write(Checkpoints.Count);
@@ -69,7 +72,7 @@ public sealed class SimulationRecording
         return stream.ToArray();
     }
 
-    /// <exception cref="InvalidDataException">The bytes are truncated, oversized or not a version-2 or version-3 recording.</exception>
+    /// <exception cref="InvalidDataException">The bytes are truncated, oversized or not a supported recording.</exception>
     public static SimulationRecording FromBytes(ReadOnlySpan<byte> bytes)
     {
         using var stream = new MemoryStream(bytes.ToArray(), writable: false);
@@ -79,27 +82,28 @@ public sealed class SimulationRecording
             if (!reader.ReadBytes(Magic.Length).AsSpan().SequenceEqual(Magic))
                 throw new InvalidDataException("Not a simulation recording.");
             var version = reader.ReadUInt16();
-            if (version is not (FormatVersion or PreviousFormatVersion))
+            if (version is not (FormatVersion or HyperFormatVersion or LegacyFormatVersion))
                 throw new InvalidDataException("Unsupported recording version.");
-            var maxFlags = version == FormatVersion ? 3 : 1;
+            var maxFlags = version >= HyperFormatVersion ? 3 : 1;
             if (reader.ReadUInt16() != WorldSimulation.TickRate)
                 throw new InvalidDataException("Recording tick rate differs from the simulation tick rate.");
             var interval = reader.ReadInt32();
             if (interval < 1)
                 throw new InvalidDataException("Invalid checkpoint interval.");
             var inputCount = reader.ReadInt32();
-            RequireRemaining(stream, inputCount, InputBytes);
+            RequireRemaining(stream, inputCount, version == FormatVersion ? InputBytes : LegacyInputBytes);
             var inputs = new ShipInput[inputCount];
             for (var index = 0; index < inputCount; index++)
             {
                 var thrust = reader.ReadSingle();
                 var turn = reader.ReadSingle();
+                var strafe = version == FormatVersion ? reader.ReadSingle() : 0;
                 var fire = reader.ReadByte();
                 if (fire > 1)
                     throw new InvalidDataException("Invalid fire flag.");
                 var mine = reader.ReadByte();
                 if (mine > maxFlags) throw new InvalidDataException("Invalid mine flag.");
-                inputs[index] = new ShipInput(thrust, turn, fire == 1, (mine & 1) != 0, (mine & 2) != 0);
+                inputs[index] = new ShipInput(thrust, turn, fire == 1, (mine & 1) != 0, (mine & 2) != 0, strafe);
             }
             var checkpointCount = reader.ReadInt32();
             RequireRemaining(stream, checkpointCount, CheckpointBytes);
