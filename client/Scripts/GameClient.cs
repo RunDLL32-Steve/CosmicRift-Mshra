@@ -122,12 +122,14 @@ public partial class GameClient : Node2D
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
             foreach (var arg in userArgs)
                 if (arg.StartsWith("--profile-dir=", StringComparison.Ordinal)) _profileRoot = arg[14..];
-            if (userArgs.Contains("--smoke-test"))
+            var hullSpriteCheck = userArgs.Contains("--verify-hull-sprites");
+            if (userArgs.Contains("--smoke-test") || hullSpriteCheck)
             {
                 // Acceptance runs never touch the player's real save.
                 _smokeProfileRoot = ProjectSettings.GlobalizePath($"user://smoke-profiles/{Guid.NewGuid():N}");
                 _profileRoot = _smokeProfileRoot;
             }
+            if (hullSpriteCheck) SeedHullSpriteCheckProfile();
             OpenProfile();
             FlyActiveShip();
             _world = NewWorld(restoreSavedShip: true, loadSector: true);
@@ -213,9 +215,10 @@ public partial class GameClient : Node2D
             GD.Print($"CLIENT_TEAM: {(_team is null ? "no team (practice sector)" : $"joined {_team.Name} (team {_team.Index})")}");
             // The player picks a ship whenever the client and map load (Steve, Nov 3 2026). Acceptance, capture and inspection runs
             // drive their own fixtures and keep flying the active ship.
-            var fixtureRun = smokeRequested || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused || _sectorMap.Visible;
+            var fixtureRun = smokeRequested || hullSpriteCheck || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused || _sectorMap.Visible;
             if (!fixtureRun || args.Contains("--capture-ship-picker")) ShowShipPicker();
-            if (smokeRequested) RunInputSmokeTest();
+            if (hullSpriteCheck) RunHullSpriteCheck();
+            else if (smokeRequested) RunInputSmokeTest();
             else if (originalInputRequested) RunOriginalInputCheck();
         }
         catch (Exception exception)

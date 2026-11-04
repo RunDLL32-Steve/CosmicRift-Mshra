@@ -4,14 +4,14 @@ Reviewed October 13, 2026; source/log inspection only. Status authority: [master
 
 ## Purpose and accomplished work
 
-| Source                                       | Current accomplishment                                                                                                                                                    |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GameClient.cs                                | Thin startup/lifecycle/camera bridge; loads provisional JSON; fixed world calls; controls/inspector routing; controlled startup errors and bounded screenshot/QA modes.   |
-| FlightInput.cs                               | Eight default/remappable keyboard actions, conflict checks, saved controls and held-action release before rebinding.                                                      |
-| WorldView.cs                                 | Presentation only: canonical-derived Asp/Hornet if staged, geometric fallback, provisional range/rocks/projectiles/shield rings and visual bursts.                        |
-| OriginalSpriteLibrary.cs                     | Read-only derived original manifest, resource path/commit/identity/layout checks, cached atlas/map textures and explicit frame bounds. Does not evaluate gameplay fields. |
-| ClientInputSmokeTest.cs / ClientSmokeTest.cs | Historical prototype native-input/UI three-phase and world six-phase acceptance harnesses.                                                                                |
-| OriginalContentInputCheck.cs                 | Completed RT-F374 inspector-only native input/widget/frame regression; existing controls restored; world tick remains 0.                                                  |
+| Source                                       | Current accomplishment                                                                                                                                                                                          |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GameClient.cs                                | Thin startup/lifecycle/camera bridge; loads provisional JSON; fixed world calls; controls/inspector routing; controlled startup errors and bounded screenshot/QA modes.                                         |
+| FlightInput.cs                               | Eight default/remappable keyboard actions, conflict checks, saved controls and held-action release before rebinding.                                                                                            |
+| WorldView.cs                                 | Presentation only: selected player hull mapped by canonical vehicle ID; explicit provisional Hornet practice targets; geometric fallback for unmapped hulls. See [binding fix](plan.d/selected-hull-sprite.md). |
+| OriginalSpriteLibrary.cs                     | Read-only derived original manifest, resource path/commit/identity/layout checks, cached atlas/map textures and explicit frame bounds. Does not evaluate gameplay fields.                                       |
+| ClientInputSmokeTest.cs / ClientSmokeTest.cs | Historical prototype native-input/UI three-phase and world six-phase acceptance harnesses.                                                                                                                      |
+| OriginalContentInputCheck.cs                 | Completed RT-F374 inspector-only native input/widget/frame regression; existing controls restored; world tick remains 0.                                                                                        |
 
 Evidence: historical [M0/M1 acceptance](../../docs/development-log/2026-10-12.md#final-acceptance-and-preservation-reconciliation); current [source input record](../../artifacts/qa/original-input-source-record.json), [standalone input](../../artifacts/qa/OriginalContent/standalone-input.log) and [resource/render logs](../../artifacts/qa/OriginalContent/standalone-ships.log). RT-F020/F073/F373/F374 are narrow completed display/package/control scopes.
 
