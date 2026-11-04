@@ -100,6 +100,34 @@ public sealed class UpgradeEffectsTests
     }
 
     [Fact]
+    public void Upgrades_ScaleDockAndTradeZoneFlightLikeOpenSpace()
+    {
+        // F12: an upgrade helps inside docks too, and a dock never flies faster than open space (armour slows both alike).
+        var station = Station();
+        var dockHyper = new ShipHyper { ForwardThrust = 100, ReverseThrust = 100, MaximumSpeed = 200, EnergyPerSecond = 5 };
+        var ship = new ShipDefinition
+        {
+            Physics = new ShipPhysics { ForwardThrust = 16870, ReverseThrust = 16870, MaximumSpeed = 325, RotationSpeed = 3.6f },
+            Terrains =
+            [
+                new ShipTerrainFlight { Terrain = 9, FrictionPerTenMilliseconds = 0.0140625f, Physics = new ShipPhysics { ForwardThrust = 16870, ReverseThrust = 16870, MaximumSpeed = 300, RotationSpeed = 2.6f } },
+                new ShipTerrainFlight { Terrain = 15, Hyper = dockHyper, Physics = new ShipPhysics { MaximumSpeed = 300 } },
+            ],
+        };
+        foreach (var upgrade in station.Upgrades.Where(u => u.Effect.ForwardThrust != 0 || u.Effect.MaximumSpeed != 0 || u.Effect.RotationSpeed != 0))
+        {
+            var upgraded = UpgradeEffects.Apply(ship, station, [upgrade.Id]);
+            var dock = upgraded.TerrainFlight(9)!;
+            Assert.Equal(upgraded.Physics.ForwardThrust, dock.Physics.ForwardThrust, 1);
+            Assert.Equal(upgraded.Physics.MaximumSpeed / 325 * 300, dock.Physics.MaximumSpeed, 2);
+            Assert.Equal(upgraded.Physics.RotationSpeed / 3.6f * 2.6f, dock.Physics.RotationSpeed, 4);
+            Assert.Equal(0.0140625f, dock.FrictionPerTenMilliseconds);
+            Assert.True(dock.Physics.MaximumSpeed <= upgraded.Physics.MaximumSpeed, upgrade.Name);
+            Assert.Equal(upgraded.TerrainFlight(15)!.Physics.MaximumSpeed / 300 * 200, upgraded.TerrainFlight(15)!.Hyper!.MaximumSpeed, 2);
+        }
+    }
+
+    [Fact]
     public void OnlyBestPricedUpgradePerHeldCategoryIsActive()
     {
         var station = Station();

@@ -59,7 +59,11 @@ public sealed class ClientInputSmokeTest(
             var coastVelocity = readWorld().Player.Velocity;
             await nextPhysicsFrame();
             RequireInput(readWorld().TickNumber > resumeTick, "The world must resume advancing after pause.");
-            RequireInput(System.Numerics.Vector2.Distance(readWorld().Player.Velocity, coastVelocity) < 0.01f,
+            // The ship starts in the Cold Harbor SpaceDock, where the original dock friction (F12) slows a coasting ship, so
+            // coasting may lose speed along its course but must never gain any.
+            var resumed = readWorld().Player.Velocity;
+            RequireInput(resumed.Length() <= coastVelocity.Length() + 0.01f
+                && System.Numerics.Vector2.Distance(resumed, coastVelocity * (resumed.Length() / MathF.Max(coastVelocity.Length(), 1e-6f))) < 0.01f,
                 "Resuming after key remapping must coast without phantom acceleration.");
             SendKey(Key.W, true);
             await nextPhysicsFrame();
