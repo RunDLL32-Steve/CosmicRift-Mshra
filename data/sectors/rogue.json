@@ -1,0 +1,122 @@
+{
+  "id": "rogue",
+  "name": "Rogue",
+  "evidenceClassification": "ORIGINAL+NEW",
+  "playerSpawn": {
+    "x": 1888,
+    "y": 1728,
+    "heading": -1.5707964,
+    "velocityX": 0,
+    "velocityY": 0
+  },
+  "targets": [
+    {
+      "id": "target_alpha",
+      "x": 4400,
+      "y": 1320,
+      "heading": 1.5707964,
+      "radius": 20,
+      "hull": 100,
+      "shield": 40
+    },
+    {
+      "id": "target_beta",
+      "x": 4740,
+      "y": 1160,
+      "heading": 1.5707964,
+      "radius": 20,
+      "hull": 100,
+      "shield": 40
+    },
+    {
+      "id": "target_gamma",
+      "x": 4060,
+      "y": 1900,
+      "heading": 1.5707964,
+      "radius": 20,
+      "hull": 100,
+      "shield": 40
+    }
+  ],
+  "asteroids": [
+    {
+      "id": "asteroid_01",
+      "x": 4190,
+      "y": 1440,
+      "radius": 48
+    },
+    {
+      "id": "asteroid_02",
+      "x": 4600,
+      "y": 1460,
+      "radius": 42
+    },
+    {
+      "id": "asteroid_03",
+      "x": 4300,
+      "y": 1790,
+      "radius": 56
+    },
+    {
+      "id": "asteroid_04",
+      "x": 4650,
+      "y": 1820,
+      "radius": 64
+    },
+    {
+      "id": "asteroid_05",
+      "x": 4010,
+      "y": 1180,
+      "radius": 72
+    },
+    {
+      "id": "asteroid_06",
+      "x": 4900,
+      "y": 1350,
+      "radius": 58
+    },
+    {
+      "id": "asteroid_07",
+      "x": 4470,
+      "y": 1040,
+      "radius": 80
+    },
+    {
+      "id": "asteroid_08",
+      "x": 3920,
+      "y": 1710,
+      "radius": 60
+    },
+    {
+      "id": "asteroid_09",
+      "x": 4400,
+      "y": 2080,
+      "radius": 70
+    },
+    {
+      "id": "asteroid_10",
+      "x": 4900,
+      "y": 2110,
+      "radius": 88
+    },
+    {
+      "id": "asteroid_11",
+      "x": 3810,
+      "y": 2040,
+      "radius": 74
+    },
+    {
+      "id": "asteroid_12",
+      "x": 5090,
+      "y": 1670,
+      "radius": 65
+    }
+  ],
+  "targetRespawnSeconds": 60,
+  "mapFile": "rogue_map.json",
+  "evidence": [
+    "Map: rogue_map.json, the pinned LVL/Rogue.lvl at map-pixel scale (1 world unit = 1 original pixel).",
+    "Player spawn: centre of LIO row 6 'Cold Harbor SpawnA' (1936, 1776, box 300 x 250) minus the LVL offset 48; the warp of CFG [WarpGroup] InitialEntry=0 for team 0 (TeamInfo0 Cold Harbor). NEW: the pilot's team, and the centre instead of the emulator's random point in the box.",
+    "NEW: the practice targets and asteroids of first_contact.json, moved unchanged to (4400, 1600) in open space east of Cold Harbor."
+  ]
+}

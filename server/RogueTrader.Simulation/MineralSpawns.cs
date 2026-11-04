@@ -213,8 +213,16 @@ public sealed partial class WorldSimulation
 
     /// <summary>Longest drop life plus twice the longest delay; 0 when some spawn never expires its drops.</summary>
     private long LongGapTicks => _mineralSpawns.All(s => s.Definition.ExpireTicks > 0)
-        ? _mineralSpawns.Max(s => s.Definition.ExpireTicks) + 2L * _mineralSpawns.Max(s => Math.Max(s.Definition.AttemptTicks, s.Definition.SucceedTicks))
+        ? Math.Max(_mineralSpawns.Max(s => s.Definition.ExpireTicks), Map?.LongestPrizeExpireTicks ?? 0)
+            + 2L * _mineralSpawns.Max(s => Math.Max(s.Definition.AttemptTicks, s.Definition.SucceedTicks))
         : 0;
+
+    /// <summary>
+    /// How long a drop landing at <paramref name="point"/> lasts. On a map it is the PrizeExpire of the terrain under the drop,
+    /// as the emulator takes it (720 s in open space, 120 s in the docks and trade zones of the Rogue map); without a map it is
+    /// <paramref name="fallback"/>, the spawn's own open-space life.
+    /// </summary>
+    internal long DropLifeAt(Vector2 point, long fallback) => Map?.PrizeExpireTicksAt(point) ?? fallback;
 
     /// <summary>
     /// One attempt (the emulator's <c>hideSpawn</c>). Its timer restarts first, so a failed attempt waits
@@ -260,11 +268,12 @@ public sealed partial class WorldSimulation
         {
             var point = d.ClumpRadius > 0 ? RandomIn(anchor, d.ClumpRadius, d.ClumpRadius) : RandomIn(centre, d.Width, d.Height);
             if (Asteroids.Any(a => Vector2.Distance(a.Position, point) < a.Radius + d.PileRadius)) continue;
+            if (Map is not null && Map.IsBlocked(point)) continue; // the emulator's blocked-tile retry
             string id;
             do { id = $"{prefix}{++spawn.Placed}"; } while (!_collectibleIds.Add(id));
             _collectibles.Add(new CollectibleState(new CollectibleSpawn(id, d.ItemId, d.Quantity, point.X, point.Y, d.PileRadius))
             {
-                ExpiresAt = d.ExpireTicks > 0 ? checked(now + d.ExpireTicks) : null,
+                ExpiresAt = d.ExpireTicks > 0 ? checked(now + DropLifeAt(point, d.ExpireTicks)) : null,
             });
             placedAny = true;
             if (--left > 0)

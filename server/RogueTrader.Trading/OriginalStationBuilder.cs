@@ -17,7 +17,13 @@ public static class OriginalStationBuilder
     public const string StationId = "trading_outpost";
 
     // ---- NEW/provisional values (no original source) -----------------------------------------------------------------
-    private const float StationX = 90, StationY = 20, DockRadius = 150;
+    /// <summary>
+    /// The station stands at the centre of LIO row 11 'ColdHarbor' (1984, 1744), the Cold Harbor SpaceDock whose [Terrain10]
+    /// is the store zone, moved by the LVL offset like every LIO position. The dock radius is NEW.
+    /// </summary>
+    private const int ColdHarborLioX = 1984, ColdHarborLioY = 1744;
+    private static readonly float StationX = OriginalMapBuilder.World(ColdHarborLioX), StationY = OriginalMapBuilder.World(ColdHarborLioY);
+    private const float DockRadius = 150;
     /// <summary>CFG [Event] FirstTimeInvSetup runs setcash=0; RPG f[38]=3499 (upstream name CashAdjustment) is the unproven alternative.</summary>
     private const long StartingWallet = 0;
     /// <summary>Repair rows have raw buy 0 (no dock cost); price = 10 credits per raw amount point.</summary>
@@ -31,13 +37,13 @@ public static class OriginalStationBuilder
 
     private static readonly string[] NewValueNotes =
     [
-        "Position (90, 20), dock radius 150 world units.",
+        "Position: the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; the original sells goods at the Trading Posts (LIO rows 21-22, terrain 15) and repairs at the Repair Docks (terrain 9), which this one testbed station does not split yet. Dock radius 150 map pixels.",
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
         "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
         "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
-        "Collectible piles: placement and quantities.",
-        "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
+        "Collectible piles: placement (offsets from the station) and quantities.",
+        "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
     ];
 
     public const string RefineryId = "refinery";
@@ -60,8 +66,7 @@ public static class OriginalStationBuilder
         var row = lio.First(r => r.FieldCount == OriginalMineralSpawns.FieldCount && r.Value(0) == "5" && r.Int(OriginalMineralSpawns.ItemField).Value == RefineryActor);
         var name = veh.Single(v => v.FieldCount > 3 && v.Value(2) == OriginalRefinery.VehicleId.ToString(CultureInfo.InvariantCulture)).Value(3);
         return new RefineryDefinition(RefineryId, string.IsNullOrWhiteSpace(name) ? "Refinery" : name,
-            (row.Int(4).Value - OriginalMineralFieldBuilder.MapCentre) * OriginalMineralFieldBuilder.MapScale,
-            (row.Int(5).Value - OriginalMineralFieldBuilder.MapCentre) * OriginalMineralFieldBuilder.MapScale, RefineryDockRadius)
+            OriginalMapBuilder.World(row.Int(4).Value), OriginalMapBuilder.World(row.Int(5).Value), RefineryDockRadius)
         {
             Recipes = OriginalRefinery.FromRecords(veh, items)
                 .Select(r => new StationRefineRecipe(Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.OutputItemId.Value), r.RawField4.Value)).ToList(),
@@ -104,9 +109,10 @@ public static class OriginalStationBuilder
             Upgrades = upgrades,
             Collectibles =
             [
-                new CollectibleSpawn("pile_wreckage_launch", Key(2008), 9, 0, -70, 14),
-                new CollectibleSpawn("pile_alloy_west", Key(2020), 12, -170, 20, 14),
-                new CollectibleSpawn("pile_tellerium_south", Key(2004), 6, 40, 160, 14),
+                // 100 pixels straight ahead of the Cold Harbor spawn (1888, 1728), inside the bay and the dock radius.
+                new CollectibleSpawn("pile_wreckage_launch", Key(2008), 9, StationX - 48, StationY - 68, 14),
+                new CollectibleSpawn("pile_alloy_west", Key(2020), 12, StationX - 170, StationY + 140, 14),
+                new CollectibleSpawn("pile_tellerium_south", Key(2004), 6, StationX + 90, StationY + 200, 14),
             ],
             Refinery = refinery,
             Ships = ships,

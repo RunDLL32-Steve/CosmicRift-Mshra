@@ -38,7 +38,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             Assert.True(run.Outcome.Created, run.Outcome.Message);
             var start = run.Profile.Wallet;
 
-            // 1. Destroy the practice target ahead of the spawn and collect its reward.
+            // 1. Destroy a practice target at the range east of Cold Harbor and collect its reward.
             kill = run.FireUntilKill();
             sector = run.SectorInstanceId;
             reward = run.Session.KillReward.Credits;
@@ -235,10 +235,10 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         + $"{p.AppliedTransactions.Count} applied transactions";
 
     /// <summary>The shipped definitions the client loads, with a content revision: SHA-256 over each file, in load order.</summary>
-    private sealed record Content(GameCatalog Catalog, StationDefinition Station, KillRewardDefinition Reward, string Revision)
+    private sealed record Content(GameCatalog Catalog, StationDefinition Station, KillRewardDefinition Reward, SectorMap Map, string Revision)
     {
         private static readonly string[] Files =
-            ["ships/starter_interceptor.json", "weapons/plasma_cannon.json", "sectors/first_contact.json", "stations/trading_outpost.json", "rewards/kill_reward.json"];
+            ["ships/starter_interceptor.json", "weapons/plasma_cannon.json", "sectors/rogue.json", "stations/trading_outpost.json", "rewards/kill_reward.json", "sectors/rogue_map.json"];
 
         public static Content Load()
         {
@@ -248,6 +248,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
                 GameCatalog.FromJson(text[Files[0]], text[Files[1]], text[Files[2]]),
                 StationDefinition.FromJson(text[Files[3]]),
                 KillRewardDefinition.FromJson(text[Files[4]]),
+                SectorMap.FromJson(text[Files[5]]),
                 revision);
         }
     }
@@ -294,7 +295,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         private WorldSimulation NewWorld()
         {
             var hold = (Session.Profile?.Inventory ?? Enumerable.Empty<KeyValuePair<string, int>>()).Where(e => e.Value > 0);
-            var world = new WorldSimulation(EffectiveCatalog(), _content.Station.CreateCargoCatalog(_content.Catalog.Ship.Cargo.Capacity), hold);
+            var world = new WorldSimulation(EffectiveCatalog(), _content.Station.CreateCargoCatalog(_content.Catalog.Ship.Cargo.Capacity), hold, map: _content.Map);
             if (Session.Profile?.Ship is { } ship) world.RestorePlayer(new Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
             return world;
         }
@@ -303,9 +304,16 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
 
         public void ReconcileHold() => World.Cargo.ReplaceContents(Profile.Inventory.Where(e => e.Value > 0).ToArray());
 
+        /// <summary>
+        /// Fires from the practice range centre, where the ship faces target_alpha (NEW test fixture: the ship is placed there and
+        /// back at rest, as the range lies 2,500 pixels east of the Cold Harbor spawn on the full-size map).
+        /// </summary>
         public TargetKill FireUntilKill()
         {
+            var (from, heading) = (World.Player.Position, World.Player.Heading);
+            World.RestorePlayer(World.Targets[0].Position + new Vector2(0, 280), -MathF.PI / 2, World.Player.Hull);
             FlyUntil(new ShipInput(0, 0, true), w => w.Kills.Count > 0, WorldSimulation.TickRate * 20);
+            World.RestorePlayer(from, heading, World.Player.Hull);
             return World.Kills[^1];
         }
 

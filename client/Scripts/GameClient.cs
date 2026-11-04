@@ -71,6 +71,13 @@ public partial class GameClient : Node2D
     private bool _shipPickerVisible;
     private (string WorldInstanceId, long Tick)? _pendingDestruction;
     private long _nextDestructionRetryTick;
+    // The full-size Rogue sector (G10 F10): its walls and terrain, and the small practice sector the flight smoke test still flies.
+    private SectorMap? _map;
+    private GameCatalog _practiceCatalog = null!;
+    /// <summary>Sector id of the 1,400-unit practice sector the game flew before the full-size map; its save is moved onto the map once.</summary>
+    private const string LegacySectorId = "first_contact";
+    private bool _sectorMigrated;
+    private MinimapView _minimap = null!;
 
     public override void _Ready()
     {
@@ -79,7 +86,8 @@ public partial class GameClient : Node2D
             FlightInput.Initialize();
             _roster = ShipRoster.FromJson(ReadDefinition("ships/roster.json"));
             var weaponJson = ReadDefinition("weapons/plasma_cannon.json");
-            var sectorJson = ReadDefinition("sectors/first_contact.json");
+            var practiceJson = ReadDefinition("sectors/first_contact.json");
+            var sectorJson = ReadDefinition("sectors/rogue.json");
             foreach (var entry in _roster.Ships)
             {
                 var shipCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{entry.Definition}"), weaponJson, sectorJson);
@@ -88,6 +96,8 @@ public partial class GameClient : Node2D
                 _shipCatalogs[entry.HullId] = shipCatalog;
             }
             _catalog = _shipCatalogs[_roster.StarterHullId];
+            _practiceCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{_roster.Ships.First(s => s.HullId == _roster.StarterHullId).Definition}"), weaponJson, practiceJson);
+            if (_catalog.Sector.MapFile is { } mapFile) _map = SectorMap.FromJson(ReadDefinition($"sectors/{mapFile}"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
@@ -110,6 +120,8 @@ public partial class GameClient : Node2D
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
             if (_stationDefinition.Refinery is { } refinery)
                 _view.Refinery = (new System.Numerics.Vector2(refinery.X, refinery.Y), refinery.DockRadius, refinery.Name);
+            _view.Map = _map;
+            _view.Spawn = new System.Numerics.Vector2(_catalog.Sector.PlayerSpawn.X, _catalog.Sector.PlayerSpawn.Y);
             AddChild(_view);
             _view.SetWorld(_world);
             _camera = new Camera2D { Enabled = true };
@@ -121,6 +133,8 @@ public partial class GameClient : Node2D
             _hud.OriginalContentRequested += () => SetInspectionVisible(true);
             _hud.ReloadProfileRequested += () => ReloadProfile();
             AddChild(_hud);
+            _minimap = new MinimapView(_map, _view.Station, _view.Refinery);
+            _hud.AddChild(_minimap);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
@@ -230,6 +244,7 @@ public partial class GameClient : Node2D
         if (!_initialized) return;
         _camera.Position = WorldView.ToGodot(_world.Player.Position) + new Vector2(0, -35);
         _hud.Update(_world, _playCatalog);
+        _minimap.Update(_world);
         RefreshProfileViews();
         if (_noticeExpiresMs != 0 && Time.GetTicksMsec() >= _noticeExpiresMs)
         {
@@ -524,14 +539,20 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals);
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map);
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
         if (offline > TimeSpan.Zero) world.ElapseWithoutTicking((int)Math.Min(int.MaxValue, Math.Ceiling(offline.TotalSeconds * WorldSimulation.TickRate)));
         _sectorSavedWorld = null;
         if (restoreSavedShip && _session?.Profile?.Ship is { } ship)
-            world.RestorePlayer(new System.Numerics.Vector2(ship.X, ship.Y), ship.Heading, ship.Hull);
+        {
+            // A ship saved in the old practice sector keeps its hull and heading but starts at the original spawn: its position
+            // was in the old 1,400-unit coordinates, and on the full map it would stand somewhere it never was.
+            var position = _sectorMigrated ? world.Player.Position : new System.Numerics.Vector2(ship.X, ship.Y);
+            world.RestorePlayer(position, ship.Heading, ship.Hull);
+        }
+        _sectorMigrated = false;
         return world;
     }
 
@@ -556,6 +577,18 @@ public partial class GameClient : Node2D
             {
                 _profileStatus = $"{_profileStatus}\n{result.Message}";
                 Notice(result.Message, warning: true);
+            }
+            if (result.Document is null && _map is not null && _catalog.Sector.Id != LegacySectorId)
+            {
+                // The sector this save folder knew before the full-size map: carry it over once (its piles are moved onto the
+                // map by RestoreSector), so moving to the original map never refills the field or drops a pile.
+                var legacy = _sectorStore.Load(LegacySectorId);
+                if (legacy.Document is { } old)
+                {
+                    _sectorMigrated = true;
+                    Notice("The sector was moved onto the full-size Rogue map; your ship starts at Cold Harbor.");
+                    return old with { Sector = old.Sector with { SectorId = _catalog.Sector.Id } };
+                }
             }
             return result.Document;
         }
@@ -954,7 +987,8 @@ public partial class GameClient : Node2D
             GetTree().Quit(1);
             return;
         }
-        _smokeTest = new ClientSmokeTest(_catalog) { Report = message => GD.Print(message) };
+        // The scripted flight and combat checks fly the open practice sector (no walls), as before the full-size map.
+        _smokeTest = new ClientSmokeTest(_practiceCatalog) { Report = message => GD.Print(message) };
         _world = _smokeTest.World;
         _view.SetWorld(_world);
     }

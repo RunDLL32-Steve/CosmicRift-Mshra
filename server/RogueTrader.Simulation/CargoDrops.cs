@@ -7,11 +7,11 @@ public sealed partial class WorldSimulation
     /// <summary>Id prefix of piles spilled by a destroyed ship: <c>wreck:&lt;drop id&gt;:&lt;item id&gt;</c>.</summary>
     public const string WreckPilePrefix = "wreck:";
 
-    /// <summary>Open-space drop life, CFG [Terrain0] PrizeExpire = 720 s (the same expiry mineral drops take in the practice sector).</summary>
+    /// <summary>Open-space drop life, CFG [Terrain0] PrizeExpire = 720 s; on a map the terrain under the pile decides (120 s in docks and trade zones).</summary>
     public const long WreckDropExpireTicks = 720L * TickRate;
 
-    /// <summary>Pickup radius of a spilled pile (the mineral drop radius, 3.5, NEW for wreck drops).</summary>
-    public const float WreckPileRadius = 3.5f;
+    /// <summary>Pickup radius of a spilled pile: CFG [Arena] ItemPickupDistance = 80 map pixels, as mineral drops use (NEW for wreck drops).</summary>
+    public const float WreckPileRadius = 80f;
 
     /// <summary>Distance from the wreck at which the spilled piles lie, spread evenly around it (NEW placement).</summary>
     public const float WreckSpreadRadius = 12f;
@@ -39,10 +39,10 @@ public sealed partial class WorldSimulation
             if (!_collectibleIds.Add(id)) continue; // already spilled
             var angle = spill.Length == 1 ? 0 : MathF.Tau * n / spill.Length;
             var offset = spill.Length == 1 ? Vector2.Zero : new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * WreckSpreadRadius;
-            var pile = new CollectibleState(new CollectibleSpawn(id, spill[n].Key, spill[n].Value,
-                position.X + offset.X, position.Y + offset.Y, WreckPileRadius))
+            var at = position + offset;
+            var pile = new CollectibleState(new CollectibleSpawn(id, spill[n].Key, spill[n].Value, at.X, at.Y, WreckPileRadius))
             {
-                ExpiresAt = checked(MineralClock + WreckDropExpireTicks),
+                ExpiresAt = checked(MineralClock + DropLifeAt(at, WreckDropExpireTicks)),
             };
             _collectibles.Add(pile);
             placed.Add(pile);

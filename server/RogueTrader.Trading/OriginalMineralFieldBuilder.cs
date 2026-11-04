@@ -37,10 +37,6 @@ public static class OriginalMineralFieldBuilder
     public const string FieldId = "original_mineral_spawns";
 
     // ---- NEW/provisional readings ------------------------------------------------------------------------------------
-    /// <summary>Assumed centre of a 32,000-unit square original map (LVL 1999x1998 tiles at 16 units; RT-F021 unverified).</summary>
-    public const float MapCentre = 16000f;
-    /// <summary>Practice-sector units per original unit: the 32,000-unit map is drawn into a 1,400-unit square.</summary>
-    public const float MapScale = 1400f / 32000f;
     /// <summary>Raw delay fields in tenths of a second (the emulator multiplies them by 100 ms), as 60 Hz ticks.</summary>
     public const float TicksPerRawDelayUnit = WorldSimulation.TickRate / 10f;
     /// <summary>The emulator's "no limit" for f[17] MaxPlayerDistance (it checks the distance only below this).</summary>
@@ -58,10 +54,10 @@ public static class OriginalMineralFieldBuilder
         "Field meanings follow the InfantryOnline emulator (LioInfo.Hide.cs, ArenaLio.hideSpawn/hideItem at bb97579), adopted on Steve's call (2026-11-03): f[10] InitialCount, f[11] AttemptDelay, f[12] SucceedDelay, f[13] Probability, f[14] MinPlayers, f[15] MaxPlayers, f[16] MinPlayerDistance, f[17] MaxPlayerDistance, f[18] MaxTypeInArea, f[19] MaxTypeInLevel, f[21] HideQuantity, f[26] ClumpRadius, f[27] ClumpQuantity. The emulator is a reconstruction of the server, not the native one (RECONSTRUCTED).",
         "Each drop is f[21] units (1). An event drops f[27] drops (15 Tellerium and Iron Ore, 10 Krandazite) in an f[26] box (350) around a random anchor in the area; an event fails while the area already holds f[18] units (1) of the item, so an area refills only when it is empty; an attempt fails while the whole sector holds f[19] units of the item (100 Tellerium, 100 Iron Ore, 50 Krandazite; -1 = no limit, as on Tellerium SpawnG) or while the sector has fewer than f[14] or more than f[15] players.",
         "Delays are tenths of a second as the emulator reads them (f[11]=3000 is 300 s). After a success the next attempt comes after the shorter of f[11] and f[12], as the emulator's two timers make it.",
-        "Every drop vanishes CFG [Terrain0] PrizeExpire seconds (720) after it lands. The emulator takes the PrizeExpire of the terrain under the drop (120 in docks and trade zones); the practice sector has no terrain map yet, so open space is assumed everywhere (NEW).",
-        "Positions f[4]/f[5] are read as the area centre and f[6]/f[7] as its full width/height in original map units; they, f[16], f[17] and f[26] are drawn into the 1,400-unit practice sector around an assumed 32,000-unit map centre (16,000, 16,000) at 1,400/32,000 scale. f[17]=99999 means no check.",
-        "A drop that would overlap a (NEW) practice-sector asteroid is retried, up to the emulator's 10 tries per event with 5 back per drop placed (the emulator's blocked-tile test). The map-edge clamp is not applied.",
-        "Pickup radius is CFG [Arena] ItemPickupDistance=80 drawn at the same scale (3.5 world units, added to the ship radius).",
+        "A drop vanishes the PrizeExpire seconds of the terrain it lands on, as the emulator takes it: expireTicks here is CFG [Terrain0] (720 s, open space), and on the Rogue map (data/sectors/rogue_map.json) the world uses the terrain under the drop (120 s in docks, refinery and trade zones).",
+        "Positions f[4]/f[5] are read as the area centre and f[6]/f[7] as its full width/height in original map pixels, moved by the LVL offset (48 pixels) as the emulator moves LIO positions; f[16], f[17] and f[26] are distances in the same pixels. World units are map pixels (1:1). f[17]=99999 means no check.",
+        "A drop that would land on a blocked map tile or overlap a (NEW) practice-range asteroid is retried, up to the emulator's 10 tries per event with 5 back per drop placed (the emulator's blocked-tile test). The map-edge clamp is not applied.",
+        "Pickup radius is CFG [Arena] ItemPickupDistance=80 pixels, added to the ship radius.",
         "f[22], f[24] and f[25] are kept raw and not applied. Rows whose f[21] is not positive are not spawned.",
     ];
 
@@ -93,11 +89,11 @@ public static class OriginalMineralFieldBuilder
             var maxDistance = row.F(FMaxPlayerDistance);
             spawns.Add(new DerivedMineralSpawn(
                 row.Id.ToString(CultureInfo.InvariantCulture), Key(row.Item.Id), row.Item.Name, row.F(FHideQuantity),
-                (row.F(FX) - MapCentre) * MapScale, (row.F(FY) - MapCentre) * MapScale, row.F(FWidth) * MapScale, row.F(FHeight) * MapScale,
-                Ticks(row.F(FAttemptDelay)), Ticks(row.F(FSucceedDelay)), itemPickupDistance * MapScale,
-                row.F(FInitialCount), row.F(FMaxTypeInArea), row.F(FMaxTypeInLevel), row.F(FClumpRadius) * MapScale, row.F(FClumpQuantity),
-                row.F(FMinPlayers), row.F(FMaxPlayers), row.F(FMinPlayerDistance) * MapScale,
-                maxDistance >= NoMaxPlayerDistance ? 0 : maxDistance * MapScale,
+                OriginalMapBuilder.World(row.F(FX)), OriginalMapBuilder.World(row.F(FY)), row.F(FWidth), row.F(FHeight),
+                Ticks(row.F(FAttemptDelay)), Ticks(row.F(FSucceedDelay)), itemPickupDistance,
+                row.F(FInitialCount), row.F(FMaxTypeInArea), row.F(FMaxTypeInLevel), row.F(FClumpRadius), row.F(FClumpQuantity),
+                row.F(FMinPlayers), row.F(FMaxPlayers), row.F(FMinPlayerDistance),
+                maxDistance >= NoMaxPlayerDistance ? 0 : maxDistance,
                 Math.Max(0, prizeExpireSeconds) * (long)WorldSimulation.TickRate, row.F(FProbability),
                 new MineralSpawnSource(row.Row, row.Name, row.Raw.ToDictionary(r => $"f{r.FieldIndex}", r => r.Value))));
         }

@@ -4,16 +4,16 @@
   "evidenceClassification": "ORIGINAL+NEW",
   "source": "Derived by OriginalStationBuilder from pinned ITM/Rogue_mp.itm and VEH/Rogue.veh (VEH id 404; refinery VEH id 400 at LIO/Rogue.lio actor -400); regenerate, never hand-edit.",
   "newValues": [
-    "Position (90, 20), dock radius 150 world units.",
+    "Position: the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; the original sells goods at the Trading Posts (LIO rows 21-22, terrain 15) and repairs at the Repair Docks (terrain 9), which this one testbed station does not split yet. Dock radius 150 map pixels.",
     "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
     "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
-    "Collectible piles: placement and quantities.",
-    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
+    "Collectible piles: placement (offsets from the station) and quantities.",
+    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
   ],
-  "x": 90,
-  "y": 20,
+  "x": 1936,
+  "y": 1696,
   "dockRadius": 150,
   "startingWallet": 0,
   "goods": [
@@ -973,32 +973,32 @@
       "id": "pile_wreckage_launch",
       "itemId": "2008",
       "quantity": 9,
-      "x": 0,
-      "y": -70,
+      "x": 1888,
+      "y": 1628,
       "radius": 14
     },
     {
       "id": "pile_alloy_west",
       "itemId": "2020",
       "quantity": 12,
-      "x": -170,
-      "y": 20,
+      "x": 1766,
+      "y": 1836,
       "radius": 14
     },
     {
       "id": "pile_tellerium_south",
       "itemId": "2004",
       "quantity": 6,
-      "x": 40,
-      "y": 160,
+      "x": 2026,
+      "y": 1896,
       "radius": 14
     }
   ],
   "refinery": {
     "stationId": "refinery",
     "name": "Refinery",
-    "x": -229.59999,
-    "y": -672.7,
+    "x": 10704,
+    "y": 576,
     "dockRadius": 150,
     "recipes": [
       {

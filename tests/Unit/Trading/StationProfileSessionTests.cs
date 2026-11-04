@@ -40,7 +40,7 @@ public sealed class StationProfileSessionTests
         var cargo = station.CreateCargoCatalog(TestCargo.Capacity);
         Assert.All(station.Collectibles, pile => Assert.True(cargo.IsKnown(pile.ItemId)));
         Assert.All(station.Trades, t => Assert.Equal(t.CreditsPerUnit, station.SellPrice(t.InputItemId)));
-        var sector = TestWorld.ExternalCatalog().Sector;
+        var sector = TestWorld.RogueCatalog().Sector; // the game spawns inside the Cold Harbor dock
         Assert.True(Docking.IsDocked(station.Site, sector.PlayerSpawn.X, sector.PlayerSpawn.Y));
     }
 

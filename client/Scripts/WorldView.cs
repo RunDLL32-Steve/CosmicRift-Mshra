@@ -17,6 +17,20 @@ public partial class WorldView : Node2D
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Station { get; set; }
     /// <summary>Provisional refinery marker (queue M7 mining slice), drawn like the station.</summary>
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Refinery { get; set; }
+    /// <summary>The sector's walls and terrain, drawn one texture pixel per 16-pixel tile; null for the open practice sector.</summary>
+    public SectorMap? Map
+    {
+        get => _map;
+        set
+        {
+            _map = value;
+            _mapTexture = value is null ? null : TileTexture(value);
+        }
+    }
+    /// <summary>Where the player spawns; the launch ring is drawn there.</summary>
+    public System.Numerics.Vector2 Spawn { get; set; }
+    private SectorMap? _map;
+    private ImageTexture? _mapTexture;
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
 
@@ -62,12 +76,14 @@ public partial class WorldView : Node2D
         if (_world is null) return;
         var player = ToGodot(_world.Player.Position);
         DrawStars(player);
+        if (_mapTexture is not null && _map is not null)
+            DrawTextureRect(_mapTexture, new Rect2(Vector2.Zero, new Vector2(_map.PixelWidth, _map.PixelHeight)), false);
         DrawOrigin();
         DrawStation(Station, Amber);
         DrawStation(Refinery, new Color("e06a5a"));
         foreach (var pile in _world.Collectibles)
             if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(ToGodot(pile.Position), pile.Radius);
-            else DrawPile(ToGodot(pile.Position), pile.Radius);
+            else DrawPile(ToGodot(pile.Position), Mathf.Min(pile.Radius, 24));
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);
@@ -106,10 +122,39 @@ public partial class WorldView : Node2D
 
     private void DrawOrigin()
     {
-        DrawArc(Vector2.Zero, 74, 0, Mathf.Tau, 60, new Color(0.18f, 0.47f, 0.5f, 0.18f), 1, true);
-        DrawArc(Vector2.Zero, 80, 0, Mathf.Tau, 60, new Color(0.18f, 0.47f, 0.5f, 0.1f), 1, true);
-        DrawString(ThemeDB.FallbackFont, new Vector2(-51, 107), "LAUNCH POINT", HorizontalAlignment.Left, -1, 13, new Color("426676"));
+        var spawn = ToGodot(Spawn);
+        DrawArc(spawn, 74, 0, Mathf.Tau, 60, new Color(0.18f, 0.47f, 0.5f, 0.18f), 1, true);
+        DrawArc(spawn, 80, 0, Mathf.Tau, 60, new Color(0.18f, 0.47f, 0.5f, 0.1f), 1, true);
+        DrawString(ThemeDB.FallbackFont, spawn + new Vector2(-51, 107), "LAUNCH POINT", HorizontalAlignment.Left, -1, 13, new Color("426676"));
     }
+
+    /// <summary>Wall and terrain colours: blocked tiles are rock; store, trade and repair zones get a faint tint (NEW look).</summary>
+    internal static Color TileColor(byte tile) =>
+        (tile & SectorMap.BlockedBit) != 0 ? new Color("3b5161")
+        : (tile & 0x0F) switch
+        {
+            10 => new Color(0.38f, 0.87f, 0.82f, 0.10f), // SpaceDock store zone
+            15 => new Color(0.96f, 0.71f, 0.42f, 0.10f), // refinery / trade zone
+            9 => new Color(0.88f, 0.42f, 0.35f, 0.10f),  // repair dock
+            0 => new Color(0, 0, 0, 0),
+            _ => new Color(0.6f, 0.6f, 0.9f, 0.08f),
+        };
+
+    private static ImageTexture TileTexture(SectorMap map)
+    {
+        var bytes = new byte[map.Width * map.Height * 4];
+        var palette = new byte[256][];
+        for (var y = 0; y < map.Height; y++)
+        for (var x = 0; x < map.Width; x++)
+        {
+            var tile = map.TileAt(x, y);
+            var rgba = palette[tile] ??= ToRgba(TileColor(tile));
+            rgba.CopyTo(bytes, (y * map.Width + x) * 4);
+        }
+        return ImageTexture.CreateFromImage(Image.CreateFromData(map.Width, map.Height, false, Image.Format.Rgba8, bytes));
+    }
+
+    internal static byte[] ToRgba(Color c) => [(byte)c.R8, (byte)c.G8, (byte)c.B8, (byte)c.A8];
 
     private void DrawAsteroid(Vector2 position, float radius)
     {
@@ -192,12 +237,12 @@ public partial class WorldView : Node2D
         DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, color.Darkened(0.25f));
     }
 
-    /// <summary>Mineral piles: the pickup radius is small (scaled original ItemPickupDistance), so a larger glow marks them.</summary>
+    /// <summary>Mineral piles: a small marker; the 80-pixel pickup distance (CFG ItemPickupDistance) would hide a whole clump.</summary>
     private void DrawMineral(Vector2 position, float radius)
     {
         var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 2);
         DrawCircle(position, 12, new Color(Amber, 0.07f + 0.05f * pulse));
-        DrawArc(position, Mathf.Max(radius, 6), 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);
+        DrawArc(position, 7, 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);
         DrawRect(new Rect2(position - new Vector2(3, 3), new Vector2(6, 6)), new Color("ffe2b8"));
     }
 

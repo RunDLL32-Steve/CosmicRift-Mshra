@@ -77,6 +77,13 @@ public sealed record SectorDefinition
     /// 0 (the default) means targets never respawn. NEW/provisional practice-range rule.
     /// </summary>
     public float TargetRespawnSeconds { get; init; }
+    /// <summary>
+    /// File name (next to the sector file) of the tile map the sector is flown on, for example <c>rogue_map.json</c>; null for an
+    /// open practice sector with no walls.
+    /// </summary>
+    public string? MapFile { get; init; }
+    /// <summary>Where each part of a derived sector came from, and which parts are NEW. Not read by the simulation.</summary>
+    public IReadOnlyList<string> Evidence { get; init; } = [];
 }
 
 public sealed record SpawnDefinition

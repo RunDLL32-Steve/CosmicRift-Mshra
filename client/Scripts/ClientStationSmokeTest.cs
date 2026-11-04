@@ -26,7 +26,8 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
             // In-space pickup, first with a simulated save failure (the cargo must stay in the hold), then committed.
             resetSector();
-            var pile = station.Collectibles.First(p => Math.Abs(p.X) < 1);
+            var spawn = readWorld().Catalog.Sector.PlayerSpawn;
+            var pile = station.Collectibles.First(p => Math.Abs(p.X - spawn.X) < 1 && p.Y < spawn.Y); // straight ahead of the spawn
             client.SimulatePickupSaveFailure();
             SendKey(Key.W, true);
             for (var frame = 0; frame < 240 && readWorld().Cargo.Quantity(pile.ItemId) == 0; frame++)
@@ -42,15 +43,16 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(hud.CargoText.Contains($"x{pile.Quantity}"), $"HUD cargo '{hud.CargoText}' must list the committed pickup.");
             GD.Print("STATION SMOKE PASS: pickup survives a failed save and is then committed and shown on the HUD");
 
-            // Kill reward (queue M7 slice): the spawn faces target_alpha, so holding fire destroys it.
+            // Kill reward (queue M7 slice): from the practice range centre the ship faces target_alpha, so holding fire destroys it.
             resetSector();
             Require(readWorld().Collectibles.All(p => p.Id != pile.Id), "A sector reset must not refill a collected pile.");
+            Teleport(readWorld().Targets[0].Position + new System.Numerics.Vector2(0, 280));
             var walletBeforeKill = session.Profile!.Wallet;
             SendKey(Key.Space, true);
             for (var frame = 0; frame < 900 && readWorld().Kills.Count == 0; frame++)
                 await nextPhysicsFrame();
             SendKey(Key.Space, false);
-            Require(readWorld().Kills.Count == 1, "Holding fire from spawn must destroy the practice target ahead.");
+            Require(readWorld().Kills.Count == 1, "Holding fire from the range centre must destroy the practice target ahead.");
             await RewardsSaved();
             var reward = session.KillReward.Credits;
             Require(reward > 0 && session.Profile!.Wallet == walletBeforeKill + reward && client.PendingKillRewards == 0,
@@ -113,6 +115,13 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var pickupsBefore = readWorld().Pickups.Count;
             Teleport(mineral.Position);
             for (var frame = 0; frame < 30 && readWorld().Pickups.Count == pickupsBefore; frame++) await nextPhysicsFrame();
+            // At full map size a clump spreads over its 350-pixel box, so visit the rest of this spawn's clump as a pilot would.
+            var clump = mineral.Id[..(mineral.Id.LastIndexOf(':') + 1)];
+            foreach (var rest in readWorld().Collectibles.Where(p => p.Id.StartsWith(clump, StringComparison.Ordinal)).Select(p => p.Position).ToArray())
+            {
+                Teleport(rest);
+                await nextPhysicsFrame();
+            }
             // Piles are 1 unit and lie close together, so the ship may sweep up several Tellerium piles at once; count them all.
             var mined = readWorld().Pickups.Skip(pickupsBefore).Where(p => p.IsMineral && p.ItemId == "2003").Sum(p => p.Quantity);
             Require(readWorld().Pickups.Skip(pickupsBefore).Any(p => p.PileId == mineral.Id), "The ship must have collected the Tellerium pile it was sent to.");

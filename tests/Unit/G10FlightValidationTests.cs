@@ -145,12 +145,13 @@ public sealed class G10FlightValidationTests
     }
 
     [Fact]
-    public void PrototypeSectorCrossingTimeUsesTheMineralFieldScale()
+    public void SectorCrossingTimeIsTheOriginalMapAtTopSpeed()
     {
-        // The practice sector draws the 32,000-unit original map into 1,400 units (OriginalMineralFieldBuilder.MapScale),
-        // so the prototype crosses the drawn map in a little over four seconds.
-        Assert.Equal(1400 / 32000.0, OriginalMineralFieldBuilder.MapScale, 6);
-        Assert.Equal(4.31, 1400 / ObservedTopSpeed(), 2);
+        // F10: the game now flies the Rogue map at map-pixel scale (data/sectors/rogue_map.json, 1999 tiles x 16 px), so
+        // crossing it at the Asp's measured top speed takes the original reading's 98.4 s.
+        var map = SectorMap.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "sectors", "rogue_map.json")));
+        Assert.Equal(31984, map.PixelWidth);
+        Assert.Equal(98.4, map.PixelWidth / ObservedTopSpeed(), 1);
     }
 
     // ---- Expected: the originals through the emulator's unit chain -------------------------------------------------
@@ -225,9 +226,10 @@ public sealed class G10FlightValidationTests
         var asp = EmulatorFlightReading.From(Hulls.Value.ByName("Asp"));
         var plasma = OriginalProjectile.Of(Items.Value.ById(1004));
         Assert.Equal("Plasma Cannon", plasma.Item.Name);
-        // Map crossing compares speeds relative to the map each version flies on (the prototype's drawn map is 1,400 units).
-        // Rogue.lvl is 1999 tiles wide (pinned by OriginalLevelTests; read here as a constant so this runs without the LFS map).
+        // Map crossing: the game flies the derived Rogue map at map-pixel scale. Rogue.lvl is 1999 tiles wide (pinned by
+        // OriginalLevelTests; read here as a constant so this runs without the LFS map).
         const double originalMapWidth = 1999.0 * OriginalCollisionGrid.TileSizePixels;
+        var flownMapWidth = (double)TestWorld.RogueMap.PixelWidth;
         var rows = new (string Row, double Observed, double Expected, Verdict Status)[]
         {
             ("F1 top speed (units/s vs px/s)", ObservedTopSpeed(), asp.TopSpeedPixelsPerSecond, Verdict.Match),
@@ -238,7 +240,7 @@ public sealed class G10FlightValidationTests
             ("F5 turn rate", ObservedTurnDegreesPerSecond(), asp.TurnDegreesPerSecond, Verdict.Match),
             ("F6 drag in open space", ObservedCoastRetainedPerSecond(), asp.FrictionRetainedPerSecond(10), Verdict.Match),
             ("F9 bounce keeps", TestWorld.ExternalCatalog().Ship.Physics.AsteroidRestitution, asp.WallBounceRetained, Verdict.Match),
-            ("F10 seconds to cross the map", 1400 / ObservedTopSpeed(), originalMapWidth / asp.TopSpeedPixelsPerSecond, Verdict.Mismatch),
+            ("F10 seconds to cross the map", flownMapWidth / ObservedTopSpeed(), originalMapWidth / asp.TopSpeedPixelsPerSecond, Verdict.Match),
             ("W1 fire interval (s)", ObservedFireIntervalSeconds(), plasma.FireDelay.Value * 10 / 1000.0, Verdict.Match),
         };
         foreach (var row in rows)

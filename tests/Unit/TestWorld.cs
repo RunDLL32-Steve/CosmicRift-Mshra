@@ -15,6 +15,18 @@ internal static class TestWorld
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "weapons", "plasma_cannon.json")),
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "sectors", "first_contact.json")));
 
+    /// <summary>The full-size Rogue sector the game flies (data/sectors/rogue.json); pass <see cref="RogueMap"/> for its walls.</summary>
+    internal static GameCatalog RogueCatalog() => GameCatalog.FromJson(
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "ships", "starter_interceptor.json")),
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "weapons", "plasma_cannon.json")),
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "sectors", "rogue.json")));
+
+    private static readonly Lazy<SectorMap> Map = new(() =>
+        SectorMap.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "sectors", "rogue_map.json"))));
+
+    /// <summary>The derived Rogue tile map (read once per test run; the map is immutable).</summary>
+    internal static SectorMap RogueMap => Map.Value;
+
     internal static void Tick(WorldSimulation world, int count, ShipInput input = default)
     {
         for (var tick = 0; tick < count; tick++)
