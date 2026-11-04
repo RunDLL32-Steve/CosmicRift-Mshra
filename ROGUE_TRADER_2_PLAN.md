@@ -1564,6 +1564,10 @@ Queue M3 now provides optional generic finite-deposit mining extraction, merged 
 
 The [October 17 documentation audit](docs/audits/2026-10-17-documentation-audit.md) checks current descriptions against source and recorded evidence; it does not establish new gameplay, native reception, or export acceptance. [Separate task briefs](docs/tasks/README.md) retain dependencies, code references and focused acceptance without reducing the full master/catalog scope.
 
+Queue C1 provides a pure raw BLO directory/member reader for all 89 pinned archives / 1,262 members, with independent original-byte and malformed-input verification. [PR116](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/116) and its [evidence](docs/development-log/2026-11-03-c1-publication.md) track final review/CI/merge gates. This scoped utility does not complete RT-F023/RT-F069, dependency closure, original rendering or any milestone box; registry 397/22/375 is unchanged.
+
+C7 scoped pure motion prediction/reconciliation acceptance is verified in [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117), subject to final publication gates. This NEW/provisional library does not complete M3 prediction integration or original fidelity; all master M3 and RT feature boxes remain open. [Evidence](docs/development-log/2026-11-03-c7-publication.md).
+
 ## MILESTONE 2 — Rogue Trader core gameplay
 
 **Estimated duration:** 3–5 weeks.

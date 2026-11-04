@@ -1,0 +1,809 @@
+{
+    "sourceCommit": "eb1514eaae7f9b9425307d9cc043c74ecdd15e35",
+    "archiveCount": 89,
+    "memberCount": 1262,
+    "method": "Archive path, length and SHA-256 derive from git ls-tree and git show LFS pointer blobs at sourceCommit; all hydrated bytes verified against pointers and 36 overlapping ASSET_MANIFEST entries. Directory records derive independently from scripts/original-assets/index_dependencies.py:directory. memberDirectorySha256 is SHA-256 of UTF-8 tab-delimited rows in original ordinal order: decimal ordinal, full rawNameHex lowercase (including NUL padding/trailing bytes), decimal dataOffset, decimal sizeBytes, payload SHA-256 lowercase; LF after every row including the last. Empty directory hashes empty bytes.",
+    "archives": [
+        {
+            "relativePath": "BLO/AutoTurrets.blo",
+            "length": 277285,
+            "sha256": "8a4da4f4bac52797befced59b473ff0423ef32f486381ea6698c24c83e4de9d4",
+            "version": 2,
+            "memberCount": 6,
+            "directoryEnd": 248,
+            "memberDirectorySha256": "4899f7274960e5cc0b3c1dc0013b1067b0c8e6e12b4ebfd8be5b116080e35fca"
+        },
+        {
+            "relativePath": "BLO/BoomBall.blo",
+            "length": 1455303,
+            "sha256": "d066c2f53acda390c3031bb7359e177435c9f015ae2eb7ae12f869438ef6acb2",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "355029c67d50d279245beb6da3e7f834e9448c03eed4505d2763c616be60ce5e"
+        },
+        {
+            "relativePath": "BLO/CRMiscEffects.blo",
+            "length": 165914,
+            "sha256": "3f4e403ae85e0d4a156b71fdc76d506a369de276fb4cf39a73dbe3a334a1574a",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "fae7de14975f869877b1c949a2d321293ed875d6dd678935aac4196b9adf30a3"
+        },
+        {
+            "relativePath": "BLO/Ebombs.blo",
+            "length": 201754,
+            "sha256": "3c933241bbe9fc3cee6b9404e7ca66347c8066797d63466783fd68295514db7f",
+            "version": 2,
+            "memberCount": 31,
+            "directoryEnd": 1248,
+            "memberDirectorySha256": "4078b73bcfea8b1c8fd4b7424b17aae361abdd695901b38590bebf85a23a18cf"
+        },
+        {
+            "relativePath": "BLO/Effects.blo",
+            "length": 817140,
+            "sha256": "10de72ad6ab90059f746adef0018b55a251641018b46ca631ce6e365475dbbdc",
+            "version": 2,
+            "memberCount": 18,
+            "directoryEnd": 728,
+            "memberDirectorySha256": "a649a02f8316e7b79766e8c335ecbf386fd122eaf04dde36a18391feaaa2857d"
+        },
+        {
+            "relativePath": "BLO/ExplosionEffects.blo",
+            "length": 1009288,
+            "sha256": "5b058ce474b803ae530c4eb32f14cbf77bff31d1929305894a1703d70fc01aa3",
+            "version": 2,
+            "memberCount": 41,
+            "directoryEnd": 1648,
+            "memberDirectorySha256": "f4728c8ad2799145a1c88339f979692c9d69a24a84f3fd393bbd9d333fa9162c"
+        },
+        {
+            "relativePath": "BLO/GraziShips.blo",
+            "length": 4168225,
+            "sha256": "30d7af49562001f1ac9eb4380e7a3367afcceb093f0b78e55f7b488f5ef458d6",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "70bd3a4bc3bdb56274599c1d11fe89cc0653e0a868bcb26a1206784fa902884a"
+        },
+        {
+            "relativePath": "BLO/GraziShipsMulti.blo",
+            "length": 1295554,
+            "sha256": "c3ebd8424b6e7684f41ed78af5dddfb9c2090d0c105120c4f43dc620934026f9",
+            "version": 2,
+            "memberCount": 2,
+            "directoryEnd": 88,
+            "memberDirectorySha256": "0b7ac2e5388541cdad2e9b394f1334982b10ddca3d52f3bf90e05b34c0ab33ab"
+        },
+        {
+            "relativePath": "BLO/GraziShipsSmall.blo",
+            "length": 2801536,
+            "sha256": "ac7ea2cb9c4792a8c9abd776be242bef951dacacc96d940fbf5213c618975e2c",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "6299b9bc3c70b0deebbd9e611ebab04149401aa2972efac46acda1167d98693b"
+        },
+        {
+            "relativePath": "BLO/GraziWeapons.blo",
+            "length": 92596,
+            "sha256": "562f26484c6f7efc2a671dd1daaf81d01d1a2d04165689b3a3446928bd915b0d",
+            "version": 2,
+            "memberCount": 9,
+            "directoryEnd": 368,
+            "memberDirectorySha256": "36f9b9790afcdedf609a688f1ed70c8ce0dd8e4b13796d36db4402fb16ed56c3"
+        },
+        {
+            "relativePath": "BLO/NullShips.blo",
+            "length": 998946,
+            "sha256": "3cffeb9ce58e552895127a966d25350329dc4d1e4124cfb63d3c9e30969d1f13",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "55fb2b228057a29857af49a9b11dc3b359e0c9682dd73d299f8cb4de19236f3b"
+        },
+        {
+            "relativePath": "BLO/NullShipsSmall.blo",
+            "length": 674488,
+            "sha256": "5181dde1a5c784176468b88cd7ebda02e810bfaa70ee3853eec261387c90a8d9",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "379036e272f02c72acaa059ca981e8fdd742dcc8416681aeec8d04582fd4a1bd"
+        },
+        {
+            "relativePath": "BLO/O_Animated_Walls.blo",
+            "length": 999855,
+            "sha256": "2daae4155b0a86fcfc3eb2aafeae41e0b62ebfa1919e0215eff0b7eca1362bf8",
+            "version": 2,
+            "memberCount": 85,
+            "directoryEnd": 3408,
+            "memberDirectorySha256": "b6aaf6c993322e805a5e4277b72703df9c9eb2565d1be3370ca55f17c14947bf"
+        },
+        {
+            "relativePath": "BLO/O_Asteroids.blo",
+            "length": 660880,
+            "sha256": "1e8ed03ed06f8421c46c56a332c9ebf4ade7b7020f890e54ab54c690dc907d2a",
+            "version": 2,
+            "memberCount": 9,
+            "directoryEnd": 368,
+            "memberDirectorySha256": "b031b0c095d47d79531419de49c8884d9809025b9f45fe0029861b6dd4a6bfb2"
+        },
+        {
+            "relativePath": "BLO/O_CRLights.blo",
+            "length": 56103,
+            "sha256": "815b616950066fc2b0f1599b4eb17098ef294e317061bd530f061caff9fbc9f1",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "1150b441e04e85da758c0101d8a6612ea0b26489f1c81c86833bfa186233a737"
+        },
+        {
+            "relativePath": "BLO/O_Crystals.blo",
+            "length": 252669,
+            "sha256": "45c62debd0eb44d648f459194c3abad3e50f3b2de6285afb24393e66a6229277",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "cf7b66dac0bbde60926026efc4a207cccd025e9e6734ee0675b27fcedfc39da4"
+        },
+        {
+            "relativePath": "BLO/O_GasClouds.blo",
+            "length": 2080551,
+            "sha256": "8599c9c91e851405bc63e91bf86c629d74444b45b50f5430f26b116c1a79cc29",
+            "version": 2,
+            "memberCount": 5,
+            "directoryEnd": 208,
+            "memberDirectorySha256": "66e15be386cc693c41f6c26b6e6e4d9c14a2f3573ec149dba68b78bf5cde652f"
+        },
+        {
+            "relativePath": "BLO/O_Neutral_Walls.blo",
+            "length": 296221,
+            "sha256": "ff943c3a684f4b60fb23dcb3b422ca7e86fffc501dce45f82ba9f6d558608c3f",
+            "version": 2,
+            "memberCount": 140,
+            "directoryEnd": 5608,
+            "memberDirectorySha256": "b7329835a3378d53bcebc61fab2adfd204176c397d98688bc84dfa9e6bd6dcee"
+        },
+        {
+            "relativePath": "BLO/O_SpaceStation.blo",
+            "length": 361066,
+            "sha256": "b8698c7502a244b188fd8b0bec9b4ab9e0b3ad96ac4da128edf1c7000659d7c3",
+            "version": 2,
+            "memberCount": 92,
+            "directoryEnd": 3688,
+            "memberDirectorySha256": "56a012a73a9de1ceed6a3e86258006f868c90aecca17f6b570bbccfc0e1e4b65"
+        },
+        {
+            "relativePath": "BLO/O_Specialtiles.blo",
+            "length": 1670290,
+            "sha256": "3a49edcab329d71f22ca34b62215e7b59c1989ad48fbd3e280ccd4bdd7d6a1f5",
+            "version": 2,
+            "memberCount": 35,
+            "directoryEnd": 1408,
+            "memberDirectorySha256": "6f8d89d700851e0f6d4a94841f31c224cc6e81f9494ddb9bb9e550dca469d170"
+        },
+        {
+            "relativePath": "BLO/O_nebula.blo",
+            "length": 37102,
+            "sha256": "c19494a1dce78c9c25ac67250e27b77624082e51587c7dde24cf5d3ca5d6d417",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "565d332d0cb87ceb31f065f4f58d52428751971dc8512e99a26a7c5872052dbd"
+        },
+        {
+            "relativePath": "BLO/Plasma.blo",
+            "length": 620598,
+            "sha256": "71e609db24201848afa8f2a53a6fc00488f358ab3f93c630b3c5f7be40dfc139",
+            "version": 2,
+            "memberCount": 12,
+            "directoryEnd": 488,
+            "memberDirectorySha256": "fe69d7a2751de5d17728009b25a0695d1d21a8666f3da20710001400ca899595"
+        },
+        {
+            "relativePath": "BLO/Resources.blo",
+            "length": 153519,
+            "sha256": "fa8029527543c0335a965ba16ad4a293913a4f21e03a1db57c37d56c3bdd18e9",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "73b099aaf880238b986258e6478e95b9c5edbf7c92c583b400a4cfe9d9307dd1"
+        },
+        {
+            "relativePath": "BLO/ShipSelectMov.blo",
+            "length": 2239162,
+            "sha256": "77e5eab74377c5f88963e9d66a767be0f4284a2dcba789a8c8b7520ead5f4cd8",
+            "version": 2,
+            "memberCount": 13,
+            "directoryEnd": 528,
+            "memberDirectorySha256": "7d094b9c4fa30406be626c4a8e5493ac3dcea1631722136442ee0ff0169e3658"
+        },
+        {
+            "relativePath": "BLO/SkithMulti.blo",
+            "length": 194568,
+            "sha256": "0ecc2dd1de89105231d79babadbd0e1fc0b99f4cec3828bb881caefd8153fdd5",
+            "version": 2,
+            "memberCount": 2,
+            "directoryEnd": 88,
+            "memberDirectorySha256": "424f99587a21a7f5df15949b7839a283293f1888848c1ad7345c7ef6027ecfb6"
+        },
+        {
+            "relativePath": "BLO/SkithzarShips.blo",
+            "length": 3738784,
+            "sha256": "6ee2ab28567a773bb79657b91c16bd8596da2b69c0db4ca3ca135ea3a575e84a",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "51a0f583505f44bac97044f17dd74bd15fe6a074584b8dd2fab602631de8f405"
+        },
+        {
+            "relativePath": "BLO/SkithzarShipsSmall.blo",
+            "length": 2682965,
+            "sha256": "a4804ccc0c5cdd6271bfe2b7f06e07221a6b6ddeec42f02b7b21e53d102af6ea",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "e3e7f8b7c64d2da1267a93dfb1b51b1b7c90b007a79007370ed311a0d2e8aa3b"
+        },
+        {
+            "relativePath": "BLO/SkithzarWeapons.blo",
+            "length": 19046,
+            "sha256": "26afc35ddd6daf022cdfb974fb471820c62a9579b03ff168fbca2dc05551b0f9",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "190c080bcca2bd9b45f17e1d56a009368d37bb839d228dcc2f961a691ae58d27"
+        },
+        {
+            "relativePath": "BLO/SpaceMold.blo",
+            "length": 361317,
+            "sha256": "2604ef4498f2982e0f66741454c904aa19a0627e5cf02776b7cd115117a0ce8c",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "926e71af13fcb7c806d4b0a5a8d84cd33e2a3d6f395d9e80a695a8c07ea6c8dc"
+        },
+        {
+            "relativePath": "BLO/TerranShips.blo",
+            "length": 3665495,
+            "sha256": "0333c76dbaff5df760501e7b5762e47e38f7fb1fb7384d12ea9606f80bcd0c98",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "23bee601389cf143af7704f2fbcb90e28452f78897d3c970d22c84017661b72a"
+        },
+        {
+            "relativePath": "BLO/TerranShipsSmall.blo",
+            "length": 2602622,
+            "sha256": "7e75eb5601803ede617a834b000a7e4b43945a4b3d36ae1de7eb4495f901467b",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "b9259a72bb408b581540ae2490f03dd0a7c46398b80670436bdbc050d6339b20"
+        },
+        {
+            "relativePath": "BLO/UtilityEffects.blo",
+            "length": 260735,
+            "sha256": "4c4bb5bf96ccf09c4bcb1bb262ba85c99844d432b38a0ee9263832ba149cbcb2",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "ee419d2828356d86054ae6428f8e49e1d179ca4033bd90f740800588f521ef50"
+        },
+        {
+            "relativePath": "BLO/UtilitySounds.blo",
+            "length": 1498404,
+            "sha256": "aa6c207bb871bd9180678bd57f0c37c0a00e17fb6671f46dc7a170ff97842880",
+            "version": 2,
+            "memberCount": 20,
+            "directoryEnd": 808,
+            "memberDirectorySha256": "d46841e9e98a78550d18351edf53625cae4b3dc08ed748678b034f66e3bfe3f4"
+        },
+        {
+            "relativePath": "BLO/WeaponSounds.blo",
+            "length": 1908242,
+            "sha256": "4d17e15e6c9ac1b1303408d76feb70670b672015d376a74184316f6628d8f11f",
+            "version": 2,
+            "memberCount": 28,
+            "directoryEnd": 1128,
+            "memberDirectorySha256": "f186865f34c7aced569f19e8efc8e2a29d43acdc209650110778142fc67850be"
+        },
+        {
+            "relativePath": "BLO/Weapons.blo",
+            "length": 1463868,
+            "sha256": "b6579958489eb229d8eff924541831371e44ee4ef3ca1baa7bb15961e9983e57",
+            "version": 2,
+            "memberCount": 33,
+            "directoryEnd": 1328,
+            "memberDirectorySha256": "d0ba605b85ef39182c393075784a1920e534823ce565ec8c2c6656073d0f8359"
+        },
+        {
+            "relativePath": "BLO/a09-small.blo",
+            "length": 214814,
+            "sha256": "5d5c8e3ea7739557b4d0fb9e69674c83304d631fec6883e1189ebbb664141f74",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "ac6c4fb6fbf708b4e45d4f1b79384f317fd4835113843164be1867df7f2581f5"
+        },
+        {
+            "relativePath": "BLO/arachsmall.blo",
+            "length": 2660245,
+            "sha256": "c1922ac30a2ab7451e0e2bbc8f41b872504884e09a353237a0abd030e9c3fd87",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "4052c8fe96cb4ea13d32d2a9ffeb9b4e345cae1f0c2c07a7dc05551f9c2a89db"
+        },
+        {
+            "relativePath": "BLO/arachweapons.blo",
+            "length": 423796,
+            "sha256": "10c35d8209f3fa441cfd58d5624962cf4168b0d3a5087d430998934da2d3e7d7",
+            "version": 2,
+            "memberCount": 11,
+            "directoryEnd": 448,
+            "memberDirectorySha256": "2008625b05353c2ddf8c35d7ebb96f57a81ba2ce9b151314aaf3c5edfcc09079"
+        },
+        {
+            "relativePath": "BLO/backgroundsprites.blo",
+            "length": 68667,
+            "sha256": "0b09c717c6f4726da1387ed46eb94f0d0468c748755e261dbd3348b728552b1e",
+            "version": 2,
+            "memberCount": 9,
+            "directoryEnd": 368,
+            "memberDirectorySha256": "1d60bceadbc261a229f1d63f1a5059aa8c55c4a634e1021e16e94677af59b9cc"
+        },
+        {
+            "relativePath": "BLO/ball.blo",
+            "length": 6360,
+            "sha256": "b2a3bb759afb8aa4bdb39d61876246c1c9280458f4bef0085a2431baca319b58",
+            "version": 2,
+            "memberCount": 2,
+            "directoryEnd": 88,
+            "memberDirectorySha256": "c202c62475b411224c806c42b7831a1a45c14378d1d9af275370a1f88642d961"
+        },
+        {
+            "relativePath": "BLO/bannerballs.blo",
+            "length": 432990,
+            "sha256": "59df31832b7d77730653b016b909859873932c170b70586104f8aa3abda76602",
+            "version": 2,
+            "memberCount": 6,
+            "directoryEnd": 248,
+            "memberDirectorySha256": "56415fb8efb97881001c01960177d3eed6ce799c047ce23d1f030145a3170de2"
+        },
+        {
+            "relativePath": "BLO/bongs.blo",
+            "length": 125057,
+            "sha256": "76891a47584956f29297fce788bc7651325906484f1bcfe74161b484c21a4e25",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "01c8ee8787359992a178eb6e31444f777cc256d887f39376aa00126ff03ea5aa"
+        },
+        {
+            "relativePath": "BLO/cartoon.blo",
+            "length": 275422,
+            "sha256": "9797b7c0470d7827c165180905552b0f70e61bafdd63c21d684bda13e9c6706d",
+            "version": 2,
+            "memberCount": 15,
+            "directoryEnd": 608,
+            "memberDirectorySha256": "de3f61d4c6661b13a8cbd96f157821d1089e33435fb7646515fda176c0f2ddb3"
+        },
+        {
+            "relativePath": "BLO/crbongs.blo",
+            "length": 94432,
+            "sha256": "5694b48a248fb671933ba2da32710370138caec555a8e87d45aa087215aa506a",
+            "version": 2,
+            "memberCount": 6,
+            "directoryEnd": 248,
+            "memberDirectorySha256": "6a5876f796dca5644c8d3601bfc16b49d6a96649ac527cd9fbec8c7a7fbdc1ad"
+        },
+        {
+            "relativePath": "BLO/crdoors.blo",
+            "length": 529085,
+            "sha256": "a29f1a80c675e353c72ed904460357d380fa928ffdfdc82b1bdf39361171ca02",
+            "version": 2,
+            "memberCount": 8,
+            "directoryEnd": 328,
+            "memberDirectorySha256": "ab66638e924dcb27b62fa9698919a1654e84153be84d9300725d2a9af2f8c803"
+        },
+        {
+            "relativePath": "BLO/creffects.blo",
+            "length": 25275,
+            "sha256": "e1d58584c763115b72680888c76067011fcaed287d954c925a9e8a10b8365ce1",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "42f868315fa9567436b65e20b4404c0478eff167e9ffde6f9ce01e7b81fe6e7a"
+        },
+        {
+            "relativePath": "BLO/cruiart.blo",
+            "length": 686200,
+            "sha256": "eaefbbbbc065a38811ae1431b734099dce414f9e69a18dbd8d5063a75cf4179e",
+            "version": 2,
+            "memberCount": 33,
+            "directoryEnd": 1328,
+            "memberDirectorySha256": "d4da7b0df60b1f568737dcec620d96c9095634d757a52fa32fdb1ba8161460bb"
+        },
+        {
+            "relativePath": "BLO/crwav.blo",
+            "length": 141857,
+            "sha256": "ce17fb0221cb1ee4d8027c5b0b0dae339a53ba8dd5db25fd788f4d79796e5b50",
+            "version": 2,
+            "memberCount": 9,
+            "directoryEnd": 368,
+            "memberDirectorySha256": "32776e4eb4f8e206add04c49ca02a4856da40497e74e5d5066f2b3ecb5c8f8af"
+        },
+        {
+            "relativePath": "BLO/crystalrock.blo",
+            "length": 252669,
+            "sha256": "6f4a8eb1de3455ea53913396ec132702b585cd5468b98fa06e429f650efe3988",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "6e49c2766373e55a557b72c9ec520344a24f0aae73b21f2899755cc9a3f8a905"
+        },
+        {
+            "relativePath": "BLO/crystalrocks.blo",
+            "length": 81468,
+            "sha256": "4cb32943f40b8b848901f2038e40fa4134ac18584902f386dce1aba165afb8bb",
+            "version": 2,
+            "memberCount": 2,
+            "directoryEnd": 88,
+            "memberDirectorySha256": "93dd68daa08596197207241ee54b9d3da8f82389bf9f249fe49a94be0a2b46c0"
+        },
+        {
+            "relativePath": "BLO/cza_sounds.blo",
+            "length": 2738512,
+            "sha256": "27dedef3aa6d9b6cace82fa9f43aa5f0efc39c98346f6218c3edce175cc87f39",
+            "version": 2,
+            "memberCount": 80,
+            "directoryEnd": 3208,
+            "memberDirectorySha256": "4d51f78df216c6da754e58fb8757754739684a5ddb793ed083b8d6f5147cde4f"
+        },
+        {
+            "relativePath": "BLO/debris.blo",
+            "length": 34417,
+            "sha256": "92e9850bde6028428e28372ea5db4bbf0f11aab96c6aab450f744c88d4c0ee59",
+            "version": 2,
+            "memberCount": 10,
+            "directoryEnd": 408,
+            "memberDirectorySha256": "f9dd6c6e337dee3ded21f2bf107ddab8d15fb6f747715c407e4e4e6497e149cc"
+        },
+        {
+            "relativePath": "BLO/defender.blo",
+            "length": 1095361,
+            "sha256": "b74fcf438cad60a67d19152409b029c5d7e8834e7ac175d60e2c9aaebba21954",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "50a98cfb1d421dd06944982aeb4f59cbc3903cebc6a6ca16e3c0ff83f4af6230"
+        },
+        {
+            "relativePath": "BLO/defstructures.blo",
+            "length": 327507,
+            "sha256": "fa21858474d160edfba905b900cccfa1273200539a8f34befb48d6f95879fcda",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "e3a660eb18f6605583aca12b5b78cd1b0eefb675783d3388a4ac90990888094f"
+        },
+        {
+            "relativePath": "BLO/f_colors.blo",
+            "length": 57962,
+            "sha256": "74cbb443d82d392879132453960c802d8010629011b9b06a84f6ca09b0692272",
+            "version": 2,
+            "memberCount": 26,
+            "directoryEnd": 1048,
+            "memberDirectorySha256": "da8e4a5b7e8d419a3749d51d1a3dd7d539d55ed35fa2d5cc1e03b2b9981f80ea"
+        },
+        {
+            "relativePath": "BLO/f_darkcolors.blo",
+            "length": 59392,
+            "sha256": "888d8e8b36aa4cf7f724bc95de3e8a169b1c9564374bc2c0c13c5696b0867c48",
+            "version": 2,
+            "memberCount": 26,
+            "directoryEnd": 1048,
+            "memberDirectorySha256": "1c532c55e2ebf4cc46a8efa37c26d55ce1acc172e02d0991c125b64c2ee41a90"
+        },
+        {
+            "relativePath": "BLO/f_default.blo",
+            "length": 5238,
+            "sha256": "58de657700ee002fa791eded1e1b03a6139941fa683f385ebac597ab490dd66c",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "d54a86cb52ec37df09b01fbd06a44b77c3eac711a7e2b9127f3c50dbb8c3f44e"
+        },
+        {
+            "relativePath": "BLO/f_noradar.blo",
+            "length": 59392,
+            "sha256": "f28dee18bb7884e5270d99ad9fd42f3c163828764abe61777fbdda78a7f2d919",
+            "version": 2,
+            "memberCount": 26,
+            "directoryEnd": 1048,
+            "memberDirectorySha256": "d0c74bcf6e205073e710b10a596a923ace1c0e2348dfcc05756af4f8ccb674a9"
+        },
+        {
+            "relativePath": "BLO/four-man.blo",
+            "length": 876116,
+            "sha256": "dcd7d6211213f82464d9dc09ee74d208ac270ac93ad0a044100ee01e0495bb91",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "c570cd9547d8d63fb742ad6605b1361900003aa57ed70b9262e38d68556a24a5"
+        },
+        {
+            "relativePath": "BLO/gasclouds.blo",
+            "length": 2080551,
+            "sha256": "8599c9c91e851405bc63e91bf86c629d74444b45b50f5430f26b116c1a79cc29",
+            "version": 2,
+            "memberCount": 5,
+            "directoryEnd": 208,
+            "memberDirectorySha256": "66e15be386cc693c41f6c26b6e6e4d9c14a2f3573ec149dba68b78bf5cde652f"
+        },
+        {
+            "relativePath": "BLO/gravity.blo",
+            "length": 564675,
+            "sha256": "d672d65e6b8ea3399773f013d78df350c99785cf3f4691a244bf2ba5d73c9f27",
+            "version": 2,
+            "memberCount": 10,
+            "directoryEnd": 408,
+            "memberDirectorySha256": "c1dba2c10d7b19eccaee468fdcb619336e34928f8063d3262fca7812409ee56e"
+        },
+        {
+            "relativePath": "BLO/icons.blo",
+            "length": 218659,
+            "sha256": "41b796402d4c69fc10ae50dc9cef9f65c46e1cde151605128b39e57d206616f5",
+            "version": 1,
+            "memberCount": 15,
+            "directoryEnd": 338,
+            "memberDirectorySha256": "2df9e021f383337cda0351a28049d05c6edbb08d06ee7f561f8ae52b4cdb5f83"
+        },
+        {
+            "relativePath": "BLO/king.blo",
+            "length": 2852,
+            "sha256": "eff7fd64408e816f0c96986209b9d2545e687048128fee2a7654bcee08f83691",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "dc18741b5b6ad4d9dc7b15ccdf5ef66de32543f1871e9c94f59553ec0c0e7f70"
+        },
+        {
+            "relativePath": "BLO/kothtimers.blo",
+            "length": 4288,
+            "sha256": "830dc484afe40aa493ca02ba40ff2c3de3f30e89801dad304a7ac3057724863e",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "ee4816448761c69d4a521c7959239be721779d210f73893fec08c0a3df829e8f"
+        },
+        {
+            "relativePath": "BLO/logbanner.blo",
+            "length": 16552,
+            "sha256": "a66c97d73cc127a17a33b1099702fcce385c0d685e64607f303b12b384ad3d77",
+            "version": 2,
+            "memberCount": 2,
+            "directoryEnd": 88,
+            "memberDirectorySha256": "255f15b92f9107b038ac7bfc7ea4bfd14f7da310f2725d2e92592b1e270c8971"
+        },
+        {
+            "relativePath": "BLO/mbongs.blo",
+            "length": 1079580,
+            "sha256": "51a717410d273b0f56a8a65cd504721ee4118cb5b01cd9619443c99f3865b273",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "480ef435e3cdf11d1c17565becc39285f4054f78006d5de57cdf0c4403286bf8"
+        },
+        {
+            "relativePath": "BLO/miniturrets.blo",
+            "length": 59465,
+            "sha256": "ac299bc4e720d2f4781bb1dfed673db3c7470431ac5769bf8bef6016b58da0ce",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "96ba4d3ad5a04fbdff9f1da9ec3ea10bb59b24bfbd146950f10e331b65d9f2f7"
+        },
+        {
+            "relativePath": "BLO/newshipstopview.blo",
+            "length": 14376053,
+            "sha256": "97d05ef503c407256a77db07ec05076f681c3260a439abf9250d4aacb6e89238",
+            "version": 2,
+            "memberCount": 13,
+            "directoryEnd": 528,
+            "memberDirectorySha256": "a0cf95fdd54fd1656da1ad2436184b74443a67b9a6ad1a1da99b310ed23b6b6e"
+        },
+        {
+            "relativePath": "BLO/newweapons3901.blo",
+            "length": 229822,
+            "sha256": "5296d9dd0d1a1d20685d39c2fefaeae20245e4a0368689d69d514a769595f90c",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "9ca6dc959341b2d56c1068b8dd944f8659bb5ca7e0900ed6549003885df810fb"
+        },
+        {
+            "relativePath": "BLO/o_crmisc.blo",
+            "length": 2116,
+            "sha256": "5afe58fb83ea6ac28a9c43d0536d42a626b6a845c3bd5fe738b314f2cfafff9a",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "52410da0aa755ae275216c34d11130ca0447f8bfb25a7bc1e46be46156b3a023"
+        },
+        {
+            "relativePath": "BLO/o_mapborder.blo",
+            "length": 65275,
+            "sha256": "077703b28a3247c5e6a2765fe6a37ae52f0039b73a1d2332c3c914ed2fe1c9e6",
+            "version": 2,
+            "memberCount": 5,
+            "directoryEnd": 208,
+            "memberDirectorySha256": "596289edb7e0cc5f2114d09f1e35839b0d336973cac89bcd03a817daaeae74a4"
+        },
+        {
+            "relativePath": "BLO/o_mapfont.blo",
+            "length": 1062884,
+            "sha256": "6827792c7f7035320ee950d91d9e5f49fcdc8ae69194c4a92b5ae36f88e89969",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "1e9870c6910f5cdb6f908792e17a9714b48bebef1e91e81fd1e914f321a5c4ec"
+        },
+        {
+            "relativePath": "BLO/planets.blo",
+            "length": 29714,
+            "sha256": "b342654018a2bd0b2310d4592580fca9c44881b69d75f24da29ebf28e283bc9b",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "385416f1fd7b51bbcaebdc783c80bd87fe0c3a577540bdb5371d999418bd2a02"
+        },
+        {
+            "relativePath": "BLO/reaver.blo",
+            "length": 814301,
+            "sha256": "ec37a639a756faef0d5fe010584a541c616a4af8998c249bb087483555b9c0e8",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "0301127b954808a977db29b3534adfaa759dde6d57e6edb6217c7b81a0db1fcb"
+        },
+        {
+            "relativePath": "BLO/rogueships.blo",
+            "length": 3974968,
+            "sha256": "9dae17f9e2e989992579f3048081a03311509424b5a4e7273fb639d53a76c6be",
+            "version": 2,
+            "memberCount": 12,
+            "directoryEnd": 488,
+            "memberDirectorySha256": "5e053ba62cf50d544dc42715878571ba0441078436f42c93a79c69938e892657"
+        },
+        {
+            "relativePath": "BLO/rogueweapons.blo",
+            "length": 877991,
+            "sha256": "b84037b07cf40d9ae1a30dd11ab195423ca6845811a36bcb2cecee34bdb29fd7",
+            "version": 2,
+            "memberCount": 59,
+            "directoryEnd": 2368,
+            "memberDirectorySha256": "0c04f67897a9faa5670cd2ea65a0f905a07fc4e93e522fdcf40eb0ee1eaa6f17"
+        },
+        {
+            "relativePath": "BLO/sfambient.blo",
+            "length": 784806,
+            "sha256": "80b408e50da883a25a26f1c2d03354f43e54d8c27cf118621527cd1b6bc69db8",
+            "version": 2,
+            "memberCount": 4,
+            "directoryEnd": 168,
+            "memberDirectorySha256": "b8d99ea658829b94aeebdb5d44ff3995f2fca4d3d962a4a5ae9db79c4a994364"
+        },
+        {
+            "relativePath": "BLO/shipselect.blo",
+            "length": 166478,
+            "sha256": "c87fe93f4d2b19b7702eef693cfc3dec128559d7ccfbcddda7530ba9cde0d058",
+            "version": 2,
+            "memberCount": 6,
+            "directoryEnd": 248,
+            "memberDirectorySha256": "f8152b5463844bfa8aaea5af7626183d21a886bcf904a0a4c04f0c454840bc23"
+        },
+        {
+            "relativePath": "BLO/snd0126.blo",
+            "length": 1201106,
+            "sha256": "541d2f4da5588bb7c8d331aa828874f3930efdbb0e9f3b17c0b90d832d364257",
+            "version": 2,
+            "memberCount": 19,
+            "directoryEnd": 768,
+            "memberDirectorySha256": "4b884438c07930657c53e332e828400617b8e75c640fe5d462de3530d68514d7"
+        },
+        {
+            "relativePath": "BLO/snd0130.blo",
+            "length": 1938126,
+            "sha256": "177631a945cff18cc5c0e77c124bb88f0ef2ac7cae78fb81d3c528903ec5850a",
+            "version": 2,
+            "memberCount": 29,
+            "directoryEnd": 1168,
+            "memberDirectorySha256": "793870fcc3f3ad271ace71e78054f522758674b58e86ada6bf5656d706799c7b"
+        },
+        {
+            "relativePath": "BLO/snd0131.blo",
+            "length": 2875886,
+            "sha256": "db163629a6a64487baefca6a171c472fd5d094df5779c294386e611344785d88",
+            "version": 2,
+            "memberCount": 38,
+            "directoryEnd": 1528,
+            "memberDirectorySha256": "853df4693e578492971917769feb6b96d1f927f6d3799ddc610a8ca63e27e8f7"
+        },
+        {
+            "relativePath": "BLO/spacestations.blo",
+            "length": 8050954,
+            "sha256": "61a4bbb63122a96e8a996f99d3402183ab664c2338b646ff66730d90f2c55fdc",
+            "version": 2,
+            "memberCount": 8,
+            "directoryEnd": 328,
+            "memberDirectorySha256": "4f1cd3066d9c1fece249900350e5aee150373d420cd24c0caef5b44cd31a024d"
+        },
+        {
+            "relativePath": "BLO/starback.blo",
+            "length": 65116,
+            "sha256": "5a8dee87994a1cee1f79142a20557e654fc6f854a044a9a517df5d916e70f78c",
+            "version": 2,
+            "memberCount": 7,
+            "directoryEnd": 288,
+            "memberDirectorySha256": "5db0571f1deb791e1b0e821db471d8332bce894f68ea6038fe8a9d5af898b3d0"
+        },
+        {
+            "relativePath": "BLO/subgraph.blo",
+            "length": 62090,
+            "sha256": "8950324d0b7330d7e52fa6d471419605c383d8066992da7aea30d34f41660b23",
+            "version": 2,
+            "memberCount": 8,
+            "directoryEnd": 328,
+            "memberDirectorySha256": "b295733f33301c1f021ab2fb2034b7eaadfe7bf5b924e7b54a1b2a0afa119cae"
+        },
+        {
+            "relativePath": "BLO/terranweapons.blo",
+            "length": 147356,
+            "sha256": "7a9c279cafad1fad0f9aa7db7d5376e9a8f4c3efdb5283bd076d4c5c2c306674",
+            "version": 2,
+            "memberCount": 9,
+            "directoryEnd": 368,
+            "memberDirectorySha256": "721a8f8b6f2ef76312a105b75983f7ee366f3b44eb5fbb764ae3ec1ab031a5e1"
+        },
+        {
+            "relativePath": "BLO/tourneyFlag.blo",
+            "length": 7311,
+            "sha256": "00dcc66c94cfb691113ece3119caf03b355eedad8d8f45b064a60bef3321058e",
+            "version": 2,
+            "memberCount": 1,
+            "directoryEnd": 48,
+            "memberDirectorySha256": "d1c35b94018b38287ec55a3c5d2c6b769a5d0423af3f4ae30da0d80e16f906e3"
+        },
+        {
+            "relativePath": "BLO/uiwav.blo",
+            "length": 131242,
+            "sha256": "2bf8e9dec1b5838f51cd6ed8c4a6a5278d2ccd8c5e1f702759767a02b51b2bf0",
+            "version": 1,
+            "memberCount": 9,
+            "directoryEnd": 206,
+            "memberDirectorySha256": "c14275dfcda9d80782d698995e9a2107943272372856c5e7f00658c674100b72"
+        },
+        {
+            "relativePath": "BLO/weaponeffects.blo",
+            "length": 1164488,
+            "sha256": "94ba5e329cca0c7a5be2a865695ab15b4fb25eb59923c8f3fb17a53c0a290a0f",
+            "version": 2,
+            "memberCount": 27,
+            "directoryEnd": 1088,
+            "memberDirectorySha256": "5cf95b2f6ac329286ef578a972d30ff30027a6777a3f33b615696b8d2d455f3d"
+        },
+        {
+            "relativePath": "BLO/weaponsounds2.blo",
+            "length": 134824,
+            "sha256": "1846756d744dde4a219d202a36db92554e615d05c71a50e40d3f39a974bed8e2",
+            "version": 2,
+            "memberCount": 3,
+            "directoryEnd": 128,
+            "memberDirectorySha256": "d9d810c2c00e64c331ccd947a2e3c919c0f4c808bb8ebb1e712ce2ac0570f15b"
+        }
+    ]
+}
