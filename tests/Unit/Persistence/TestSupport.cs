@@ -14,6 +14,8 @@ internal static class Fx
     public const string UpgradeX = "fixture-upgrade-x";
     public const string UpgradeY = "fixture-upgrade-y";
     public const string Hull = "fixture-hull-1";
+    public const string Hull2 = "fixture-hull-2";
+    public const string Hull3 = "fixture-hull-3";
     public const string RepairMinor = "fixture-repair-minor";
     public const string RepairFull = "fixture-repair-full";
 
@@ -74,6 +76,13 @@ internal sealed class FixturePriceSource : IPriceSource
         [(Fx.Station, Fx.RepairFull)] = 200,  // NEW provisional test fixture, not game balance
     };
 
+    public Dictionary<(string Station, string Hull), long> Ship { get; } = new()
+    {
+        [(Fx.Station, Fx.Hull2)] = 600,  // NEW provisional test fixture, not game balance
+        [(Fx.Station, Fx.Hull3)] = 0,    // NEW provisional test fixture: a free hull
+    };
+
+    public bool TryGetShipPrice(string stationId, string hullId, out long price) => Ship.TryGetValue((stationId, hullId), out price);
     public bool TryGetRepairPrice(string stationId, string repairId, out long price) => Repair.TryGetValue((stationId, repairId), out price);
     public bool TryGetBuyUnitPrice(string stationId, string itemId, out long unitPrice) => Buy.TryGetValue((stationId, itemId), out unitPrice);
     public bool TryGetSellUnitPrice(string stationId, string itemId, out long unitPrice) => Sell.TryGetValue((stationId, itemId), out unitPrice);
@@ -130,6 +139,9 @@ internal static class ProfileAssert
         Assert.Equal(expected.Revision, actual.Revision);
         Assert.Equal(expected.Wallet, actual.Wallet);
         Assert.Equal(expected.ShipHullId, actual.ShipHullId);
+        Assert.Equal(expected.Ship, actual.Ship);
+        Assert.Equal(expected.OwnedShips.ToArray(), actual.OwnedShips.ToArray());
+        Assert.Same(StringComparer.Ordinal, actual.OwnedShips.KeyComparer);
         Assert.Equal(expected.NextLedgerSequence, actual.NextLedgerSequence);
         Assert.Equal(expected.Inventory.ToArray(), actual.Inventory.ToArray());
         Assert.Equal(expected.Upgrades.ToArray(), actual.Upgrades.ToArray());
@@ -207,6 +219,17 @@ internal sealed class Env
     public Task<TransactionResult> Reward(string? id, long currency, params (string Item, int Qty)[] items) =>
         Proc.GrantRewardAsync(Ctx(false), new GrantRewardRequest(id ?? Fx.NewId(), Fx.ProfileId, "fixture-source-1", currency,
             items.ToDictionary(i => i.Item, i => i.Qty, StringComparer.Ordinal)));
+
+    public Task<TransactionResult> BuyShip(string? id, string hull, bool stationAccess = true) =>
+        Proc.BuyShipAsync(Ctx(stationAccess), new BuyShipRequest(id ?? Fx.NewId(), Fx.ProfileId, Fx.Station, hull));
+
+    public Task<TransactionResult> Destroyed(string id, string hull = Fx.Hull) =>
+        Proc.RecordShipDestroyedAsync(Ctx(false), new ShipDestroyedRequest(id, Fx.ProfileId, hull));
+
+    public Task<ShipConditionResult> Select(string hull) => Proc.SelectShipAsync(Ctx(false), Fx.ProfileId, hull);
+
+    public Task<ShipConditionResult> SaveShip(float hull, float x = 1, float y = 2, float heading = 0) =>
+        Proc.SaveShipConditionAsync(Ctx(false), Fx.ProfileId, new ShipCondition(hull, x, y, heading));
 
     public static ImmutableSortedDictionary<string, int> Items(params (string Item, int Qty)[] items) =>
         ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, items.Select(i => new KeyValuePair<string, int>(i.Item, i.Qty)));

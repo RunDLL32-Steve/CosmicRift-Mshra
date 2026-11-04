@@ -5,29 +5,41 @@ using System.Text.Json.Serialization;
 namespace RogueTrader.Simulation;
 
 /// <summary>
-/// One mineral spawn area (queue M7 mining slice). Item id and the raw field values come from an original LIO type 5 row;
-/// how they are read (world units, ticks, piles) is decided by whoever builds the catalog and is NEW unless stated there.
+/// One mineral spawn area (queue M7 mining slice), an original LIO type 5 "hide" row. The fields follow the hide semantics of the
+/// InfantryOnline emulator (<c>LioInfo.Hide.cs</c>, <c>ArenaLio.hideSpawn</c>/<c>hideItem</c> at bb97579; research note
+/// docs/original-research/ZONE_ASSETS_COMPARISON.md section 4, followed on Steve's call, November 3, 2026). Unit conversion
+/// (world units, ticks) is done by whoever builds the catalog.
 /// </summary>
 /// <param name="Id">Stable spawn id (for original rows, the LIO row's id field).</param>
-/// <param name="ItemId">Cargo item a pile holds.</param>
-/// <param name="Quantity">Units in each new pile.</param>
-/// <param name="MaxPiles">Piles from this spawn that may lie in space at once; an attempt while that many remain fails.</param>
-/// <param name="X">Centre of the spawn area in world units.</param>
-/// <param name="Y">Centre of the spawn area in world units.</param>
-/// <param name="Width">Full width of the spawn area in world units.</param>
-/// <param name="Height">Full height of the spawn area in world units.</param>
-/// <param name="AttemptTicks">Ticks before a failed attempt is retried.</param>
-/// <param name="SucceedTicks">Ticks after a successful spawn before the next attempt.</param>
-/// <param name="ClearRadius">An attempt fails when the player's centre is within this distance of the chosen point (0 = never).</param>
-/// <param name="PileRadius">Pickup radius of each pile.</param>
-/// <param name="StartingPiles">Piles placed on the spawn's first attempt, capped at <paramref name="MaxPiles"/>; 0 or 1 places one.</param>
-public sealed record MineralSpawnDefinition(string Id, string ItemId, int Quantity, int MaxPiles, float X, float Y,
-    float Width, float Height, int AttemptTicks, int SucceedTicks, float ClearRadius, float PileRadius, int StartingPiles = 0);
+/// <param name="ItemId">Cargo item a drop holds (f[20] HideId).</param>
+/// <param name="Quantity">Units in each drop (f[21] HideQuantity).</param>
+/// <param name="X">Centre of the spawn area in world units (f[4]).</param>
+/// <param name="Y">Centre of the spawn area in world units (f[5]).</param>
+/// <param name="Width">Full width of the spawn area in world units (f[6]).</param>
+/// <param name="Height">Full height of the spawn area in world units (f[7]).</param>
+/// <param name="AttemptTicks">Wait after any attempt before the next one (f[11] AttemptDelay).</param>
+/// <param name="SucceedTicks">Wait after a successful attempt (f[12] SucceedDelay); the next attempt comes after whichever of the two delays is shorter, as in the emulator.</param>
+/// <param name="PileRadius">Pickup radius of each drop.</param>
+/// <param name="InitialCount">Spawn events run when the sector starts (f[10]); 0 makes the first attempt an ordinary one.</param>
+/// <param name="MaxInArea">An event fails while the spawn's own rectangle already holds this many units of the item (f[18]; -1 = no limit).</param>
+/// <param name="MaxInLevel">An attempt fails while the whole sector holds this many units of the item, over every pile of it (f[19]; -1 = no limit).</param>
+/// <param name="ClumpRadius">Drops of one event land in a box of this size around a random anchor in the area (f[26]; 0 = anywhere in the area).</param>
+/// <param name="ClumpQuantity">Drops placed per event (f[27]; 0 counts as 1).</param>
+/// <param name="MinPlayers">An attempt fails while fewer players than this are in the sector (f[14]).</param>
+/// <param name="MaxPlayers">An attempt fails while more players than this are in the sector (f[15]).</param>
+/// <param name="MinPlayerDistance">An event fails while a player is within this distance of the spawn centre (f[16]; 0 = no check).</param>
+/// <param name="MaxPlayerDistance">An event fails unless a player is within this distance of the spawn centre (f[17]; 0 = no check).</param>
+/// <param name="ExpireTicks">A drop vanishes this long after it lands (terrain PrizeExpire; 0 = never).</param>
+/// <param name="Probability">f[13]: 0 means the spawn runs only its initial events.</param>
+public sealed record MineralSpawnDefinition(string Id, string ItemId, int Quantity, float X, float Y, float Width, float Height,
+    int AttemptTicks, int SucceedTicks, float PileRadius, int InitialCount = 1, int MaxInArea = -1, int MaxInLevel = -1,
+    float ClumpRadius = 0, int ClumpQuantity = 1, int MinPlayers = 0, int MaxPlayers = int.MaxValue, float MinPlayerDistance = 0,
+    float MaxPlayerDistance = 0, long ExpireTicks = 0, int Probability = 1);
 
 /// <summary>
-/// Mineral spawn areas for one sector, plus the seed of their placement. Omitted from the world, no minerals appear. The world
-/// attempts every spawn on its first tick, placing its <see cref="MineralSpawnDefinition.StartingPiles"/>, so a fresh sector
-/// starts stocked; afterwards each spawn places one pile per attempt on its own delays.
+/// Mineral spawn areas for one sector, plus the seed of their placement. Omitted from the world, no minerals appear. On its
+/// first tick the world runs every spawn's initial events; afterwards each spawn attempts on its own delays (see
+/// <see cref="MineralSpawnDefinition"/>).
 /// </summary>
 public sealed class MineralFieldCatalog
 {
@@ -58,12 +70,14 @@ public sealed class MineralFieldCatalog
         {
             if (s is null || string.IsNullOrWhiteSpace(s.Id) || !ids.Add(s.Id) || string.IsNullOrWhiteSpace(s.ItemId))
                 throw new ArgumentException("Mineral spawns need unique ids and an item id.", nameof(spawns));
-            if (s.Quantity <= 0 || s.MaxPiles <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0 || s.StartingPiles < 0)
-                throw new ArgumentException($"Mineral spawn '{s.Id}' needs positive quantity, pile limit and delays.", nameof(spawns));
+            if (s.Quantity <= 0 || s.AttemptTicks <= 0 || s.SucceedTicks <= 0 || s.InitialCount < 0 || s.MaxInArea < -1
+                || s.MaxInLevel < -1 || s.ClumpQuantity < 0 || s.MinPlayers < 0 || s.MaxPlayers < 0 || s.ExpireTicks < 0 || s.Probability < 0)
+                throw new ArgumentException($"Mineral spawn '{s.Id}' needs a positive quantity and delays and no negative limits.", nameof(spawns));
             if (!float.IsFinite(s.X) || !float.IsFinite(s.Y) || !float.IsFinite(s.Width) || !float.IsFinite(s.Height)
-                || s.Width < 0 || s.Height < 0 || !float.IsFinite(s.ClearRadius) || s.ClearRadius < 0
-                || !float.IsFinite(s.PileRadius) || s.PileRadius <= 0)
-                throw new ArgumentException($"Mineral spawn '{s.Id}' needs a finite area and a positive pile radius.", nameof(spawns));
+                || s.Width < 0 || s.Height < 0 || !float.IsFinite(s.PileRadius) || s.PileRadius <= 0
+                || !float.IsFinite(s.ClumpRadius) || s.ClumpRadius < 0 || !float.IsFinite(s.MinPlayerDistance) || s.MinPlayerDistance < 0
+                || !float.IsFinite(s.MaxPlayerDistance) || s.MaxPlayerDistance < 0)
+                throw new ArgumentException($"Mineral spawn '{s.Id}' needs a finite area, distances and a positive pile radius.", nameof(spawns));
         }
     }
 
@@ -93,7 +107,6 @@ public sealed partial class WorldSimulation
     /// <summary>Id prefix of piles placed by mineral spawns: <c>mineral:&lt;spawn id&gt;:&lt;n&gt;</c>.</summary>
     public const string MineralPilePrefix = "mineral:";
 
-    private const int MaxPlacementTries = 8;
     private readonly List<CargoPickup> _pickups = [];
     private readonly MineralSpawnState[] _mineralSpawns;
     private ulong _mineralRandom;
@@ -111,9 +124,19 @@ public sealed partial class WorldSimulation
     internal ulong MineralRandomState => _mineralRandom;
     internal IEnumerable<(long NextAttemptTick, long Placed)> MineralSpawnTimers => _mineralSpawns.Select(s => (s.NextAttemptTick, s.Placed));
 
+    /// <summary>
+    /// Players counted by a spawn's <see cref="MineralSpawnDefinition.MinPlayers"/>/<see cref="MineralSpawnDefinition.MaxPlayers"/>
+    /// check. The world simulates one player; a multiplayer server passes its sector's count here.
+    /// </summary>
+    public int PlayersInSector { get; set; } = 1;
+
+    /// <summary>Tries per event to find a drop point outside every asteroid (the emulator's 10, with 5 back per drop placed).</summary>
+    private const int DropTries = 10;
+
     private sealed class MineralSpawnState(MineralSpawnDefinition definition)
     {
         public MineralSpawnDefinition Definition { get; } = definition;
+        /// <summary>Mineral clock tick of the next attempt; 0 until the spawn's initial events have run.</summary>
         public long NextAttemptTick { get; set; }
         public long Placed { get; set; }
     }
@@ -132,81 +155,130 @@ public sealed partial class WorldSimulation
         if (accepted > 0) _pickups.Add(new CargoPickup(_pickups.Count, pile.Id, pile.ItemId, accepted, TickNumber));
     }
 
+    /// <summary>Removes expired drops, then runs every spawn whose attempt is due, in catalog order.</summary>
+    private void StepMineralSpawns() => RunMineralEvents(MineralClock, MineralClock);
+
     /// <summary>
-    /// Runs every spawn whose attempt is due. A due attempt picks a point in the spawn's area and places a pile there unless the
-    /// spawn already has <see cref="MineralSpawnDefinition.MaxPiles"/> piles in space, the point lies inside an asteroid, or the
-    /// player is within the clear radius. Success waits <see cref="MineralSpawnDefinition.SucceedTicks"/>, failure
-    /// <see cref="MineralSpawnDefinition.AttemptTicks"/>.
+    /// Expiry first, then the due spawns in catalog order: the same order whether the world is ticking or catching up.
+    /// <paramref name="first"/> is the tick on which a spawn whose initial events have not run yet runs them.
     /// </summary>
-    private void StepMineralSpawns()
+    private void RunMineralEvents(long now, long first)
     {
-        foreach (var spawn in _mineralSpawns) AttemptMineral(spawn, MineralClock);
+        // Expiry runs even without mineral spawns: a destroyed ship's spilled cargo expires too (CargoDrops).
+        _collectibles.RemoveAll(p => p.ExpiresAt is { } at && at <= now);
+        if (_mineralSpawns.Length == 0) return;
+        foreach (var spawn in _mineralSpawns)
+            if (spawn.NextAttemptTick == 0 ? now >= first : now >= spawn.NextAttemptTick)
+                AttemptMineral(spawn, now);
     }
 
     /// <summary>
-    /// Lets mineral spawns run through <paramref name="ticks"/> of time in which the world did not tick: every attempt that falls
-    /// due in that time happens, in time order per spawn, exactly as it would have in flight (the player stays where they are).
-    /// A spawn that is full skips straight past the attempts that would fail, so a long gap costs little.
+    /// Lets mineral spawns and drop expiry run through <paramref name="ticks"/> of time in which the world did not tick: every
+    /// expiry and attempt that falls due happens at its own tick, in the order ticking would run them, so the result is the
+    /// same as flying for that time (the player stays where they are). A gap longer than <see cref="LongGapTicks"/> is caught up
+    /// as its last part only: every drop placed before that would have expired by its end, so only the field's timing state
+    /// carries over. That shortcut needs every spawn to expire its drops; without expiry the whole gap is run.
     /// </summary>
     private void ElapseMineralSpawns(long ticks)
     {
-        var end = checked(MineralClock + ticks);
-        // Spawns share one random state, so attempts run in the order ticks would run them: earliest due first, and spawns
-        // due on the same tick in catalog order.
+        if (_mineralSpawns.Length == 0)
+        {
+            _mineralIdleTicks = checked(_mineralIdleTicks + ticks);
+            return;
+        }
+        var start = MineralClock;
+        var end = checked(start + ticks);
+        var first = start + 1; // a spawn still waiting for its initial events runs them on the first tick that would have run
+        var longGap = LongGapTicks;
+        if (longGap > 0 && ticks > longGap)
+        {
+            var resume = end - longGap;
+            _collectibles.RemoveAll(p => p.ExpiresAt is { } at && at <= resume);
+            foreach (var spawn in _mineralSpawns)
+                if (spawn.NextAttemptTick != 0) spawn.NextAttemptTick = Math.Max(spawn.NextAttemptTick, resume);
+            first = Math.Max(first, resume);
+        }
         while (true)
         {
-            MineralSpawnState? next = null;
+            var at = long.MaxValue;
             foreach (var spawn in _mineralSpawns)
-                if (spawn.NextAttemptTick <= end && (next is null || Due(spawn) < Due(next))) next = spawn;
-            if (next is null) break;
-            var at = Due(next);
-            var prefix = $"{MineralPilePrefix}{next.Definition.Id}:";
-            if (next.NextAttemptTick != 0 && _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal)) >= next.Definition.MaxPiles)
-            {
-                // Full, and nothing removes piles while the world is not ticking: every attempt until the end fails without
-                // touching the random state, so jump to the first one after it.
-                var step = next.Definition.AttemptTicks;
-                next.NextAttemptTick = checked(at + ((end - at) / step + 1) * step);
-                continue;
-            }
-            AttemptMineral(next, at);
+                at = Math.Min(at, spawn.NextAttemptTick == 0 ? first : spawn.NextAttemptTick);
+            foreach (var pile in _collectibles)
+                if (pile.ExpiresAt is { } expires) at = Math.Min(at, expires);
+            if (at > end) break;
+            RunMineralEvents(Math.Max(at, start + 1), first);
         }
         _mineralIdleTicks = checked(_mineralIdleTicks + ticks);
-
-        // A spawn that has never attempted (timer 0) is due at once, as on the first tick.
-        long Due(MineralSpawnState spawn) => Math.Max(spawn.NextAttemptTick, MineralClock + (spawn.NextAttemptTick == 0 ? 1 : 0));
     }
 
+    /// <summary>Longest drop life plus twice the longest delay; 0 when some spawn never expires its drops.</summary>
+    private long LongGapTicks => _mineralSpawns.All(s => s.Definition.ExpireTicks > 0)
+        ? _mineralSpawns.Max(s => s.Definition.ExpireTicks) + 2L * _mineralSpawns.Max(s => Math.Max(s.Definition.AttemptTicks, s.Definition.SucceedTicks))
+        : 0;
+
+    /// <summary>
+    /// One attempt (the emulator's <c>hideSpawn</c>). Its timer restarts first, so a failed attempt waits
+    /// <see cref="MineralSpawnDefinition.AttemptTicks"/>. It fails when only initial events are allowed, when the sector holds
+    /// too few or too many players, or when the sector already holds <see cref="MineralSpawnDefinition.MaxInLevel"/> units of the
+    /// item. Otherwise it runs its events (the initial count the first time, then one), and a success waits the shorter delay.
+    /// </summary>
     private void AttemptMineral(MineralSpawnState spawn, long now)
     {
-        {
-            if (now < spawn.NextAttemptTick) return;
-            var definition = spawn.Definition;
-            var prefix = $"{MineralPilePrefix}{definition.Id}:";
-            var alive = _collectibles.Count(p => p.Id.StartsWith(prefix, StringComparison.Ordinal));
-            // A spawn that has never attempted (timer still 0) stocks its starting piles; later attempts place one.
-            var wanted = spawn.NextAttemptTick == 0 ? Math.Max(1, definition.StartingPiles) : 1;
-            var placed = 0;
-            while (placed < wanted && alive + placed < definition.MaxPiles && TryPlaceMineral(spawn, prefix)) placed++;
-            spawn.NextAttemptTick = checked(now + (placed > 0 ? definition.SucceedTicks : definition.AttemptTicks));
-        }
+        var d = spawn.Definition;
+        var initial = spawn.NextAttemptTick == 0;
+        spawn.NextAttemptTick = checked(now + d.AttemptTicks);
+        if (!initial && d.Probability == 0) return;
+        if (PlayersInSector > d.MaxPlayers || PlayersInSector < d.MinPlayers) return;
+        // Same-item drops as they lie before this attempt (the emulator filters the list once per attempt).
+        var same = _collectibles.Where(p => p.ItemId == d.ItemId).ToArray();
+        if (d.MaxInLevel != -1 && same.Sum(p => (long)p.Quantity) >= d.MaxInLevel) return;
+        var events = initial && d.InitialCount > 0 ? d.InitialCount : 1;
+        var succeeded = false;
+        for (var e = 0; e < events; e++) succeeded |= HideEvent(spawn, same, now);
+        if (succeeded) spawn.NextAttemptTick = checked(now + Math.Min(d.AttemptTicks, d.SucceedTicks));
     }
 
-    private bool TryPlaceMineral(MineralSpawnState spawn, string prefix)
+    /// <summary>One spawn event (the emulator's <c>hideItem</c>): area and player-distance checks, then one clump of drops.</summary>
+    private bool HideEvent(MineralSpawnState spawn, IReadOnlyList<CollectibleState> same, long now)
     {
         var d = spawn.Definition;
-        for (var attempt = 0; attempt < MaxPlacementTries; attempt++)
+        var centre = new Vector2(d.X, d.Y);
+        if (d.MinPlayerDistance > 0 && !Player.IsDestroyed && Vector2.Distance(Player.Position, centre) <= d.MinPlayerDistance) return false;
+        if (d.MaxPlayerDistance > 0 && (Player.IsDestroyed || Vector2.Distance(Player.Position, centre) > d.MaxPlayerDistance)) return false;
+        if (d.MaxInArea != -1)
         {
-            var point = new Vector2(d.X + (float)((NextMineralUnit() - 0.5) * d.Width), d.Y + (float)((NextMineralUnit() - 0.5) * d.Height));
+            long inArea = 0;
+            foreach (var pile in same)
+                if (MathF.Abs(pile.Position.X - d.X) <= d.Width / 2 && MathF.Abs(pile.Position.Y - d.Y) <= d.Height / 2) inArea += pile.Quantity;
+            if (inArea >= d.MaxInArea) return false;
+        }
+        var anchor = d.ClumpRadius > 0 ? RandomIn(centre, d.Width, d.Height) : centre;
+        var left = d.ClumpQuantity == 0 ? 1 : d.ClumpQuantity;
+        var placedAny = false;
+        var prefix = $"{MineralPilePrefix}{d.Id}:";
+        for (var tries = 0; tries < DropTries; tries++)
+        {
+            var point = d.ClumpRadius > 0 ? RandomIn(anchor, d.ClumpRadius, d.ClumpRadius) : RandomIn(centre, d.Width, d.Height);
             if (Asteroids.Any(a => Vector2.Distance(a.Position, point) < a.Radius + d.PileRadius)) continue;
-            if (d.ClearRadius > 0 && !Player.IsDestroyed && Vector2.Distance(Player.Position, point) <= d.ClearRadius) return false;
             string id;
             do { id = $"{prefix}{++spawn.Placed}"; } while (!_collectibleIds.Add(id));
-            _collectibles.Add(new CollectibleState(new CollectibleSpawn(id, d.ItemId, d.Quantity, point.X, point.Y, d.PileRadius)));
-            return true;
+            _collectibles.Add(new CollectibleState(new CollectibleSpawn(id, d.ItemId, d.Quantity, point.X, point.Y, d.PileRadius))
+            {
+                ExpiresAt = d.ExpireTicks > 0 ? checked(now + d.ExpireTicks) : null,
+            });
+            placedAny = true;
+            if (--left > 0)
+            {
+                tries -= 5;
+                continue;
+            }
+            break;
         }
-        return false;
+        return placedAny;
     }
+
+    private Vector2 RandomIn(Vector2 centre, float width, float height) =>
+        new(centre.X + (float)((NextMineralUnit() - 0.5) * width), centre.Y + (float)((NextMineralUnit() - 0.5) * height));
 
     /// <summary>SplitMix64 in [0, 1): placement is reproducible from the catalog seed on any runtime.</summary>
     private double NextMineralUnit()

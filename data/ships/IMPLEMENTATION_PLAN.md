@@ -4,9 +4,13 @@ Authority: [master §18 M0/M1 engineering and M2](../../ROGUE_TRADER_2_PLAN.md),
 
 ## Purpose and accomplished
 
-One NEW Interceptor engineering fixture in `starter_interceptor.json`. The Godot build stages it into `client/GameData/ships/`. Its tuning is explicitly **NEW/provisional**. The fixture is complete for the accepted engineering prototype; no code/data changes were made in this documentation pass.
+One NEW Interceptor engineering fixture in `starter_interceptor.json`. The Godot build stages it into `client/GameData/ships/`. Its tuning is **NEW/provisional** except the flight block (mass aside), which since G10 (November 3, 2026) is the original Asp's through `OriginalShipPhysics` (RECONSTRUCTED emulator reading), pinned by `G10FlightValidationTests`. The fixture is complete for the accepted engineering prototype; no code/data changes were made in this documentation pass.
 
 Evidence: M0/M1 historical 41-unit-case and source/export acceptance; current JSON matches the [balance ledger](../../docs/balance/PROVISIONAL_VALUES.md).
+
+## Original hulls (owned ships, November 3, 2026)
+
+`original_*.json` and `roster.json` are derived by `OriginalShipBuilder` from the pinned originals (oracle `tests/Unit/Trading/OriginalShipTests.cs`); regenerate, never hand-edit. Each file lists its placeholders in `newValues`. The Interceptor stays on the roster for saves that own it; new pilots start in the Asp.
 
 ## Next and parity boundary
 

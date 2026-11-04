@@ -21,6 +21,8 @@ internal sealed class ProfileDocumentV1
     public long Bounty { get; set; }
     /// <summary>Schema 5. Absent in older payloads (neutral standing).</summary>
     public Dictionary<string, long>? Reputation { get; set; }
+    /// <summary>Schema 6. Every owned hull with its parked condition (null: at spawn, full hull). Migration V5ToV6 always writes it.</summary>
+    [JsonRequired] public Dictionary<string, ShipConditionDto?> OwnedShips { get; set; } = new(StringComparer.Ordinal);
 
     internal sealed class ConductDto
     {
@@ -105,10 +107,14 @@ internal sealed class ProfileDocumentV1
             AtUtc = e.AtUtc,
         }).ToList(),
         NextLedgerSequence = p.NextLedgerSequence,
-        Ship = p.Ship is { } s ? new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading } : null,
+        Ship = ToDto(p.Ship),
         Bounty = p.Bounty,
         Reputation = p.Reputation.Count > 0 ? new Dictionary<string, long>(p.Reputation, StringComparer.Ordinal) : null,
+        OwnedShips = p.OwnedShips.ToDictionary(o => o.Key, o => ToDto(o.Value), StringComparer.Ordinal),
     };
+
+    private static ShipConditionDto? ToDto(ShipCondition? s) =>
+        s is null ? null : new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading };
 
     /// <summary>Maps to the immutable model; returns null and an error message when the document is structurally unmappable.</summary>
     public PlayerProfile? ToProfile(out string? error)
@@ -123,6 +129,13 @@ internal sealed class ProfileDocumentV1
             if (key is null) { error = "Inventory contains a null key."; return null; }
         foreach (var key in Reputation?.Keys ?? Enumerable.Empty<string>())
             if (key is null) { error = "Reputation contains a null key."; return null; }
+        if (OwnedShips is null) { error = "OwnedShips is null."; return null; }
+        var owned = ImmutableSortedDictionary.CreateBuilder<string, ShipCondition?>(StringComparer.Ordinal);
+        foreach (var (hull, parked) in OwnedShips)
+        {
+            if (hull is null) { error = "OwnedShips contains a null hull id."; return null; }
+            owned[hull] = parked is { } c ? new ShipCondition(c.Hull, c.X, c.Y, c.Heading) : null;
+        }
 
         var applied = ImmutableList.CreateBuilder<AppliedTransaction>();
         foreach (var t in AppliedTransactions)
@@ -159,6 +172,7 @@ internal sealed class ProfileDocumentV1
             Ship = Ship is { } s ? new ShipCondition(s.Hull, s.X, s.Y, s.Heading) : null,
             Bounty = Bounty,
             Reputation = ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, Reputation ?? []),
+            OwnedShips = owned.ToImmutable(),
         };
     }
 }

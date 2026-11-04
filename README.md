@@ -27,7 +27,7 @@ The playable test range has no station UI, mining loop or save-game progression.
 
 ## C1 raw BLO reader — November 2, 2026
 
-C1 has **local verification passed / independent verdict recorded separately**. The pure C# reader preserves owned archive bytes, full raw directory name fields, zero-based member ordinals, offsets, lengths and payload hashes for all **89 pinned archives / 1,262 members**. Canonical reads require an exact allowlisted path and length/SHA-256 verification; unverified parsing is explicit. See the [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [local evidence](docs/development-log/2026-11-02-c1-blo-reader.md). This is raw directory/member access only: no extraction, pixels, dependency resolution or native/gameplay acceptance. The branch is unpublished and unmerged; RT-F023/RT-F069 and all original feature/milestone checkboxes remain unchanged.
+C1 has **local verification passed / final PR review pending**. The pure C# reader preserves owned archive bytes, full raw directory name fields, zero-based member ordinals, offsets, lengths and payload hashes for all **89 pinned archives / 1,262 members**. Canonical reads require an exact allowlisted path and length/SHA-256 verification; unverified parsing is explicit. See the [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [local evidence](docs/development-log/2026-11-02-c1-blo-reader.md). This is raw directory/member access only: no extraction, pixels, dependency resolution or native/gameplay acceptance. The branch is unpublished and unmerged; RT-F023/RT-F069 and all original feature/milestone checkboxes remain unchanged.
 
 ## Code map
 

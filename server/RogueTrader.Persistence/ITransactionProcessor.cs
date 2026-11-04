@@ -23,4 +23,16 @@ public interface ITransactionProcessor
     /// same per-profile lock, compare-and-swap save and acknowledge-after-save rule apply.
     /// </summary>
     Task<ShipConditionResult> SaveShipConditionAsync(TransactionContext ctx, string profileId, ShipCondition ship, CancellationToken ct = default);
+
+    /// <summary>Buys a hull the player does not own yet (one of each); the player keeps flying the current ship.</summary>
+    Task<TransactionResult> BuyShipAsync(TransactionContext ctx, BuyShipRequest r, CancellationToken ct = default);
+
+    /// <summary>Charges the destruction penalty once per destruction id and puts the active ship back at the spawn with a full hull.</summary>
+    Task<TransactionResult> RecordShipDestroyedAsync(TransactionContext ctx, ShipDestroyedRequest r, CancellationToken ct = default);
+
+    /// <summary>
+    /// Makes an owned hull the active ship. The ship left behind is parked with its last saved condition and the chosen ship
+    /// comes back exactly as it was parked, so switching never repairs a hull. Like ship saves, no ledger or idempotency entry.
+    /// </summary>
+    Task<ShipConditionResult> SelectShipAsync(TransactionContext ctx, string profileId, string hullId, CancellationToken ct = default);
 }

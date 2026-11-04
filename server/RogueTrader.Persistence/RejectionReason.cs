@@ -15,4 +15,12 @@ public enum RejectionReason
     UnknownConductEvent,
     /// <summary>The conduct event would change nothing (every value already at its bound), so nothing is saved or recorded (queue C9).</summary>
     NoConductChange,
+    /// <summary>The player already owns this hull; a player owns at most one of each (Steve, Nov 3 2026).</summary>
+    ShipAlreadyOwned,
+    /// <summary>The player does not own this hull, so it cannot be selected.</summary>
+    ShipNotOwned,
+    /// <summary>The destroyed hull is not the ship the player is flying, so no penalty is taken.</summary>
+    ShipNotActive,
+    /// <summary>The hull can only be bought by a player who already owns one of the hulls it requires (original same-race rule).</summary>
+    ShipRequirementNotMet,
 }

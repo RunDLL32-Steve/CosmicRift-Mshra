@@ -100,6 +100,8 @@ public sealed class CollectibleState
     public int Quantity { get; internal set; }
     public Vector2 Position { get; }
     public float Radius { get; }
+    /// <summary>Mineral clock tick at which an unpicked drop vanishes; null for a pile that never expires.</summary>
+    public long? ExpiresAt { get; internal set; }
 
     internal CollectibleState(CollectibleSpawn spawn)
     {

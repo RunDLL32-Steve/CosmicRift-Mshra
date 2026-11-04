@@ -1,6 +1,6 @@
 # C1 raw archive reader — November 2, 2026
 
-Review status: local verification passed; independent exact-head verdict is in the [C1 review](2026-11-02-c1-review.md). No publication, original fidelity or milestone completion is claimed.
+Review status: local verification passed; final independent PR review is pending; see [publication evidence](2026-11-03-c1-publication.md). No publication, original fidelity or milestone completion is claimed.
 
 ## Scope and preservation
 
@@ -38,4 +38,4 @@ Independent reviewer has re-derived all89 pointer identities and all1262 directo
 
 ## Resume / publication boundary
 
-Use the [C1 review](2026-11-02-c1-review.md) for the exact accepted head and per-clause evidence; author status-only reconciliation does not change source, tests or canonical data. Publication remains unauthorized: no push, PR or main merge. Before any PR-ready BBQ marker, run the required sprint integration and validation and record its actual verdict. C1 never completes RT-F023/RT-F069 or native dependency closure.
+Use the [C1 review](2026-11-03-c1-publication.md) for current verification and pending final review; author status-only reconciliation does not change source, tests or canonical data. Publication was authorized November 3, 2026; final PR review, CI and merge remain pending. Before any PR-ready BBQ marker, run the required sprint integration and validation and record its actual verdict. C1 never completes RT-F023/RT-F069 or native dependency closure.

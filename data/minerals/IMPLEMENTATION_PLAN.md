@@ -17,15 +17,37 @@ The pinned NWS trade-system text (rows 77–84) says minerals "appear randomly (
 | Pickup distance                             | `CFG/rogue.cfg` `[Arena]` `ItemPickupDistance=80` (line 35).                                                                                                                           |
 | Detection radius text                       | `NWS/Rogue.nws` row 470: "A mineral spawn anchor has a detection radius to ensure no players are in the area."                                                                         |
 
+## Field meanings (InfantryOnline emulator, RECONSTRUCTED)
+
+Steve asked on 2026-11-03 for the field to follow the emulator's reading (`LioInfo.Hide.cs`, `ArenaLio.hideSpawn`/`hideItem` at bb97579; see [ZONE_ASSETS_COMPARISON.md](../../docs/original-research/ZONE_ASSETS_COMPARISON.md)). The emulator is a reconstruction of the server, not the native one.
+
+| Field                      | Meaning                                          | Rogue.lio values                                                   |
+| -------------------------- | ------------------------------------------------ | ------------------------------------------------------------------ |
+| f[10]                      | Events run on the first attempt                  | 1                                                                  |
+| f[11]                      | Delay after a failed attempt, tenths of a second | 3000 (300 s)                                                       |
+| f[12]                      | Delay after a success, tenths of a second        | 6000 (600 s); the next try uses min(f11, f12)                      |
+| f[13]                      | Probability (0 = only the first attempt)         | 1                                                                  |
+| f[14]/f[15]                | Min/max players in the sector                    | 0, 40, 60 or 80 / 500                                              |
+| f[16]/f[17]                | Min/max player distance (99999 = none)           | 0 / 99999                                                          |
+| f[18]                      | Most units of the item in the area               | 1, so an area refills only when empty                              |
+| f[19]                      | Most units of the item in the whole sector       | 100 Tellerium, 100 Iron Ore, 50 Krandazite; -1 on Tellerium SpawnG |
+| f[21]                      | Units per drop                                   | 1                                                                  |
+| f[26]/f[27]                | Clump box and drops per event                    | 350 / 15 (10 Krandazite)                                           |
+| CFG [Terrain0] PrizeExpire | Seconds before a drop vanishes                   | 720                                                                |
+
+With one player, only the spawns with f[14]=0 run (Tellerium A-C, Krandazite A, Iron Ore A-C), so a fresh sector holds about 45 Tellerium, 10 Krandazite and 45 Iron Ore.
+
 ## NEW/provisional (listed in the file's `newRules`)
 
--   Position f[4]/f[5] read as area centre and f[6]/f[7] as area size, drawn into the 1,400-unit practice sector around an assumed 32,000-unit map centre (RT-F021 map size unverified).
--   f[11]/f[12] read as failed-attempt and after-success delays in hundredths of a second (3000 = 30 s).
--   f[14] read as the player clear radius; f[18] (1) as units per pile; f[19] (100 or 50) as most piles alive per spawn. The earlier opposite reading gave 100-unit piles heavier than a whole hold; Steve chose small piles on 2026-11-02.
--   A fresh sector stocks every spawn with its full f[19] piles on the first tick (Steve, 2026-11-02); afterwards one pile per f[12] delay. Random placement avoids the NEW asteroids, up to 8 tries per pile. The client reseeds placement per world from the world id's GUID bytes; smoke runs use numbered world ids, so their field is the same every run.
+-   Position f[4]/f[5] read as area centre and f[6]/f[7] as area size, drawn into the 1,400-unit practice sector around an assumed 32,000-unit map centre (RT-F021 map size unverified); f[16], f[17] and f[26] use the same scale.
+-   The practice sector has no terrain map, so every drop takes the open-space expiry (720 s); the emulator uses 120 s in docks and trade zones.
+-   A drop that would overlap a NEW practice-sector asteroid uses one of the emulator's 10 tries per event (5 back per drop placed). Iron Ore SpawnA's area sits on asteroid_12, so it usually drops little or nothing.
+-   A destroyed ship spills its cargo as one `wreck:` pile per item, 12 units from where it died, radius 3.5, with the same 720 s open-space expiry (Steve, November 4, 2026). The placement, one pile per item and the radius are NEW.
+-   The players-in-sector count is 1 in the local build; a dedicated server will supply the real count.
+-   Drop expiry and spawn timers run in real time while docked, paused or closed, and are saved with the sector, so a relaunch neither refills nor clears the field early (Steve, 2026-11-02).
 -   The hold cap is per ship: the starter takes the Asp VEH f[48] StopWeight (2,500,000 raw = 50 Tellerium at ITM weight 50,000). The NormalWeight encumbrance penalty (RT-F030) is not applied.
 -   Pickup radius is ItemPickupDistance at the same scale (3.5 units plus the ship radius).
--   Row 54 (f[18]/f[19] = -1/-1) is not spawned; f[13], f[15..17], f[21], f[22] and the 350/15 tail are not applied.
+-   f[22], f[24] and f[25] are kept raw and not applied.
 
 ## Open
 
