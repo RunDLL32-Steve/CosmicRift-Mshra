@@ -95,10 +95,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 "The ship picker must list the owned hull and hold the world still while it is open.");
             Require(client.Picker.Press(activeHull) && !client.ShipPickerVisible && client.WorldInstanceId == pickerWorld,
                 "Choosing the ship already flown must close the picker and keep the same world.");
-            Require(Math.Abs(readWorld().Player.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f
-                && session.Profile!.Ship is { } pickedShip && Math.Abs(pickedShip.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f,
-                $"The picked ship must enter the game at full hull, and that must be saved, got {readWorld().Player.Hull}.");
-            GD.Print("STATION SMOKE PASS: the ship picker lists the owned hull, pauses the world and flies the chosen ship at full hull");
+            var damagedHull = readWorld().Player.Definition.Defense.MaximumHull - 5;
+            Require(Math.Abs(readWorld().Player.Hull - damagedHull) < 0.01f
+                && session.Profile!.Ship is { } pickedShip && Math.Abs(pickedShip.Hull - damagedHull) < 0.01f,
+                $"Picking a damaged ship must not repair it for free (Steve, Nov 4 2026), got {readWorld().Player.Hull}.");
+            readWorld().RestorePlayer(readWorld().Player.Position, readWorld().Player.Heading, readWorld().Player.Definition.Defense.MaximumHull);
+            GD.Print("STATION SMOKE PASS: the ship picker lists the owned hull, pauses the world and flies the chosen ship with its saved hull");
 
             // Mining (queue M7 slice): fly onto an original Tellerium spawn's pile while saving fails, reload, then let it save.
             resetSector();
@@ -189,7 +191,15 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(session.Profile!.Wallet == walletBefore - repair.Price, "A repair on a damaged ship must debit its price.");
             Require(Math.Abs(readWorld().Player.Hull - (player.Definition.Defense.MaximumHull - 20 + repair.HullPoints)) < 0.01f,
                 "The repair must restore its original amount of hull.");
-            GD.Print("STATION SMOKE PASS: repair refused without charge at full hull and applied when damaged");
+            // Full Repair: 500 credits back to a full hull (Steve, Nov 4 2026).
+            var fullRepair = station.Repairs.Single(r => r.Name == "Full Repair");
+            readWorld().RestorePlayer(player.Position, player.Heading, 1);
+            walletBefore = session.Profile!.Wallet;
+            Press($"repair:{fullRepair.Id}");
+            Require(fullRepair.Price == 500 && session.Profile!.Wallet == walletBefore - 500
+                && Math.Abs(readWorld().Player.Hull - player.Definition.Defense.MaximumHull) < 0.01f,
+                $"Full Repair must cost 500 credits and restore a full hull, got wallet {session.Profile.Wallet} and hull {readWorld().Player.Hull}.");
+            GD.Print("STATION SMOKE PASS: repair refused without charge at full hull and applied when damaged; Full Repair costs 500 for a full hull");
 
             // Upgrades: original price, provisional effect applied to the flying ship, ownership saved.
             var baseSpeed = readWorld().Player.Definition.Physics.MaximumSpeed;
@@ -299,7 +309,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker at full hull, destruction penalty with cargo loss, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with cargo loss, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

@@ -716,8 +716,9 @@ public partial class GameClient : Node2D
             _world = NewWorld(restoreSavedShip: true, loadSector: false);
             _view.SetWorld(_world);
         }
-        // The chosen ship enters the game at full hull (Steve, Nov 3 2026). A reset during play still keeps hull damage.
-        _world.RestorePlayer(_world.Player.Position, _world.Player.Heading, _world.Player.Definition.Defense.MaximumHull);
+        // The chosen ship enters the game with the hull it was saved with: a damaged ship stays damaged across a relaunch or a
+        // ship pick and is repaired at the station's Full Repair for 500 credits (Steve, Nov 4 2026). A ship never flown (new or
+        // just bought) and a ship respawned after destruction have no saved condition, so they start at full hull.
         SaveShip();
         _shipPickerVisible = false;
         _shipPicker.Visible = false;

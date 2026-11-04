@@ -12,4 +12,6 @@ Part 2 (stacked on G10, #114): the 12 original hulls derived by `OriginalShipBui
 
 Part 3 (Steve, Nov 3 2026): a destroyed ship now loses its cargo. `ShipDestroyed` empties the inventory with negative item deltas; the client saves pending pickups before recording the loss, so none can return after the respawn. The ship picked at game entry starts at full hull, which is saved. The station smoke test now runs the destruction check after the trades, with a pickup grant to load the hold.
 
+Part 4 (Steve, Nov 4 2026): "The repair should cost 500 credits." Picking a ship no longer gives a full hull, so a damaged ship stays damaged across a relaunch or ship pick. Full Repair (ITM 43, 50 points at 10 credits each) already costs 500 and fills every original hull; a unit test and the smoke test now pin that. Minor and Major Repair are unchanged.
+
 Resume point: after #114 merges, merge main. Open questions for Steve: decoding radius, shield and energy, per-race starting weapons, and whether to convert an old Interceptor into an Asp.

@@ -56,6 +56,15 @@ public sealed class OriginalShipTests
     }
 
     [RequiresOriginalAssetsFact]
+    public void FullRepairCostsFiveHundredCreditsAndRestoresAFullHullOnEveryHull()
+    {
+        // Steve (Nov 4 2026): a damaged ship keeps its damage across a relaunch or ship pick; the repair costs 500 credits.
+        var fullRepair = OriginalStationBuilder.Build(OriginalAssets.Root!).Repairs.Single(r => r.Name == "Full Repair");
+        Assert.Equal(500, fullRepair.Price);
+        Assert.All(Hulls.Hulls, h => Assert.True(fullRepair.HullPoints >= OriginalShipBuilder.Ship(h).Defense.MaximumHull, h.Name));
+    }
+
+    [RequiresOriginalAssetsFact]
     public void ShippedRosterAndDefinitionsLoadAsGameCatalogs()
     {
         var roster = ShipRoster.FromJson(File.ReadAllText(Path.Combine(ShipsDir(), "roster.json")));
