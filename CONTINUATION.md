@@ -37,7 +37,7 @@ C1 raw BLO directory/member reader has **local verification passed / final PR re
 
 ## Next
 
-For C1, consult the [independent review](docs/development-log/2026-11-03-c1-publication.md) for current review and publication evidence. The owner authorized publication and merge on November 3, 2026; the applicable PR/sprint gates still apply. Do not reimplement the locally verified reader or close RT-F023/RT-F069 from raw byte access. Preserve unrelated local C7 work; its main queue row remains OPEN.
+For C1, consult the [independent review](docs/development-log/2026-11-03-c1-publication.md) for current review and publication evidence. The owner authorized publication and merge on November 3, 2026; the applicable PR/sprint gates still apply. Do not reimplement the locally verified reader or close RT-F023/RT-F069 from raw byte access. Preserve the separate C7 branch; its own publication and review work proceeds independently.
 
 G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [initialized reset-input observation](docs/development-log/2026-10-19-g9-reset-input-observation.md) captures the selected standalone initialized object before newArena; use the [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md) and its current PR for live workflow status. PR85 conditional lifecycle source and PR76 selected catalog are accepted dated history. Follow that live workflow record before selecting remaining G9 work from the ledger; preserve earlier accepted results; native consumers/gameplay/full closure and original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.
 
