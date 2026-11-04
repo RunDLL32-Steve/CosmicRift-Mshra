@@ -1,5 +1,11 @@
 # Changelog
 
+## A zoomable sector map on M — November 4, 2026
+
+-   Steve's ask: pressing M opens a full-screen map of the Rogue sector with the walls, the store, trade and repair zones, every team store, Trading Post, Repair Dock and the refinery, and your ship's position and heading, updated live as you fly. The map is NEW (like the radar, whether the original had one is unknown).
+-   Zoom with the mouse wheel, + / - or PageUp / PageDown, from the whole map down to 12 screen pixels per tile. The view follows your ship; drag to look around, and double-click or press Home to follow the ship again. Site names show once you zoom in. M or Escape closes the map; M can be rebound on the pause menu like the other keys.
+-   It is a display only. Flight keeps going under the map and the world never pauses for it, and it shows no more than the radar already shows (no other players).
+
 ## Each hull flies with its own original stats, weapon and Shift boost — November 4, 2026
 
 -   The placeholders on the twelve original hulls are gone. Every hull now has its original radius (21 pixels, VEH f[35] PhysicalRadius), 1,700 energy that recharges at 105 a second (f[94] and f[95]), and no separate shield: as in the original (CFG EnergyShieldMode=2, NWS rows 39 to 41), the ship's energy is its shield, and the HUD's shield bar shows it.

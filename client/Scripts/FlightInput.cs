@@ -19,8 +19,11 @@ public static class FlightInput
         new("flight_pause", "Pause / controls", [Key.Escape]),
         new("flight_reset", "Reset sector", [Key.R]),
         new("station_dock", "Dock at station", [Key.F]),
-        new("original_content", "Original content viewer", [Key.F2])
+        new("original_content", "Original content viewer", [Key.F2]),
+        new(MapAction, "Sector map", [Key.M])
     ];
+    /// <summary>Opens and closes the full-screen sector map (NEW).</summary>
+    public const string MapAction = "sector_map";
     private const string SettingsPath = "user://controls.cfg";
 
     public static void Initialize()
@@ -43,6 +46,10 @@ public static class FlightInput
         Input.GetAxis("flight_left", "flight_right"),
         Input.IsActionPressed("flight_fire"),
         Hyper: Input.IsActionPressed("flight_hyper"));
+
+    /// <summary>True when <paramref name="key"/> is bound to any action in <see cref="Bindings"/>.</summary>
+    public static bool IsBound(Key key) => Bindings.Any(binding =>
+        InputMap.ActionGetEvents(binding.Action).OfType<InputEventKey>().Any(input => input.PhysicalKeycode == key));
 
     public static string Display(string action) => string.Join(" / ", InputMap.ActionGetEvents(action)
         .OfType<InputEventKey>().Select(input => OS.GetKeycodeString(input.PhysicalKeycode)));

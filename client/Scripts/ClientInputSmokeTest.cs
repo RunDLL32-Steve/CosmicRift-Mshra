@@ -6,7 +6,7 @@ namespace RogueTrader.Client;
 
 /// <summary>Native-input and controls regression fixture; preserves the user's saved bindings.</summary>
 public sealed class ClientInputSmokeTest(
-    GameCatalog catalog, FlightHud hud, Func<WorldSimulation> readWorld,
+    GameCatalog catalog, FlightHud hud, SectorMapOverlay sectorMap, Func<WorldSimulation> readWorld,
     Func<bool> readPaused, Action resetSector, Func<Task> nextPhysicsFrame)
 {
     public async Task<bool> RunAsync()
@@ -99,6 +99,49 @@ public sealed class ClientInputSmokeTest(
                 && readWorld().Player.Velocity.Length() < 0.01f && readWorld().DestroyedTargets == 0,
                 "Reset must restore a stationary fresh ship and live targets.");
             GD.Print("INPUT SMOKE PASS: held-key default restoration, persisted defaults, and native sector reset");
+
+            // Sector map (M): a display over live flight. It never pauses the world, it zooms, and M or Escape closes it.
+            RequireInput(sectorMap.Available, "The Rogue sector must have a map to open.");
+            Tap(Key.M);
+            await nextPhysicsFrame();
+            RequireInput(sectorMap.Visible && !readPaused() && !hud.ControlsVisible, "M must open the sector map without pausing.");
+            var mapStart = readWorld().Player.Position;
+            var mapTick = readWorld().TickNumber;
+            SendKey(Key.W, true);
+            await nextPhysicsFrame();
+            await nextPhysicsFrame();
+            SendKey(Key.W, false);
+            RequireInput(readWorld().TickNumber > mapTick && readWorld().Player.Position != mapStart,
+                "The ship must keep flying, and the world ticking, under the open map.");
+            RequireInput(Mathf.IsEqualApprox(sectorMap.Zoom, 1) && sectorMap.FollowsShip, "The map must open on the whole sector, following the ship.");
+            Tap(Key.Equal);
+            Tap(Key.Equal);
+            RequireInput(sectorMap.Zoom > 1.5f, "+ must zoom the map in.");
+            Tap(Key.Minus);
+            RequireInput(sectorMap.Zoom is > 1.1f and < 1.5f, "- must zoom the map out by one step.");
+            for (var i = 0; i < 40; i++) Tap(Key.Equal);
+            var closest = sectorMap.Zoom;
+            Tap(Key.Equal);
+            RequireInput(Mathf.IsEqualApprox(sectorMap.Zoom, closest), "Zooming in must stop at the closest zoom.");
+            for (var i = 0; i < 40; i++) Tap(Key.Minus);
+            RequireInput(Mathf.IsEqualApprox(sectorMap.Zoom, 1), "Zooming out must stop at the whole map.");
+            // A zoom key bound to a flight action keeps flying the ship under the map (review R1-1).
+            RequireInput(FlightInput.TryRebind("flight_forward", Key.Pageup) is null, "PageUp must be bindable to forward thrust.");
+            SendKey(Key.Pageup, true);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Thrust == 1 && Mathf.IsEqualApprox(sectorMap.Zoom, 1),
+                "A key bound to forward thrust must thrust under the map and not zoom it.");
+            SendKey(Key.Pageup, false);
+            FlightInput.RestoreDefaults(save: false);
+            await nextPhysicsFrame();
+            Tap(Key.Escape);
+            await nextPhysicsFrame();
+            RequireInput(!sectorMap.Visible && !readPaused() && !hud.ControlsVisible, "Escape must close the map, not pause.");
+            Tap(Key.M);
+            Tap(Key.M);
+            await nextPhysicsFrame();
+            RequireInput(!sectorMap.Visible, "M must close the open map again.");
+            GD.Print("INPUT SMOKE PASS: sector map opens on M over live flight, zooms in and out within limits, closes on M and Escape");
             passed = true;
         }
         catch (Exception exception)
@@ -107,7 +150,7 @@ public sealed class ClientInputSmokeTest(
         }
         finally
         {
-            foreach (var key in new[] { Key.W, Key.Q, Key.Up, Key.Escape, Key.R }) SendKey(key, false);
+            foreach (var key in new[] { Key.W, Key.Q, Key.Up, Key.Escape, Key.R, Key.M, Key.Equal, Key.Minus, Key.Pageup }) SendKey(key, false);
             try
             {
                 if (originalSettings is not null)
@@ -130,9 +173,15 @@ public sealed class ClientInputSmokeTest(
                 passed = false;
             }
         }
-        if (passed) GD.Print("CLIENT_INPUT_SMOKE_PASS: native key rebinding, cached action release, settings reload, defaults, pause/resume and reset verified.");
+        if (passed) GD.Print("CLIENT_INPUT_SMOKE_PASS: native key rebinding, cached action release, settings reload, defaults, pause/resume, reset and the sector map verified.");
         return passed;
     }
+    private static void Tap(Key key)
+    {
+        SendKey(key, true);
+        SendKey(key, false);
+    }
+
     private static void SendKey(Key key, bool pressed)
     {
         Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = key, Keycode = key, Pressed = pressed });
