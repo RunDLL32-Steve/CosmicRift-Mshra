@@ -97,9 +97,38 @@ public sealed class HullBoostAndShieldTests
     }
 
     [Fact]
-    public void OriginalShieldRule_AnyShieldLeftTakesTheDrainAndTheHullTakesNothing()
+    public void OriginalShieldRule_AShieldThatCanTakeTheDrainTakesIt_AndTheHullTakesNothing()
     {
-        // Two shots: the first drains 266 of a 40-point shield (no hull damage), the second finds no shield and does 5 to the hull.
+        Assert.Equal((1434f, 50f), ShieldRule.Hit(1700, 50, 266, 5));
+        Assert.Equal((0f, 50f), ShieldRule.Hit(266, 50, 266, 5));
+        // A hit that finds less shield than its drain empties it and reaches the hull; at 0 every hit reaches the hull.
+        Assert.Equal((0f, 45f), ShieldRule.Hit(26, 50, 266, 5));
+        Assert.Equal((0f, 45f), ShieldRule.Hit(0, 50, 266, 5));
+        Assert.Equal((0f, 0f), ShieldRule.Hit(0, 3, 266, 5));
+    }
+
+    [Fact]
+    public void ARechargingEnergyShield_CannotKeepALoneAttackerOffTheHull()
+    {
+        // Review R1-1 on #120: an Asp (1700 energy, 105/s) under one Plasma Cannon (every 0.25 s, 266 drain, 5 hull) regains
+        // about 26 energy between shots. It must still be destroyed: 6 hits only drain it (the 7th finds 261.5 < 266), then
+        // every hit reaches the hull, 10 hits for 50 hull points.
+        float energy = 1700, hull = 50;
+        var hits = 0;
+        while (hull > 0 && hits < 1000)
+        {
+            (energy, hull) = ShieldRule.Hit(energy, hull, 266, 5);
+            hits++;
+            energy = MathF.Min(1700, energy + 105 * 0.25f);
+        }
+        Assert.Equal(0, hull);
+        Assert.Equal(6 + 10, hits);
+    }
+
+    [Fact]
+    public void ADrainingWeaponOnAPracticeTarget_FollowsTheSameRule()
+    {
+        // The first hit finds 40 of shield against a 266 drain: it empties the shield and reaches the hull; so does the next.
         var world = new WorldSimulation(TestWorld.Catalog(
             weapon: new WeaponDefinition { MuzzleVelocity = 6000, CooldownSeconds = 1f / 60, Damage = 5, ShieldDrain = 266 },
             sector: new SectorDefinition
@@ -109,9 +138,9 @@ public sealed class HullBoostAndShieldTests
             }));
         world.Tick(new ShipInput(0, 0, true));
         Assert.Equal(0, world.Targets[0].Shield);
-        Assert.Equal(100, world.Targets[0].Hull);
-        world.Tick(new ShipInput(0, 0, true));
         Assert.Equal(95, world.Targets[0].Hull);
+        world.Tick(new ShipInput(0, 0, true));
+        Assert.Equal(90, world.Targets[0].Hull);
     }
 
     [Fact]

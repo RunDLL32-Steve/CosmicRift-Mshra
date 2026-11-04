@@ -300,14 +300,11 @@ public sealed partial class WorldSimulation
     {
         if (projectile.ShieldDrain is { } drain)
         {
-            // Original rule (NWS/Rogue.nws rows 39-41, 131): any shield left takes the hit's drain and the hull takes nothing;
-            // a ship with no shield left takes the hit's hull damage. For a ship whose energy is its shield, the shield is energy.
-            if (target.ShieldLeft > 0)
-            {
-                if (target.Definition.Defense.EnergyShield) target.Energy = MathF.Max(0, target.Energy - drain);
-                else target.Shield = MathF.Max(0, target.Shield - drain);
-            }
-            else target.Hull = MathF.Max(0, target.Hull - projectile.Damage);
+            // For a ship whose energy is its shield, the shield is energy.
+            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, projectile.Damage);
+            if (target.Definition.Defense.EnergyShield) target.Energy = shield;
+            else target.Shield = shield;
+            target.Hull = hull;
         }
         else
         {

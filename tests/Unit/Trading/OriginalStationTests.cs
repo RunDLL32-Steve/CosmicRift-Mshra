@@ -76,6 +76,30 @@ public sealed class UpgradeEffectsTests
     }
 
     [Fact]
+    public void SpeedAndEngineUpgrades_ScaleTheShiftBoostToo()
+    {
+        // Review R1-2 on #120: an upgraded ship must never boost slower or weaker than it flies.
+        var station = Station();
+        var ship = new ShipDefinition
+        {
+            Physics = new ShipPhysics { ForwardThrust = 16870, ReverseThrust = 16870, MaximumSpeed = 325 },
+            Hyper = new ShipHyper { ForwardThrust = 18750, ReverseThrust = 18750, MaximumSpeed = 350, EnergyPerSecond = 110 },
+        };
+        foreach (var upgrade in station.Upgrades.Where(u => u.Effect.ForwardThrust > 0 || u.Effect.MaximumSpeed > 0))
+        {
+            var upgraded = UpgradeEffects.Apply(ship, station, [upgrade.Id]);
+            Assert.True(upgraded.Hyper!.MaximumSpeed >= upgraded.Physics.MaximumSpeed, upgrade.Name);
+            Assert.True(upgraded.Hyper.ForwardThrust >= upgraded.Physics.ForwardThrust, upgrade.Name);
+            Assert.True(upgraded.Hyper.ReverseThrust >= upgraded.Physics.ReverseThrust, upgrade.Name);
+            Assert.Equal(110, upgraded.Hyper.EnergyPerSecond);
+        }
+        var turbo = UpgradeEffects.Apply(ship, station, [station.Upgrades.Single(u => u.Name == "TurboBoosters").Id]);
+        Assert.Equal(350 * 1.05f, turbo.Hyper!.MaximumSpeed, 3);
+        Assert.Equal(18750 * 1.05f, turbo.Hyper.ForwardThrust, 1);
+        Assert.Null(UpgradeEffects.Apply(new ShipDefinition(), station, [station.Upgrades.Single(u => u.Name == "TurboBoosters").Id]).Hyper);
+    }
+
+    [Fact]
     public void OnlyBestPricedUpgradePerHeldCategoryIsActive()
     {
         var station = Station();
