@@ -231,10 +231,29 @@ public sealed class StationProfileSession
     /// Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change), marked with the coordinate
     /// version it was flown in (<see cref="ShipCondition.MapPixels"/> on the full-size map, the default).
     /// </summary>
-    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, int coordinateVersion = ShipCondition.MapPixels,
-        CancellationToken ct = default) =>
-        _processor.SaveShipConditionAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(),
-            new ShipCondition(hull, x, y, heading, coordinateVersion), ct);
+    /// <remarks>
+    /// A failed profile write leaves the transaction core refusing every later change until the profile is read back from disk.
+    /// Nothing on the ship-save path used to do that, so one failed save made every later ship save fail with
+    /// <see cref="RejectionReason.ProfileNotOpen"/>: the hangar and the ship picker refused every switch until a relaunch, and the
+    /// ship's damage was never saved, so the relaunch restored the older, healthier hull. A ship condition is the current truth
+    /// (last write wins, and a save never touches credits or cargo), so after such a refusal the session reloads the profile once
+    /// and saves the same condition again.
+    /// </remarks>
+    public async Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, int coordinateVersion = ShipCondition.MapPixels,
+        CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        var ship = new ShipCondition(hull, x, y, heading, coordinateVersion);
+        var context = new TransactionContext(profileId, StationAccessVerified: false);
+        var result = await _processor.SaveShipConditionAsync(context, profileId, ship, ct).ConfigureAwait(false);
+        if (!NeedsReload(result.Reason)) return result;
+        var reload = await ReloadAsync(ct).ConfigureAwait(false);
+        return reload.Succeeded ? await _processor.SaveShipConditionAsync(context, profileId, ship, ct).ConfigureAwait(false) : result;
+    }
+
+    /// <summary>Refusals after which the core's committed state is unknown until the profile is read back from disk.</summary>
+    private static bool NeedsReload(RejectionReason reason) =>
+        reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen;
 
     /// <summary>Buys a hull sold at the station (one of each); the player keeps flying the current ship until they select it.</summary>
     public Task<TransactionResult> BuyShipAsync(string hullId, float shipX, float shipY, CancellationToken ct = default) =>
