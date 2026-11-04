@@ -16,11 +16,13 @@
     <ProjectReference Include="../../server/RogueTrader.Simulation/RogueTrader.Simulation.csproj" />
     <ProjectReference Include="../../shared/RogueTrader.OriginalData/RogueTrader.OriginalData.csproj" />
     <ProjectReference Include="../../shared/RogueTrader.Protocol/RogueTrader.Protocol.csproj" />
+    <ProjectReference Include="../../shared/RogueTrader.Prediction/RogueTrader.Prediction.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Persistence/RogueTrader.Persistence.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Trading/RogueTrader.Trading.csproj" />
     <ProjectReference Include="../../server/RogueTrader.AI/RogueTrader.AI.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Server/RogueTrader.Server.csproj" />
     <Content Include="../../data/**/*.json" Link="data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures/BloDirectoryOracle.json" CopyToOutputDirectory="PreserveNewest" />
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

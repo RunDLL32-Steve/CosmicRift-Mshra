@@ -56,7 +56,7 @@ public sealed partial class WorldSimulation
         var spawn = catalog.Sector.PlayerSpawn;
         Player = new ShipState(PlayerShipId, catalog.Ship, catalog.Weapon, new Vector2(spawn.X, spawn.Y), spawn.Heading)
         {
-            Velocity = ClampSpeed(new Vector2(spawn.VelocityX, spawn.VelocityY), catalog.Ship.Physics.MaximumSpeed)
+            Velocity = ShipMotion.ClampSpeed(new Vector2(spawn.VelocityX, spawn.VelocityY), catalog.Ship.Physics.MaximumSpeed)
         };
         Targets = Array.AsReadOnly(catalog.Sector.Targets.Select(target => new ShipState(
             target.Id, catalog.Ship with
@@ -210,15 +210,9 @@ public sealed partial class WorldSimulation
 
     private void MovePlayer(ShipInput input)
     {
-        var turn = float.IsFinite(input.Turn) ? Math.Clamp(input.Turn, -1, 1) : 0;
-        var thrust = float.IsFinite(input.Thrust) ? Math.Clamp(input.Thrust, -1, 1) : 0;
-        var physics = Player.Definition.Physics;
-        Player.Heading = MathF.IEEERemainder(Player.Heading + turn * physics.RotationSpeed * TickDuration, MathF.Tau);
-        var force = thrust >= 0 ? thrust * physics.ForwardThrust : thrust * physics.ReverseThrust;
-        Player.Velocity = ClampSpeed(Player.Velocity + Direction(Player.Heading) * (force / physics.Mass * TickDuration),
-            physics.MaximumSpeed);
         var previous = Player.Position;
-        AsteroidCollisions += CircleCollision.MoveShip(Player, Asteroids, TickDuration);
+        AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
         if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
     }
 
@@ -318,11 +312,6 @@ public sealed partial class WorldSimulation
     }
 
     private static Vector2 Direction(float heading) => new(MathF.Cos(heading), MathF.Sin(heading));
-
-    private static Vector2 ClampSpeed(Vector2 velocity, float maximumSpeed) =>
-        velocity.LengthSquared() > maximumSpeed * maximumSpeed
-            ? Vector2.Normalize(velocity) * maximumSpeed
-            : velocity;
 }
 
 
