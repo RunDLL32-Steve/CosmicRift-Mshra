@@ -1,5 +1,12 @@
 # Changelog
 
+## Each hull flies with its own original stats, weapon and Shift boost — November 4, 2026
+
+-   The placeholders on the twelve original hulls are gone. Every hull now has its original radius (21 pixels, VEH f[35] PhysicalRadius), 1,700 energy that recharges at 105 a second (f[94] and f[95]), and no separate shield: as in the original (CFG EnergyShieldMode=2, NWS rows 39 to 41), the ship's energy is its shield, and the HUD's shield bar shows it.
+-   Each race starts with its own cannon (VEH f[129]): Terran hulls the Plasma Cannon, Skithzar hulls the Bio Cannon and Grazi hulls the D-Cannon, derived from their ITM rows. A shot costs 60 energy and fires every 0.25 s. A hit drains 266 shield energy, and only a ship with no shield left takes hull damage, 5 points a hit (NWS rows 131 to 133). Projectile speed and lifetime keep their NEW values until G10 rows W2 and W3 decide the units.
+-   Holding Shift while thrusting engages the hull's original boost (hyper thrust): more thrust and a higher top speed (Asp 350 px/s instead of 325, Excelsior 380 instead of 357.5), paid for in energy at 99 to 120 a second by hull. While the boost is engaged energy does not recharge (pending Steve's confirmation), and with too little energy the ship flies on its normal values. Client prediction does not know the boost yet.
+-   Replay recordings move to format 3, which stores the boost; format 2 recordings still play.
+
 ## Teams, Trading Posts, Repair Docks and a hangar — November 4, 2026
 
 -   Teams (Steve's rule): the first pilot to join goes to Cold Harbor. After that, each new pilot joins whichever of the four station teams (Cold Harbor, Northern Cross, Cassandra, Yankee Station) has the fewest pilots, so the teams take turns and stay even. A team stops at its CFG limit of 10 pilots. Each team spawns at its original initial-entry warp, on the nearest open store-zone tile when the warp box centre is a wall (Cassandra's is). The original did not force even teams (CFG [Arena] ForceEvenTeams=0), so the rule is NEW.

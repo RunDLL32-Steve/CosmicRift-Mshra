@@ -22,6 +22,13 @@ public static class VehFields
     public const int VehicleId = 2;
     public const int Name = 3;
     public const int HullPoints = 6;
+    /// <summary>
+    /// f[35]: PhysicalRadius (21 for all twelve), followed by TriggerRadius f[36] (18). Named by the InfantryOnline emulator
+    /// (bb97579) at both places: <c>Docs/Veh/Car.txt</c> "Element 36 : Physical Radius" (1-based) and the v≥34 parse order in
+    /// <c>dotnetcore/Assets/Veh/VehInfo.cs</c> (Hitpoints, Weight, ClassId, six four-field armour blocks, BarrelLength, FireHeight,
+    /// PhysicalRadius, TriggerRadius). Read in pixels, the unit of positions.
+    /// </summary>
+    public const int PhysicalRadius = 35;
     /// <summary>f[7]: Weight (10000 for all twelve). Index inferred from the pinned parser order (Name f[3], logic f[4], description f[5], Hitpoints f[6], Weight f[7]) and the documented Asp value; units unvalidated.</summary>
     public const int Weight = 7;
     /// <summary>Catalog DropItemId / DropQuantity (raw); drop trigger unvalidated (RT-F043).</summary>
@@ -92,6 +99,7 @@ public sealed class OriginalHull
         Category = rpg.Value(RpgFields.Category);
 
         HullPoints = veh.Int(VehFields.HullPoints);
+        PhysicalRadius = veh.Int(VehFields.PhysicalRadius);
         Weight = veh.Int(VehFields.Weight);
         DropItemId = veh.Int(VehFields.DropItemId);
         DropQuantity = veh.Int(VehFields.DropQuantity);
@@ -127,6 +135,8 @@ public sealed class OriginalHull
 
     /// <summary>VEH f[6].</summary>
     public OriginalInt HullPoints { get; }
+    /// <summary>VEH f[35] PhysicalRadius.</summary>
+    public OriginalInt PhysicalRadius { get; }
     /// <summary>VEH f[7].</summary>
     public OriginalInt Weight { get; }
     /// <summary>VEH f[68] (raw item id; drop trigger unvalidated; resolved against the ITM catalog by the caller).</summary>

@@ -35,6 +35,10 @@ public sealed class EmulatorFlightReading
         StrafeAccelerationPixelsPerSecondSquared = ThrustVelocityUnitsPerSecond(block.StrafeThrust.Value) / VelocityUnitsPerPixelPerSecond;
         TurnDegreesPerSecond = block.RollRotate.Value / 10000.0 * 1000 * DegreesPerYawUnit;
         HyperTopSpeedPixelsPerSecond = block.HyperTopSpeed.Value / VelocityUnitsPerPixelPerSecond;
+        HyperReverseUsesForwardThrust = block.BackwardHyperThrust.Value == -1;
+        HyperForwardAccelerationPixelsPerSecondSquared = ThrustVelocityUnitsPerSecond(block.HyperThrust.Value) / VelocityUnitsPerPixelPerSecond;
+        HyperReverseAccelerationPixelsPerSecondSquared = ThrustVelocityUnitsPerSecond(
+            HyperReverseUsesForwardThrust ? block.HyperThrust.Value : block.BackwardHyperThrust.Value) / VelocityUnitsPerPixelPerSecond;
         WallBounceRetained = hull.BouncePercent.Value / 1000.0;
     }
 
@@ -66,6 +70,14 @@ public sealed class EmulatorFlightReading
     public double TurnDegreesPerSecond { get; }
     /// <summary>HyperTopSpeed in the same velocity unit. No emulator code reads this field, so the unit is an assumption.</summary>
     public double HyperTopSpeedPixelsPerSecond { get; }
+    /// <summary>
+    /// HyperThrust through the same thrust factor as RollThrust. No emulator code reads it either; reading it in the RollThrust
+    /// unit is the same assumption as for <see cref="HyperTopSpeedPixelsPerSecond"/>.
+    /// </summary>
+    public double HyperForwardAccelerationPixelsPerSecondSquared { get; }
+    /// <summary>True when BackwardHyperThrust is the −1 sentinel, read like BackwardThrust −1 as "same as HyperThrust".</summary>
+    public bool HyperReverseUsesForwardThrust { get; }
+    public double HyperReverseAccelerationPixelsPerSecondSquared { get; }
     /// <summary>BouncePercent / 1000: the share of speed the bot keeps after hitting a blocked tile.</summary>
     public double WallBounceRetained { get; }
 

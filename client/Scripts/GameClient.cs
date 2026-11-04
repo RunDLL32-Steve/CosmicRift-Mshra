@@ -82,18 +82,21 @@ public partial class GameClient : Node2D
     private const string LegacySectorId = "first_contact";
     private MinimapView _minimap = null!;
 
+    /// <summary>The weapon definition a ship definition starts with, as the roster names it.</summary>
+    private string WeaponJsonFor(string shipJson) => ReadDefinition($"weapons/{_roster.WeaponDefinitionFor(GameCatalog.ShipFromJson(shipJson))}");
+
     public override void _Ready()
     {
         try
         {
             FlightInput.Initialize();
             _roster = ShipRoster.FromJson(ReadDefinition("ships/roster.json"));
-            var weaponJson = ReadDefinition("weapons/plasma_cannon.json");
             var practiceJson = ReadDefinition("sectors/first_contact.json");
             var sectorJson = ReadDefinition("sectors/rogue.json");
             foreach (var entry in _roster.Ships)
             {
-                var shipCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{entry.Definition}"), weaponJson, sectorJson);
+                var shipJson = ReadDefinition($"ships/{entry.Definition}");
+                var shipCatalog = GameCatalog.FromJson(shipJson, WeaponJsonFor(shipJson), sectorJson);
                 if (shipCatalog.Ship.Id != entry.HullId)
                     throw new InvalidOperationException($"Roster hull '{entry.HullId}' points at ship definition '{shipCatalog.Ship.Id}'.");
                 _shipCatalogs[entry.HullId] = shipCatalog;
@@ -106,7 +109,8 @@ public partial class GameClient : Node2D
                 foreach (var (hullId, catalog) in _shipCatalogs.ToArray())
                     _shipCatalogs[hullId] = new GameCatalog(catalog.Ship, catalog.Weapon, catalog.Sector with { PlayerSpawn = catalog.Sector.SpawnOf(team.Index) });
             _catalog = _shipCatalogs[_roster.StarterHullId];
-            _practiceCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{_roster.Ships.First(s => s.HullId == _roster.StarterHullId).Definition}"), weaponJson, practiceJson);
+            var starterJson = ReadDefinition($"ships/{_roster.Ships.First(s => s.HullId == _roster.StarterHullId).Definition}");
+            _practiceCatalog = GameCatalog.FromJson(starterJson, WeaponJsonFor(starterJson), practiceJson);
             if (_catalog.Sector.MapFile is { } mapFile) _map = SectorMap.FromJson(ReadDefinition($"sectors/{mapFile}"));
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
