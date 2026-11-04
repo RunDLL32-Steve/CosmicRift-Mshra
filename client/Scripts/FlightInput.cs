@@ -17,8 +17,11 @@ public static class FlightInput
         new("flight_pause", "Pause / controls", [Key.Escape]),
         new("flight_reset", "Reset sector", [Key.R]),
         new("station_dock", "Dock at station", [Key.F]),
-        new("original_content", "Original content viewer", [Key.F2])
+        new("original_content", "Original content viewer", [Key.F2]),
+        new(MapAction, "Sector map", [Key.M])
     ];
+    /// <summary>Opens and closes the full-screen sector map (NEW).</summary>
+    public const string MapAction = "sector_map";
     private const string SettingsPath = "user://controls.cfg";
 
     public static void Initialize()

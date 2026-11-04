@@ -81,6 +81,7 @@ public partial class GameClient : Node2D
     /// <summary>Sector id of the 1,400-unit practice sector the game flew before the full-size map; its save is moved onto the map once.</summary>
     private const string LegacySectorId = "first_contact";
     private MinimapView _minimap = null!;
+    private SectorMapOverlay _sectorMap = null!;
 
     public override void _Ready()
     {
@@ -146,6 +147,8 @@ public partial class GameClient : Node2D
             AddChild(_hud);
             _minimap = new MinimapView(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
             _hud.AddChild(_minimap);
+            _sectorMap = new SectorMapOverlay(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
+            _hud.AddChild(_sectorMap);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
@@ -173,6 +176,13 @@ public partial class GameClient : Node2D
                 else if (args[i].StartsWith("--capture=", StringComparison.Ordinal)) _capturePath = args[i][10..];
             if (args.Contains("--capture-controls")) TogglePause();
             if (args.Contains("--capture-station")) SetStationVisible(true);
+            if (args.Contains("--capture-map")) SetSectorMapVisible(true);
+            foreach (var arg in args)
+                if (arg.StartsWith("--capture-map-zoom=", StringComparison.Ordinal) && int.TryParse(arg[19..], out var steps))
+                {
+                    SetSectorMapVisible(true);
+                    _sectorMap.ZoomBy(steps);
+                }
             foreach (var arg in args)
                 if (arg.StartsWith("--station-tab=", StringComparison.Ordinal) && int.TryParse(arg[14..], out var tab)) _stationScreen.ShowTab(tab);
             _verifyOriginals = args.Contains("--verify-original-content");
@@ -195,7 +205,7 @@ public partial class GameClient : Node2D
             GD.Print($"CLIENT_TEAM: {(_team is null ? "no team (practice sector)" : $"joined {_team.Name} (team {_team.Index})")}");
             // The player picks a ship whenever the client and map load (Steve, Nov 3 2026). Acceptance, capture and inspection runs
             // drive their own fixtures and keep flying the active ship.
-            var fixtureRun = smokeRequested || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused;
+            var fixtureRun = smokeRequested || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused || _sectorMap.Visible;
             if (!fixtureRun || args.Contains("--capture-ship-picker")) ShowShipPicker();
             if (smokeRequested) RunInputSmokeTest();
             else if (originalInputRequested) RunOriginalInputCheck();
@@ -258,6 +268,7 @@ public partial class GameClient : Node2D
         _camera.Position = WorldView.ToGodot(_world.Player.Position) + new Vector2(0, -35);
         _hud.Update(_world, _playCatalog);
         _minimap.Update(_world);
+        _sectorMap.Update(_world);
         RefreshProfileViews();
         if (_noticeExpiresMs != 0 && Time.GetTicksMsec() >= _noticeExpiresMs)
         {
@@ -316,6 +327,13 @@ public partial class GameClient : Node2D
             _hud.CaptureKey(key);
             GetViewport().SetInputAsHandled();
         }
+        else if (_sectorMap.Visible && SectorMapKey(key, input))
+            GetViewport().SetInputAsHandled();
+        else if (input.IsActionPressed(FlightInput.MapAction) && !_paused)
+        {
+            SetSectorMapVisible(true);
+            GetViewport().SetInputAsHandled();
+        }
         else if (input.IsActionPressed("original_content"))
         {
             SetInspectionVisible(true);
@@ -338,8 +356,52 @@ public partial class GameClient : Node2D
         }
     }
 
+    /// <summary>Keys the open sector map takes: its own key or Escape close it, +/- and PageUp/PageDown zoom, Home centres.
+    /// Flight keys are not taken, so the ship keeps flying under the map.</summary>
+    private bool SectorMapKey(InputEventKey key, InputEvent input)
+    {
+        switch (key.PhysicalKeycode)
+        {
+            case Key.Escape:
+                SetSectorMapVisible(false);
+                return true;
+            case Key.Equal or Key.KpAdd or Key.Pageup:
+                _sectorMap.ZoomBy(1);
+                return true;
+            case Key.Minus or Key.KpSubtract or Key.Pagedown:
+                _sectorMap.ZoomBy(-1);
+                return true;
+            case Key.Home:
+                _sectorMap.CentreOnShip();
+                return true;
+        }
+        if (!input.IsActionPressed(FlightInput.MapAction)) return false;
+        SetSectorMapVisible(false);
+        return true;
+    }
+
+    /// <summary>The sector map is a display only: flight, the world and the server carry on while it is open.</summary>
+    private void SetSectorMapVisible(bool visible)
+    {
+        if (!visible)
+        {
+            _sectorMap.Close();
+            _minimap.Visible = _map is not null;
+            return;
+        }
+        if (!_sectorMap.Open())
+        {
+            Notice("This sector has no map.", warning: true);
+            return;
+        }
+        _minimap.Visible = false;
+    }
+
+    public SectorMapOverlay SectorMapView => _sectorMap;
+
     private void SetInspectionVisible(bool visible)
     {
+        if (visible) SetSectorMapVisible(false);
         _inspectionVisible = visible;
         _inspector.Visible = visible;
         _hud.Visible = !visible;
@@ -349,7 +411,11 @@ public partial class GameClient : Node2D
     private void TogglePause()
     {
         _paused = !_paused;
-        if (_paused) SaveShip();
+        if (_paused)
+        {
+            SetSectorMapVisible(false);
+            SaveShip();
+        }
         _hud.SetMenuVisible(_paused);
     }
 
@@ -730,6 +796,7 @@ public partial class GameClient : Node2D
     public void ShowShipPicker()
     {
         if (_session?.Profile is not { } profile || profile.OwnedShips.Count == 0) return; // offline: keep flying the starter
+        SetSectorMapVisible(false);
         _shipPicker.Show(profile, _roster, id => _shipCatalogs.TryGetValue(id, out var c) ? c.Ship : null, ActiveHullId);
         _shipPickerVisible = true;
         _hud.Visible = false;
@@ -913,6 +980,7 @@ public partial class GameClient : Node2D
                 return;
             }
             if (_session.DockedAt(PlayerX, PlayerY) is not { } site) return;
+            SetSectorMapVisible(false);
             _dockedSite = site;
             _stationScreen.SetMode(site.Service, site.Name);
             _stationScreen.SetStatus($"Welcome to {site.Name}. {ServiceHint(site.Service)}");
@@ -1048,7 +1116,7 @@ public partial class GameClient : Node2D
 
     private async void RunInputSmokeTest()
     {
-        var inputTest = new ClientInputSmokeTest(_catalog, _hud, () => _world, () => _paused, ResetSector, NextPhysicsFrame);
+        var inputTest = new ClientInputSmokeTest(_catalog, _hud, _sectorMap, () => _world, () => _paused, ResetSector, NextPhysicsFrame);
         if (!await inputTest.RunAsync())
         {
             GetTree().Quit(1);
