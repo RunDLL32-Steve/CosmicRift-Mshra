@@ -657,16 +657,21 @@ public partial class GameClient : Node2D
         return true;
     }
 
-    /// <summary>Saves the sector, then hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds of flight).</summary>
-    public void SaveShip()
+    /// <summary>
+    /// Saves the sector, then hull and position to the profile (on pause, dock, undock, repair, reset, quit and every ten seconds
+    /// of flight). Returns the refusal when the ship condition could not be saved, so a ship change can stop instead of parking
+    /// the last saved (possibly healthier) condition, which would be a free repair. Null means saved, or nothing to save.
+    /// </summary>
+    public RejectionReason? SaveShip()
     {
         SaveSector();
-        if (_session?.Profile is null || _world is null) return;
+        if (_session?.Profile is null || _world is null) return null;
         var player = _world.Player;
-        if (player.IsDestroyed) return; // a wreck is recorded as a destruction (CommitDestruction), never saved as a condition
+        if (player.IsDestroyed) return null; // a wreck is recorded as a destruction (CommitDestruction), never saved as a condition
         var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading, ShipPlacement.CoordinateVersionFor(_map)));
         if (!result.Saved) _profileStatus = $"Ship condition could not be saved ({result.Reason}).";
         _lastShipSaveTick = _world.TickNumber;
+        return result.Saved ? null : result.Reason;
     }
 
     private IEnumerable<KeyValuePair<string, int>> AuthoritativeHold() =>
@@ -748,7 +753,12 @@ public partial class GameClient : Node2D
         }
         if (hullId != _session.Profile.ShipHullId)
         {
-            SaveShip(); // the ship left behind is parked exactly as it is now
+            if (SaveShip() is { } unsaved) // the ship left behind is parked exactly as it is now, or not at all
+            {
+                _shipPicker.SetStatus($"Could not switch ships: the current ship could not be saved ({unsaved}).", error: true);
+                if (unsaved is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict) ReloadProfile();
+                return;
+            }
             var result = Await(_session.SelectShipAsync(hullId));
             if (!result.Saved)
             {
@@ -791,7 +801,13 @@ public partial class GameClient : Node2D
         if (hullId == _session.Profile.ShipHullId) return;
         var dock = _world.Player.Position;
         var heading = _world.Player.Heading;
-        SaveShip(); // the ship left behind is parked here as it is now
+        if (SaveShip() is { } unsaved) // the ship left behind is parked here as it is now, or the switch does not happen
+        {
+            _stationScreen.SetStatus($"Refused: the ship you are flying could not be saved ({Describe(unsaved)}).", error: true);
+            if (unsaved is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict) ReloadProfile();
+            RefreshProfileViews(rebuildStation: true);
+            return;
+        }
         var result = Await(_session.SwitchShipAsync(hullId, dock.X, dock.Y));
         if (!result.Saved)
         {
