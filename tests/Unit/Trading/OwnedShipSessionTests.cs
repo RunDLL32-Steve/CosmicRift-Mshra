@@ -147,8 +147,8 @@ public sealed class OwnedShipSessionTests
         repo.Mode = fault;
         var failed = await session.SaveShipAsync(40, station.X + 2_000, station.Y, 0.5f);
         repo.Mode = RogueTrader.UnitTests.Persistence.FaultMode.None;
-        if (writeLanded) Assert.True(failed.Saved);
-        else Assert.False(failed.Saved); // the write landed; the session read it back and acknowledged it
+        if (writeLanded) Assert.True(failed.Saved); // the write landed; the session read it back and acknowledged it
+        else Assert.False(failed.Saved); // nothing was stored
 
         // The disk is fine again: the next save goes through, without a relaunch, and the hull taken since is kept.
         var docked = await session.SaveShipAsync(25, station.X, station.Y, 1f);
