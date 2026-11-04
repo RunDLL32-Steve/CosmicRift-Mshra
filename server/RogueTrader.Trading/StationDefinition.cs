@@ -31,8 +31,15 @@ public sealed record RefineryDefinition(string StationId, string Name, float X, 
     [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
 }
 
-/// <summary>A repair service. <see cref="HullPoints"/> is restored on purchase; refused at full hull.</summary>
-public sealed record StationRepair(string Id, string Name, long Price, float HullPoints, string? Source = null);
+/// <summary>
+/// A repair service. <see cref="HullPoints"/> is restored on purchase, or the whole hull when <see cref="RestoresFullHull"/>
+/// is set; refused at full hull.
+/// </summary>
+public sealed record StationRepair(string Id, string Name, long Price, float HullPoints, string? Source = null)
+{
+    /// <summary>Restores the flown ship to its maximum hull whatever that is (Full Repair, Steve's 500-credit repair, Nov 4 2026).</summary>
+    public bool RestoresFullHull { get; init; }
+}
 
 /// <summary>
 /// A hull the station sells (schema 6 owned ships). A player owns at most one of each; <see cref="Source"/> says where the

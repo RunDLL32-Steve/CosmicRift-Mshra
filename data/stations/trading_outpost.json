@@ -7,7 +7,7 @@
     "Position (90, 20), dock radius 150 world units.",
     "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
     "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
-    "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
+    "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
     "Collectible piles: placement and quantities.",
     "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
@@ -97,21 +97,24 @@
       "name": "Minor Repair",
       "price": 50,
       "hullPoints": 5,
-      "source": "ITM id 39 f[33]=5"
+      "source": "ITM id 39 f[33]=5",
+      "restoresFullHull": false
     },
     {
       "id": "40",
       "name": "Major Repair",
       "price": 100,
       "hullPoints": 10,
-      "source": "ITM id 40 f[33]=10"
+      "source": "ITM id 40 f[33]=10",
+      "restoresFullHull": false
     },
     {
       "id": "43",
       "name": "Full Repair",
       "price": 500,
       "hullPoints": 50,
-      "source": "ITM id 43 f[33]=50"
+      "source": "ITM id 43 f[33]=50",
+      "restoresFullHull": true
     }
   ],
   "upgrades": [

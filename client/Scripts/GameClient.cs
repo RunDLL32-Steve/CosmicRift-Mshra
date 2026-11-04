@@ -739,9 +739,10 @@ public partial class GameClient : Node2D
         _pendingDestruction ??= (_worldInstanceId, _world.TickNumber);
         if (_session?.Profile is null)
         {
-            // Offline (no save folder): there is no wallet to charge; the unsaved cargo is lost with the ship.
+            // Offline (no save folder): there is no wallet to charge; the unsaved hold spills into space with the ship.
             _pickups.StartNewWorld();
-            Respawn("Ship destroyed and its cargo lost. Station services are offline, so no credits were charged.");
+            SpillCargo(_world.Cargo.Items.ToArray());
+            Respawn("Ship destroyed and its cargo dropped. Station services are offline, so no credits were charged.");
             return true;
         }
         if (_world.TickNumber < _nextDestructionRetryTick) return false;
@@ -767,9 +768,22 @@ public partial class GameClient : Node2D
             }
             return false;
         }
-        var lostUnits = -result.ItemDeltas.Values.Where(v => v < 0).Sum();
-        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")}. Respawned at full hull with all weapons and upgrades.");
+        // The server removed exactly these units from the hold; they spill into space where the ship died (Steve, Nov 4 2026).
+        var lost = result.ItemDeltas.Where(d => d.Value < 0).Select(d => KeyValuePair.Create(d.Key, -d.Value)).ToArray();
+        SpillCargo(lost);
+        var lostUnits = lost.Sum(d => d.Value);
+        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and dropped {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")} where it died. Respawned at full hull with all weapons and upgrades.");
         return true;
+    }
+
+    /// <summary>
+    /// Places the destroyed ship's cargo as piles where it died, once per destruction (the drop id is the destruction's world and
+    /// tick). The piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
+    /// </summary>
+    private void SpillCargo(IReadOnlyCollection<KeyValuePair<string, int>> items)
+    {
+        if (_world is null || _pendingDestruction is not { } destruction || items.Count == 0) return;
+        _world.DropCargo($"{destruction.WorldInstanceId}:{destruction.Tick}", _world.Player.Position, items);
     }
 
     private void Respawn(string message)
@@ -821,7 +835,7 @@ public partial class GameClient : Node2D
         {
             if (repairId is not null)
             {
-                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId));
+                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId, _world.Player.Definition.Defense.MaximumHull));
                 success = $"{_stationDefinition.NameOf(repairId)}: {restored:0} hull restored.";
                 SaveShip();
             }

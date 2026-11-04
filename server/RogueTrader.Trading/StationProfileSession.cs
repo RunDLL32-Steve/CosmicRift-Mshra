@@ -250,8 +250,16 @@ public sealed class StationProfileSession
             new ShipDestroyedRequest(DestructionTransactionId(worldInstanceId, tick), profileId, hull), ct);
     }
 
-    /// <summary>Hull points the client restores for an applied repair (raw original amount read as hull points, NEW).</summary>
-    public float RepairHullPoints(string repairId) => Station.Repairs.FirstOrDefault(r => r.Id == repairId)?.HullPoints ?? 0f;
+    /// <summary>
+    /// Hull points the client restores for an applied repair (raw original amount read as hull points, NEW); a full repair
+    /// restores <paramref name="maximumHull"/>, so a hull with more than the raw 50 points is still filled.
+    /// </summary>
+    public float RepairHullPoints(string repairId, float maximumHull) => Station.Repairs.FirstOrDefault(r => r.Id == repairId) switch
+    {
+        null => 0f,
+        { RestoresFullHull: true } => maximumHull,
+        var repair => repair.HullPoints,
+    };
 
     private string RequireProfile() => ProfileId ?? throw new InvalidOperationException("No profile has been opened.");
 

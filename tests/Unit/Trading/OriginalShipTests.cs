@@ -62,6 +62,12 @@ public sealed class OriginalShipTests
         var fullRepair = OriginalStationBuilder.Build(OriginalAssets.Root!).Repairs.Single(r => r.Name == "Full Repair");
         Assert.Equal(500, fullRepair.Price);
         Assert.All(Hulls.Hulls, h => Assert.True(fullRepair.HullPoints >= OriginalShipBuilder.Ship(h).Defense.MaximumHull, h.Name));
+        // It fills any hull, including the legacy Interceptor's 100 points (review R3-1); Minor and Major add their points.
+        var station = OriginalStationBuilder.Build(OriginalAssets.Root!);
+        Assert.Equal(new[] { "43" }, station.Repairs.Where(r => r.RestoresFullHull).Select(r => r.Id));
+        var session = new StationProfileSession(new InMemoryProfileRepository(), station, "starter_interceptor", 4_000_000);
+        Assert.Equal(100f, session.RepairHullPoints("43", 100f));
+        Assert.Equal(5f, session.RepairHullPoints("39", 100f));
     }
 
     [RequiresOriginalAssetsFact]

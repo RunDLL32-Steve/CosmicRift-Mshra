@@ -164,7 +164,7 @@ public partial class StationScreen : CanvasLayer
             ? "Original repair rows; the raw amount is read as hull points and the price is provisional."
             : hull <= 0 ? "The ship is destroyed; it respawns once the loss is saved." : "Hull is at maximum: nothing to repair.", 12, FlightHud.Muted));
         foreach (var repair in _station.Repairs)
-            _repairs.AddChild(Row(Cell(repair.Name, 200), Cell($"+{repair.HullPoints:0} hull", 100), Cell($"{repair.Price:N0} cr", 90),
+            _repairs.AddChild(Row(Cell(repair.Name, 200), Cell(repair.RestoresFullHull ? "full hull" : $"+{repair.HullPoints:0} hull", 100), Cell($"{repair.Price:N0} cr", 90),
                 ActionButton("REPAIR", $"repair:{repair.Id}", !canRepair, () => RepairRequested?.Invoke(repair.Id))));
 
         Clear(_hulls);
