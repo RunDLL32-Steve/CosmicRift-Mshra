@@ -164,8 +164,9 @@ public sealed partial class WorldSimulation
     /// </summary>
     private void RunMineralEvents(long now, long first)
     {
-        if (_mineralSpawns.Length == 0) return;
+        // Expiry runs even without mineral spawns: a destroyed ship's spilled cargo expires too (CargoDrops).
         _collectibles.RemoveAll(p => p.ExpiresAt is { } at && at <= now);
+        if (_mineralSpawns.Length == 0) return;
         foreach (var spawn in _mineralSpawns)
             if (spawn.NextAttemptTick == 0 ? now >= first : now >= spawn.NextAttemptTick)
                 AttemptMineral(spawn, now);

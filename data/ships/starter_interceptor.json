@@ -5,11 +5,11 @@
     "radius": 14,
     "physics": {
         "mass": 100,
-        "forwardThrust": 12000,
-        "reverseThrust": 12000,
-        "rotationSpeed": 3.3,
-        "maximumSpeed": 360,
-        "asteroidRestitution": 0.25
+        "forwardThrust": 16870,
+        "reverseThrust": 16870,
+        "rotationSpeed": 3.6128316,
+        "maximumSpeed": 325,
+        "asteroidRestitution": 0.727
     },
     "defense": {
         "maximumHull": 100,

@@ -73,7 +73,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             run.World.RestorePlayer(run.World.Player.Position, run.World.Player.Heading, maximumHull - 20);
             var repair = content.Station.Repairs[0];
             Assert.Equal(TransactionStatus.Applied, (await run.Session.RepairAsync(repair.Id, run.X, run.Y, run.World.Player.Hull, maximumHull)).Status);
-            run.World.RepairPlayerHull(run.Session.RepairHullPoints(repair.Id));
+            run.World.RepairPlayerHull(run.Session.RepairHullPoints(repair.Id, run.World.Player.Definition.Defense.MaximumHull));
 
             // 6. Save the ship (the client does this on pause, dock, undock and quit).
             Assert.True((await run.SaveShipAsync()).Saved);

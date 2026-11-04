@@ -64,16 +64,30 @@ public partial class GameClient : Node2D
     private IReadOnlyList<PendingPickupGrant> _otherPilotsPickups = [];
     private IReadOnlyList<PendingKillGrant> _otherPilotsKills = [];
     private const ulong NoticeDurationMs = 5000;
+    // Owned ships (Steve, Nov 3 2026): every flyable hull's catalog, the picker shown at load, and a destruction waiting to be saved.
+    private ShipRoster _roster = null!;
+    private readonly Dictionary<string, GameCatalog> _shipCatalogs = new(StringComparer.Ordinal);
+    private ShipPicker _shipPicker = null!;
+    private bool _shipPickerVisible;
+    private (string WorldInstanceId, long Tick)? _pendingDestruction;
+    private long _nextDestructionRetryTick;
 
     public override void _Ready()
     {
         try
         {
             FlightInput.Initialize();
-            _catalog = GameCatalog.FromJson(
-                ReadDefinition("ships/starter_interceptor.json"),
-                ReadDefinition("weapons/plasma_cannon.json"),
-                ReadDefinition("sectors/first_contact.json"));
+            _roster = ShipRoster.FromJson(ReadDefinition("ships/roster.json"));
+            var weaponJson = ReadDefinition("weapons/plasma_cannon.json");
+            var sectorJson = ReadDefinition("sectors/first_contact.json");
+            foreach (var entry in _roster.Ships)
+            {
+                var shipCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{entry.Definition}"), weaponJson, sectorJson);
+                if (shipCatalog.Ship.Id != entry.HullId)
+                    throw new InvalidOperationException($"Roster hull '{entry.HullId}' points at ship definition '{shipCatalog.Ship.Id}'.");
+                _shipCatalogs[entry.HullId] = shipCatalog;
+            }
+            _catalog = _shipCatalogs[_roster.StarterHullId];
             _stationDefinition = StationDefinition.FromJson(ReadDefinition("stations/trading_outpost.json"));
             _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
@@ -89,6 +103,7 @@ public partial class GameClient : Node2D
                 _profileRoot = _smokeProfileRoot;
             }
             OpenProfile();
+            FlyActiveShip();
             _world = NewWorld(restoreSavedShip: true, loadSector: true);
             _originals = OriginalSpriteLibrary.LoadIfAvailable();
             _view = new WorldView { Originals = _originals, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
@@ -111,12 +126,17 @@ public partial class GameClient : Node2D
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
+            _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
+                $"Bought the {_stationDefinition.NameOf(hull)}. It waits in your hangar; choose it in the ship picker when the game loads.");
             _stationScreen.CloseRequested += () => SetStationVisible(false);
             AddChild(_stationScreen);
             _hud.SetOriginalContentAvailable(_originals is not null);
             _inspector = new OriginalContentInspector(_originals) { Visible = false };
             _inspector.CloseRequested += () => SetInspectionVisible(false);
             AddChild(_inspector);
+            _shipPicker = new ShipPicker { Visible = false };
+            _shipPicker.ShipChosen += ChooseShip;
+            AddChild(_shipPicker);
             _hud.Update(_world, _playCatalog);
             RefreshProfileViews();
             var args = userArgs;
@@ -146,6 +166,10 @@ public partial class GameClient : Node2D
             _initialized = true;
             GD.Print($"CLIENT_READY: {_catalog.Sector.Name}; {WorldSimulation.TickRate} Hz fixed simulation; {_world.Targets.Count} targets; {_world.Asteroids.Count} asteroids.");
             GD.Print($"CLIENT_PROFILE: {_profileStatus}");
+            // The player picks a ship whenever the client and map load (Steve, Nov 3 2026). Acceptance, capture and inspection runs
+            // drive their own fixtures and keep flying the active ship.
+            var fixtureRun = smokeRequested || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused;
+            if (!fixtureRun || args.Contains("--capture-ship-picker")) ShowShipPicker();
             if (smokeRequested) RunInputSmokeTest();
             else if (originalInputRequested) RunOriginalInputCheck();
         }
@@ -161,10 +185,10 @@ public partial class GameClient : Node2D
         if (!_initialized) return;
         try
         {
-            if (_inspectionVisible || _stationVisible)
+            if (_inspectionVisible || _stationVisible || _shipPickerVisible)
             {
                 _view.InputState = default;
-                _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while docked or inspecting
+                _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while docked, inspecting or choosing a ship
                 return;
             }
             if (_smokeTest is not null)
@@ -185,6 +209,7 @@ public partial class GameClient : Node2D
                 _view.InputState = input;
                 CommitPickups();
                 CommitKills();
+                CommitDestruction();
                 if (_world.TickNumber - _lastShipSaveTick >= ShipSaveIntervalTicks) SaveShip();
             }
             else
@@ -238,6 +263,7 @@ public partial class GameClient : Node2D
     public override void _Input(InputEvent input)
     {
         if (!_initialized || input is not InputEventKey key || !key.Pressed || key.Echo) return;
+        if (_shipPickerVisible) return; // the picker's buttons take the keyboard; a ship must be chosen to fly
         if (_stationVisible)
         {
             if (key.PhysicalKeycode == Key.Escape || input.IsActionPressed("flight_pause") || input.IsActionPressed("station_dock"))
@@ -301,13 +327,19 @@ public partial class GameClient : Node2D
 
     private void ResetSector()
     {
+        // A destroyed ship respawns only through its saved destruction (20% of credits); a reset is never a free way round it.
+        if (_world.Player.IsDestroyed && CommitDestruction()) return;
+        if (_world.Player.IsDestroyed)
+        {
+            Notice("The ship's destruction is not saved yet; it respawns as soon as it is.", warning: true);
+            return;
+        }
         // A reset only puts the player's ship back at the spawn. The sector itself (targets, their respawn timer, piles, mineral
         // field) carries on exactly as it was, so resetting cannot re-arm kill rewards or refill cargo (owner rule, Nov 2 2026).
-        // The ship keeps its hull damage too, so a reset is not a free repair (Steve, Nov 3 2026). A destroyed ship (hull 0)
-        // still respawns with a full hull, as before (NEW/provisional).
-        var hull = _world.Player.IsDestroyed ? 0 : _world.Player.Hull;
+        // The ship keeps its hull damage too, so a reset is not a free repair (Steve, Nov 3 2026).
+        var hull = _world.Player.Hull;
         _world = NewWorld(restoreSavedShip: false, loadSector: false);
-        if (hull > 0) _world.RestorePlayer(_world.Player.Position, _world.Player.Heading, hull);
+        _world.RestorePlayer(_world.Player.Position, _world.Player.Heading, hull);
         _view.SetWorld(_world);
         _paused = false;
         _hud.SetMenuVisible(false);
@@ -368,6 +400,7 @@ public partial class GameClient : Node2D
         _repository = null;
         _sectorStore = null;
         OpenProfile();
+        FlyActiveShip();
         _world = NewWorld(restoreSavedShip: true, loadSector: true);
         _view.SetWorld(_world);
     }
@@ -586,6 +619,7 @@ public partial class GameClient : Node2D
         SaveSector();
         if (_session?.Profile is null || _world is null) return;
         var player = _world.Player;
+        if (player.IsDestroyed) return; // a wreck is recorded as a destruction (CommitDestruction), never saved as a condition
         var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading));
         if (!result.Saved) _profileStatus = $"Ship condition could not be saved ({result.Reason}).";
         _lastShipSaveTick = _world.TickNumber;
@@ -632,6 +666,136 @@ public partial class GameClient : Node2D
         }
     }
 
+    // ---- Owned ships (Steve, Nov 3 2026) -------------------------------------------------------------------
+
+    /// <summary>The hull id the player flies: the profile's active ship when it has a flyable definition, otherwise the starter.</summary>
+    public string ActiveHullId => _session?.Profile?.ShipHullId is { } hull && _shipCatalogs.ContainsKey(hull) ? hull : _roster.StarterHullId;
+    public bool ShipPickerVisible => _shipPickerVisible;
+    public ShipPicker Picker => _shipPicker;
+    public bool DestructionPending => _pendingDestruction is not null;
+
+    /// <summary>Points the catalog, hold rules and the session's cargo cap at the active ship.</summary>
+    private void FlyActiveShip()
+    {
+        _catalog = _shipCatalogs[ActiveHullId];
+        _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
+        _session?.FlyShip(_catalog.Ship.Cargo.Capacity);
+    }
+
+    public void ShowShipPicker()
+    {
+        if (_session?.Profile is not { } profile || profile.OwnedShips.Count == 0) return; // offline: keep flying the starter
+        _shipPicker.Show(profile, _roster, id => _shipCatalogs.TryGetValue(id, out var c) ? c.Ship : null, ActiveHullId);
+        _shipPickerVisible = true;
+        _hud.Visible = false;
+    }
+
+    /// <summary>
+    /// Flies the chosen owned ship: the server parks the current ship with its saved condition and makes the chosen one active,
+    /// then the world is rebuilt (the sector carries on unchanged) with the chosen ship where it was parked.
+    /// </summary>
+    public void ChooseShip(string hullId)
+    {
+        if (_session?.Profile is null) return;
+        if (!_shipCatalogs.ContainsKey(hullId))
+        {
+            _shipPicker.SetStatus("That hull cannot be flown yet.", error: true);
+            return;
+        }
+        if (hullId != _session.Profile.ShipHullId)
+        {
+            SaveShip(); // the ship left behind is parked exactly as it is now
+            var result = Await(_session.SelectShipAsync(hullId));
+            if (!result.Saved)
+            {
+                _shipPicker.SetStatus($"Could not switch ships ({result.Reason}).", error: true);
+                if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict) ReloadProfile();
+                return;
+            }
+            FlyActiveShip();
+            _world = NewWorld(restoreSavedShip: true, loadSector: false);
+            _view.SetWorld(_world);
+        }
+        // The chosen ship enters the game with the hull it was saved with: a damaged ship stays damaged across a relaunch or a
+        // ship pick and is repaired at the station's Full Repair for 500 credits (Steve, Nov 4 2026). A ship never flown (new or
+        // just bought) and a ship respawned after destruction have no saved condition, so they start at full hull.
+        SaveShip();
+        _shipPickerVisible = false;
+        _shipPicker.Visible = false;
+        _hud.Visible = !_stationVisible && !_inspectionVisible;
+        Notice($"Flying the {_catalog.Ship.Name}.");
+    }
+
+    /// <summary>
+    /// When the flown ship is destroyed, records the destruction once (stable id: world instance and tick) through the transaction
+    /// core, which takes 20% of the credits held and saves before acknowledging; then the ship respawns at the spawn with a full
+    /// hull, keeping weapons, upgrades and cargo (Steve, Nov 3 2026). A refused save is retried once a second with the same id,
+    /// and the wreck stays down meanwhile: neither a reset, a pause nor a ship save can respawn it for free. Returns true once
+    /// the ship has respawned.
+    /// </summary>
+    private bool CommitDestruction()
+    {
+        if (_world is null || !_world.Player.IsDestroyed) return false;
+        _pendingDestruction ??= (_worldInstanceId, _world.TickNumber);
+        if (_session?.Profile is null)
+        {
+            // Offline (no save folder): there is no wallet to charge; the unsaved hold spills into space with the ship.
+            _pickups.StartNewWorld();
+            SpillCargo(_world.Cargo.Items.ToArray());
+            Respawn("Ship destroyed and its cargo dropped. Station services are offline, so no credits were charged.");
+            return true;
+        }
+        if (_world.TickNumber < _nextDestructionRetryTick) return false;
+        // Cargo picked up before the destruction is saved first, so the destruction removes it with the rest of the hold and
+        // no late grant can bring it back after the respawn (Steve, Nov 3 2026: cargo is lost with the ship).
+        CommitPickups(force: true);
+        if (_pickups.Count > 0)
+        {
+            Notice("Ship destroyed; saving the cargo it held before recording the loss. Retrying.", warning: true);
+            _nextDestructionRetryTick = _world.TickNumber + WorldSimulation.TickRate;
+            return false;
+        }
+        var (world, tick) = _pendingDestruction.Value;
+        var result = Await(_session.RecordShipDestroyedAsync(world, tick));
+        if (result.Status != TransactionStatus.Applied)
+        {
+            Notice($"Ship destroyed; the loss is not saved yet ({result.Reason}). Retrying.", warning: true);
+            _nextDestructionRetryTick = _world.TickNumber + WorldSimulation.TickRate;
+            if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict or RejectionReason.ProfileNotOpen)
+            {
+                var reload = Await(_session.ReloadAsync());
+                if (!reload.Succeeded) _profileOutcome = reload.Message;
+            }
+            return false;
+        }
+        // The server removed exactly these units from the hold; they spill into space where the ship died (Steve, Nov 4 2026).
+        var lost = result.ItemDeltas.Where(d => d.Value < 0).Select(d => KeyValuePair.Create(d.Key, -d.Value)).ToArray();
+        SpillCargo(lost);
+        var lostUnits = lost.Sum(d => d.Value);
+        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and dropped {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")} where it died. Respawned at full hull with all weapons and upgrades.");
+        return true;
+    }
+
+    /// <summary>
+    /// Places the destroyed ship's cargo as piles where it died, once per destruction (the drop id is the destruction's world and
+    /// tick). The piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
+    /// </summary>
+    private void SpillCargo(IReadOnlyCollection<KeyValuePair<string, int>> items)
+    {
+        if (_world is null || _pendingDestruction is not { } destruction || items.Count == 0) return;
+        _world.DropCargo($"{destruction.WorldInstanceId}:{destruction.Tick}", _world.Player.Position, items);
+    }
+
+    private void Respawn(string message)
+    {
+        _pendingDestruction = null;
+        _nextDestructionRetryTick = 0;
+        _world = NewWorld(restoreSavedShip: false, loadSector: false);
+        _view?.SetWorld(_world);
+        SaveShip();
+        Notice(message, warning: true);
+    }
+
     public int PendingPickups => _pickups.Count;
     public string WorldInstanceId => _worldInstanceId;
 
@@ -671,7 +835,7 @@ public partial class GameClient : Node2D
         {
             if (repairId is not null)
             {
-                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId));
+                var restored = _world.RepairPlayerHull(_session.RepairHullPoints(repairId, _world.Player.Definition.Defense.MaximumHull));
                 success = $"{_stationDefinition.NameOf(repairId)}: {restored:0} hull restored.";
                 SaveShip();
             }
@@ -704,6 +868,8 @@ public partial class GameClient : Node2D
         RejectionReason.NotForSale => "not traded here.",
         RejectionReason.UpgradeHasNoEffect => "this upgrade has no effect yet; nothing was charged.",
         RejectionReason.UpgradeSlotHeld => "an installed upgrade already holds that slot; nothing was charged.",
+        RejectionReason.ShipAlreadyOwned => "you already own that hull.",
+        RejectionReason.ShipRequirementNotMet => "you need a hull of the same race first.",
         RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };

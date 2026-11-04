@@ -15,6 +15,7 @@ public partial class StationScreen : CanvasLayer
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
     public event Action<string, int>? RefineRequested;
+    public event Action<string>? BuyShipRequested;
     public event Action? CloseRequested;
 
     private readonly StationDefinition _station;
@@ -27,6 +28,7 @@ public partial class StationScreen : CanvasLayer
     private VBoxContainer _repairs = null!;
     private VBoxContainer _upgrades = null!;
     private VBoxContainer _refinery = null!;
+    private VBoxContainer _hulls = null!;
     private Label _title = null!;
     private bool _refineryMode;
     private TabContainer _tabs = null!;
@@ -83,6 +85,7 @@ public partial class StationScreen : CanvasLayer
         _repairs = Page(_tabs, "Repairs");
         _upgrades = Page(_tabs, "Upgrades");
         _refinery = Page(_tabs, "Refinery");
+        _hulls = Page(_tabs, "Ship Hulls");
         SetRefineryMode(_refineryMode);
 
         _status = FlightHud.Label("", 14, FlightHud.TextColor);
@@ -159,10 +162,23 @@ public partial class StationScreen : CanvasLayer
         var canRepair = hull > 0 && hull < maximumHull;
         _repairs.AddChild(FlightHud.Label(canRepair
             ? "Original repair rows; the raw amount is read as hull points and the price is provisional."
-            : hull <= 0 ? "The ship is destroyed: reset to launch a new one." : "Hull is at maximum: nothing to repair.", 12, FlightHud.Muted));
+            : hull <= 0 ? "The ship is destroyed; it respawns once the loss is saved." : "Hull is at maximum: nothing to repair.", 12, FlightHud.Muted));
         foreach (var repair in _station.Repairs)
-            _repairs.AddChild(Row(Cell(repair.Name, 200), Cell($"+{repair.HullPoints:0} hull", 100), Cell($"{repair.Price:N0} cr", 90),
+            _repairs.AddChild(Row(Cell(repair.Name, 200), Cell(repair.RestoresFullHull ? "full hull" : $"+{repair.HullPoints:0} hull", 100), Cell($"{repair.Price:N0} cr", 90),
                 ActionButton("REPAIR", $"repair:{repair.Id}", !canRepair, () => RepairRequested?.Invoke(repair.Id))));
+
+        Clear(_hulls);
+        _hulls.AddChild(FlightHud.Label("Original hull exchanges. You keep every ship you own, one of each, and choose one when the game loads. A hull needs one you own of the same race.", 12, FlightHud.Muted));
+        foreach (var ship in _station.Ships ?? [])
+        {
+            var owned = profile.OwnedShips.ContainsKey(ship.HullId);
+            var eligible = ship.RequiresOneOf is not { Count: > 0 } requires || requires.Any(profile.OwnedShips.ContainsKey);
+            var state = owned ? "OWNED" : eligible ? "BUY" : "-";
+            var button = ActionButton(state, $"ship:{ship.HullId}", owned || !eligible, () => BuyShipRequested?.Invoke(ship.HullId));
+            var note = owned ? (ship.HullId == profile.ShipHullId ? "flying now" : "in your hangar") : eligible ? "" : "needs a same-race hull";
+            _hulls.AddChild(Row(Cell(ship.Name, 160), Cell($"{ship.Price:N0} cr", 90), Cell(note, 200), button));
+        }
+        if (_station.Ships is not { Count: > 0 }) _hulls.AddChild(FlightHud.Label("No hulls are sold here.", 14, FlightHud.Muted));
 
         Clear(_upgrades);
         _upgrades.AddChild(FlightHud.Label("Original modules and prices. Effects are provisional; one active item per slot.", 12, FlightHud.Muted));

@@ -11,6 +11,10 @@ public sealed record ShipDefinition
     public ShipDefense Defense { get; init; } = new();
     public ShipReactor Reactor { get; init; } = new();
     public ShipCargo Cargo { get; init; } = new();
+    /// <summary>Where the values come from (derived original hulls name their source rows; null for hand-written fixtures).</summary>
+    public string? Source { get; init; }
+    /// <summary>Values that are placeholders rather than original data, one note each (null when there are none listed).</summary>
+    public IReadOnlyList<string>? NewValues { get; init; }
 }
 
 /// <summary>

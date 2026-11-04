@@ -6,6 +6,8 @@ docs/original-research/ASSET_MANIFEST.json
 docs/original-research/SOURCE_MANIFEST.json
 data/stations/trading_outpost.json
 data/minerals/mineral_spawns.json
+data/ships/original_*.json
+data/ships/roster.json
 toolchain.lock.json
 global.json
 .tools/

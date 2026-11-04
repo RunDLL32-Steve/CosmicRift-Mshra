@@ -17,3 +17,11 @@ Not verified / still open: every native unit (needs the original client, G1); de
 ## Round 2 — November 3, 2026
 
 -   Review R1-1: the `ScriptArena.cs` fire-timing check is inside a block comment at bb97579, so W1 now rests on the bot path alone and its confidence is Low. The verdict is still MISMATCH (0.20 s vs 0.25 s).
+
+## Second slice — November 3, 2026 (after #113 merged)
+
+-   Steve: "Continue and implement the original models" (answering the flight-switch decision with "now"). Branch restarted from main 4f5ff70.
+-   `OriginalShipPhysics` (server/RogueTrader.Trading) maps `EmulatorFlightReading` to `ShipPhysics`; the shipped ship JSON now carries the Asp's values and the Plasma Cannon fixture its 0.25 s interval. A test pins both JSON files to the derived originals.
+-   The Godot client smoke's scripted flight path hit a NEW practice asteroid with the stronger thrust; phase 1 now thrusts to a fixed 180 units/s cruising speed (or 90 ticks) instead of a fixed 90 ticks, so the path no longer depends on acceleration.
+-   Not changed: sector scale (needs the original spawn point, the G6 walls and a radar), strafe and hyper (key bindings unknown), W2–W5 (units unknown), code defaults in `ShipDefinition`/`WeaponDefinition` (test fixtures, still NEW). Coordinated with the owned-ships thread (claude/project-thread-kv5jsp), which will call `OriginalShipPhysics.From` for its hulls and does not touch these files.
+-   Verified: `dotnet test tests/Unit` 1061 passed, 5 skipped; `tests/Integration` 6 passed; Godot 4.5.1 headless import and `--smoke-test` exit 0 (client, input and station smokes pass); FORMAT_CLEAN; TRACKERS_CONSISTENT. `verify.ps1` itself needs Windows.
