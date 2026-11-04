@@ -85,8 +85,9 @@ public sealed partial class WorldSimulation
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
             if (input.Mine && TryMine()) CollectPickups(Player.Position);
-            Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
-                Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
+            if (!Player.IsHyperEngaged || Player.Definition.Hyper!.RechargeWhileEngaged)
+                Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
+                    Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
             if (input.Fire)
                 TryFire();
         }
@@ -297,9 +298,20 @@ public sealed partial class WorldSimulation
 
     private void ApplyDamage(ShipState target, ProjectileState projectile)
     {
-        var absorbed = MathF.Min(target.Shield, projectile.Damage);
-        target.Shield -= absorbed;
-        target.Hull = MathF.Max(0, target.Hull - (projectile.Damage - absorbed));
+        if (projectile.ShieldDrain is { } drain)
+        {
+            // For a ship whose energy is its shield, the shield is energy.
+            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, projectile.Damage);
+            if (target.Definition.Defense.EnergyShield) target.Energy = shield;
+            else target.Shield = shield;
+            target.Hull = hull;
+        }
+        else
+        {
+            var absorbed = MathF.Min(target.Shield, projectile.Damage);
+            target.Shield -= absorbed;
+            target.Hull = MathF.Max(0, target.Hull - (projectile.Damage - absorbed));
+        }
         target.LastDamagedByShipId = projectile.OwnerShipId;
         target.LastDamageWeaponId = projectile.WeaponId;
         if (target.IsDestroyed)

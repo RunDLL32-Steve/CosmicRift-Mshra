@@ -125,12 +125,14 @@ public partial class FlightHud : CanvasLayer
         var player = world.Player;
         _hull.MaxValue = catalog.Ship.Defense.MaximumHull;
         _hull.Value = player.Hull;
-        _shield.MaxValue = Math.Max(1, catalog.Ship.Defense.MaximumShield);
-        _shield.Value = player.Shield;
+        // A hull whose energy is its shield (the original rule) shows that energy as its shield.
+        var energyShield = catalog.Ship.Defense.EnergyShield;
+        _shield.MaxValue = Math.Max(1, energyShield ? catalog.Ship.Reactor.MaximumEnergy : catalog.Ship.Defense.MaximumShield);
+        _shield.Value = player.ShieldLeft;
         _energy.MaxValue = Math.Max(1, catalog.Ship.Reactor.MaximumEnergy);
         _energy.Value = player.Energy;
         _speed.Text = $"{player.Velocity.Length():000.0}  u/s";
-        _telemetry.Text = $"H {player.Hull:0}   S {player.Shield:0}   E {player.Energy:0}\n60 Hz  |  Tick {world.TickNumber:N0}  |  FPS {Engine.GetFramesPerSecond()}\nPosition  {player.Position.X:0}, {player.Position.Y:0}\n{catalog.Weapon.Name}  /  {world.Projectiles.Count} shots";
+        _telemetry.Text = $"H {player.Hull:0}   {(energyShield ? "Shield = E" : $"S {player.Shield:0}")}   E {player.Energy:0}{(player.IsHyperEngaged ? "   BOOST" : "")}\n60 Hz  |  Tick {world.TickNumber:N0}  |  FPS {Engine.GetFramesPerSecond()}\nPosition  {player.Position.X:0}, {player.Position.Y:0}\n{catalog.Weapon.Name}  /  {world.Projectiles.Count} shots";
         var liveTargets = world.Targets.Count(target => !target.IsDestroyed);
         var respawnSeconds = world.TargetRespawnTick is { } respawnAt
             ? (int)Math.Ceiling((respawnAt - world.TickNumber) / (double)WorldSimulation.TickRate) : (int?)null;

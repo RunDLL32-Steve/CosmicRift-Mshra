@@ -41,6 +41,14 @@ public static class UpgradeEffects
                 MaximumSpeed = Scale(ship.Physics.MaximumSpeed, Sum(e => e.MaximumSpeed)),
                 RotationSpeed = Scale(ship.Physics.RotationSpeed, Sum(e => e.RotationSpeed)),
             },
+            // The Shift boost scales with the same thrust and speed fractions, so an upgraded ship never boosts slower or weaker than
+            // it flies (review R1-2 on #120). Which upgrades the original applied to hyper only (AfterBurners) is RT-F048, still NEW.
+            Hyper = ship.Hyper is { } hyper ? hyper with
+            {
+                ForwardThrust = Scale(hyper.ForwardThrust, Sum(e => e.ForwardThrust)),
+                ReverseThrust = Scale(hyper.ReverseThrust, Sum(e => e.ForwardThrust)),
+                MaximumSpeed = Scale(hyper.MaximumSpeed, Sum(e => e.MaximumSpeed)),
+            } : null,
             Reactor = ship.Reactor with
             {
                 MaximumEnergy = Scale(ship.Reactor.MaximumEnergy, Sum(e => e.MaximumEnergy)),

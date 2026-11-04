@@ -31,6 +31,9 @@ public sealed class GameCatalog
         Deserialize<WeaponDefinition>(weaponJson),
         Deserialize<SectorDefinition>(sectorJson));
 
+    /// <summary>Reads a ship definition alone (for example to find the weapon it starts with); validated when a catalog is built.</summary>
+    public static ShipDefinition ShipFromJson(string json) => Deserialize<ShipDefinition>(json);
+
     private static T Deserialize<T>(string json) =>
         JsonSerializer.Deserialize<T>(json, JsonOptions) ?? throw new JsonException($"Empty {typeof(T).Name} definition.");
 
@@ -60,9 +63,24 @@ public sealed class GameCatalog
         Nonnegative(Ship.Defense.MaximumShield, "shield");
         Nonnegative(Ship.Reactor.MaximumEnergy, "energy");
         Nonnegative(Ship.Reactor.EnergyRegenerationPerSecond, "energy regeneration");
+        if (Ship.Defense.EnergyShield && Ship.Defense.MaximumShield != 0)
+            throw new ArgumentException("A ship whose energy is its shield has no separate shield pool (maximum shield must be 0).");
+        if (Ship.WeaponId is { } weaponId && !string.Equals(weaponId, Weapon.Id, StringComparison.Ordinal))
+            throw new ArgumentException($"Ship '{Ship.Id}' starts with weapon '{weaponId}', not '{Weapon.Id}'.");
+        if (Ship.Hyper is { } hyper)
+        {
+            Nonnegative(hyper.ForwardThrust, "hyper forward thrust");
+            Nonnegative(hyper.ReverseThrust, "hyper reverse thrust");
+            Positive(hyper.MaximumSpeed, "hyper maximum speed");
+            Nonnegative(hyper.EnergyPerSecond, "hyper energy per second");
+            FiniteDerived(hyper.ForwardThrust / Ship.Physics.Mass, "hyper forward acceleration");
+            FiniteDerived(hyper.ReverseThrust / Ship.Physics.Mass, "hyper reverse acceleration");
+            FiniteSquared(hyper.MaximumSpeed, "hyper maximum speed");
+        }
         Positive(Weapon.MuzzleVelocity, "muzzle velocity");
         Positive(Weapon.ProjectileRadius, "projectile radius");
         Positive(Weapon.Damage, "damage");
+        if (Weapon.ShieldDrain is { } drain) Nonnegative(drain, "shield drain");
         Positive(Weapon.CooldownSeconds, "cooldown");
         Nonnegative(Weapon.EnergyCost, "energy cost");
         Positive(Weapon.LifetimeSeconds, "projectile lifetime");
@@ -72,7 +90,7 @@ public sealed class GameCatalog
         FiniteSquared(Ship.Physics.MaximumSpeed, "maximum speed");
         FiniteSquared(Ship.Radius, "ship radius");
         FiniteSquared(Weapon.ProjectileRadius, "projectile radius");
-        FiniteSquared(Weapon.MuzzleVelocity + (Weapon.InheritsShipVelocity ? Ship.Physics.MaximumSpeed : 0),
+        FiniteSquared(Weapon.MuzzleVelocity + (Weapon.InheritsShipVelocity ? MathF.Max(Ship.Physics.MaximumSpeed, Ship.Hyper?.MaximumSpeed ?? 0) : 0),
             "maximum projectile speed");
         Finite(Sector.PlayerSpawn.X, Sector.PlayerSpawn.Y, Sector.PlayerSpawn.Heading,
             Sector.PlayerSpawn.VelocityX, Sector.PlayerSpawn.VelocityY);

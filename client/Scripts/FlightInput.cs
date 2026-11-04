@@ -14,6 +14,8 @@ public static class FlightInput
         new("flight_left", "Rotate left", [Key.A, Key.Left]),
         new("flight_right", "Rotate right", [Key.D, Key.Right]),
         new("flight_fire", "Primary weapon", [Key.Space]),
+        // Original Shift+thrust "hyper thrust" (RT archived keys.txt names the action; Shift is the generic Infantry modifier).
+        new("flight_hyper", "Boost (hold with thrust)", [Key.Shift]),
         new("flight_pause", "Pause / controls", [Key.Escape]),
         new("flight_reset", "Reset sector", [Key.R]),
         new("station_dock", "Dock at station", [Key.F]),
@@ -42,7 +44,8 @@ public static class FlightInput
     public static ShipInput Capture() => new(
         Input.GetAxis("flight_reverse", "flight_forward"),
         Input.GetAxis("flight_left", "flight_right"),
-        Input.IsActionPressed("flight_fire"));
+        Input.IsActionPressed("flight_fire"),
+        Hyper: Input.IsActionPressed("flight_hyper"));
 
     /// <summary>True when <paramref name="key"/> is bound to any action in <see cref="Bindings"/>.</summary>
     public static bool IsBound(Key key) => Bindings.Any(binding =>

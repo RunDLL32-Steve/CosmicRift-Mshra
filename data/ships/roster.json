@@ -53,5 +53,23 @@
       "hullId": "starter_interceptor",
       "definition": "starter_interceptor.json"
     }
+  ],
+  "weapons": [
+    {
+      "weaponId": "1004",
+      "definition": "original_plasma_cannon.json"
+    },
+    {
+      "weaponId": "1036",
+      "definition": "original_bio_cannon.json"
+    },
+    {
+      "weaponId": "1041",
+      "definition": "original_d_cannon.json"
+    },
+    {
+      "weaponId": "plasma_cannon",
+      "definition": "plasma_cannon.json"
+    }
   ]
 }
