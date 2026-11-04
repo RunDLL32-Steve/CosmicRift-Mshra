@@ -10,6 +10,7 @@ data/sectors/rogue.json
 data/sectors/rogue_map.json
 data/ships/original_*.json
 data/ships/roster.json
+data/weapons/original_*.json
 toolchain.lock.json
 global.json
 .tools/
