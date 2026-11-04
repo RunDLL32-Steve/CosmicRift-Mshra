@@ -20,4 +20,18 @@ public interface IPriceSource
         inputItemId = outputItemId = "";
         return false;
     }
+
+    /// <summary>Price of one hull at this station (schema 6); false means the hull is not sold here. Not sold unless a source overrides it.</summary>
+    bool TryGetShipPrice(string stationId, string hullId, out long price)
+    {
+        price = 0;
+        return false;
+    }
+
+    /// <summary>Hulls of which the buyer must already own one to buy this hull here; false means no requirement.</summary>
+    bool TryGetShipRequirement(string stationId, string hullId, out IReadOnlyCollection<string> requiresOneOf)
+    {
+        requiresOneOf = [];
+        return false;
+    }
 }

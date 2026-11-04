@@ -31,8 +31,25 @@ public sealed record RefineryDefinition(string StationId, string Name, float X, 
     [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
 }
 
-/// <summary>A repair service. <see cref="HullPoints"/> is restored on purchase; refused at full hull.</summary>
-public sealed record StationRepair(string Id, string Name, long Price, float HullPoints, string? Source = null);
+/// <summary>
+/// A repair service. <see cref="HullPoints"/> is restored on purchase, or the whole hull when <see cref="RestoresFullHull"/>
+/// is set; refused at full hull.
+/// </summary>
+public sealed record StationRepair(string Id, string Name, long Price, float HullPoints, string? Source = null)
+{
+    /// <summary>Restores the flown ship to its maximum hull whatever that is (Full Repair, Steve's 500-credit repair, Nov 4 2026).</summary>
+    public bool RestoresFullHull { get; init; }
+}
+
+/// <summary>
+/// A hull the station sells (schema 6 owned ships). A player owns at most one of each; <see cref="Source"/> says where the
+/// price comes from. <see cref="HullId"/> must name a ship definition the client can fly.
+/// </summary>
+public sealed record StationShip(string HullId, string Name, long Price, string? Source = null)
+{
+    /// <summary>The buyer must already own one of these hulls (the original same-race exchange rule); null means no requirement.</summary>
+    public IReadOnlyList<string>? RequiresOneOf { get; init; }
+}
 
 /// <summary>
 /// Provisional effect of one upgrade, as fractions of the base ship value (0.1 = +10%) except <see cref="MaximumHull"/>
@@ -85,6 +102,8 @@ public sealed class StationDefinition
     public IReadOnlyList<StationTrade> Trades { get; init; } = [];
     public IReadOnlyList<StationRepair> Repairs { get; init; } = [];
     public IReadOnlyList<StationUpgrade> Upgrades { get; init; } = [];
+    /// <summary>Hulls sold here; null (absent from the JSON) sells none.</summary>
+    public IReadOnlyList<StationShip>? Ships { get; init; }
     public IReadOnlyList<CollectibleSpawn> Collectibles { get; init; } = [];
     /// <summary>Optional refinery (queue M7 mining slice); null when the data has none.</summary>
     public RefineryDefinition? Refinery { get; init; }
@@ -107,6 +126,8 @@ public sealed class StationDefinition
                 (g.Id, g.Buy, Trades.FirstOrDefault(t => t.InputItemId == g.Id) is { } trade ? trade.CreditsPerUnit : g.Sell)))
             .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)))
             .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)))
+            .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)))
+            .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)))
             .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
 
     public long? SellPrice(string itemId) =>
@@ -117,6 +138,7 @@ public sealed class StationDefinition
         ?? Upgrades.FirstOrDefault(u => u.Id == itemId)?.Name
         ?? Repairs.FirstOrDefault(r => r.Id == itemId)?.Name
         ?? Refinery?.Recipes.FirstOrDefault(r => r.Id == itemId)?.Name
+        ?? Ships?.FirstOrDefault(h => h.HullId == itemId)?.Name
         ?? itemId;
 
     internal static readonly JsonSerializerOptions Json = new()
@@ -144,7 +166,7 @@ public sealed class StationDefinition
     {
         if (string.IsNullOrEmpty(StationId)) throw new InvalidDataException("Station definition needs a stationId.");
         if (StartingWallet < 0) throw new InvalidDataException("startingWallet must not be negative.");
-        if (Goods.Concat<object>(Repairs).Concat(Upgrades).Concat(Trades).Any(x => x is null)) throw new InvalidDataException("Null station entry.");
+        if (Goods.Concat<object>(Repairs).Concat(Upgrades).Concat(Trades).Concat(Ships ?? []).Any(x => x is null)) throw new InvalidDataException("Null station entry.");
         foreach (var repair in Repairs)
             if (!float.IsFinite(repair.HullPoints) || repair.HullPoints <= 0)
                 throw new InvalidDataException($"Repair '{repair.Id}' hullPoints must be positive.");

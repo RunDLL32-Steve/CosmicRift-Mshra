@@ -4,7 +4,7 @@ Authority: [master §18 M0/M1 engineering and M2](../../ROGUE_TRADER_2_PLAN.md),
 
 ## Purpose and accomplished
 
-One NEW plasma engineering fixture in `plasma_cannon.json`. The Godot build stages it into `client/GameData/weapons/`. Its lowercase display name and numeric tuning are distinct from the original Plasma Cannon item. Its tuning is explicitly **NEW/provisional**. The fixture is complete for the accepted engineering prototype; no code/data changes were made in this documentation pass.
+One NEW plasma engineering fixture in `plasma_cannon.json`. The Godot build stages it into `client/GameData/weapons/`. Its lowercase display name and numeric tuning are distinct from the original Plasma Cannon item. Its tuning is **NEW/provisional** except `cooldownSeconds`, which since G10 (November 3, 2026) is the original Plasma Cannon's fireDelay 25 × 10 ms = 0.25 s (RECONSTRUCTED emulator reading). The fixture is complete for the accepted engineering prototype; no code/data changes were made in this documentation pass.
 
 Evidence: M0/M1 firing/collision/energy/cooldown/attribution acceptance in the historical unit/source/export checks; current JSON matches the [balance ledger](../../docs/balance/PROVISIONAL_VALUES.md).
 

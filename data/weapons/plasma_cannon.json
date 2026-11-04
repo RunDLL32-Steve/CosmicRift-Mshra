@@ -5,7 +5,7 @@
     "muzzleVelocity": 700,
     "projectileRadius": 3,
     "damage": 28,
-    "cooldownSeconds": 0.2,
+    "cooldownSeconds": 0.25,
     "energyCost": 6,
     "lifetimeSeconds": 2.5,
     "inheritsShipVelocity": true

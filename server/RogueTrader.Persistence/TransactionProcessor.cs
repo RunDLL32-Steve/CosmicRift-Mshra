@@ -13,6 +13,12 @@ namespace RogueTrader.Persistence;
 public sealed class TransactionProcessor(IProfileRepository repository, IPriceSource prices, ICargoPolicy cargo,
     PersistenceOptions options, TimeProvider? time = null, IConductRules? conduct = null) : ITransactionProcessor
 {
+    /// <summary>
+    /// Share of the credits held that a destroyed ship costs (Steve, Nov 3 2026: "the user loses money, which is 20% of what they
+    /// own"). Rounded down to whole credits, so the wallet never goes negative. A server rule: no request can carry another rate.
+    /// </summary>
+    public const int DestructionPenaltyPercent = 20;
+
     private static readonly ImmutableSortedDictionary<string, int> NoItems = ImmutableSortedDictionary.Create<string, int>(StringComparer.Ordinal);
 
     private readonly IProfileRepository _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -138,10 +144,55 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.RecordConduct, r.TransactionId, r.ProfileId, r.SourceId, r.EventId, null, r.Count, 0, null, shapeOk), ct);
     }
 
+    public Task<TransactionResult> BuyShipAsync(TransactionContext ctx, BuyShipRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.HullId);
+        return ExecuteAsync(ctx, new Req(TransactionKind.BuyShip, r.TransactionId, r.ProfileId, r.StationId, r.HullId, null, 0, 0, null, shapeOk), ct);
+    }
+
+    public Task<TransactionResult> RecordShipDestroyedAsync(TransactionContext ctx, ShipDestroyedRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        // The place is the hull itself: no station is involved and the fingerprint then names the destroyed hull.
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.HullId);
+        return ExecuteAsync(ctx, new Req(TransactionKind.ShipDestroyed, r.TransactionId, r.ProfileId, r.HullId, r.HullId, null, 0, 0, null, shapeOk), ct);
+    }
+
+    public async Task<ShipConditionResult> SelectShipAsync(TransactionContext ctx, string profileId, string hullId, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        if (!IdOk(profileId) || !IdOk(hullId)) return new ShipConditionResult(false, RejectionReason.InvalidRequest, -1);
+        return await MutateAsync(ctx, profileId, committed =>
+        {
+            if (!committed.OwnedShips.TryGetValue(hullId, out var parked)) return (RejectionReason.ShipNotOwned, null);
+            if (string.Equals(committed.ShipHullId, hullId, StringComparison.Ordinal)) return (RejectionReason.None, committed);
+            var owned = committed.OwnedShips.SetItem(hullId, null);
+            if (committed.ShipHullId is { } current) owned = owned.SetItem(current, committed.Ship);
+            return (RejectionReason.None, committed with { ShipHullId = hullId, Ship = parked, OwnedShips = owned });
+        }, ct).ConfigureAwait(false);
+    }
+
     public async Task<ShipConditionResult> SaveShipConditionAsync(TransactionContext ctx, string profileId, ShipCondition ship, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
-        if (ship is null || !ship.IsValid || !IdOk(profileId)) return new ShipConditionResult(false, RejectionReason.InvalidRequest, -1);
+        // A destroyed ship (hull 0) is never saved as a condition: destruction goes through RecordShipDestroyedAsync, which takes
+        // the penalty, so a client cannot dodge it by saving the wreck and reloading.
+        if (ship is null || !ship.IsValid || ship.Hull <= 0 || !IdOk(profileId)) return new ShipConditionResult(false, RejectionReason.InvalidRequest, -1);
+        return await MutateAsync(ctx, profileId, committed =>
+            (RejectionReason.None, committed.Ship == ship ? committed : committed with { Ship = ship }), ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Shared path of the non-currency changes (ship saves and ship selection): identity check, per-profile lock, compare-and-swap
+    /// save and acknowledge-after-save. <paramref name="change"/> returns the refusal, or the next state (the same instance when
+    /// nothing changes, which saves nothing).
+    /// </summary>
+    private async Task<ShipConditionResult> MutateAsync(TransactionContext ctx, string profileId,
+        Func<PlayerProfile, (RejectionReason Reason, PlayerProfile? Next)> change, CancellationToken ct)
+    {
         if (!string.Equals(profileId, ctx.AuthenticatedProfileId, StringComparison.Ordinal))
             return new ShipConditionResult(false, RejectionReason.IdentityMismatch, -1);
         if (!_slots.TryGetValue(profileId, out var slot)) return new ShipConditionResult(false, RejectionReason.ProfileNotOpen, -1);
@@ -150,8 +201,10 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         {
             var committed = slot.Committed;
             if (committed is null || slot.NeedsReload) return new ShipConditionResult(false, RejectionReason.ProfileNotOpen, -1);
-            if (committed.Ship == ship) return new ShipConditionResult(true, RejectionReason.None, committed.Revision);
-            var next = committed with { Revision = committed.Revision + 1, Ship = ship };
+            var (reason, changed) = change(committed);
+            if (reason != RejectionReason.None || changed is null) return new ShipConditionResult(false, reason, committed.Revision);
+            if (ReferenceEquals(changed, committed)) return new ShipConditionResult(true, RejectionReason.None, committed.Revision);
+            var next = changed with { Revision = committed.Revision + 1 };
             ProfileSaveResult save;
             try { save = await _repository.SaveAsync(next, committed.Revision, CancellationToken.None).ConfigureAwait(false); }
             catch (Exception)
@@ -196,12 +249,13 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     private sealed record Req(TransactionKind Kind, string? TransactionId, string? ProfileId, string? Place, string? ItemId,
         string? UpgradeId, int Quantity, long Currency, IReadOnlyDictionary<string, int>? Items, bool ShapeOk)
     {
-        public bool NeedsStation => Kind is not (TransactionKind.GrantReward or TransactionKind.RecordConduct);
+        public bool NeedsStation => Kind is not (TransactionKind.GrantReward or TransactionKind.RecordConduct or TransactionKind.ShipDestroyed);
     }
 
     private sealed record Plan(long CurrencyDelta, long WalletAfter, ImmutableSortedDictionary<string, int> NewInventory,
         ImmutableSortedDictionary<string, int> ItemDeltas, ImmutableSortedSet<string> NewUpgrades, string? UpgradeId, bool QuantityIncreases,
-        long Bounty, ImmutableSortedDictionary<string, long> Reputation, string? RepairId = null, ConductDelta? Conduct = null);
+        long Bounty, ImmutableSortedDictionary<string, long> Reputation, string? RepairId = null, ConductDelta? Conduct = null,
+        string? ShipHullId = null, ShipCondition? Ship = null, ImmutableSortedDictionary<string, ShipCondition?>? OwnedShips = null);
 
     private async Task<TransactionResult> ExecuteAsync(TransactionContext ctx, Req q, CancellationToken ct)
     {
@@ -259,6 +313,9 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                 Upgrades = plan.NewUpgrades,
                 Bounty = plan.Bounty,
                 Reputation = plan.Reputation,
+                ShipHullId = plan.ShipHullId,
+                Ship = plan.Ship,
+                OwnedShips = plan.OwnedShips!,
                 AppliedTransactions = applied,
                 Ledger = ledger,
                 NextLedgerSequence = writesLedger ? committed.NextLedgerSequence + 1 : committed.NextLedgerSequence,
@@ -300,6 +357,9 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         var bounty = c.Bounty;
         var reputation = c.Reputation;
         ConductDelta? conduct = null;
+        var shipHullId = c.ShipHullId;
+        var ship = c.Ship;
+        var owned = c.OwnedShips;
         long currencyDelta;
         long walletAfter;
         var increases = false;
@@ -405,6 +465,35 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     walletAfter = c.Wallet;
                     break;
                 }
+                case TransactionKind.BuyShip:
+                {
+                    if (c.OwnedShips.ContainsKey(q.ItemId!)) return RejectionReason.ShipAlreadyOwned;
+                    if (!_prices.TryGetShipPrice(q.Place!, q.ItemId!, out var price)) return RejectionReason.NotForSale;
+                    if (price < 0) return RejectionReason.InvalidPrice;
+                    if (_prices.TryGetShipRequirement(q.Place!, q.ItemId!, out var requiresOneOf) && !requiresOneOf.Any(c.OwnedShips.ContainsKey))
+                        return RejectionReason.ShipRequirementNotMet;
+                    if (c.Wallet < price) return RejectionReason.InsufficientFunds;
+                    // A new hull waits at the spawn with a full hull. A player with no ship at all starts flying it.
+                    owned = owned.Add(q.ItemId!, null);
+                    shipHullId ??= q.ItemId;
+                    currencyDelta = -price;
+                    walletAfter = c.Wallet - price;
+                    break;
+                }
+                case TransactionKind.ShipDestroyed:
+                {
+                    if (!string.Equals(c.ShipHullId, q.ItemId, StringComparison.Ordinal)) return RejectionReason.ShipNotActive;
+                    // Steve, Nov 3 2026: the ship respawns with its weapons, and all purchased items remain; the player loses 20% of
+                    // the credits they hold, and the cargo in the hold (minerals and every other hold item) is lost with the ship.
+                    // Upgrades and owned ships are untouched; the ship returns to the spawn.
+                    var penalty = c.Wallet / 100 * DestructionPenaltyPercent + c.Wallet % 100 * DestructionPenaltyPercent / 100;
+                    foreach (var (item, held) in c.Inventory) deltas[item] = -held;
+                    inventory.Clear();
+                    ship = null;
+                    currencyDelta = -penalty;
+                    walletAfter = c.Wallet - penalty;
+                    break;
+                }
                 default:
                     return RejectionReason.InvalidRequest;
             }
@@ -419,7 +508,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         if (increases && !_cargo.Fits(c, newInventory)) return RejectionReason.CargoCapacityExceeded;
 
         plan = new Plan(currencyDelta, walletAfter, newInventory, deltas.ToImmutable(), upgrades, upgradeId, increases, bounty, reputation,
-            repairId, conduct);
+            repairId, conduct, shipHullId, ship, owned);
         return RejectionReason.None;
     }
 

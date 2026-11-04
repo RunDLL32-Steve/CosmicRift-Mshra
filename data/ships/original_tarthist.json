@@ -1,0 +1,34 @@
+{
+  "id": "2010",
+  "name": "Tarthist",
+  "evidenceClassification": "ORIGINAL+NEW",
+  "radius": 14,
+  "physics": {
+    "mass": 100,
+    "forwardThrust": 16870,
+    "reverseThrust": 16870,
+    "rotationSpeed": 3.6128316,
+    "maximumSpeed": 325,
+    "asteroidRestitution": 0.727
+  },
+  "defense": {
+    "maximumHull": 50,
+    "maximumShield": 50
+  },
+  "reactor": {
+    "maximumEnergy": 100,
+    "energyRegenerationPerSecond": 20
+  },
+  "cargo": {
+    "capacity": 2500000,
+    "source": "ORIGINAL: VEH/Rogue.veh Tarthist (vehicle 2010) f[48] StopWeight; NEW: read as the hold's hard weight cap."
+  },
+  "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 7 (skill 11), VEH/Rogue.veh row 27 (vehicle 2010), category 'Ship Hull - Skithzar'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw.",
+  "newValues": [
+    "Radius 14 (VEH f[35]=21 is only a candidate radius; its meaning is unvalidated).",
+    "Shield 50 (no original shield field identified).",
+    "Energy 100, regeneration 20/s (raw VEH f[94..96] = 1700/1050/1700; units and timing undecoded).",
+    "Starting weapon: every hull fires the Plasma Cannon for now (original VEH f[129] 'addinv=Bio Cannon').",
+    "Hull points used raw (f[6]); the scale against NEW weapon damage and repair amounts is unvalidated."
+  ]
+}

@@ -102,6 +102,20 @@ public sealed partial class WorldSimulation
     }
 
     /// <summary>
+    /// Takes hull points from the player's ship, never below zero; the ship is destroyed at zero. Returns the hull actually
+    /// removed. Nothing in the practice sector damages the player yet, so this is the entry point for hazards, enemy fire and
+    /// acceptance checks of the destruction rule (Steve, Nov 3 2026).
+    /// </summary>
+    public float DamagePlayer(float hullPoints)
+    {
+        if (!float.IsFinite(hullPoints) || hullPoints < 0)
+            throw new ArgumentOutOfRangeException(nameof(hullPoints), "Damage must be finite and non-negative.");
+        var before = Player.Hull;
+        Player.Hull = MathF.Max(0, before - hullPoints);
+        return before - Player.Hull;
+    }
+
+    /// <summary>
     /// Places the player as a saved ship condition describes, at rest. Hull is clamped to the hull maximum. A saved hull of zero
     /// (a ship saved while destroyed) is not restored: the caller keeps the fresh spawn instead (NEW/provisional rule).
     /// </summary>

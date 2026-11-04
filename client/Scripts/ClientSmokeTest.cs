@@ -17,6 +17,8 @@ public sealed class ClientSmokeTest(GameCatalog catalog)
     private AsteroidState? _collisionTarget;
     public Action<string>? Report { get; set; }
 
+    private const float CruiseSpeed = 180;
+
     public void Step()
     {
         if (IsComplete) return;
@@ -35,7 +37,9 @@ public sealed class ClientSmokeTest(GameCatalog catalog)
                 break;
             case 1:
                 World.Tick(new ShipInput(1, 0, false));
-                if (_phaseTick >= 90)
+                // Thrust to a fixed cruising speed (or 90 ticks), so the scripted path through the practice belt does not
+                // depend on the ship's acceleration.
+                if (_phaseTick >= 90 || World.Player.Velocity.Length() >= CruiseSpeed)
                 {
                     Require(World.Player.Velocity.Length() > 10 && Vector2.Distance(_position, World.Player.Position) > 10,
                         "Forward thrust must accelerate and move the ship.");

@@ -22,6 +22,8 @@ public static class OriginalStationBuilder
     private const long StartingWallet = 0;
     /// <summary>Repair rows have raw buy 0 (no dock cost); price = 10 credits per raw amount point.</summary>
     private const long RepairPricePerPoint = 10;
+    /// <summary>The original repair that fills the hull (ITM id 43, raw amount 50 = every original hull's points).</summary>
+    private const string FullRepairName = "Full Repair";
     /// <summary>Raw modifier f[42..44] read as thousandths of forward thrust / maximum speed / rotation speed.</summary>
     private const float ModifierScale = 1000f;
     /// <summary>Armor protection grades are undecoded; hull bonus = raw buy price / 200 hull points.</summary>
@@ -32,7 +34,7 @@ public static class OriginalStationBuilder
         "Position (90, 20), dock radius 150 world units.",
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
         "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
-        "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0).",
+        "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
         "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
         "Collectible piles: placement and quantities.",
         "Refinery: placed at LIO row 13 'RefineryA' (actor -400, map 10752, 624) drawn into the practice sector at the mineral-field scale (see data/minerals); dock radius 150 world units; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
@@ -48,7 +50,8 @@ public static class OriginalStationBuilder
         var items = OriginalItemCatalog.Load(assetsRoot);
         var veh = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, PinnedAssets.Veh), PinnedAssets.Veh.RelativePath);
         var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
-        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items));
+        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items),
+            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items));
     }
 
     /// <summary>The refinery: name and recipes from VEH id 400, position from the first LIO type 5 row that places actor -400.</summary>
@@ -66,7 +69,7 @@ public static class OriginalStationBuilder
     }
 
     public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName,
-        RefineryDefinition? refinery = null)
+        RefineryDefinition? refinery = null, IReadOnlyList<StationShip>? ships = null)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(recipes);
@@ -76,7 +79,11 @@ public static class OriginalStationBuilder
             Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.CreditItemId.Value), r.CreditItem.Name,
             r.CreditItem.Record.Int(31).Value, r.RawField4.Value)).ToList();
         var repairs = OriginalEffectAmountRow.All(items).Select(r => new StationRepair(Key(r.Item.Id), r.Item.Name,
-            r.Amount.Value * RepairPricePerPoint, r.Amount.Value, $"ITM id {r.Item.Id} f[33]={r.Amount.Value}")).ToList();
+            r.Amount.Value * RepairPricePerPoint, r.Amount.Value, $"ITM id {r.Item.Id} f[33]={r.Amount.Value}")
+        {
+            // Steve (Nov 4 2026): the repair costs 500 credits and fills the hull, including a legacy hull above the raw 50.
+            RestoresFullHull = r.Item.Name == FullRepairName,
+        }).ToList();
         var upgrades = OriginalUpgrade.All(items).Select(u => Upgrade(u.Item, u.Family))
             .Concat(OriginalArmor.All(items).Select(a => Upgrade(a.Item, OriginalArmor.ArmorCategory)))
             .ToList();
@@ -102,6 +109,7 @@ public static class OriginalStationBuilder
                 new CollectibleSpawn("pile_tellerium_south", Key(2004), 6, 40, 160, 14),
             ],
             Refinery = refinery,
+            Ships = ships,
         };
     }
 

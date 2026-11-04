@@ -1,0 +1,52 @@
+using System.Numerics;
+
+namespace RogueTrader.Simulation;
+
+public sealed partial class WorldSimulation
+{
+    /// <summary>Id prefix of piles spilled by a destroyed ship: <c>wreck:&lt;drop id&gt;:&lt;item id&gt;</c>.</summary>
+    public const string WreckPilePrefix = "wreck:";
+
+    /// <summary>Open-space drop life, CFG [Terrain0] PrizeExpire = 720 s (the same expiry mineral drops take in the practice sector).</summary>
+    public const long WreckDropExpireTicks = 720L * TickRate;
+
+    /// <summary>Pickup radius of a spilled pile (the mineral drop radius, 3.5, NEW for wreck drops).</summary>
+    public const float WreckPileRadius = 3.5f;
+
+    /// <summary>Distance from the wreck at which the spilled piles lie, spread evenly around it (NEW placement).</summary>
+    public const float WreckSpreadRadius = 12f;
+
+    /// <summary>
+    /// Spills a destroyed ship's cargo into space where it died (Steve, Nov 4 2026): one pile per item, in item-id order, spread
+    /// around <paramref name="position"/>. Each pile expires after <see cref="WreckDropExpireTicks"/> on the mineral clock, so it
+    /// keeps counting while nobody is in the sector, and is carried by <see cref="CaptureSector"/> like any other drop. Anyone
+    /// can pick it up through the normal pickup grant. <paramref name="dropId"/> must be unique per destruction (the caller uses
+    /// the destruction's world and tick), so the same spill can never be placed twice. Items with zero or negative quantity and
+    /// items this world's cargo catalog does not know are skipped. Returns the piles placed.
+    /// </summary>
+    public IReadOnlyList<CollectibleState> DropCargo(string dropId, Vector2 position, IEnumerable<KeyValuePair<string, int>> items)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(dropId);
+        ArgumentNullException.ThrowIfNull(items);
+        if (!float.IsFinite(position.X) || !float.IsFinite(position.Y))
+            throw new ArgumentOutOfRangeException(nameof(position), "The drop position must be finite.");
+        var spill = items.Where(i => i.Value > 0 && Cargo.Catalog.IsKnown(i.Key))
+            .OrderBy(i => i.Key, StringComparer.Ordinal).ToArray();
+        var placed = new List<CollectibleState>(spill.Length);
+        for (var n = 0; n < spill.Length; n++)
+        {
+            var id = $"{WreckPilePrefix}{dropId}:{spill[n].Key}";
+            if (!_collectibleIds.Add(id)) continue; // already spilled
+            var angle = spill.Length == 1 ? 0 : MathF.Tau * n / spill.Length;
+            var offset = spill.Length == 1 ? Vector2.Zero : new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * WreckSpreadRadius;
+            var pile = new CollectibleState(new CollectibleSpawn(id, spill[n].Key, spill[n].Value,
+                position.X + offset.X, position.Y + offset.Y, WreckPileRadius))
+            {
+                ExpiresAt = checked(MineralClock + WreckDropExpireTicks),
+            };
+            _collectibles.Add(pile);
+            placed.Add(pile);
+        }
+        return placed;
+    }
+}

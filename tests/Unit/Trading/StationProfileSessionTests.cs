@@ -128,7 +128,7 @@ public sealed class StationProfileSessionTests
 
         Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(minor.Id, station.X, station.Y, 60, FullHull)).Status);
         Assert.Equal(wallet - minor.Price, session.Profile.Wallet);
-        Assert.Equal(minor.HullPoints, session.RepairHullPoints(minor.Id));
+        Assert.Equal(minor.HullPoints, session.RepairHullPoints(minor.Id, 100f));
     }
 
     [Fact]

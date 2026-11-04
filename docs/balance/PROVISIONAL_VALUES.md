@@ -27,29 +27,29 @@ At the illustrated thrust/mass ratio, acceleration is 9 world units per second²
 
 ## Runtime reconciliation
 
-Actual JSON definitions were inspected on October 12, 2026. The values below are all **NEW/provisional**, including values different from the illustrative master example. Source files, not this ledger, are runtime authority. One world unit is treated as one game meter by the simulation design; rendering scale is a separate presentation choice, not recovered original scale.
+Actual JSON definitions were inspected on October 12, 2026. The values below are **NEW/provisional** except the rows marked ORIGINAL (G10, November 3, 2026: the Asp's flight and the Plasma Cannon's fire interval, read through the InfantryOnline emulator's unit chain, so RECONSTRUCTED), including values different from the illustrative master example. Source files, not this ledger, are runtime authority. One world unit is treated as one game meter by the simulation design; rendering scale is a separate presentation choice, not recovered original scale.
 
-| Runtime parameter               |                 Implemented value | Source / unit                                                                         |
-| ------------------------------- | --------------------------------: | ------------------------------------------------------------------------------------- |
-| Fixed tick                      |                                60 | [Simulation](../../server/RogueTrader.Simulation); ticks/second                       |
-| Ship mass                       |                               100 | [starter_interceptor.json](../../data/ships/starter_interceptor.json); game kilograms |
-| Forward / reverse thrust        |                     12000 / 12000 | Same ship; game newtons, producing 120 world units/second²                            |
-| Rotation rate                   |                               3.3 | Same ship; radians/second                                                             |
-| Speed cap                       |                               360 | Same ship; world units/second                                                         |
-| Ship collision radius           |                                14 | Same ship; world units                                                                |
-| Asteroid restitution            |                              0.25 | Same ship; dimensionless                                                              |
-| Hull / shield maxima            |                          100 / 50 | Same ship; damage units                                                               |
-| Reactor capacity / regeneration |                          100 / 20 | Same ship; energy units and energy units/second                                       |
-| Projectile muzzle speed         |                               700 | [plasma_cannon.json](../../data/weapons/plasma_cannon.json); world units/second       |
-| Projectile radius               |                                 3 | Same weapon; world units                                                              |
-| Projectile damage               |                                28 | Same weapon; damage units                                                             |
-| Cooldown                        |                               0.2 | Same weapon; seconds, equivalent to 12 fixed ticks                                    |
-| Shot energy cost                |                                 6 | Same weapon; energy units                                                             |
-| Projectile lifetime             |                               2.5 | Same weapon; seconds, equivalent to 150 fixed ticks                                   |
-| Inherit ship velocity           |                              true | Same weapon; NEW boolean rule with historical qualitative inspiration                 |
-| Player spawn                    |              (0, 0), heading −π/2 | [first_contact.json](../../data/sectors/first_contact.json); world units/radians      |
-| Static targets                  | 3; radius 20, hull 100, shield 40 | Same sector; target alpha (0, −280), beta (340, −440), gamma (−340, 300)              |
-| Asteroid environment            |           12 circles; radii 42–88 | Same sector; full exact positions/radii in JSON                                       |
+| Runtime parameter               |                 Implemented value | Source / unit                                                                             |
+| ------------------------------- | --------------------------------: | ----------------------------------------------------------------------------------------- |
+| Fixed tick                      |                                60 | [Simulation](../../server/RogueTrader.Simulation); ticks/second                           |
+| Ship mass                       |                               100 | [starter_interceptor.json](../../data/ships/starter_interceptor.json); game kilograms     |
+| Forward / reverse thrust        |                     16870 / 16870 | ORIGINAL Asp RollThrust 45 via `OriginalShipPhysics` (G10, emulator reading): 168.7 px/s² |
+| Rotation rate                   |                         3.6128316 | ORIGINAL Asp RollRotate 1380 (207°/s, emulator reading); radians/second                   |
+| Speed cap                       |                               325 | ORIGINAL Asp RollTopSpeed 3250 (emulator reading); px/second                              |
+| Ship collision radius           |                                14 | Same ship; world units                                                                    |
+| Asteroid restitution            |                             0.727 | ORIGINAL Asp BouncePercent 727 (emulator reading); dimensionless                          |
+| Hull / shield maxima            |                          100 / 50 | Same ship; damage units                                                                   |
+| Reactor capacity / regeneration |                          100 / 20 | Same ship; energy units and energy units/second                                           |
+| Projectile muzzle speed         |                               700 | [plasma_cannon.json](../../data/weapons/plasma_cannon.json); world units/second           |
+| Projectile radius               |                                 3 | Same weapon; world units                                                                  |
+| Projectile damage               |                                28 | Same weapon; damage units                                                                 |
+| Cooldown                        |                              0.25 | ORIGINAL Plasma Cannon fireDelay 25 × 10 ms (emulator bot reading); 15 fixed ticks        |
+| Shot energy cost                |                                 6 | Same weapon; energy units                                                                 |
+| Projectile lifetime             |                               2.5 | Same weapon; seconds, equivalent to 150 fixed ticks                                       |
+| Inherit ship velocity           |                              true | Same weapon; NEW boolean rule with historical qualitative inspiration                     |
+| Player spawn                    |              (0, 0), heading −π/2 | [first_contact.json](../../data/sectors/first_contact.json); world units/radians          |
+| Static targets                  | 3; radius 20, hull 100, shield 40 | Same sector; target alpha (0, −280), beta (340, −440), gamma (−340, 300)                  |
+| Asteroid environment            |           12 circles; radii 42–88 | Same sector; full exact positions/radii in JSON                                           |
 
 Collision design uses swept circles for projectile contacts and deterministic asteroid separation with a 0.001-world-unit margin, confirmed in [CircleCollision.cs](../../server/RogueTrader.Simulation/CircleCollision.cs). Collisions cause no hull damage. Cargo slots/capacity from the master's illustration are not included in the implemented M1 ship JSON.
 

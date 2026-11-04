@@ -32,7 +32,7 @@ public sealed class StationProfileSession
         Station = station ?? throw new ArgumentNullException(nameof(station));
         _shipHullId = shipHullId;
         Cargo = station.CreateCargoCatalog(cargoCapacity);
-        _processor = new TransactionProcessor(repository, station.CreatePriceTable(), new CatalogCargoPolicy(Cargo), options ?? new PersistenceOptions(), time);
+        _processor = new TransactionProcessor(repository, station.CreatePriceTable(), new FlownShipCargoPolicy(this), options ?? new PersistenceOptions(), time);
         Stations = new StationDirectory(station.Sites);
         _trading = new TradingService(_processor, Stations);
     }
@@ -42,7 +42,18 @@ public sealed class StationProfileSession
     /// <summary>Credits paid per destroyed sector target (queue M7 slice); <see cref="KillRewardDefinition.None"/> pays nothing.</summary>
     public KillRewardDefinition KillReward { get; init; } = KillRewardDefinition.None;
     public StationDirectory Stations { get; }
-    public CargoCatalog Cargo { get; }
+    /// <summary>Cargo rules of the ship being flown; <see cref="FlyShip"/> replaces it when the player switches ships.</summary>
+    public CargoCatalog Cargo { get; private set; }
+
+    /// <summary>Applies the hold weight cap of the ship the player now flies (each ship has its own capacity, Steve, Nov 2 2026).</summary>
+    public void FlyShip(long cargoCapacity) => Cargo = Station.CreateCargoCatalog(cargoCapacity);
+
+    /// <summary>The cargo rule always checks against the ship flown at the time of the transaction.</summary>
+    private sealed class FlownShipCargoPolicy(StationProfileSession session) : ICargoPolicy
+    {
+        public bool Fits(PlayerProfile current, IReadOnlyDictionary<string, int> proposedInventory) =>
+            new CatalogCargoPolicy(session.Cargo).Fits(current, proposedInventory);
+    }
     public string? ProfileId { get; private set; }
 
     /// <summary>Last committed authoritative profile; null until a profile opens successfully.</summary>
@@ -207,8 +218,48 @@ public sealed class StationProfileSession
         _processor.SaveShipConditionAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(),
             new ShipCondition(hull, x, y, heading), ct);
 
-    /// <summary>Hull points the client restores for an applied repair (raw original amount read as hull points, NEW).</summary>
-    public float RepairHullPoints(string repairId) => Station.Repairs.FirstOrDefault(r => r.Id == repairId)?.HullPoints ?? 0f;
+    /// <summary>Buys a hull sold at the station (one of each); the player keeps flying the current ship until they select it.</summary>
+    public Task<TransactionResult> BuyShipAsync(string hullId, float shipX, float shipY, CancellationToken ct = default) =>
+        _trading.BuyShipAsync(RequireProfile(), shipX, shipY, new BuyShipRequest(NewId(), RequireProfile(), Station.StationId, hullId), ct);
+
+    /// <summary>Makes an owned hull the active ship (the ship picker at load). The ship left behind keeps its saved condition.</summary>
+    public Task<ShipConditionResult> SelectShipAsync(string hullId, CancellationToken ct = default) =>
+        _processor.SelectShipAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(), hullId, ct);
+
+    /// <summary>
+    /// Stable transaction id for one destruction of the active ship: the same world instance and destruction tick always give the
+    /// same id, so a retry after a refusal, lost acknowledgement or reload is recognised as a duplicate and charged once.
+    /// </summary>
+    public static string DestructionTransactionId(string worldInstanceId, long tick)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(worldInstanceId);
+        ArgumentOutOfRangeException.ThrowIfNegative(tick);
+        return StableId("destroyed", $"{worldInstanceId}-{tick.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+    }
+
+    /// <summary>
+    /// Records that the active ship was destroyed (Steve, Nov 3 2026): the core takes 20% of the credits held, once per
+    /// destruction id, and puts the ship back at the spawn with a full hull; weapons and upgrades stay and the hold is emptied. Retry with the
+    /// same arguments after a refusal.
+    /// </summary>
+    public Task<TransactionResult> RecordShipDestroyedAsync(string worldInstanceId, long tick, CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        var hull = Profile?.ShipHullId ?? "";
+        return _processor.RecordShipDestroyedAsync(new TransactionContext(profileId, StationAccessVerified: false),
+            new ShipDestroyedRequest(DestructionTransactionId(worldInstanceId, tick), profileId, hull), ct);
+    }
+
+    /// <summary>
+    /// Hull points the client restores for an applied repair (raw original amount read as hull points, NEW); a full repair
+    /// restores <paramref name="maximumHull"/>, so a hull with more than the raw 50 points is still filled.
+    /// </summary>
+    public float RepairHullPoints(string repairId, float maximumHull) => Station.Repairs.FirstOrDefault(r => r.Id == repairId) switch
+    {
+        null => 0f,
+        { RestoresFullHull: true } => maximumHull,
+        var repair => repair.HullPoints,
+    };
 
     private string RequireProfile() => ProfileId ?? throw new InvalidOperationException("No profile has been opened.");
 
