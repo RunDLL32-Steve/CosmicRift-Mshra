@@ -47,7 +47,14 @@ public static class ProfileSchemaMigrations
         return next;
     });
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5, V5ToV6];
+    /// <summary>
+    /// Schema 7 adds the optional per-ship <c>coordinateVersion</c> (review R1-2 on #118). Every condition saved before it was
+    /// saved in the practice sector's coordinates, which is what an absent field reads as, so the step only advances the
+    /// version; an older build then refuses a schema 7 file as newer instead of reading map positions as practice positions.
+    /// </summary>
+    public static IProfileMigration V6ToV7 { get; } = new Step(6, static p => (JsonObject)p.DeepClone());
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5, V5ToV6, V6ToV7];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {

@@ -31,6 +31,31 @@ public sealed record RefineryDefinition(string StationId, string Name, float X, 
     [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
 }
 
+/// <summary>The services a site offers (Steve, November 4, 2026: goods sell at the Trading Posts, ships repair at the Repair Docks).</summary>
+public static class SiteServices
+{
+    /// <summary>A home station's store zone: upgrades, hulls and the hangar where the pilot changes ships.</summary>
+    public const string Store = "store";
+    /// <summary>A Trading Post: the Trading Outpost recipes and goods.</summary>
+    public const string Trade = "trade";
+    /// <summary>A Repair Dock: the repair rows.</summary>
+    public const string Repair = "repair";
+    /// <summary>A refinery: the refinery recipes.</summary>
+    public const string Refine = "refine";
+
+    public static bool IsKnown(string? service) => service is Store or Trade or Repair or Refine;
+}
+
+/// <summary>
+/// One more place the ship can dock at besides the main station (an original Trading Post, Repair Dock or team home station),
+/// with the one service it offers. <see cref="LioRow"/> names the original LIO row it stands on (0 when hand-authored).
+/// </summary>
+public sealed record ServiceSite(string StationId, string Name, string Service, float X, float Y, float DockRadius)
+{
+    public int LioRow { get; init; }
+    [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
+}
+
 /// <summary>
 /// A repair service. <see cref="HullPoints"/> is restored on purchase, or the whole hull when <see cref="RestoresFullHull"/>
 /// is set; refused at full hull.
@@ -107,11 +132,39 @@ public sealed class StationDefinition
     public IReadOnlyList<CollectibleSpawn> Collectibles { get; init; } = [];
     /// <summary>Optional refinery (queue M7 mining slice); null when the data has none.</summary>
     public RefineryDefinition? Refinery { get; init; }
+    /// <summary>
+    /// The Trading Posts, Repair Docks and other team stores. When there is no Trading Post (or no Repair Dock) the main station
+    /// trades (or repairs) itself, as the single testbed station did.
+    /// </summary>
+    public IReadOnlyList<ServiceSite> Outposts { get; init; } = [];
 
     [JsonIgnore] public StationSite Site => new(StationId, X, Y, DockRadius);
 
-    /// <summary>The station and, when present, the refinery.</summary>
-    [JsonIgnore] public IReadOnlyList<StationSite> Sites => Refinery is { } refinery ? [Site, refinery.Site] : [Site];
+    /// <summary>The main station, the refinery when present, and every outpost.</summary>
+    [JsonIgnore]
+    public IReadOnlyList<StationSite> Sites =>
+        [Site, .. Refinery is { } refinery ? [refinery.Site] : Array.Empty<StationSite>(), .. Outposts.Select(o => o.Site)];
+
+    /// <summary>Every dockable place with its service: the main station is a store, plus the refinery and the outposts.</summary>
+    [JsonIgnore]
+    public IReadOnlyList<ServiceSite> ServiceSites =>
+    [
+        new ServiceSite(StationId, Name, SiteServices.Store, X, Y, DockRadius),
+        .. Refinery is { } refinery ? [new ServiceSite(refinery.StationId, refinery.Name, SiteServices.Refine, refinery.X, refinery.Y, refinery.DockRadius)] : Array.Empty<ServiceSite>(),
+        .. Outposts,
+    ];
+
+    /// <summary>Sites that offer <paramref name="service"/>; trade and repair fall back to the main station when no outpost offers them.</summary>
+    public IReadOnlyList<ServiceSite> SitesOffering(string service)
+    {
+        var sites = ServiceSites.Where(s => s.Service == service).ToArray();
+        return sites.Length > 0 || service is not (SiteServices.Trade or SiteServices.Repair)
+            ? sites
+            : [ServiceSites[0]];
+    }
+
+    /// <summary>The site whose dock radius holds the ship, or null. Sites never overlap in the shipped data; the first listed wins.</summary>
+    public ServiceSite? DockedAt(float shipX, float shipY) => ServiceSites.FirstOrDefault(s => Docking.IsDocked(s.Site, shipX, shipY));
 
     /// <summary>
     /// Cargo rules for the world and for the transaction core; both must use the same catalog. The weight cap belongs to the ship
@@ -121,14 +174,19 @@ public sealed class StationDefinition
         new(cargoCapacity, Goods.Select(g => new CargoItemDefinition(g.Id, g.UnitWeight)), Collectibles);
 
     /// <summary>Goods at their own prices; a Trading Outpost recipe is a sell price for its input item.</summary>
-    public StationPriceTable CreatePriceTable() =>
-        new StationPriceTable(StationId, Goods.Select(g =>
+    /// <remarks>Goods and recipes are priced at the Trading Posts, repairs at the Repair Docks, upgrades and hulls at the stores.</remarks>
+    public StationPriceTable CreatePriceTable()
+    {
+        string[] Ids(string service) => SitesOffering(service).Select(s => s.StationId).ToArray();
+        var stores = Ids(SiteServices.Store);
+        return new StationPriceTable(Ids(SiteServices.Trade), Goods.Select(g =>
                 (g.Id, g.Buy, Trades.FirstOrDefault(t => t.InputItemId == g.Id) is { } trade ? trade.CreditsPerUnit : g.Sell)))
-            .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)))
-            .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)))
-            .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)))
-            .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)))
+            .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)), Ids(SiteServices.Repair))
+            .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)), stores)
+            .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)), stores)
+            .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)), stores)
             .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
+    }
 
     public long? SellPrice(string itemId) =>
         Trades.FirstOrDefault(t => t.InputItemId == itemId)?.CreditsPerUnit ?? Goods.FirstOrDefault(g => g.Id == itemId)?.Sell;
@@ -187,6 +245,13 @@ public sealed class StationDefinition
             }
             _ = refinery.Site;
         }
+        foreach (var outpost in Outposts)
+        {
+            if (outpost is null || string.IsNullOrEmpty(outpost.StationId)) throw new InvalidDataException("An outpost needs a station id.");
+            if (!SiteServices.IsKnown(outpost.Service) || outpost.Service == SiteServices.Refine)
+                throw new InvalidDataException($"Outpost '{outpost.StationId}' offers an unknown service '{outpost.Service}'.");
+        }
+        _ = new StationDirectory(Sites); // duplicate ids, positions and radii
         foreach (var upgrade in Upgrades)
             if (upgrade.Effect is null) throw new InvalidDataException($"Upgrade '{upgrade.Id}' has no effect entry.");
         // Constructing the site, catalog and table runs their own checks (radius, weights, duplicates, negative prices).

@@ -293,6 +293,79 @@ public sealed class SectorPersistenceTests
         Assert.Equal(2, Directory.GetFiles(Path.Combine(folder, "quarantine")).Length);
     }
 
+    // ---- Carrying the practice sector over to the full-size map (review R1-1 on #118) ---------------------------------------
+
+    private const string Legacy = "first_contact", Rogue = "rogue";
+
+    private static SectorStateDocument AsSector(SectorStateDocument document, string sectorId, string instance) =>
+        document with { SectorInstanceId = instance, Sector = document.Sector with { SectorId = sectorId } };
+
+    [Fact]
+    public void LegacySector_IsCarriedOverOnlyWhileTheMapSectorWasNeverSaved_AndRetiredOnItsFirstSave()
+    {
+        using var dir = new TempDirectory();
+        var store = new SectorStateStore(dir.Path);
+        store.Save(AsSector(Document(TargetWorld(), DateTimeOffset.UnixEpoch), Legacy, "legacy-instance"));
+
+        // Never saved: carried over, again on a relaunch before the first save (a crash loses nothing).
+        foreach (var attempt in new[] { store, new SectorStateStore(dir.Path) })
+        {
+            var moved = attempt.LoadOrMigrate(Rogue, Legacy);
+            Assert.Equal(SectorStateLoadStatus.Migrated, moved.Status);
+            Assert.Equal((Rogue, "legacy-instance"), (moved.Document!.Sector.SectorId, moved.Document.SectorInstanceId));
+        }
+
+        // The first save under the new id retires the legacy save; it is kept in world/retired, never deleted.
+        var carried = store.LoadOrMigrate(Rogue, Legacy).Document!;
+        store.Save(carried);
+        Assert.Equal(SectorStateLoadStatus.NotFound, store.Load(Legacy).Status);
+        Assert.NotEmpty(Directory.GetFiles(Path.Combine(dir.Path, "world", "retired")));
+        Assert.Equal(SectorStateLoadStatus.Loaded, new SectorStateStore(dir.Path).LoadOrMigrate(Rogue, Legacy).Status);
+    }
+
+    [Fact]
+    public void ACorruptMapSector_NeverRewindsToTheLegacySave_OnThisOrAnyLaterLoad()
+    {
+        using var dir = new TempDirectory();
+        var store = new SectorStateStore(dir.Path);
+        var world = TargetWorld();
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Legacy, "legacy-instance"));
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Rogue, "rogue-1"));
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Rogue, "rogue-2")); // primary and backup both exist
+        var folder = Path.Combine(dir.Path, "world");
+        foreach (var file in Directory.GetFiles(folder, "rogue.sector*.json")) File.WriteAllText(file, "{ not json");
+
+        var first = store.LoadOrMigrate(Rogue, Legacy);
+        Assert.Equal(SectorStateLoadStatus.Corrupt, first.Status);
+        Assert.Null(first.Document);
+        // The second load, and a relaunch with a new store, find no map sector file, but the quarantine remembers it: the
+        // sector starts afresh and the legacy state is never restored.
+        foreach (var later in new[] { store, new SectorStateStore(dir.Path) })
+        {
+            var again = later.LoadOrMigrate(Rogue, Legacy);
+            Assert.Equal(SectorStateLoadStatus.NotFound, again.Status);
+            Assert.Null(again.Document);
+            Assert.True(later.EverSaved(Rogue));
+        }
+        Assert.Equal(SectorStateLoadStatus.NotFound, store.Load(Legacy).Status); // retired at the corrupt load
+        Assert.NotEmpty(Directory.GetFiles(Path.Combine(folder, "retired")));
+    }
+
+    [Fact]
+    public void ARecoveredMapSector_IsUsed_AndTheLegacySaveIsLeftAlone()
+    {
+        using var dir = new TempDirectory();
+        var store = new SectorStateStore(dir.Path);
+        var world = TargetWorld();
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Legacy, "legacy-instance"));
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Rogue, "rogue-1"));
+        store.Save(AsSector(Document(world, DateTimeOffset.UnixEpoch), Rogue, "rogue-2"));
+        File.WriteAllText(Path.Combine(dir.Path, "world", "rogue.sector.json"), "{ not json");
+        var recovered = store.LoadOrMigrate(Rogue, Legacy);
+        Assert.Equal(SectorStateLoadStatus.RecoveredFromBackup, recovered.Status);
+        Assert.Equal("rogue-1", recovered.Document!.SectorInstanceId);
+    }
+
     // ---- Owed rewards ---------------------------------------------------------------------------------------------------
 
     [Fact]

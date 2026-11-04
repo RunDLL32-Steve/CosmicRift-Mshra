@@ -33,15 +33,22 @@ public sealed partial class WorldSimulation
     public long? TargetRespawnTick { get; private set; }
     private int TargetRespawnDelayTicks => (int)MathF.Ceiling(Catalog.Sector.TargetRespawnSeconds * TickRate);
     public int AsteroidCollisions { get; private set; }
+    /// <summary>Times the player's ship bounced off a blocked map tile (see <see cref="MapCollision"/>).</summary>
+    public int WallCollisions { get; private set; }
+    /// <summary>The tile map this world is flown on; null for an open practice sector with no walls.</summary>
+    public SectorMap? Map { get; }
     public long ShotsFired { get; private set; }
 
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
+    /// <param name="map">Walls and terrain; omitted means open space everywhere and drops keep their spawn's own life.</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
-        IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null)
+        IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null,
+        SectorMap? map = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
+        Map = map;
         cargo ??= new CargoCatalog(0, []);
         Cargo = new CargoHold(cargo, initialCargo);
         _collectibles = cargo.Collectibles.Select(spawn => new CollectibleState(spawn)).ToList();
@@ -117,13 +124,15 @@ public sealed partial class WorldSimulation
 
     /// <summary>
     /// Places the player as a saved ship condition describes, at rest. Hull is clamped to the hull maximum. A saved hull of zero
-    /// (a ship saved while destroyed) is not restored: the caller keeps the fresh spawn instead (NEW/provisional rule).
+    /// (a ship saved while destroyed) is not restored: the caller keeps the fresh spawn instead (NEW/provisional rule). On a map,
+    /// a saved position on a wall or outside the map keeps the ship where it is (the spawn) but still restores its heading and
+    /// hull, so a stale position can never repair the ship for free.
     /// </summary>
     public bool RestorePlayer(Vector2 position, float heading, float hull)
     {
         if (!float.IsFinite(position.X) || !float.IsFinite(position.Y) || !float.IsFinite(heading) || !float.IsFinite(hull) || hull <= 0)
             return false;
-        Player.Position = position;
+        if (Map is null || !Map.IsBlocked(position)) Player.Position = position;
         Player.Heading = MathF.IEEERemainder(heading, MathF.Tau);
         Player.Velocity = Vector2.Zero;
         Player.Hull = MathF.Min(Player.Definition.Defense.MaximumHull, hull);
@@ -201,7 +210,10 @@ public sealed partial class WorldSimulation
 
     private void MovePlayer(ShipInput input)
     {
+        var previous = Player.Position;
         AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
+        if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
     }
 
     // Piles are visited in catalog order and the swept ship path catches piles passed between ticks. A pile the hold cannot
@@ -248,6 +260,7 @@ public sealed partial class WorldSimulation
             var end = projectile.Position + projectile.Velocity * TickDuration;
             var hitFraction = float.PositiveInfinity;
             ShipState? hitShip = null;
+            if (Map is not null && MapCollision.Sweep(Map, projectile.Position, end, out var wall)) hitFraction = wall;
             foreach (var asteroid in Asteroids)
             {
                 if (CircleCollision.Sweep(projectile.Position, end, asteroid.Position,

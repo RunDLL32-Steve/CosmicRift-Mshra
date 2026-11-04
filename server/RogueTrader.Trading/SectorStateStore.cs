@@ -34,6 +34,10 @@ public enum SectorStateLoadStatus
     RecoveredFromBackup,
     /// <summary>No generation was readable; the files were moved to quarantine (never deleted).</summary>
     Corrupt,
+    /// <summary>
+    /// The sector had never been saved, and the save of the sector it replaces was carried over (<see cref="SectorStateStore.LoadOrMigrate"/>).
+    /// </summary>
+    Migrated,
 }
 
 public sealed record SectorStateLoadResult(SectorStateLoadStatus Status, SectorStateDocument? Document, string Message);
@@ -109,6 +113,58 @@ public sealed class SectorStateStore
             : new SectorStateLoadResult(SectorStateLoadStatus.NotFound, null, "No saved sector state; the sector starts afresh.");
     }
 
+    /// <summary>
+    /// Loads <paramref name="sectorId"/>, or, only when that sector has never been saved in this folder, the save of the sector
+    /// it replaces (<paramref name="legacySectorId"/>), renamed to <paramref name="sectorId"/> (review R1-1). "Never saved" means
+    /// no primary, backup or temp file and nothing in quarantine for it: a corrupt save is quarantined, never deleted, so it keeps
+    /// counting as saved on every later load, and a corrupt sector starts afresh instead of rewinding to the older save. The
+    /// legacy save is retired (moved to <c>world/retired</c>, never deleted) when this sector is first saved, and at once when
+    /// this sector turns out corrupt; until then a crash simply carries it over again, so the move is idempotent.
+    /// </summary>
+    public SectorStateLoadResult LoadOrMigrate(string sectorId, string legacySectorId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(legacySectorId);
+        if (string.Equals(sectorId, legacySectorId, StringComparison.Ordinal)) return Load(sectorId);
+        var everSaved = EverSaved(sectorId);
+        var result = Load(sectorId);
+        if (result.Status == SectorStateLoadStatus.Corrupt || (everSaved && result.Status == SectorStateLoadStatus.NotFound))
+        {
+            RetireLegacy(legacySectorId);
+            return result;
+        }
+        if (result.Status != SectorStateLoadStatus.NotFound) return result;
+        var legacy = Load(legacySectorId);
+        if (legacy.Document is not { } old) return result;
+        _retireOnSave[sectorId] = legacySectorId;
+        return new SectorStateLoadResult(SectorStateLoadStatus.Migrated, old with { Sector = old.Sector with { SectorId = sectorId } },
+            $"The '{legacySectorId}' sector save was carried over to '{sectorId}'.");
+    }
+
+    /// <summary>True when the folder holds, or ever quarantined, a file of this sector.</summary>
+    public bool EverSaved(string sectorId)
+    {
+        if (File.Exists(Primary(sectorId)) || File.Exists(Backup(sectorId)) || File.Exists(Temp(sectorId))) return true;
+        var quarantine = Path.Combine(_directory, "quarantine");
+        return Directory.Exists(quarantine) && Directory.EnumerateFiles(quarantine, FileName(sectorId) + ".*").Any();
+    }
+
+    private readonly Dictionary<string, string> _retireOnSave = new(StringComparer.Ordinal);
+
+    /// <summary>Moves every file of the legacy sector to <c>world/retired</c>, so it can never be loaded again.</summary>
+    private void RetireLegacy(string legacySectorId)
+    {
+        foreach (var path in new[] { Primary(legacySectorId), Backup(legacySectorId), Temp(legacySectorId) })
+        {
+            if (!File.Exists(path)) continue;
+            var folder = Path.Combine(_directory, "retired");
+            Directory.CreateDirectory(folder);
+            var stamp = _time.GetUtcNow().UtcDateTime.ToString("yyyyMMdd'T'HHmmssfff'Z'", CultureInfo.InvariantCulture);
+            var destination = Path.Combine(folder, $"{stamp}.{Path.GetFileName(path)}");
+            for (var n = 2; File.Exists(destination); n++) destination = Path.Combine(folder, $"{stamp}.{n}.{Path.GetFileName(path)}");
+            File.Move(path, destination);
+        }
+    }
+
     /// <summary>Writes the sector atomically. IO failures throw; the caller must not grant rewards that this save did not cover.</summary>
     public void Save(SectorStateDocument document)
     {
@@ -116,6 +172,8 @@ public sealed class SectorStateStore
         ArgumentNullException.ThrowIfNull(document.Sector);
         ArgumentException.ThrowIfNullOrEmpty(document.SectorInstanceId);
         Write(document.Sector.SectorId, document);
+        // The carried-over sector is now saved under its own id: the legacy save can never be loaded again.
+        if (_retireOnSave.Remove(document.Sector.SectorId, out var legacy)) RetireLegacy(legacy);
     }
 
     private void Write(string sectorId, SectorStateDocument document)

@@ -28,6 +28,8 @@ public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 /// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, and the mining
 /// deposits. The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
 /// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
+/// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
+/// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
 /// </summary>
 public sealed record SectorSnapshot(
     string SectorId,
@@ -39,7 +41,8 @@ public sealed record SectorSnapshot(
     ulong MineralRandomState,
     IReadOnlyList<AsteroidSnapshot> Asteroids,
     long NextMiningPileId,
-    long TicksUntilNextMine);
+    long TicksUntilNextMine,
+    int MapVersion = 0);
 
 public sealed partial class WorldSimulation
 {
@@ -56,7 +59,8 @@ public sealed partial class WorldSimulation
         _mineralRandom,
         Asteroids.Select(a => new AsteroidSnapshot(a.Id, a.ResourceQuantity)).ToArray(),
         NextMiningPileId,
-        Math.Max(0, NextMineTick - TickNumber));
+        Math.Max(0, NextMineTick - TickNumber),
+        Map is null ? 0 : SectorMap.CoordinateVersion);
 
     /// <summary>
     /// Puts a captured sector state into this world, replacing its target group, piles, mineral timers and deposits, so a new
@@ -64,6 +68,9 @@ public sealed partial class WorldSimulation
     /// world's data no longer has is ignored and one the snapshot lacks keeps its fresh state, and a pile whose item this world
     /// does not know is dropped, so a data update cannot break a saved sector. Piles that were collected stay gone. Call it
     /// before the first <see cref="Tick"/>. Returns false, changing nothing, for a snapshot of another sector.
+    /// A version 0 snapshot restored onto a map (a sector saved before the sector was drawn at full size) is moved onto it: a
+    /// pile this world configures lies at its configured place, every other pile at the map position its old practice-sector
+    /// position stood for (<see cref="SectorMap.FromLegacyPracticeSector"/>), so nothing is refilled or lost by the change.
     /// </summary>
     public bool RestoreSector(SectorSnapshot snapshot)
     {
@@ -91,9 +98,25 @@ public sealed partial class WorldSimulation
                 TargetRespawnTick = snapshot.TargetRespawnTicksRemaining is > 0 and var left ? Math.Min(left, TargetRespawnDelayTicks) : TargetRespawnDelayTicks;
         }
 
+        var configured = Cargo.Catalog.Collectibles.ToDictionary(c => c.Id, StringComparer.Ordinal);
+        var legacy = Map is not null && snapshot.MapVersion < SectorMap.CoordinateVersion;
         _collectibles.Clear();
-        foreach (var pile in snapshot.Piles ?? [])
+        foreach (var saved in snapshot.Piles ?? [])
         {
+            var pile = saved;
+            if (legacy && pile is not null && float.IsFinite(pile.X) && float.IsFinite(pile.Y))
+            {
+                if (configured.TryGetValue(pile.Id ?? "", out var spawn))
+                    pile = pile with { X = spawn.X, Y = spawn.Y, Radius = spawn.Radius };
+                else
+                {
+                    var moved = Map!.FromLegacyPracticeSector(new Vector2(pile.X, pile.Y));
+                    // Mineral and wreck drops used the pickup distance drawn at the old scale; they get it back at full size.
+                    var drop = (pile.Id ?? "").StartsWith(MineralPilePrefix, StringComparison.Ordinal)
+                        || (pile.Id ?? "").StartsWith(WreckPilePrefix, StringComparison.Ordinal);
+                    pile = pile with { X = moved.X, Y = moved.Y, Radius = drop ? pile.Radius / SectorMap.LegacyScale : pile.Radius };
+                }
+            }
             if (pile is null || string.IsNullOrEmpty(pile.Id) || pile.Quantity <= 0 || !Cargo.Catalog.IsKnown(pile.ItemId ?? "")
                 || !float.IsFinite(pile.X) || !float.IsFinite(pile.Y) || !float.IsFinite(pile.Radius) || pile.Radius <= 0
                 || _collectibles.Any(p => p.Id == pile.Id))

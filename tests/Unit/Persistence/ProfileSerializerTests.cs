@@ -54,6 +54,33 @@ public sealed class ProfileSerializerTests
     // ---- Round trip ----------------------------------------------------------------------------------------------
 
     [Fact]
+    public void Schema6Ships_ReadAsPracticeSectorCoordinates_EachOnItsOwn_AndSchema7KeepsEachVersion()
+    {
+        // Review R1-2 on #118: every ship condition saved before schema 7 was in the practice sector's coordinates.
+        var profile = Rich() with
+        {
+            Ship = new ShipCondition(42.5f, 10, -20, 1.25f),
+            OwnedShips = Rich().OwnedShips.SetItem("fixture-hull-2", new ShipCondition(7, 300, 400, -0.5f, ShipCondition.MapPixels)),
+        };
+        var payload = PayloadOf(profile);
+        payload["ship"]!.AsObject().Remove("coordinateVersion");
+        payload["ownedShips"]!["fixture-hull-2"]!.AsObject().Remove("coordinateVersion");
+        if (payload.ContainsKey("schemaVersion")) payload["schemaVersion"] = 6;
+        var old = ProfileSerializer.Decode(WithPayload(payload.ToJsonString(), version: 6), ProfileSchemaMigrations.BuiltIn);
+        Assert.True(old.Profile is not null, string.Join("; ", old.Diagnostics.Select(d => d.Message)));
+        Assert.Equal(PlayerProfile.CurrentSchemaVersion, old.Profile!.SchemaVersion);
+        Assert.Equal(new ShipCondition(42.5f, 10, -20, 1.25f, ShipCondition.LegacyPracticeSector), old.Profile.Ship);
+        Assert.Equal(new ShipCondition(7, 300, 400, -0.5f, ShipCondition.LegacyPracticeSector), old.Profile.OwnedShips["fixture-hull-2"]);
+
+        // At schema 7 each ship keeps its own version through a save and load.
+        var mixed = profile with { Ship = new ShipCondition(1, 2, 3, 0, ShipCondition.LegacyPracticeSector) };
+        var back = ProfileSerializer.Decode(ProfileSerializer.Serialize(mixed), ProfileSchemaMigrations.BuiltIn).Profile!;
+        Assert.Equal(ShipCondition.LegacyPracticeSector, back.Ship!.CoordinateVersion);
+        Assert.Equal(ShipCondition.MapPixels, back.OwnedShips["fixture-hull-2"]!.CoordinateVersion);
+        Assert.False(new ShipCondition(1, 2, 3, 0, 9).IsValid); // an unknown coordinate version is refused
+    }
+
+    [Fact]
     public void SaveLoad_RoundTripPreservesWalletInventoryUpgradesHullAndWindow()
     {
         var original = Rich();

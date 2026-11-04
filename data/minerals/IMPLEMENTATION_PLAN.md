@@ -39,14 +39,14 @@ With one player, only the spawns with f[14]=0 run (Tellerium A-C, Krandazite A, 
 
 ## NEW/provisional (listed in the file's `newRules`)
 
--   Position f[4]/f[5] read as area centre and f[6]/f[7] as area size, drawn into the 1,400-unit practice sector around an assumed 32,000-unit map centre (RT-F021 map size unverified); f[16], f[17] and f[26] use the same scale.
+-   Position f[4]/f[5] read as area centre and f[6]/f[7] as area size in original map pixels, moved by the LVL offset (48 pixels) as the emulator moves LIO positions; f[16], f[17] and f[26] are pixels too. Since November 4, 2026 the game flies the full-size Rogue map, so world units are map pixels (before, the field was drawn into a 1,400-unit practice sector).
 -   The practice sector has no terrain map, so every drop takes the open-space expiry (720 s); the emulator uses 120 s in docks and trade zones.
 -   A drop that would overlap a NEW practice-sector asteroid uses one of the emulator's 10 tries per event (5 back per drop placed). Iron Ore SpawnA's area sits on asteroid_12, so it usually drops little or nothing.
 -   A destroyed ship spills its cargo as one `wreck:` pile per item, 12 units from where it died, radius 3.5, with the same 720 s open-space expiry (Steve, November 4, 2026). The placement, one pile per item and the radius are NEW.
 -   The players-in-sector count is 1 in the local build; a dedicated server will supply the real count.
 -   Drop expiry and spawn timers run in real time while docked, paused or closed, and are saved with the sector, so a relaunch neither refills nor clears the field early (Steve, 2026-11-02).
 -   The hold cap is per ship: the starter takes the Asp VEH f[48] StopWeight (2,500,000 raw = 50 Tellerium at ITM weight 50,000). The NormalWeight encumbrance penalty (RT-F030) is not applied.
--   Pickup radius is ItemPickupDistance at the same scale (3.5 units plus the ship radius).
+-   Pickup radius is ItemPickupDistance, 80 pixels plus the ship radius. A drop lasts the PrizeExpire of the terrain it lands on (720 s open space, 120 s docks and trade zones) when the world has the Rogue map.
 -   f[22], f[24] and f[25] are kept raw and not applied.
 
 ## Open

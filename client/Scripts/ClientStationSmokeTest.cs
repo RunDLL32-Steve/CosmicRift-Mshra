@@ -1,6 +1,7 @@
 using Godot;
 using RogueTrader.Persistence;
 using RogueTrader.Simulation;
+using RogueTrader.Trading;
 
 namespace RogueTrader.Client;
 
@@ -26,7 +27,8 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
             // In-space pickup, first with a simulated save failure (the cargo must stay in the hold), then committed.
             resetSector();
-            var pile = station.Collectibles.First(p => Math.Abs(p.X) < 1);
+            var spawn = readWorld().Catalog.Sector.PlayerSpawn;
+            var pile = station.Collectibles.First(p => Math.Abs(p.X - spawn.X) < 1 && p.Y < spawn.Y); // straight ahead of the spawn
             client.SimulatePickupSaveFailure();
             SendKey(Key.W, true);
             for (var frame = 0; frame < 240 && readWorld().Cargo.Quantity(pile.ItemId) == 0; frame++)
@@ -42,15 +44,16 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(hud.CargoText.Contains($"x{pile.Quantity}"), $"HUD cargo '{hud.CargoText}' must list the committed pickup.");
             GD.Print("STATION SMOKE PASS: pickup survives a failed save and is then committed and shown on the HUD");
 
-            // Kill reward (queue M7 slice): the spawn faces target_alpha, so holding fire destroys it.
+            // Kill reward (queue M7 slice): from the practice range centre the ship faces target_alpha, so holding fire destroys it.
             resetSector();
             Require(readWorld().Collectibles.All(p => p.Id != pile.Id), "A sector reset must not refill a collected pile.");
+            Teleport(readWorld().Targets[0].Position + new System.Numerics.Vector2(0, 280));
             var walletBeforeKill = session.Profile!.Wallet;
             SendKey(Key.Space, true);
             for (var frame = 0; frame < 900 && readWorld().Kills.Count == 0; frame++)
                 await nextPhysicsFrame();
             SendKey(Key.Space, false);
-            Require(readWorld().Kills.Count == 1, "Holding fire from spawn must destroy the practice target ahead.");
+            Require(readWorld().Kills.Count == 1, "Holding fire from the range centre must destroy the practice target ahead.");
             await RewardsSaved();
             var reward = session.KillReward.Credits;
             Require(reward > 0 && session.Profile!.Wallet == walletBeforeKill + reward && client.PendingKillRewards == 0,
@@ -113,6 +116,13 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var pickupsBefore = readWorld().Pickups.Count;
             Teleport(mineral.Position);
             for (var frame = 0; frame < 30 && readWorld().Pickups.Count == pickupsBefore; frame++) await nextPhysicsFrame();
+            // At full map size a clump spreads over its 350-pixel box, so visit the rest of this spawn's clump as a pilot would.
+            var clump = mineral.Id[..(mineral.Id.LastIndexOf(':') + 1)];
+            foreach (var rest in readWorld().Collectibles.Where(p => p.Id.StartsWith(clump, StringComparison.Ordinal)).Select(p => p.Position).ToArray())
+            {
+                Teleport(rest);
+                await nextPhysicsFrame();
+            }
             // Piles are 1 unit and lie close together, so the ship may sweep up several Tellerium piles at once; count them all.
             var mined = readWorld().Pickups.Skip(pickupsBefore).Where(p => p.IsMineral && p.ItemId == "2003").Sum(p => p.Quantity);
             Require(readWorld().Pickups.Skip(pickupsBefore).Any(p => p.PileId == mineral.Id), "The ship must have collected the Tellerium pile it was sent to.");
@@ -151,13 +161,11 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(!client.StationVisible, "Escape must undock from the refinery.");
             GD.Print($"STATION SMOKE PASS: refined {refinedUnits} Tellerium into {station.NameOf(recipe.OutputItemId)} at the {refinery.Name}");
 
-            // Dock with the native key from the spawn point (inside the provisional dock radius).
+            // Goods sell only at the original Trading Posts (Steve, Nov 4 2026): fly to the first one and dock with the native key.
             resetSector();
             Require(readWorld().Cargo.Quantity(pile.ItemId) == pile.Quantity, "A sector reset must rebuild the hold from the saved profile.");
-            SendKey(Key.F, true);
-            SendKey(Key.F, false);
-            await nextPhysicsFrame();
-            Require(client.StationVisible && client.Station.Visible, "F at the station must open the station screen.");
+            var post = station.SitesOffering(SiteServices.Trade)[0];
+            await DockAt(post);
             var dockedTick = readWorld().TickNumber;
             await nextPhysicsFrame();
             Require(readWorld().TickNumber == dockedTick, "The world must not advance while docked.");
@@ -175,7 +183,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Press($"sellall:{recipe.OutputItemId}");
             Require(session.Profile!.Wallet == walletBeforeRefined + refinedUnits * refinedTrade.CreditsPerUnit && !session.Profile.Inventory.ContainsKey(recipe.OutputItemId),
                 "Trading the refined ore must pay its recipe value per unit.");
-            GD.Print($"STATION SMOKE PASS: {refinedTrade.Name} paid {refinedUnits * refinedTrade.CreditsPerUnit} credits for the refined ore");
+            GD.Print($"STATION SMOKE PASS: {refinedTrade.Name} paid {refinedUnits * refinedTrade.CreditsPerUnit} credits for the refined ore at {post.Name}");
+            await Undock();
+
+            // Repairs are sold only at the Repair Docks.
+            var repairDock = station.SitesOffering(SiteServices.Repair)[0];
+            await DockAt(repairDock);
 
             // Repairs: refused at full hull without a charge, applied when damaged.
             var repair = station.Repairs[0];
@@ -199,7 +212,18 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(fullRepair.Price == 500 && session.Profile!.Wallet == walletBefore - 500
                 && Math.Abs(readWorld().Player.Hull - player.Definition.Defense.MaximumHull) < 0.01f,
                 $"Full Repair must cost 500 credits and restore a full hull, got wallet {session.Profile.Wallet} and hull {readWorld().Player.Hull}.");
-            GD.Print("STATION SMOKE PASS: repair refused without charge at full hull and applied when damaged; Full Repair costs 500 for a full hull");
+            GD.Print($"STATION SMOKE PASS: repair refused without charge at full hull and applied when damaged at {repairDock.Name}; Full Repair costs 500 for a full hull");
+            await Undock();
+
+            // Upgrades, hulls and the hangar are at the team's home store: Cold Harbor, where the first pilot spawns.
+            Require(client.Team is { Index: 0, Name: "Cold Harbor" }, $"The first pilot must join Cold Harbor, got '{client.Team?.Name}'.");
+            resetSector();
+            SendKey(Key.F, true);
+            SendKey(Key.F, false);
+            await nextPhysicsFrame();
+            Require(client.StationVisible && client.DockedSite?.StationId == station.StationId && client.Station.Service == SiteServices.Store
+                && client.Station.TitleText == station.Name.ToUpperInvariant(),
+                $"F at the Cold Harbor spawn must open its store, got '{client.Station.TitleText}'.");
 
             // Upgrades: original price, provisional effect applied to the flying ship, ownership saved.
             var baseSpeed = readWorld().Player.Definition.Physics.MaximumSpeed;
@@ -239,6 +263,9 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(sameRace.Price > beforeRefusal.Wallet && ReferenceEquals(beforeRefusal, session.Profile) && client.Station.StatusText.Contains("not enough credits"),
                 $"An unaffordable hull must be refused and change nothing, got '{client.Station.StatusText}'.");
             GD.Print($"STATION SMOKE PASS: the Ship Hulls page sells the original hulls at {sameRace.Price:N0} credits to a same-race pilot only");
+            var flying = FindAction($"hangar:{active}");
+            Require(flying.Disabled && flying.Text == "FLYING", "The Hangar must list the ship being flown as FLYING.");
+            GD.Print("STATION SMOKE PASS: the Hangar at Cold Harbor lists the owned ships (switching is covered by the unit tests)");
 
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
@@ -318,7 +345,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, outpost trade of wreckage and refined ore, repair guard, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, Trading Post trade of wreckage and refined ore, Repair Dock repair guard, Cold Harbor store and hangar for the first pilot's team, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)
@@ -343,6 +370,27 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
     private static bool Same(PlayerProfile a, PlayerProfile b) =>
         a.Revision == b.Revision && a.Wallet == b.Wallet && a.Inventory.SequenceEqual(b.Inventory) && a.Upgrades.SequenceEqual(b.Upgrades) && a.Ship == b.Ship;
+
+    /// <summary>Flies straight onto a site (a teleport stands in for the flight) and docks there with the native key.</summary>
+    private async Task DockAt(RogueTrader.Trading.ServiceSite site)
+    {
+        Teleport(new System.Numerics.Vector2(site.X, site.Y));
+        await nextPhysicsFrame();
+        SendKey(Key.F, true);
+        SendKey(Key.F, false);
+        await nextPhysicsFrame();
+        Require(client.StationVisible && client.DockedSite?.StationId == site.StationId && client.Station.Service == site.Service
+            && client.Station.TitleText == site.Name.ToUpperInvariant(),
+            $"F at {site.Name} must open its {site.Service} page, got '{client.Station.TitleText}'.");
+    }
+
+    private async Task Undock()
+    {
+        SendKey(Key.Escape, true);
+        SendKey(Key.Escape, false);
+        await nextPhysicsFrame();
+        Require(!client.StationVisible, "Escape must undock.");
+    }
 
     private void Teleport(System.Numerics.Vector2 position)
     {

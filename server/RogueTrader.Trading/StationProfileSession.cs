@@ -59,7 +59,21 @@ public sealed class StationProfileSession
     /// <summary>Last committed authoritative profile; null until a profile opens successfully.</summary>
     public PlayerProfile? Profile => ProfileId is null ? null : _processor.GetSnapshot(ProfileId);
 
+    /// <summary>True when the ship is docked at the main station (the first team's home store).</summary>
     public bool IsDocked(float shipX, float shipY) => Stations.IsDocked(Station.StationId, shipX, shipY);
+
+    /// <summary>The site the ship is docked at (main station, refinery, Trading Post, Repair Dock or team store), or null.</summary>
+    public ServiceSite? DockedAt(float shipX, float shipY) => Station.DockedAt(shipX, shipY);
+
+    /// <summary>
+    /// The site a request for <paramref name="service"/> is sent to: the one the ship is docked at when it offers the service,
+    /// otherwise the first site that does (the core then refuses it as out of range, so a retry still finds its first result).
+    /// </summary>
+    private string SiteFor(string service, float shipX, float shipY)
+    {
+        var sites = Station.SitesOffering(service);
+        return (sites.FirstOrDefault(s => Docking.IsDocked(s.Site, shipX, shipY)) ?? sites.FirstOrDefault())?.StationId ?? Station.StationId;
+    }
 
     /// <summary>Loads the profile, creating it with the station's starting wallet only when it cleanly does not exist.</summary>
     public async Task<ProfileOpenOutcome> OpenOrCreateAsync(string profileId, CancellationToken ct = default)
@@ -81,10 +95,10 @@ public sealed class StationProfileSession
     }
 
     public Task<TransactionResult> BuyAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
-        _trading.BuyAsync(RequireProfile(), shipX, shipY, new BuyRequest(NewId(), RequireProfile(), Station.StationId, itemId, quantity), ct);
+        _trading.BuyAsync(RequireProfile(), shipX, shipY, new BuyRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Trade, shipX, shipY), itemId, quantity), ct);
 
     public Task<TransactionResult> SellAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
-        _trading.SellAsync(RequireProfile(), shipX, shipY, new SellRequest(NewId(), RequireProfile(), Station.StationId, itemId, quantity), ct);
+        _trading.SellAsync(RequireProfile(), shipX, shipY, new SellRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Trade, shipX, shipY), itemId, quantity), ct);
 
     /// <summary>
     /// Buys a repair only when it can restore something: a ship at full hull or destroyed is refused locally with
@@ -97,7 +111,7 @@ public sealed class StationProfileSession
         if (!float.IsFinite(hull) || hull <= 0 || hull >= maximumHull)
             return Task.FromResult(new TransactionResult(transactionId, TransactionStatus.Rejected, RejectionReason.NothingToRepair, false, 0,
                 new Dictionary<string, int>(), null, Profile?.Wallet ?? 0, Profile?.Revision ?? -1, repairId));
-        return _trading.RepairAsync(profileId, shipX, shipY, new RepairRequest(transactionId, profileId, Station.StationId, repairId), ct);
+        return _trading.RepairAsync(profileId, shipX, shipY, new RepairRequest(transactionId, profileId, SiteFor(SiteServices.Repair, shipX, shipY), repairId), ct);
     }
 
     /// <summary>
@@ -112,7 +126,7 @@ public sealed class StationProfileSession
         var refusal = UpgradeRefusal(upgradeId);
         if (refusal != RejectionReason.None)
             return Task.FromResult(Refused(transactionId, refusal));
-        return _trading.BuyUpgradeAsync(profileId, shipX, shipY, new BuyUpgradeRequest(transactionId, profileId, Station.StationId, upgradeId), ct);
+        return _trading.BuyUpgradeAsync(profileId, shipX, shipY, new BuyUpgradeRequest(transactionId, profileId, SiteFor(SiteServices.Store, shipX, shipY), upgradeId), ct);
     }
 
     /// <summary>Why buying this upgrade now would have no effect (<see cref="RejectionReason.None"/> when it would).</summary>
@@ -213,18 +227,35 @@ public sealed class StationProfileSession
                 new Dictionary<string, int>()), ct).ConfigureAwait(false);
     }
 
-    /// <summary>Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change).</summary>
-    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, CancellationToken ct = default) =>
+    /// <summary>
+    /// Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change), marked with the coordinate
+    /// version it was flown in (<see cref="ShipCondition.MapPixels"/> on the full-size map, the default).
+    /// </summary>
+    public Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, int coordinateVersion = ShipCondition.MapPixels,
+        CancellationToken ct = default) =>
         _processor.SaveShipConditionAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(),
-            new ShipCondition(hull, x, y, heading), ct);
+            new ShipCondition(hull, x, y, heading, coordinateVersion), ct);
 
     /// <summary>Buys a hull sold at the station (one of each); the player keeps flying the current ship until they select it.</summary>
     public Task<TransactionResult> BuyShipAsync(string hullId, float shipX, float shipY, CancellationToken ct = default) =>
-        _trading.BuyShipAsync(RequireProfile(), shipX, shipY, new BuyShipRequest(NewId(), RequireProfile(), Station.StationId, hullId), ct);
+        _trading.BuyShipAsync(RequireProfile(), shipX, shipY, new BuyShipRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Store, shipX, shipY), hullId), ct);
 
     /// <summary>Makes an owned hull the active ship (the ship picker at load). The ship left behind keeps its saved condition.</summary>
     public Task<ShipConditionResult> SelectShipAsync(string hullId, CancellationToken ct = default) =>
         _processor.SelectShipAsync(new TransactionContext(RequireProfile(), StationAccessVerified: false), RequireProfile(), hullId, ct);
+
+    /// <summary>
+    /// Changes ships in the hangar (Steve, November 4, 2026): only while docked at a team's home store, so a pilot cannot swap
+    /// a ship out of a fight in open space. The ship left behind is parked with its saved condition, and the chosen one becomes
+    /// active with the condition it was parked with; the caller then launches it from the dock and saves its position.
+    /// </summary>
+    public Task<ShipConditionResult> SwitchShipAsync(string hullId, float shipX, float shipY, CancellationToken ct = default)
+    {
+        RequireProfile();
+        if (DockedAt(shipX, shipY) is not { Service: SiteServices.Store })
+            return Task.FromResult(new ShipConditionResult(false, RejectionReason.StationAccessDenied, Profile?.Revision ?? -1));
+        return SelectShipAsync(hullId, ct);
+    }
 
     /// <summary>
     /// Stable transaction id for one destruction of the active ship: the same world instance and destruction tick always give the

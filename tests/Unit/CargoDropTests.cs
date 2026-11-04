@@ -21,7 +21,7 @@ public sealed class CargoDropTests
     public void EachItemBecomesOnePileAroundTheWreckThatExpiresAfter720Seconds()
     {
         var world = World();
-        var at = new Vector2(0, -60);
+        var at = new Vector2(0, -300); // beyond the 80-pixel pickup distance of the ship at rest at (0, 0)
         var piles = world.DropCargo("w1:77", at, Hold(3, 2));
 
         Assert.Equal(new[] { ($"{WorldSimulation.WreckPilePrefix}w1:77:{OreA}", OreA, 3), ($"{WorldSimulation.WreckPilePrefix}w1:77:{OreB}", OreB, 2) },
@@ -50,7 +50,7 @@ public sealed class CargoDropTests
     public void SpilledCargoIsCarriedIntoTheRespawnedWorldWithItsRemainingLifeAndCanBePickedUp()
     {
         var world = World();
-        world.DropCargo("w1:9", new Vector2(0, -60), Hold(3, 0));
+        world.DropCargo("w1:9", new Vector2(0, -300), Hold(3, 0));
         TestWorld.Tick(world, 600, new ShipInput(0, 0, false));
 
         var next = World();

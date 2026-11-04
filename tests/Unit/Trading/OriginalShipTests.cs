@@ -59,11 +59,11 @@ public sealed class OriginalShipTests
     public void FullRepairCostsFiveHundredCreditsAndRestoresAFullHullOnEveryHull()
     {
         // Steve (Nov 4 2026): a damaged ship keeps its damage across a relaunch or ship pick; the repair costs 500 credits.
-        var fullRepair = OriginalStationBuilder.Build(OriginalAssets.Root!).Repairs.Single(r => r.Name == "Full Repair");
+        var fullRepair = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams).Repairs.Single(r => r.Name == "Full Repair");
         Assert.Equal(500, fullRepair.Price);
         Assert.All(Hulls.Hulls, h => Assert.True(fullRepair.HullPoints >= OriginalShipBuilder.Ship(h).Defense.MaximumHull, h.Name));
         // It fills any hull, including the legacy Interceptor's 100 points (review R3-1); Minor and Major add their points.
-        var station = OriginalStationBuilder.Build(OriginalAssets.Root!);
+        var station = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams);
         Assert.Equal(new[] { "43" }, station.Repairs.Where(r => r.RestoresFullHull).Select(r => r.Id));
         var session = new StationProfileSession(new InMemoryProfileRepository(), station, "starter_interceptor", 4_000_000);
         Assert.Equal(100f, session.RepairHullPoints("43", 100f));
@@ -101,7 +101,7 @@ public sealed class OriginalShipTests
     [RequiresOriginalAssetsFact]
     public async Task ATerranPilotCanBuyATerranHullButNotAGraziOne()
     {
-        var station = OriginalStationBuilder.Build(OriginalAssets.Root!);
+        var station = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams);
         var hulls = Hulls;
         string Id(string name) => OriginalShipBuilder.HullId(hulls.ByName(name));
         var funded = StationDefinition.FromJson(System.Text.Json.Nodes.JsonNode.Parse(station.ToJson())!.AsObject().Also(o => o["startingWallet"] = 40_000).ToJsonString()); // NEW fixture wallet

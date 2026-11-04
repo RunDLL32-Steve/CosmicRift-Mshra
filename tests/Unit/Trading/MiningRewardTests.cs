@@ -83,10 +83,10 @@ public sealed class MiningRewardTests
         Assert.Equal(("2003", 1, 300 * 60, 600 * 60, 1, 1, 100, 15, 0, 500, 720L * 60, 1),
             (a.ItemId, a.Quantity, a.AttemptTicks, a.SucceedTicks, a.InitialCount, a.MaxInArea, a.MaxInLevel, a.ClumpQuantity,
                 a.MinPlayers, a.MaxPlayers, a.ExpireTicks, a.Probability));
-        Assert.Equal(350 * OriginalMineralFieldBuilder.MapScale, a.ClumpRadius);
+        Assert.Equal(350, a.ClumpRadius); // map pixels, 1:1
         Assert.Equal((0f, 0f), (a.MinPlayerDistance, a.MaxPlayerDistance)); // f[16]=0 and f[17]=99999: no distance checks
-        Assert.Equal(new Vector2(3280 * OriginalMineralFieldBuilder.MapScale, -5840 * OriginalMineralFieldBuilder.MapScale), new Vector2(a.X, a.Y));
-        Assert.Equal(80 * OriginalMineralFieldBuilder.MapScale, a.PileRadius);
+        Assert.Equal(new Vector2(19280 - 48, 10160 - 48), new Vector2(a.X, a.Y)); // LIO position minus the LVL offset
+        Assert.Equal(80, a.PileRadius); // CFG [Arena] ItemPickupDistance
         Assert.Equal((10, 50), (minerals.Spawns.Single(s => s.Id == "27").ClumpQuantity, minerals.Spawns.Single(s => s.Id == "27").MaxInLevel));
         var cargo = LoadStation().CreateCargoCatalog(TestCargo.Capacity);
         Assert.All(minerals.Spawns, s => Assert.True(cargo.IsKnown(s.ItemId)));
@@ -99,7 +99,7 @@ public sealed class MiningRewardTests
     {
         var refinery = LoadStation().Refinery ?? throw new InvalidOperationException("The shipped station must carry the refinery.");
         Assert.Equal(new[] { ("2003", "2004"), ("2005", "2006"), ("2019", "2020") }, refinery.Recipes.Select(r => (r.InputItemId, r.OutputItemId)));
-        Assert.Equal(new Vector2(-5248 * OriginalMineralFieldBuilder.MapScale, -15376 * OriginalMineralFieldBuilder.MapScale), new Vector2(refinery.X, refinery.Y));
+        Assert.Equal(new Vector2(10752 - 48, 624 - 48), new Vector2(refinery.X, refinery.Y)); // LIO row 13 minus the LVL offset
     }
 
     // ---- Simulation --------------------------------------------------------------------------------------------------
@@ -186,15 +186,17 @@ public sealed class MiningRewardTests
         var crowded = World(stationPiles: false);
         crowded.PlayersInSector = 100;
         crowded.RestorePlayer(new Vector2(1e6f, 1e6f), 0, crowded.Player.Hull);
+        var krandaziteB = false;
         for (var tick = 0; tick < 4 * 3600 * WorldSimulation.TickRate; tick += 600)
         {
             crowded.ElapseWithoutTicking(600);
+            krandaziteB |= crowded.Collectibles.Any(p => p.Id.StartsWith("mineral:84:", StringComparison.Ordinal)); // Krandazite B needs 60
             Assert.True(crowded.Collectibles.Count(p => p.ItemId == "2005") <= 50);
             // Tellerium G has no caps (-1) and is held back only by expiry. The capped spawns stop once the sector holds 100
             // units of Tellerium (G's included); a clump that starts just under the cap can overshoot it by at most 14.
             Assert.True(crowded.Collectibles.Count(p => p.ItemId == "2003" && !p.Id.StartsWith("mineral:85:", StringComparison.Ordinal)) <= 100 + 14);
         }
-        Assert.Contains(crowded.Collectibles, p => p.Id.StartsWith("mineral:84:", StringComparison.Ordinal)); // Krandazite B needs 60
+        Assert.True(krandaziteB, "Krandazite B (60 players) must drop in a crowded sector.");
     }
 
     [Fact]
@@ -404,9 +406,9 @@ public sealed class MiningRewardTests
         Assert.Equal(40, session.Profile.Inventory["2004"]);
         Assert.Equal(wallet, session.Profile.Wallet);
 
-        // Refined Tellerium then trades at the outpost at the original recipe value.
+        // Refined Tellerium then trades at a Trading Post at the original recipe value.
         var trade = session.Station.Trades.Single(t => t.InputItemId == "2004");
-        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, session.Station.X, session.Station.Y)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, session.Station.SitesOffering(SiteServices.Trade)[0].X, session.Station.SitesOffering(SiteServices.Trade)[0].Y)).Status);
         Assert.Equal(wallet + 40 * trade.CreditsPerUnit, session.Profile!.Wallet);
     }
 
