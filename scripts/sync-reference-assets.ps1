@@ -22,7 +22,9 @@ try {
     if ($LASTEXITCODE -ne 0 -or $dirty) { throw 'Existing reference has changes; no files were overwritten.' }
     git -C $referenceRoot diff --quiet --no-ext-diff HEAD --
     if ($LASTEXITCODE -ne 0) { throw 'Existing reference has tracked changes; no originals were overwritten.' }
-    $include = ($manifest.assets | Where-Object gitLfs | ForEach-Object originalPath) -join ','
+    # The map art archives Rogue.lvl places (rocks, stations, walls) and the mineral prize sprites, for stage_level_art.py.
+    $levelArt = @('BLO/O_Animated_Walls.blo','BLO/O_Asteroids.blo','BLO/O_GasClouds.blo','BLO/O_Neutral_Walls.blo','BLO/O_Specialtiles.blo','BLO/O_SpaceStation.blo','BLO/o_crmisc.blo','BLO/o_mapborder.blo','BLO/Resources.blo')
+    $include = (@($manifest.assets | Where-Object gitLfs | ForEach-Object originalPath) + $levelArt | Select-Object -Unique) -join ','
     git -C $referenceRoot lfs pull "--include=$include" '--exclude='
     if ($LASTEXITCODE -ne 0) { throw 'Original Git LFS retrieval failed.' }
 } finally { $env:GIT_LFS_SKIP_SMUDGE = $previousSkipSmudge }

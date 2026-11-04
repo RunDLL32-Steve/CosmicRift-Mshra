@@ -27,3 +27,11 @@ Important concrete references:
 | Map overview               | `Rogue.png` after staging                   | Native 1999×1998 RGB                             |
 
 All exported palette RGB entries remain unchanged. Index 0 is transparent. Source shadow/light index ranges and blit modes remain raw metadata; correct native blending, HSV/user palette transforms, pose selection, animation timing, and all gameplay behavior remain separate fidelity work. UI objects retain their full original cells, including empty margins and segmented components. PNGs and QA sheets are derived artifacts; canonical originals are never edited.
+
+# Original map art
+
+`stage_level_art.py` stages the sprites `LVL/Rogue.lvl` places on the map (asteroid rocks, space stations, walls, gas clouds, safe-zone markings, map border) and the mineral prize sprites named by `ITM/Rogue_mp.itm` fields 23 and 24. It checks `LVL/Rogue.lvl` and `ITM/Rogue_mp.itm` against the canonical manifest and each BLO against `shared/RogueTrader.OriginalData/PinnedBloArchives.cs`, before and after reading. Output goes to the git-ignored `client/OriginalContent/level/`: one indexed PNG atlas per object with its original palette, and `level.json`, which the client's `OriginalLevelArt` draws from.
+
+`level.json` holds `objects` (the LVL object table in order: archive, member, PNG, cell size, rows, columns, frame count, CFS animation time), `minerals` (item id to prize sprite) and `entities`, a flat array of six integers per placed sprite: `x, y, object, animationTime, phase, frame`. The entity reading is RECONSTRUCTED from a test render (rocks sit on their collision tiles, station trusses join up): x and y are the sprite cell's top-left in map pixels, object is uint16 at byte 4 masked to 13 bits and frame its top 3 bits (only the safe-zone markings use it), animationTime is uint16 at byte 6 in hundredths of a second per cycle (0 = a still frame) and phase is byte 14 in percent. Native blending (RT-F074) is not applied, so translucent originals such as gas clouds draw solid.
+
+Run `python scripts/original-assets/stage_level_art.py` after `scripts/sync-reference-assets.ps1`, then let Godot import (`scripts/run-client.ps1` does both). `test_level_art.py` covers the reader with synthetic bytes.
