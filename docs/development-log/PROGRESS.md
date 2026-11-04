@@ -2,7 +2,7 @@
 
 Authority: [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff: [CONTINUATION.md](../../CONTINUATION.md). **397 feature entries, 22 scoped completions, 375 open.** No original feature or milestone acceptance flag changed in this documentation audit.
 
-Selected hull sprite correction — November 4, 2026: the client binds player artwork using the selected canonical vehicle ID, with the existing fallback for unmapped hulls. The [dated evidence](2026-11-04-selected-hull-sprite.md) records all twelve atlas bindings and picker/Hangar/reload/reopen checks in an isolated profile at world tick 0. Independent review remains pending; original hull, banking and milestone acceptance stays open.
+Selected hull sprite correction — November 4, 2026: the client binds player artwork using the selected canonical vehicle ID, with the existing fallback for unmapped hulls. The [dated evidence](2026-11-04-selected-hull-sprite.md) records all twelve atlas bindings and picker/Hangar/reload/reopen checks in an isolated profile at world tick 0. Published as [PR 123](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/123); independent checks reproduce the binding and author sprint is SPRINT_VALID. Final exact-head review/CI/merge gates remain pending; original hull, banking and milestone acceptance stays open.
 
 ## C1 local raw-reader checkpoint — November 2, 2026
 

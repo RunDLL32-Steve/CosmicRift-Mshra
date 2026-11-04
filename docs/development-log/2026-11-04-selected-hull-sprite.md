@@ -1,6 +1,8 @@
+Review status: review-pending
+
 # Selected hull sprite correction — November 4, 2026
 
-Review status: independent review pending. Branch: `codex/selected-hull-sprite`, based on `f1a1999` (`origin/main`). This fixes the reported player sprite remaining Asp after selecting another owned ship. Scope authority: [master §6](../../ROGUE_TRADER_2_PLAN.md#6-spacecraft-and-loadout-system), [§16](../../ROGUE_TRADER_2_PLAN.md#16-graphical-direction), [§18 fidelity gate](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [client item plan](../../client/plan.d/selected-hull-sprite.md).
+Branch: `codex/selected-hull-sprite`, based on `f1a1999` (`origin/main`). This fixes the reported player sprite remaining Asp after selecting another owned ship. Scope authority: [master §6](../../ROGUE_TRADER_2_PLAN.md#6-spacecraft-and-loadout-system), [§16](../../ROGUE_TRADER_2_PLAN.md#16-graphical-direction), [§18 fidelity gate](../../ROGUE_TRADER_2_PLAN.md#milestone-1--flight-and-combat-prototype), [client item plan](../../client/plan.d/selected-hull-sprite.md).
 
 ## Change and acceptance
 
@@ -32,3 +34,9 @@ With the pinned toolchain and staged canonical-derived `client/OriginalContent`:
 Native-delivery/login/runtime-wrapper tests and Windows export are outside this rendering fix; no milestone boundary or native code changed. No separate gameplay simulations are needed beyond the repository's required client verify smoke. Original hull/pose/banking/palette/shadow/gameplay fidelity remains unfinished; no RT or milestone boxes change, registry 397/22/375.
 
 Resume point: coordinating inspection, a fresh independent review with focused checks, then authorized publication/CI/merge gates. The author does not merge this branch.
+
+## Publication and author integration checkpoint
+
+Published as [PR 123](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/123). The author sprint `sprint/2026-11-04-hull-sprite-author` integrated every open PR (123) with no conflicts or failed fetches. Only the two sprint-generated evidence files were normalized with the repository formatter on that isolated sprint branch before validation; no PR source or canonical data was changed by this step. `sprint-validate.py` then returned **SPRINT_VALID**, native exit 0: diff, conflict scan, tracker, review-queue tests, integration report and full `verify.ps1` all passed. Author report: `artifacts/sprint-integrate.json`; sprint report: `artifacts/sprint-validate.json` in the isolated sprint worktree. No sprint push occurred.
+
+A fresh reviewer independently reproduced the source acceptance at `dd752c7`: full verify 1,227 unit passes / 5 archived-key skips, six integration passes and Godot import/smoke; focused actual-draw atlas checks passed for all twelve canonical hulls and every transition/fallback at tick 0. The explicitly supplied synthetic profile-directory sentinel retained its exact file/hash and the disposable profile folders were removed. Root inspected the code, counterfactual failure, logs, TRX and sprite identities. Final exact-head PR review and Windows CI remain the merge gate; the author does not merge its work.
