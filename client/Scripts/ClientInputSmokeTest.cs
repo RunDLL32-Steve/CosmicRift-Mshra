@@ -125,6 +125,15 @@ public sealed class ClientInputSmokeTest(
             RequireInput(Mathf.IsEqualApprox(sectorMap.Zoom, closest), "Zooming in must stop at the closest zoom.");
             for (var i = 0; i < 40; i++) Tap(Key.Minus);
             RequireInput(Mathf.IsEqualApprox(sectorMap.Zoom, 1), "Zooming out must stop at the whole map.");
+            // A zoom key bound to a flight action keeps flying the ship under the map (review R1-1).
+            RequireInput(FlightInput.TryRebind("flight_forward", Key.Pageup) is null, "PageUp must be bindable to forward thrust.");
+            SendKey(Key.Pageup, true);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Thrust == 1 && Mathf.IsEqualApprox(sectorMap.Zoom, 1),
+                "A key bound to forward thrust must thrust under the map and not zoom it.");
+            SendKey(Key.Pageup, false);
+            FlightInput.RestoreDefaults(save: false);
+            await nextPhysicsFrame();
             Tap(Key.Escape);
             await nextPhysicsFrame();
             RequireInput(!sectorMap.Visible && !readPaused() && !hud.ControlsVisible, "Escape must close the map, not pause.");
@@ -141,7 +150,7 @@ public sealed class ClientInputSmokeTest(
         }
         finally
         {
-            foreach (var key in new[] { Key.W, Key.Q, Key.Up, Key.Escape, Key.R, Key.M, Key.Equal, Key.Minus }) SendKey(key, false);
+            foreach (var key in new[] { Key.W, Key.Q, Key.Up, Key.Escape, Key.R, Key.M, Key.Equal, Key.Minus, Key.Pageup }) SendKey(key, false);
             try
             {
                 if (originalSettings is not null)

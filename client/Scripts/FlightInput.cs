@@ -44,6 +44,10 @@ public static class FlightInput
         Input.GetAxis("flight_left", "flight_right"),
         Input.IsActionPressed("flight_fire"));
 
+    /// <summary>True when <paramref name="key"/> is bound to any action in <see cref="Bindings"/>.</summary>
+    public static bool IsBound(Key key) => Bindings.Any(binding =>
+        InputMap.ActionGetEvents(binding.Action).OfType<InputEventKey>().Any(input => input.PhysicalKeycode == key));
+
     public static string Display(string action) => string.Join(" / ", InputMap.ActionGetEvents(action)
         .OfType<InputEventKey>().Select(input => OS.GetKeycodeString(input.PhysicalKeycode)));
 

@@ -360,6 +360,13 @@ public partial class GameClient : Node2D
     /// Flight keys are not taken, so the ship keeps flying under the map.</summary>
     private bool SectorMapKey(InputEventKey key, InputEvent input)
     {
+        if (input.IsActionPressed(FlightInput.MapAction))
+        {
+            SetSectorMapVisible(false);
+            return true;
+        }
+        // A key the player bound to another action keeps doing that action under the map (#119 review R1-1).
+        if (key.PhysicalKeycode != Key.Escape && FlightInput.IsBound(key.PhysicalKeycode)) return false;
         switch (key.PhysicalKeycode)
         {
             case Key.Escape:
@@ -375,9 +382,7 @@ public partial class GameClient : Node2D
                 _sectorMap.CentreOnShip();
                 return true;
         }
-        if (!input.IsActionPressed(FlightInput.MapAction)) return false;
-        SetSectorMapVisible(false);
-        return true;
+        return false;
     }
 
     /// <summary>The sector map is a display only: flight, the world and the server carry on while it is open.</summary>
