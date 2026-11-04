@@ -31,7 +31,13 @@ Queue M7 mining slice in review on `claude/project-thread-yaij0l` ([branch log](
 
 Queues C6 (headless authoritative session with a bounded input queue, no sockets) and C4 (Stopwatch tick benchmark) merged in [PR 98](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/98); C9 (bounty and reputation rules) is in review on `claude/project-thread-shkauf` ([branch log](docs/development-log/cloud/claude-project-thread-shkauf.md)). C7 depends on C6.
 
+## C1 local checkpoint — November 2, 2026
+
+C1 raw BLO directory/member reader has **scoped raw-reader acceptance verified / final PR gates pending** on the scoped local branch. All 89 pinned archives / 1,262 members were actually checked; the full unit run passed 1,043, failed zero and skipped five unrelated key supplementals. Decoder 10/10, staging 4/4 and foundational integrity 46/46 passed. The [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [dated log](docs/development-log/2026-11-02-c1-blo-reader.md) define the evidence and boundaries. No extraction, pixels, reference resolution, native/gameplay verification or feature completion follows; 397/22/375 unchanged. Publication is authorized November 3, 2026; final PR review and merge gates are pending.
+
 ## Next
+
+C1 is implemented and independently reproduced: do not reclaim it. For final exact-head review/CI/merge state, consult [PR116](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/116) and the [independent review](docs/development-log/2026-11-03-c1-publication.md) for current review and publication evidence. The owner authorized publication and merge on November 3, 2026; the applicable PR/sprint gates still apply. Do not reimplement the locally verified reader or close RT-F023/RT-F069 from raw byte access. Preserve the separate C7 branch; its own publication and review work proceeds independently.
 
 G9 is CLAIMED / in progress on `claim/g9-dependency-checkpoint`; the [ledger](scripts/original-assets/plan.d/g9.md) indexes accepted dated evidence and remaining scope. Current [initialized reset-input observation](docs/development-log/2026-10-19-g9-reset-input-observation.md) captures the selected standalone initialized object before newArena; use the [branch log](docs/development-log/cloud/claim-g9-dependency-checkpoint.md) and its current PR for live workflow status. PR85 conditional lifecycle source and PR76 selected catalog are accepted dated history. Follow that live workflow record before selecting remaining G9 work from the ledger; preserve earlier accepted results; native consumers/gameplay/full closure and original feature boxes stay open,397/22/375/raw609/eight unchanged. No claim release or M5 work follows.
 

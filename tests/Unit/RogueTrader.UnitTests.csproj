@@ -21,6 +21,7 @@
     <ProjectReference Include="../../server/RogueTrader.AI/RogueTrader.AI.csproj" />
     <ProjectReference Include="../../server/RogueTrader.Server/RogueTrader.Server.csproj" />
     <Content Include="../../data/**/*.json" Link="data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures/BloDirectoryOracle.json" CopyToOutputDirectory="PreserveNewest" />
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

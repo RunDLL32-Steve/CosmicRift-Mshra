@@ -2,6 +2,10 @@
 
 Authority: [master §18](../../ROGUE_TRADER_2_PLAN.md#18-development-roadmap). Current handoff: [CONTINUATION.md](../../CONTINUATION.md). **397 feature entries, 22 scoped completions, 375 open.** No original feature or milestone acceptance flag changed in this documentation audit.
 
+## C1 local raw-reader checkpoint — November 2, 2026
+
+**C1 scoped raw-reader acceptance verified; published as PR116, final review/CI/merge gates pending.** C1 adds owned raw BLO snapshots and exact canonical pins for 89 archives / 1,262 members, retaining full name fields and ordinal identity without pixel or runtime interpretation. The [contract](../original-research/C1_BLO_READER_CONTRACT.md), [dated evidence](2026-11-02-c1-blo-reader.md) and [task brief](../tasks/c1.md) define the bounded slice. The canonical fact executed every archive/member. Full units: 1,043 passed, zero failed, five unrelated key-supplemental skips (1,048 total); 21 new C1 cases. Python decoder 10/10, staging 4/4 and foundational integrity 46/46 passed. No Godot, native, simulation or export checks apply to this raw-data change. RT-F023/RT-F069, full dependency closure and all original gameplay/milestone acceptance remain open; 397/22/375 unchanged.
+
 ## Current source versus accepted gameplay
 
 | Area                              | Existing source / recorded scope                                                                                                                                                                                                                                                                                    | Remaining acceptance                                                                                                                   |

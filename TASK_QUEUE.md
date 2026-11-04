@@ -32,12 +32,13 @@ No active rows: M1 to M9 are merged (see the history below).
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-| ID  | Task                                                                                         | Where          | Run   | Depends on    | Status snapshot                                                                             | Brief                  |
-| --- | -------------------------------------------------------------------------------------------- | -------------- | ----- | ------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
-| C1  | Original BLO directory/member reader; 89 archives, 1,262 members, hash guard, raw bytes only | OriginalData   | Cloud | G2 MERGED     | OPEN (claim abandoned: `claim/c1-blo-reader` released November 3, 2026; reserved for Codex) | [C1](docs/tasks/c1.md) |
-| C7  | Pure client prediction/reconciliation with simulated latency/loss tests                      | Shared + tests | Cloud | C5, C6 MERGED | OPEN                                                                                        | [C7](docs/tasks/c7.md) |
+| ID  | Task                                                                    | Where          | Run   | Depends on    | Status snapshot | Brief                  |
+| --- | ----------------------------------------------------------------------- | -------------- | ----- | ------------- | --------------- | ---------------------- |
+| C7  | Pure client prediction/reconciliation with simulated latency/loss tests | Shared + tests | Cloud | C5, C6 MERGED | OPEN            | [C7](docs/tasks/c7.md) |
 
 ## Completed queue history (not active work)
+
+-   C1 — raw directory/member acceptance independently reproduced at `2a302a2` (89 archives / 1,262 members); published as [PR116](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/116), final exact-head review/CI/merge gates pending. No RT-F023/RT-F069 or original fidelity completion. [Evidence](docs/development-log/2026-11-03-c1-publication.md).
 
 -   G2 — merged 2e76140 (loader fe879b1): 12 raw hull records and integrity guard; native ship choice/loadout/movement and field meaning remain open.
 -   G3 — merged 7ed3648: 200 raw-preserving ITM records; feature-specific interpretations remain open.
