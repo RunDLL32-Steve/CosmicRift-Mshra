@@ -12,7 +12,8 @@ namespace RogueTrader.Trading;
 /// roster and the hull exchanges a station sells (ITM rows 181-192, type 16), for owned ships (Steve, Nov 3 2026).
 /// Taken from the originals: name, flight (<see cref="OriginalShipPhysics"/>, G10's emulator reading), hold cap (VEH f[48]
 /// StopWeight, read as a hard cap as for the Interceptor), hull points (VEH f[6], raw), the buy price (ITM f[8]) and the
-/// same-race requirement (ITM f[5], RPG skill ids). Everything else is a placeholder listed in each
+/// same-race requirement (ITM f[5], RPG skill ids), radius (f[35]), energy and recharge (f[94..95]), energy as the shield, the
+/// Shift boost (terrain-0 hyper fields and f[373]) and the starting weapon (f[129]). Every remaining assumption is listed in each
 /// <see cref="ShipDefinition.NewValues"/>. Regenerate with RT_WRITE_DERIVED_SHIPS=1; never hand-edit the outputs.
 /// </summary>
 public static class OriginalShipBuilder
@@ -24,11 +25,11 @@ public static class OriginalShipBuilder
     public const int StarterVehicleId = 2002;
     public const int HullExchangeRecordType = 16;
 
-    // ---- Placeholders: no decoded original value yet (copied from the NEW Interceptor so every hull handles alike) -----
-    private const float PlaceholderRadius = 14;
-    private const float PlaceholderShield = 50;
-    private const float PlaceholderEnergy = 100;
-    private const float PlaceholderEnergyRegeneration = 20;
+    /// <summary>
+    /// Owner's rule pending (the original data gives the boost's cost per second but not whether recharge keeps running): energy
+    /// stops recharging while the Shift boost is engaged, so every hull pays its full HyperEnergyCost.
+    /// </summary>
+    public const bool HyperRechargeWhileEngaged = false;
 
     public static readonly JsonSerializerOptions Json = new()
     {
@@ -44,28 +45,51 @@ public static class OriginalShipBuilder
     public static string FileName(OriginalHull hull) =>
         "original_" + new string(hull.Name.ToLowerInvariant().Select(c => char.IsAsciiLetterOrDigit(c) ? c : '_').ToArray()) + ".json";
 
-    public static ShipDefinition Ship(OriginalHull hull)
+    public static ShipDefinition Ship(OriginalHull hull, OriginalItemCatalog items)
     {
         ArgumentNullException.ThrowIfNull(hull);
+        ArgumentNullException.ThrowIfNull(items);
         var rows = $"RPG/Rogue.rpg row {hull.RpgRowNumber} (skill {hull.SkillId}), VEH/Rogue.veh row {hull.VehRowNumber} (vehicle {hull.VehicleId})";
+        var weapon = OriginalWeaponBuilder.StartingWeapon(hull, items);
+        var flight = EmulatorFlightReading.From(hull);
         return new ShipDefinition
         {
             Id = HullId(hull),
             Name = hull.Name,
             EvidenceClassification = "ORIGINAL+NEW",
-            Source = $"Derived by OriginalShipBuilder from {rows}, category '{hull.Category}'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]={hull.HullPoints.Value}, raw.",
+            Source = $"Derived by OriginalShipBuilder from {rows}, category '{hull.Category}'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). "
+                + $"Hull points: VEH f[6]={hull.HullPoints.Value}, raw. Radius: VEH f[{VehFields.PhysicalRadius}] PhysicalRadius={hull.PhysicalRadius.Value} px. "
+                + $"Energy: VEH f[94] EnergyMax={hull.EnergyMax.Value}, f[95] EnergyRate={hull.EnergyRate.Value} (tenths per second, OriginalEnergyScale); f[96] EnergyStart={hull.EnergyMin.Value} equals the maximum. "
+                + "Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). "
+                + $"Starting weapon: VEH f[{OriginalStartingLoadout.EventField}] '{hull.VehRecord.Value(OriginalStartingLoadout.EventField)}' (ITM id {weapon.Id}).",
             NewValues =
             [
-                $"Radius {PlaceholderRadius} (VEH f[{OriginalCollisionFields.PhysicalRadiusCandidateField}]={hull.VehRecord.Value(OriginalCollisionFields.PhysicalRadiusCandidateField)} is only a candidate radius; its meaning is unvalidated).",
-                $"Shield {PlaceholderShield} (no original shield field identified).",
-                $"Energy {PlaceholderEnergy}, regeneration {PlaceholderEnergyRegeneration}/s (raw VEH f[94..96] = {hull.EnergyMax.Value}/{hull.EnergyRate.Value}/{hull.EnergyMin.Value}; units and timing undecoded).",
-                $"Starting weapon: every hull fires the Plasma Cannon for now (original VEH f[129] '{hull.VehRecord.Value(129)}').",
-                "Hull points used raw (f[6]); the scale against NEW weapon damage and repair amounts is unvalidated.",
+                "Hull points used raw (f[6]); weapon hull damage reads ITM thousandths, so a Plasma Cannon hit takes 5 of the Asp's 50 (unvalidated in play).",
+                $"Energy recharge {OriginalEnergyScale.PerSecond(hull.EnergyRate.Value)}/s and boost cost {OriginalEnergyScale.PerSecond(hull.HyperEnergyCost.Value)}/s read f[95] and f[373] as tenths per second (the recharge items' 'kj/s' wording); "
+                    + "recharge pausing while the boost is engaged is the owner's rule, not original data.",
+                "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
+                "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost.",
             ],
-            Radius = PlaceholderRadius,
+            Radius = hull.PhysicalRadius.Value,
             Physics = OriginalShipPhysics.From(hull),
-            Defense = new ShipDefense { MaximumHull = hull.HullPoints.Value, MaximumShield = PlaceholderShield },
-            Reactor = new ShipReactor { MaximumEnergy = PlaceholderEnergy, EnergyRegenerationPerSecond = PlaceholderEnergyRegeneration },
+            Hyper = new ShipHyper
+            {
+                ForwardThrust = (float)(flight.HyperForwardAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
+                ReverseThrust = (float)(flight.HyperReverseAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
+                MaximumSpeed = (float)flight.HyperTopSpeedPixelsPerSecond,
+                EnergyPerSecond = OriginalEnergyScale.PerSecond(hull.HyperEnergyCost.Value),
+                RechargeWhileEngaged = HyperRechargeWhileEngaged,
+                Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} terrain 0 HyperThrust f[{flight.Block.HyperThrust.FieldIndex}]={flight.Block.HyperThrust.Value}, "
+                    + $"BackwardHyperThrust f[{flight.Block.BackwardHyperThrust.FieldIndex}]={flight.Block.BackwardHyperThrust.Value}, HyperTopSpeed f[{flight.Block.HyperTopSpeed.FieldIndex}]={flight.Block.HyperTopSpeed.Value}, "
+                    + $"HyperEnergyCost f[{VehFields.HyperEnergyCost}]={hull.HyperEnergyCost.Value}.",
+            },
+            WeaponId = OriginalWeaponBuilder.WeaponId(weapon),
+            Defense = new ShipDefense { MaximumHull = hull.HullPoints.Value, MaximumShield = 0, EnergyShield = true },
+            Reactor = new ShipReactor
+            {
+                MaximumEnergy = hull.EnergyMax.Value,
+                EnergyRegenerationPerSecond = OriginalEnergyScale.PerSecond(hull.EnergyRate.Value),
+            },
             Cargo = new ShipCargo
             {
                 Capacity = hull.StopWeight.Value,
@@ -75,14 +99,18 @@ public static class OriginalShipBuilder
     }
 
     /// <summary>The Asp is the starter; the Interceptor stays listed (last) so saves that own it keep flying it.</summary>
-    public static ShipRoster Roster(OriginalHullCatalog hulls)
+    public static ShipRoster Roster(OriginalHullCatalog hulls, OriginalItemCatalog items)
     {
         ArgumentNullException.ThrowIfNull(hulls);
+        ArgumentNullException.ThrowIfNull(items);
         return new ShipRoster
         {
             StarterHullId = StarterVehicleId.ToString(CultureInfo.InvariantCulture),
             Ships = hulls.Hulls.Select(h => new ShipRosterEntry(HullId(h), FileName(h)))
                 .Append(new ShipRosterEntry(LegacyStarterHullId, LegacyStarterDefinition)).ToList(),
+            Weapons = OriginalWeaponBuilder.StartingWeapons(hulls, items)
+                .Select(w => new WeaponRosterEntry(OriginalWeaponBuilder.WeaponId(w), OriginalWeaponBuilder.FileName(w)))
+                .Append(new WeaponRosterEntry(ShipRoster.DefaultWeaponId, "plasma_cannon.json")).ToList(),
         };
     }
 

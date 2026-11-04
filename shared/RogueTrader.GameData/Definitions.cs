@@ -11,6 +11,16 @@ public sealed record ShipDefinition
     public ShipDefense Defense { get; init; } = new();
     public ShipReactor Reactor { get; init; } = new();
     public ShipCargo Cargo { get; init; } = new();
+    /// <summary>
+    /// The Shift boost (original "hyper thrust"); null when the hull has none. While it is engaged the ship thrusts and tops out
+    /// with these values instead of <see cref="Physics"/> and pays energy for it.
+    /// </summary>
+    public ShipHyper? Hyper { get; init; }
+    /// <summary>
+    /// Id of the weapon the hull starts with (a file <c>data/weapons/&lt;file&gt;</c> is named by the roster loader); null means the
+    /// NEW Plasma cannon fixture (<c>plasma_cannon</c>).
+    /// </summary>
+    public string? WeaponId { get; init; }
     /// <summary>Where the values come from (derived original hulls name their source rows; null for hand-written fixtures).</summary>
     public string? Source { get; init; }
     /// <summary>Values that are placeholders rather than original data, one note each (null when there are none listed).</summary>
@@ -42,6 +52,30 @@ public sealed record ShipDefense
 {
     public float MaximumHull { get; init; } = 100;
     public float MaximumShield { get; init; } = 50;
+    /// <summary>
+    /// True when the ship's energy is its shield, as in the original (CFG <c>EnergyShieldMode=2</c>; NWS/Rogue.nws rows 39-41 and
+    /// 131): while any energy is left a hit drains energy and does no hull damage, and only a ship with no energy left takes hull
+    /// damage. Such a ship has no separate shield pool, so <see cref="MaximumShield"/> must be 0.
+    /// </summary>
+    public bool EnergyShield { get; init; }
+}
+
+/// <summary>
+/// The Shift boost of a hull. Thrusts are forces like <see cref="ShipPhysics.ForwardThrust"/> (divided by the hull's mass); the
+/// boost applies only while the pilot thrusts and has at least one tick's worth of <see cref="EnergyPerSecond"/> left.
+/// </summary>
+public sealed record ShipHyper
+{
+    public float ForwardThrust { get; init; }
+    public float ReverseThrust { get; init; }
+    public float MaximumSpeed { get; init; }
+    public float EnergyPerSecond { get; init; }
+    /// <summary>
+    /// False when energy stops recharging while the boost is engaged (the owner's rule for how the original hyper cost applies);
+    /// true when the cost is taken from a still-running recharge.
+    /// </summary>
+    public bool RechargeWhileEngaged { get; init; }
+    public string? Source { get; init; }
 }
 
 public sealed record ShipReactor
@@ -57,11 +91,22 @@ public sealed record WeaponDefinition
     public string EvidenceClassification { get; init; } = "NEW";
     public float MuzzleVelocity { get; init; } = 700;
     public float ProjectileRadius { get; init; } = 3;
+    /// <summary>Hull damage of one hit. A weapon with no <see cref="ShieldDrain"/> lets a shield absorb it point for point (NEW).</summary>
     public float Damage { get; init; } = 28;
+    /// <summary>
+    /// Shield (or, for an <see cref="ShipDefense.EnergyShield"/> ship, energy) drained by one hit, under the original rule: a hit on
+    /// a ship with any shield left drains it and does no hull damage; a hit on a ship with none does <see cref="Damage"/> to the
+    /// hull. Null keeps the NEW rule, where the shield absorbs <see cref="Damage"/> point for point and the rest reaches the hull.
+    /// </summary>
+    public float? ShieldDrain { get; init; }
     public float CooldownSeconds { get; init; } = 0.2f;
     public float EnergyCost { get; init; } = 6;
     public float LifetimeSeconds { get; init; } = 2.5f;
     public bool InheritsShipVelocity { get; init; } = true;
+    /// <summary>Where the values come from (derived original weapons name their ITM row; null for hand-written fixtures).</summary>
+    public string? Source { get; init; }
+    /// <summary>Values that are placeholders rather than original data, one note each.</summary>
+    public IReadOnlyList<string>? NewValues { get; init; }
 }
 
 public sealed record SectorDefinition

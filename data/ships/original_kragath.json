@@ -2,7 +2,7 @@
   "id": "2003",
   "name": "Kragath",
   "evidenceClassification": "ORIGINAL+NEW",
-  "radius": 14,
+  "radius": 21,
   "physics": {
     "mass": 100,
     "forwardThrust": 15750,
@@ -13,22 +13,31 @@
   },
   "defense": {
     "maximumHull": 50,
-    "maximumShield": 50
+    "maximumShield": 0,
+    "energyShield": true
   },
   "reactor": {
-    "maximumEnergy": 100,
-    "energyRegenerationPerSecond": 20
+    "maximumEnergy": 1700,
+    "energyRegenerationPerSecond": 105
   },
   "cargo": {
     "capacity": 4000000,
     "source": "ORIGINAL: VEH/Rogue.veh Kragath (vehicle 2003) f[48] StopWeight; NEW: read as the hold's hard weight cap."
   },
-  "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 8 (skill 3), VEH/Rogue.veh row 21 (vehicle 2003), category 'Ship Hull - Skithzar'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw.",
+  "hyper": {
+    "forwardThrust": 18750,
+    "reverseThrust": 18750,
+    "maximumSpeed": 350,
+    "energyPerSecond": 99,
+    "rechargeWhileEngaged": false,
+    "source": "ORIGINAL: VEH/Rogue.veh Kragath terrain 0 HyperThrust f[209]=50, BackwardHyperThrust f[211]=-1, HyperTopSpeed f[208]=3500, HyperEnergyCost f[373]=990."
+  },
+  "weaponId": "1036",
+  "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 8 (skill 3), VEH/Rogue.veh row 21 (vehicle 2003), category 'Ship Hull - Skithzar'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw. Radius: VEH f[35] PhysicalRadius=21 px. Energy: VEH f[94] EnergyMax=1700, f[95] EnergyRate=1050 (tenths per second, OriginalEnergyScale); f[96] EnergyStart=1700 equals the maximum. Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). Starting weapon: VEH f[129] 'addinv=Bio Cannon' (ITM id 1036).",
   "newValues": [
-    "Radius 14 (VEH f[35]=21 is only a candidate radius; its meaning is unvalidated).",
-    "Shield 50 (no original shield field identified).",
-    "Energy 100, regeneration 20/s (raw VEH f[94..96] = 1700/1050/1700; units and timing undecoded).",
-    "Starting weapon: every hull fires the Plasma Cannon for now (original VEH f[129] 'addinv=Bio Cannon').",
-    "Hull points used raw (f[6]); the scale against NEW weapon damage and repair amounts is unvalidated."
+    "Hull points used raw (f[6]); weapon hull damage reads ITM thousandths, so a Plasma Cannon hit takes 5 of the Asp's 50 (unvalidated in play).",
+    "Energy recharge 105/s and boost cost 99/s read f[95] and f[373] as tenths per second (the recharge items' 'kj/s' wording); recharge pausing while the boost is engaged is the owner's rule, not original data.",
+    "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
+    "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost."
   ]
 }

@@ -16,6 +16,13 @@ public sealed class ShipState
     public float Shield { get; internal set; }
     public float Energy { get; internal set; }
     public bool IsDestroyed => Hull <= 0;
+    /// <summary>True when the last motion step thrust with the hull's Shift boost (and paid its energy).</summary>
+    public bool IsHyperEngaged { get; internal set; }
+    /// <summary>
+    /// What protects the hull: energy for a ship whose energy is its shield (<see cref="ShipDefense.EnergyShield"/>), otherwise the
+    /// separate shield pool.
+    /// </summary>
+    public float ShieldLeft => Definition.Defense.EnergyShield ? Energy : Shield;
     public string? LastDamagedByShipId { get; internal set; }
     public string? DestroyedByShipId { get; internal set; }
     public string? LastDamageWeaponId { get; internal set; }
@@ -76,6 +83,8 @@ public sealed class ProjectileState
     public Vector2 Velocity { get; }
     public float Radius { get; }
     public float Damage { get; }
+    /// <summary>The weapon's shield drain per hit; null for a weapon under the NEW point-for-point absorption rule.</summary>
+    public float? ShieldDrain { get; }
     public int AgeTicks { get; internal set; }
     public int LifetimeTicks { get; }
 
@@ -88,6 +97,7 @@ public sealed class ProjectileState
         Velocity = velocity;
         Radius = owner.Weapon.ProjectileRadius;
         Damage = owner.Weapon.Damage;
+        ShieldDrain = owner.Weapon.ShieldDrain;
         LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(owner.Weapon.LifetimeSeconds * WorldSimulation.TickRate));
     }
 }

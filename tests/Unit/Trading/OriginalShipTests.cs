@@ -20,16 +20,20 @@ public sealed class OriginalShipTests
     }
 
     private static OriginalHullCatalog Hulls => OriginalHullCatalog.Load(OriginalAssets.Root!);
+    private static OriginalItemCatalog Items => OriginalItemCatalog.Load(OriginalAssets.Root!);
+    private static string WeaponsDir() => Path.Combine(Path.GetDirectoryName(ShipsDir())!, "weapons");
 
     [RequiresOriginalAssetsFact]
     public void CommittedShipsAndRosterMatchPinnedOriginals()
     {
         var write = Environment.GetEnvironmentVariable("RT_WRITE_DERIVED_SHIPS") == "1";
-        var expected = Hulls.Hulls.Select(h => (OriginalShipBuilder.FileName(h), OriginalShipBuilder.ToJson(OriginalShipBuilder.Ship(h))))
-            .Append(("roster.json", OriginalShipBuilder.ToJson(OriginalShipBuilder.Roster(Hulls)))).ToArray();
-        foreach (var (file, json) in expected)
+        var expected = Hulls.Hulls.Select(h => (OriginalShipBuilder.FileName(h), OriginalShipBuilder.ToJson(OriginalShipBuilder.Ship(h, Items))))
+            .Append(("roster.json", OriginalShipBuilder.ToJson(OriginalShipBuilder.Roster(Hulls, Items)))).ToArray();
+        var weapons = OriginalWeaponBuilder.StartingWeapons(Hulls, Items)
+            .Select(w => (Path.Combine(WeaponsDir(), OriginalWeaponBuilder.FileName(w)), OriginalWeaponBuilder.ToJson(OriginalWeaponBuilder.Weapon(w))));
+        foreach (var (file, json) in expected.Select(e => (Path.Combine(ShipsDir(), e.Item1), e.Item2)).Concat(weapons))
         {
-            var path = Path.Combine(ShipsDir(), file);
+            var path = file;
             if (write) File.WriteAllText(path, json);
             Assert.Equal(json, File.ReadAllText(path).ReplaceLineEndings("\n"));
         }
@@ -42,7 +46,7 @@ public sealed class OriginalShipTests
         Assert.Equal(12, hulls.Hulls.Count);
         foreach (var hull in hulls.Hulls)
         {
-            var ship = OriginalShipBuilder.Ship(hull);
+            var ship = OriginalShipBuilder.Ship(hull, Items);
             Assert.Equal(OriginalShipPhysics.From(hull), ship.Physics);
             Assert.Equal(hull.StopWeight.Value, ship.Cargo.Capacity);
             Assert.Equal(hull.HullPoints.Value, ship.Defense.MaximumHull);
@@ -50,9 +54,9 @@ public sealed class OriginalShipTests
             Assert.NotEmpty(ship.NewValues!);
         }
         // Spot values (G10 pins the flight; StopWeight differs by hull).
-        Assert.Equal(4_000_000, OriginalShipBuilder.Ship(hulls.ByName("Ravager")).Cargo.Capacity);
-        Assert.Equal(3_000_000, OriginalShipBuilder.Ship(hulls.ByName("Excelsior")).Cargo.Capacity);
-        Assert.Equal(357.5f, OriginalShipBuilder.Ship(hulls.ByName("Excelsior")).Physics.MaximumSpeed);
+        Assert.Equal(4_000_000, OriginalShipBuilder.Ship(hulls.ByName("Ravager"), Items).Cargo.Capacity);
+        Assert.Equal(3_000_000, OriginalShipBuilder.Ship(hulls.ByName("Excelsior"), Items).Cargo.Capacity);
+        Assert.Equal(357.5f, OriginalShipBuilder.Ship(hulls.ByName("Excelsior"), Items).Physics.MaximumSpeed);
     }
 
     [RequiresOriginalAssetsFact]
@@ -61,7 +65,7 @@ public sealed class OriginalShipTests
         // Steve (Nov 4 2026): a damaged ship keeps its damage across a relaunch or ship pick; the repair costs 500 credits.
         var fullRepair = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams).Repairs.Single(r => r.Name == "Full Repair");
         Assert.Equal(500, fullRepair.Price);
-        Assert.All(Hulls.Hulls, h => Assert.True(fullRepair.HullPoints >= OriginalShipBuilder.Ship(h).Defense.MaximumHull, h.Name));
+        Assert.All(Hulls.Hulls, h => Assert.True(fullRepair.HullPoints >= OriginalShipBuilder.Ship(h, Items).Defense.MaximumHull, h.Name));
         // It fills any hull, including the legacy Interceptor's 100 points (review R3-1); Minor and Major add their points.
         var station = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams);
         Assert.Equal(new[] { "43" }, station.Repairs.Where(r => r.RestoresFullHull).Select(r => r.Id));

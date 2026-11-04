@@ -175,7 +175,7 @@ public sealed class MiningTests
         Assert.NotEqual(WorldStateHasher.Hash(near), WorldStateHasher.Hash(far));
         var legacy = recording.ToBytes(); legacy[4] = 1;
         Assert.Contains("Unsupported recording version", Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(legacy)).Message);
-        var invalidMine = recording.ToBytes(); invalidMine[25] = 2;
+        var invalidMine = recording.ToBytes(); invalidMine[25] = 4;
         Assert.Contains("mine flag", Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(invalidMine)).Message);
     }
 

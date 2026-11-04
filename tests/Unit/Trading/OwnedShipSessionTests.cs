@@ -43,8 +43,9 @@ public sealed class OwnedShipSessionTests
         Assert.NotNull(roster.Find(Starter));       // older saves keep flying the Interceptor
         foreach (var entry in roster.Ships)
         {
-            var catalog = GameCatalog.FromJson(File.ReadAllText(DataFile("ships", entry.Definition)),
-                File.ReadAllText(DataFile("weapons", "plasma_cannon.json")), File.ReadAllText(DataFile("sectors", "first_contact.json")));
+            var shipJson = File.ReadAllText(DataFile("ships", entry.Definition));
+            var catalog = GameCatalog.FromJson(shipJson, File.ReadAllText(DataFile("weapons", roster.WeaponDefinitionFor(GameCatalog.ShipFromJson(shipJson)))),
+                File.ReadAllText(DataFile("sectors", "first_contact.json")));
             Assert.Equal(entry.HullId, catalog.Ship.Id);
         }
     }

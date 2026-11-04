@@ -39,10 +39,18 @@ public sealed class ShipMotion
         var thrust = float.IsFinite(input.Thrust) ? Math.Clamp(input.Thrust, -1, 1) : 0;
         var physics = ship.Definition.Physics;
         ship.Heading = MathF.IEEERemainder(ship.Heading + turn * physics.RotationSpeed * WorldSimulation.TickDuration, MathF.Tau);
-        var force = thrust >= 0 ? thrust * physics.ForwardThrust : thrust * physics.ReverseThrust;
+        // The Shift boost replaces the hull's thrust and top speed for this tick, only while thrusting and only when a whole
+        // tick's energy is there to pay for it; otherwise the ship flies on its normal values (and is clamped back to them).
+        var hyper = ship.Definition.Hyper;
+        var hyperCost = hyper is null ? 0 : hyper.EnergyPerSecond * WorldSimulation.TickDuration;
+        ship.IsHyperEngaged = input.Hyper && thrust != 0 && hyper is not null && ship.Energy >= hyperCost;
+        if (ship.IsHyperEngaged) ship.Energy -= hyperCost;
+        var forwardThrust = ship.IsHyperEngaged ? hyper!.ForwardThrust : physics.ForwardThrust;
+        var reverseThrust = ship.IsHyperEngaged ? hyper!.ReverseThrust : physics.ReverseThrust;
+        var maximumSpeed = ship.IsHyperEngaged ? hyper!.MaximumSpeed : physics.MaximumSpeed;
+        var force = thrust >= 0 ? thrust * forwardThrust : thrust * reverseThrust;
         var direction = new Vector2(MathF.Cos(ship.Heading), MathF.Sin(ship.Heading));
-        ship.Velocity = ClampSpeed(ship.Velocity + direction * (force / physics.Mass * WorldSimulation.TickDuration),
-            physics.MaximumSpeed);
+        ship.Velocity = ClampSpeed(ship.Velocity + direction * (force / physics.Mass * WorldSimulation.TickDuration), maximumSpeed);
         return CircleCollision.MoveShip(ship, asteroids, WorldSimulation.TickDuration);
     }
 
