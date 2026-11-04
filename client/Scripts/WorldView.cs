@@ -13,6 +13,8 @@ public partial class WorldView : Node2D
     private float _time;
     public ShipInput InputState { get; set; }
     public OriginalSpriteLibrary? Originals { get; set; }
+    /// <summary>The atlas bound by the most recent player draw, or null for the geometric fallback (bounded render QA).</summary>
+    internal string? PlayerAtlasPath { get; private set; }
     /// <summary>Original Rogue.lvl sprites (rocks, stations, walls) and mineral prize sprites; null draws the NEW tile/marker look.</summary>
     public OriginalLevelArt? LevelArt
     {
@@ -229,12 +231,16 @@ public partial class WorldView : Node2D
             DrawLine(position, position + velocity * 0.3f, new Color(Teal, 0.25f), 1, true);
             DrawCircle(position + velocity * 0.3f, 2, new Color(Teal, 0.5f));
         }
-        if (Originals is not null)
+        // Practice targets still use the provisional Hornet preview; their simulation definitions inherit the player hull.
+        var sprite = isPlayer ? Originals?.HullSpriteForVehicle(ship.Definition.Id) : Originals?.HullSprite("Hornet");
+        if (isPlayer) PlayerAtlasPath = null;
+        if (Originals is not null && sprite is not null)
         {
-            var sprite = Originals.HullSprite(isPlayer ? "Asp" : "Hornet");
             var size = new Vector2(sprite.Width, sprite.Height);
+            var texture = Originals.Texture(sprite);
+            if (isPlayer) PlayerAtlasPath = texture.ResourcePath;
             // Column5 is a visual preview choice; native bank/HSV/shadow semantics remain pending.
-            DrawTextureRectRegion(Originals.Texture(sprite), new Rect2(position - size / 2, size),
+            DrawTextureRectRegion(texture, new Rect2(position - size / 2, size),
                 Originals.Frame(sprite, OriginalSpriteLibrary.DirectionRow(ship.Heading), 5));
         }
         else

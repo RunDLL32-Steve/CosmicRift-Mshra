@@ -1,0 +1,3 @@
+# Selected hull sprite correction — scripts
+
+The [client item plan](../../plan.d/selected-hull-sprite.md) owns acceptance and links the exact master sections and dated evidence. `OriginalSpriteLibrary.HullSpriteForVehicle` maps canonical IDs without changing the inspector's name lookup. `WorldView.DrawShip` uses the selected player's ID, leaves practice targets on their explicit provisional Hornet preview and retains geometric fallback. `ClientHullSpriteCheck` is the bounded headless renderer regression; its new fixture profile is isolated before `OpenProfile` and removed at exit. Original pose/gameplay and feature registry acceptance remain open, 397/22/375.

@@ -96,6 +96,8 @@ public sealed class OriginalSpriteLibrary
 
     public Sprite Find(string assetKey) => _byKey[assetKey];
     public Sprite HullSprite(string hullName) => Find(Hulls.Single(hull => hull.Name == hullName).AssetKey);
+    public Sprite? HullSpriteForVehicle(string vehicleId) =>
+        Hulls.FirstOrDefault(hull => hull.VehicleId == vehicleId) is { } hull ? Find(hull.AssetKey) : null;
     public Texture2D Texture(Sprite sprite) => LoadTexture(sprite.AtlasPng, sprite.Width * sprite.ColumnCount, sprite.Height * sprite.RowCount);
     public Texture2D MapTexture() => LoadTexture(Map.Png, Map.Width, Map.Height);
 

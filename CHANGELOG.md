@@ -1,5 +1,10 @@
 # Changelog
 
+## Selected hull sprite correction — November 4, 2026
+
+-   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.
+-   A bounded `--verify-hull-sprites` check drives all twelve picker selections, Hangar switching, reload/reopen and fallback cases using a disposable profile at world tick 0. [Evidence and acceptance limits](docs/development-log/2026-11-04-selected-hull-sprite.md). No original feature or milestone checkbox changes; registry 397/22/375 remains unchanged.
+
 ## The map shows its original asteroids, stations and walls — November 4, 2026
 
 -   Steve's ask: the asteroids and stations no longer show as gray blocks. `LVL/Rogue.lvl` places 22,356 original sprites across the map (asteroid rocks, the four-part team stations and their docks, walls, gas clouds, safe-zone markings and the map border), drawn from nine pinned BLO archives (`O_Asteroids`, `O_SpaceStation`, `O_Neutral_Walls`, `O_Animated_Walls`, `O_GasClouds`, `O_Specialtiles`, `o_crmisc`, `o_mapborder`, `Resources`). The client now draws them where the level puts them, and the gray wall tiles and coloured zone tints are no longer drawn when the art is staged. The 4,373 blocked tiles (of 116,065) that no sprite covers, mostly spans between station pylons, keep the NEW wall colour so no collision is invisible. A partly staged or unimported art folder falls back to the NEW look with a warning.
