@@ -48,6 +48,13 @@ public sealed class OriginalShipTests
         {
             var ship = OriginalShipBuilder.Ship(hull, Items);
             Assert.Equal(OriginalShipPhysics.From(hull), ship.Physics);
+            var rawStrafe = hull.TerrainSpeedBlocks[0].StrafeThrust;
+            Assert.Equal(22, rawStrafe.Value);
+            Assert.Equal(207, rawStrafe.FieldIndex);
+            Assert.Equal(82.5f, ship.Physics.StrafeThrust / ship.Physics.Mass);
+            Assert.Equal(8250f, ship.Physics.StrafeThrust);
+            var generated = OriginalShipBuilder.ToJson(ship);
+            Assert.Equal(ship.Physics.StrafeThrust, GameCatalog.ShipFromJson(generated).Physics.StrafeThrust);
             Assert.Equal(hull.StopWeight.Value, ship.Cargo.Capacity);
             Assert.Equal(hull.HullPoints.Value, ship.Defense.MaximumHull);
             Assert.Equal(hull.Name, ship.Name);

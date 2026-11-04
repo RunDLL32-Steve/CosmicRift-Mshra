@@ -54,6 +54,7 @@ public sealed class GameCatalog
         Positive(Ship.Physics.Mass, "mass");
         Nonnegative(Ship.Physics.ForwardThrust, "forward thrust");
         Nonnegative(Ship.Physics.ReverseThrust, "reverse thrust");
+        Nonnegative(Ship.Physics.StrafeThrust, "strafe thrust");
         Nonnegative(Ship.Physics.RotationSpeed, "rotation speed");
         Positive(Ship.Physics.MaximumSpeed, "maximum speed");
         Nonnegative(Ship.Physics.AsteroidRestitution, "restitution");
@@ -87,6 +88,7 @@ public sealed class GameCatalog
         // Finite individual JSON values can still overflow the arithmetic used by simulation.
         FiniteDerived(Ship.Physics.ForwardThrust / Ship.Physics.Mass, "forward acceleration");
         FiniteDerived(Ship.Physics.ReverseThrust / Ship.Physics.Mass, "reverse acceleration");
+        FiniteDerived(Ship.Physics.StrafeThrust / Ship.Physics.Mass, "strafe acceleration");
         FiniteSquared(Ship.Physics.MaximumSpeed, "maximum speed");
         FiniteSquared(Ship.Radius, "ship radius");
         FiniteSquared(Weapon.ProjectileRadius, "projectile radius");

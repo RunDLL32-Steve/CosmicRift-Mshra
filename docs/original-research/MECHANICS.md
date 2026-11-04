@@ -133,6 +133,12 @@ Original help/configuration/item/vehicle/hull source reading, canonical indexing
 
 The canonical original content and raw values are present and authoritative for the reproduction. Engine units, sentinel/evaluator behavior and full visual/content mapping still need validation. The completed NEW M1 prototype is a foundation for that work, not proof of historical parity. The possible InfantryOnline engine route is being evaluated in [ENGINE_EVALUATION.md](../architecture/ENGINE_EVALUATION.md).
 
+## G10 F7/K3 source access and provisional local rule — November 4, 2026
+
+Pinned `fowlmouth/cosmic-rift-assets` commit `eb1514eaae7f9b9425307d9cc043c74ecdd15e35`, `VEH/Rogue.veh` records terrain-0 `StrafeThrust` f[207]=22 on each of the twelve selectable hulls. `OriginalFlightProfile` retains the raw field and all sixteen blocks. Pinned InfantryOnline server `bb97579efeceff1c63d781d8c1bb8dd4a5b9b849`, `dotnetcore/ZoneServer/Game/Arena/Bot/MovementController.cs`, independently supports a sideways bot force and integer conversion `22*4800/128=825` velocity units/s; its velocity unit reading yields **82.5 px/s²**. At NEW simulation mass 100, the derived force is 8250. This is **RECONSTRUCTED, low confidence**, not a native player measurement. The bot hardcodes terrain 0, and its code is not redistributed. The licensing audit in `INFANTRYONLINE.md` found no root license grant.
+
+`keys.txt` names “Strafe Left/Right” as placeholders 6/7, not physical keys. Q/E are **NEW** remappable local defaults, with older saved bindings taking priority. Independent longitudinal/lateral addition, no diagonal normalization, normal lateral force during longitudinal boost, and no boost cost from strafe alone are **NEW/provisional** policies. Original key assignments, native evaluator timing/units, terrain behavior and energy interaction remain unverified. RT-F026/027/028 and G10 native parity stay open.
+
 [source-a]: https://en.wikipedia.org/wiki/Cosmic_Rift
 [source-b]: https://web.archive.org/web/20070401113432/http://cosmicrift.station.sony.com/gameinfo.jsp
 [source-c]: https://www.reddit.com/r/longlostgamers/comments/82tn8d/cosmic_rift_looking_for_anyone_who_may_have/

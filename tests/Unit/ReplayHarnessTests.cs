@@ -161,6 +161,76 @@ public sealed class ReplayHarnessTests
     }
 
     [Fact]
+    public void VersionFourPreservesAnalogStrafeAndDeterministicCheckpoints()
+    {
+        var inputs = Script(180);
+        for (var i = 0; i < inputs.Length; i++) inputs[i] = inputs[i] with { Strafe = i % 2 == 0 ? 0.125f : -0.75f };
+        var baseCatalog = TestWorld.ExternalCatalog();
+        var catalog = new RogueTrader.GameData.GameCatalog(
+            baseCatalog.Ship with { Physics = baseCatalog.Ship.Physics with { StrafeThrust = 8250 } },
+            baseCatalog.Weapon, baseCatalog.Sector);
+        var recorder = new SimulationRecorder(new WorldSimulation(catalog), 30);
+        foreach (var input in inputs) recorder.Tick(input);
+        var recording = recorder.Finish();
+        Assert.NotEqual(Record(Script(180), interval: 30).FinalHash, recording.FinalHash);
+        var bytes = recording.ToBytes();
+        Assert.Equal(4, BitConverter.ToUInt16(bytes, 4));
+        Assert.Equal(16 + 14 * inputs.Length + 4 + 16 * recording.Checkpoints.Count + 8, bytes.Length);
+        var restored = SimulationRecording.FromBytes(bytes);
+        Assert.Equal(inputs, restored.Inputs);
+        Assert.Equal(recording.Checkpoints, restored.Checkpoints);
+        Assert.True(SimulationReplayer.Replay(catalog, restored).Matched);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void HistoricalVersionsReadZeroStrafeAndReplayOnTheSameCatalog(int version)
+    {
+        var recording = Record(Script(120), interval: 30);
+        var oldBytes = HistoricalBytes(recording, version);
+        var old = SimulationRecording.FromBytes(oldBytes);
+        Assert.All(old.Inputs, input => Assert.Equal(0, input.Strafe));
+        Assert.Equal(recording.FinalHash, old.FinalHash);
+        Assert.Equal(recording.Checkpoints, old.Checkpoints);
+        Assert.True(SimulationReplayer.Replay(TestWorld.ExternalCatalog(), old).Matched);
+        Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes([.. oldBytes, 0]));
+        var badFlag = (byte[])oldBytes.Clone();
+        badFlag[25] = version == 2 ? (byte)2 : (byte)4;
+        Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(badFlag));
+        Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(oldBytes.AsSpan(0, oldBytes.Length - 1)));
+    }
+
+    [Fact]
+    public void ZeroStrafeKeepsTheSameCatalogTrajectoryDigest()
+    {
+        var recording = Record(Script(120), interval: 30);
+        // Pin the v3-compatible zero-axis route; StrafeTests independently compares the 120-tick
+        // motion arithmetic with the pre-strafe formula bit for bit.
+        Assert.Equal(17178323162522361186UL, recording.FinalHash);
+        Assert.Equal(recording.FinalHash, SimulationRecording.FromBytes(HistoricalBytes(recording, 3)).FinalHash);
+    }
+
+    private static byte[] HistoricalBytes(SimulationRecording recording, int version)
+    {
+        var current = recording.ToBytes();
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write(current, 0, 4);
+        writer.Write((ushort)version);
+        writer.Write(current, 6, 10);
+        for (var i = 0; i < recording.Inputs.Count; i++)
+        {
+            var offset = 16 + 14 * i;
+            writer.Write(current, offset, 8);
+            writer.Write(current, offset + 12, 2);
+        }
+        writer.Write(current, 16 + 14 * recording.Inputs.Count,
+            current.Length - (16 + 14 * recording.Inputs.Count));
+        return stream.ToArray();
+    }
+
+    [Fact]
     public void EveryTruncationOfARecordingIsRejected()
     {
         var bytes = Record(Script(130), interval: 50).ToBytes();
@@ -198,8 +268,12 @@ public sealed class ReplayHarnessTests
         Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(negativeCount));
 
         var badFire = (byte[])bytes.Clone();
-        badFire[16 + 8] = 2;
+        badFire[16 + 12] = 2;
         Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(badFire));
+
+        var badFlags = (byte[])bytes.Clone();
+        badFlags[16 + 13] = 4;
+        Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes(badFlags));
 
         Assert.Throws<InvalidDataException>(() => SimulationRecording.FromBytes([.. bytes, 0]));
     }

@@ -7,6 +7,7 @@
     "mass": 100,
     "forwardThrust": 16870,
     "reverseThrust": 16870,
+    "strafeThrust": 8250,
     "rotationSpeed": 3.6128316,
     "maximumSpeed": 330,
     "asteroidRestitution": 0.727
@@ -33,11 +34,12 @@
     "source": "ORIGINAL: VEH/Rogue.veh Rip'Pir terrain 0 HyperThrust f[209]=50, BackwardHyperThrust f[211]=-1, HyperTopSpeed f[208]=3600, HyperEnergyCost f[373]=1100."
   },
   "weaponId": "1041",
-  "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 10 (skill 6), VEH/Rogue.veh row 24 (vehicle 2006), category 'Ship Hull - Grazi'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw. Radius: VEH f[35] PhysicalRadius=21 px. Energy: VEH f[94] EnergyMax=1700, f[95] EnergyRate=1050 (tenths per second, OriginalEnergyScale); f[96] EnergyStart=1700 equals the maximum. Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). Starting weapon: VEH f[129] 'addinv=D-Cannon' (ITM id 1041).",
+  "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 10 (skill 6), VEH/Rogue.veh row 24 (vehicle 2006), category 'Ship Hull - Grazi'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale); terrain 0 StrafeThrust f[207]=22, independently converted by the emulator reading. Hull points: VEH f[6]=50, raw. Radius: VEH f[35] PhysicalRadius=21 px. Energy: VEH f[94] EnergyMax=1700, f[95] EnergyRate=1050 (tenths per second, OriginalEnergyScale); f[96] EnergyStart=1700 equals the maximum. Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). Starting weapon: VEH f[129] 'addinv=D-Cannon' (ITM id 1041).",
   "newValues": [
     "Hull points used raw (f[6]); weapon hull damage reads ITM thousandths, so a Plasma Cannon hit takes 5 of the Asp's 50 (unvalidated in play).",
     "Energy recharge 105/s and boost cost 110/s read f[95] and f[373] as tenths per second (the recharge items' 'kj/s' wording); recharge pausing while the boost is engaged is the owner's rule, not original data.",
     "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
-    "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost."
+    "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost.",
+    "Strafe: independent lateral acceleration with no diagonal normalization and normal thrust during boost is NEW/provisional; the original player evaluator and physical keys remain unverified."
   ]
 }

@@ -93,14 +93,18 @@ public partial class FlightHud : CanvasLayer
         mission.AddChild(original);
 
         var bottom = Panel();
+        bottom.Name = "ControlHintPanel";
         bottom.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide);
         bottom.OffsetLeft = 22;
         bottom.OffsetRight = -22;
-        bottom.OffsetTop = -58;
+        bottom.OffsetTop = -76;
         bottom.OffsetBottom = -20;
         root.AddChild(bottom);
-        _controls = Label("", 13, Muted);
+        _controls = Label("", 12, Muted);
+        _controls.Name = "ControlHint";
         bottom.AddChild(_controls);
+        _controls.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        _controls.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _controls.HorizontalAlignment = HorizontalAlignment.Center;
         _controls.VerticalAlignment = VerticalAlignment.Center;
 
@@ -208,10 +212,11 @@ public partial class FlightHud : CanvasLayer
         box.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.Center);
         box.OffsetLeft = -290;
         box.OffsetRight = 290;
-        box.OffsetTop = -345;
-        box.OffsetBottom = 345;
+        box.OffsetTop = -350;
+        box.OffsetBottom = 350;
         _menu.AddChild(box);
         var column = Column(box);
+        column.AddThemeConstantOverride("separation", 3);
         column.AddChild(Label("FLIGHT PAUSED", 26, TextColor));
         column.AddChild(Label("CONTROLS", 13, Teal));
         _bindingHint = Label("Click a binding, then press a new key. Changes save automatically.", 13, Muted);
@@ -227,10 +232,10 @@ public partial class FlightHud : CanvasLayer
             row.AddChild(label);
             var button = Button(FlightInput.Display(binding.Action));
             button.SetMeta("binding_action", binding.Action);
-            button.CustomMinimumSize = new Vector2(185, 28);
+            button.CustomMinimumSize = new Vector2(185, 25);
             // Slimmer binding rows keep the whole menu on a 720-pixel screen now that the sector map has a row too.
             foreach (var style in new[] { "normal", "hover", "pressed" })
-                if (button.GetThemeStylebox(style) is StyleBoxFlat flat) flat.ContentMarginTop = flat.ContentMarginBottom = 5;
+                if (button.GetThemeStylebox(style) is StyleBoxFlat flat) flat.ContentMarginTop = flat.ContentMarginBottom = 3;
             button.Pressed += () =>
             {
                 _captureAction = binding.Action;
@@ -269,6 +274,7 @@ public partial class FlightHud : CanvasLayer
         reload.Pressed += () => ReloadProfileRequested?.Invoke();
         column.AddChild(reload);
         var quit = Button("QUIT");
+        quit.Name = "QuitFromControls";
         quit.Pressed += () => QuitRequested?.Invoke();
         column.AddChild(quit);
     }
@@ -277,7 +283,7 @@ public partial class FlightHud : CanvasLayer
     {
         foreach (var binding in FlightInput.Bindings)
             if (_bindingButtons.TryGetValue(binding.Action, out var button)) button.Text = FlightInput.Display(binding.Action);
-        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("station_dock")} dock   ·   {FlightInput.Display(FlightInput.MapAction)} map   ·   {FlightInput.Display("flight_pause")} controls";
+        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_strafe_left")} / {FlightInput.Display("flight_strafe_right")} strafe   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("station_dock")} dock   ·   {FlightInput.Display(FlightInput.MapAction)} map   ·   {FlightInput.Display("flight_pause")} controls";
     }
 
     private static ProgressBar Meter(VBoxContainer parent, string caption, Color color)

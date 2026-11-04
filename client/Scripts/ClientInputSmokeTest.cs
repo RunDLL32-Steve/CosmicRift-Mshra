@@ -19,6 +19,53 @@ public sealed class ClientInputSmokeTest(
         {
             FlightInput.RestoreDefaults(save: false);
             resetSector();
+            var beforeStrafe = readWorld().Player.Velocity;
+            var heading = readWorld().Player.Heading;
+            SendKey(Key.Q, true);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == -1, "Q must strafe left by default.");
+            if (catalog.Ship.Physics.StrafeThrust > 0)
+            {
+                var right = new System.Numerics.Vector2(-MathF.Sin(heading), MathF.Cos(heading));
+                RequireInput(System.Numerics.Vector2.Dot(readWorld().Player.Velocity - beforeStrafe, right) < -0.01f,
+                    "The default Q binding must accelerate the canonical ship sideways.");
+            }
+            SendKey(Key.E, true);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == 0, "Opposing strafe keys must cancel.");
+            SendKey(Key.Q, false);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == 1, "E must strafe right by default.");
+            SendKey(Key.E, false);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == 0, "Releasing E must stop lateral input.");
+            RequireInput(FlightInput.TryRebind("flight_forward", Key.Q) is not null,
+                "A default strafe key must be reported as a duplicate binding.");
+            SendKey(Key.Q, true);
+            RequireInput(FlightInput.TryRebind("flight_strafe_left", Key.Z) is null,
+                "Strafe left must be remappable.");
+            SendKey(Key.Q, false);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == 0, "Rebinding while Q is held must release its cached action.");
+            SendKey(Key.Z, true);
+            await nextPhysicsFrame();
+            RequireInput(FlightInput.Capture().Strafe == -1, "The new strafe binding must capture native input.");
+            SendKey(Key.Z, false);
+            var legacySettings = new ConfigFile();
+            legacySettings.SetValue("controls", "flight_forward", ((long)Key.Q).ToString());
+            legacySettings.SetValue("controls", "flight_reverse", ((long)Key.E).ToString());
+            RequireInput(legacySettings.Save(settingsPath) == Error.Ok, "Legacy control fixture must save.");
+            FlightInput.Initialize();
+            RequireInput(FlightInput.Display("flight_forward") == "Q" && FlightInput.Display("flight_strafe_left") == ""
+                && FlightInput.Display("flight_reverse") == "E" && FlightInput.Display("flight_strafe_right") == "",
+                "Saved legacy Q/E bindings must win and leave the new strafe actions unbound.");
+            legacySettings.SetValue("controls", "flight_strafe_left", $"{(long)Key.Q},{(long)Key.Z}");
+            legacySettings.SetValue("controls", "flight_strafe_right", "");
+            RequireInput(legacySettings.Save(settingsPath) == Error.Ok, "Explicit strafe fixture must save.");
+            FlightInput.Initialize();
+            RequireInput(FlightInput.Display("flight_strafe_left") == "Z" && FlightInput.Display("flight_strafe_right") == "",
+                "Reload must keep the nonconflicting saved strafe key and the explicitly unbound action.");
+            FlightInput.RestoreDefaults(save: false);
             SendKey(Key.W, true);
             await nextPhysicsFrame();
             RequireInput(FlightInput.Capture().Thrust == 1, "The original held W key must produce thrust.");
@@ -27,6 +74,21 @@ public sealed class ClientInputSmokeTest(
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();
             RequireInput(readPaused() && hud.ControlsVisible, "Escape must pause and show the controls menu.");
+            var viewport = hud.GetViewport().GetVisibleRect();
+            foreach (var button in hud.FindChildren("*", "Button", true, false).Cast<Button>()
+                .Where(button => button.HasMeta("binding_action") || button.Name == "QuitFromControls"
+                    || button.Name == "RestoreDefaultBindings" || button.Name == "ReloadProfile"))
+            {
+                var rect = button.GetGlobalRect();
+                RequireInput(rect.Position.X >= viewport.Position.X && rect.End.X <= viewport.End.X
+                    && rect.Position.Y >= viewport.Position.Y && rect.End.Y <= viewport.End.Y,
+                    $"Controls menu button {button.Name} must fit inside the 1280×720 viewport.");
+            }
+            var hint = hud.FindChildren("ControlHint", "Label", true, false).Cast<Label>().Single();
+            var hintPanel = hud.FindChildren("ControlHintPanel", "PanelContainer", true, false).Cast<PanelContainer>().Single();
+            RequireInput(hintPanel.GetGlobalRect().Encloses(hint.GetGlobalRect())
+                && hint.AutowrapMode != TextServer.AutowrapMode.Off,
+                "The flight-control HUD hint must wrap inside its panel.");
             var pausedTick = readWorld().TickNumber;
             await nextPhysicsFrame();
             await nextPhysicsFrame();
@@ -36,21 +98,21 @@ public sealed class ClientInputSmokeTest(
                 .Single(button => button.HasMeta("binding_action") && button.GetMeta("binding_action").AsString() == "flight_forward");
             bindingButton.EmitSignal(Button.SignalName.Pressed);
             RequireInput(hud.IsCapturingKey, "The remapping button must enter key capture.");
-            SendKey(Key.Q, true);
+            SendKey(Key.T, true);
             await nextPhysicsFrame();
             RequireInput(!hud.IsCapturingKey, "The native replacement key must complete UI key capture.");
-            RequireInput(FlightInput.Display("flight_forward") == "Q", "The remapping UI must bind forward thrust to Q.");
+            RequireInput(FlightInput.Display("flight_forward") == "T", "The remapping UI must bind forward thrust to T.");
             SendKey(Key.W, false);
             await nextPhysicsFrame();
-            RequireInput(FlightInput.Capture().Thrust == 0, "Hold W, pause, rebind Q, release W must not leave cached thrust pressed.");
-            SendKey(Key.Q, false);
+            RequireInput(FlightInput.Capture().Thrust == 0, "Hold W, pause, rebind T, release W must not leave cached thrust pressed.");
+            SendKey(Key.T, false);
             await nextPhysicsFrame();
             GD.Print("INPUT SMOKE PASS: held-key UI rebinding releases cached action state");
 
             FlightInput.RestoreDefaults(save: false);
             RequireInput(FlightInput.Display("flight_forward").Contains("W"), "The memory-only reset must change the binding.");
             FlightInput.Initialize();
-            RequireInput(FlightInput.Display("flight_forward") == "Q", "Saved remapped bindings must survive initialization.");
+            RequireInput(FlightInput.Display("flight_forward") == "T", "Saved remapped bindings must survive initialization.");
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();
@@ -65,10 +127,10 @@ public sealed class ClientInputSmokeTest(
             await nextPhysicsFrame();
             RequireInput(FlightInput.Capture().Thrust == 0, "The removed W binding must no longer produce thrust.");
             SendKey(Key.W, false);
-            SendKey(Key.Q, true);
+            SendKey(Key.T, true);
             await nextPhysicsFrame();
             RequireInput(FlightInput.Capture().Thrust == 1 && readWorld().Player.Velocity.Length() > coastVelocity.Length(),
-                "The persisted Q binding must accelerate the gameplay ship.");
+                "The persisted T binding must accelerate the gameplay ship.");
             GD.Print("INPUT SMOKE PASS: persisted remap, pause, resume, and native gameplay input");
 
             SendKey(Key.Escape, true);
@@ -76,9 +138,9 @@ public sealed class ClientInputSmokeTest(
             await nextPhysicsFrame();
             var defaultsButton = hud.FindChildren("RestoreDefaultBindings", "Button", true, false).Cast<Button>().Single();
             defaultsButton.EmitSignal(Button.SignalName.Pressed);
-            SendKey(Key.Q, false);
+            SendKey(Key.T, false);
             await nextPhysicsFrame();
-            RequireInput(FlightInput.Capture().Thrust == 0, "Restoring defaults while Q is held must release cached thrust.");
+            RequireInput(FlightInput.Capture().Thrust == 0, "Restoring defaults while T is held must release cached thrust.");
             FlightInput.Initialize();
             RequireInput(FlightInput.Display("flight_forward").Contains("W") && FlightInput.Display("flight_forward").Contains("Up"),
                 "Restored letter and arrow defaults must persist.");
@@ -150,7 +212,7 @@ public sealed class ClientInputSmokeTest(
         }
         finally
         {
-            foreach (var key in new[] { Key.W, Key.Q, Key.Up, Key.Escape, Key.R, Key.M, Key.Equal, Key.Minus, Key.Pageup }) SendKey(key, false);
+            foreach (var key in new[] { Key.W, Key.T, Key.Q, Key.E, Key.Z, Key.Up, Key.Escape, Key.R, Key.M, Key.Equal, Key.Minus, Key.Pageup }) SendKey(key, false);
             try
             {
                 if (originalSettings is not null)

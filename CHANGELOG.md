@@ -1,5 +1,10 @@
 # Changelog
 
+## Selectable original hulls can strafe — November 4, 2026
+
+-   Q/E provide NEW remappable left/right strafe. The twelve selectable original hulls derive open-space lateral force 8250 from each hull's raw terrain-0 VEH StrafeThrust 22 through the emulator reading (82.5 px/s² at NEW mass 100). The legacy Interceptor keeps zero lateral force. Side thrust combines independently with forward/reverse, rotation and Shift boost; strafe alone does not engage or spend boost energy.
+-   Replay format 4 stores the full float axis; version 2 and 3 inputs read with zero strafe. The provisional C6/C7 wire and prediction input remain zero-axis. [Bounded evidence and limits](docs/development-log/2026-11-04-g10-f7-strafing.md). Native player evaluator, exact controls and terrain behavior remain open; no original feature or milestone checkbox changes.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

@@ -37,6 +37,8 @@ C1 raw BLO directory/member reader has **scoped raw-reader acceptance verified a
 
 ## Next
 
+G10 F7/K3 local strafe is implemented on `claim/g10-f7-strafing`: twelve original hulls derive terrain-0 force, Q/E are NEW conflict-safe remappable defaults, and replay v4 stores the analog axis. See the [dated evidence](docs/development-log/2026-11-04-g10-f7-strafing.md) and [design](docs/architecture/G10_F7_STRAFING.md). Independent review/merge and native comparison remain; RT-F026/027/028 and 397/22/375 stay open. F12 terrain flight is separate and should integrate the lateral impulse before its selected drag/clamp.
+
 Selected-hull sprite correction: rendering regression is implemented and published as [PR 123](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/123); author sprint is SPRINT_VALID and final exact-head review/CI/merge gates remain pending. All twelve canonical vehicle IDs now select their own atlas, and legacy/unmapped hulls retain the geometric fallback. Resume with the [dated evidence](docs/development-log/2026-11-04-selected-hull-sprite.md) and [client item plan](client/plan.d/selected-hull-sprite.md); do not count this binding fix as original hull/pose parity or change 397/22/375.
 
 Complete [C7 PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) current-head review, CI and merge gates; the author sprint is recorded as incomplete due to an unmapped solution file. Scoped library acceptance is verified; live integration and master M3 remain open. C1 is merged in [PR 116](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/116); do not reclaim its raw reader or close RT-F023/RT-F069 from raw byte access.

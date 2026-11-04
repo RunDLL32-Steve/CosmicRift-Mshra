@@ -43,6 +43,8 @@ public sealed record ShipPhysics
     public float Mass { get; init; } = 100;
     public float ForwardThrust { get; init; } = 12000;
     public float ReverseThrust { get; init; } = 12000;
+    /// <summary>NEW default zero for legacy fixtures; original hulls derive this force from VEH StrafeThrust.</summary>
+    public float StrafeThrust { get; init; }
     public float RotationSpeed { get; init; } = 3.3f;
     public float MaximumSpeed { get; init; } = 360;
     public float AsteroidRestitution { get; init; } = 0.25f;

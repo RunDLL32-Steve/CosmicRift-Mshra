@@ -13,6 +13,9 @@ public static class FlightInput
         new("flight_reverse", "Reverse thrust", [Key.S, Key.Down]),
         new("flight_left", "Rotate left", [Key.A, Key.Left]),
         new("flight_right", "Rotate right", [Key.D, Key.Right]),
+        // NEW local defaults; the archived keys.txt names actions but does not identify physical keys.
+        new("flight_strafe_left", "Strafe left", [Key.Q]),
+        new("flight_strafe_right", "Strafe right", [Key.E]),
         new("flight_fire", "Primary weapon", [Key.Space]),
         // Original Shift+thrust "hyper thrust" (RT archived keys.txt names the action; Shift is the generic Infantry modifier).
         new("flight_hyper", "Boost (hold with thrust)", [Key.Shift]),
@@ -37,7 +40,16 @@ public static class FlightInput
             var keys = settings.GetValue("controls", binding.Action).AsString()
                 .Split(',').Select(text => long.TryParse(text, out var number) ? (Key)number : Key.None)
                 .Where(key => key != Key.None).ToArray();
-            if (keys.Length != 0) SetKeys(binding.Action, keys);
+            SetKeys(binding.Action, keys);
+        }
+        // Older saved files know nothing of strafe. A pre-existing custom Q/E binding wins;
+        // leave the new conflicting action unbound so the player can choose another key.
+        foreach (var action in new[] { "flight_strafe_left", "flight_strafe_right" })
+        {
+            var keys = InputMap.ActionGetEvents(action).OfType<InputEventKey>().Select(e => e.PhysicalKeycode).ToArray();
+            var available = keys.Where(key => !Bindings.Any(b => b.Action != action &&
+                InputMap.ActionGetEvents(b.Action).OfType<InputEventKey>().Any(e => e.PhysicalKeycode == key))).ToArray();
+            if (available.Length != keys.Length) SetKeys(action, available);
         }
     }
 
@@ -45,7 +57,8 @@ public static class FlightInput
         Input.GetAxis("flight_reverse", "flight_forward"),
         Input.GetAxis("flight_left", "flight_right"),
         Input.IsActionPressed("flight_fire"),
-        Hyper: Input.IsActionPressed("flight_hyper"));
+        Hyper: Input.IsActionPressed("flight_hyper"),
+        Strafe: Input.GetAxis("flight_strafe_left", "flight_strafe_right"));
 
     /// <summary>True when <paramref name="key"/> is bound to any action in <see cref="Bindings"/>.</summary>
     public static bool IsBound(Key key) => Bindings.Any(binding =>

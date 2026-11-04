@@ -57,7 +57,7 @@ public static class OriginalShipBuilder
             Id = HullId(hull),
             Name = hull.Name,
             EvidenceClassification = "ORIGINAL+NEW",
-            Source = $"Derived by OriginalShipBuilder from {rows}, category '{hull.Category}'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). "
+            Source = $"Derived by OriginalShipBuilder from {rows}, category '{hull.Category}'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale); terrain 0 StrafeThrust f[{flight.Block.StrafeThrust.FieldIndex}]={flight.Block.StrafeThrust.Value}, independently converted by the emulator reading. "
                 + $"Hull points: VEH f[6]={hull.HullPoints.Value}, raw. Radius: VEH f[{VehFields.PhysicalRadius}] PhysicalRadius={hull.PhysicalRadius.Value} px. "
                 + $"Energy: VEH f[94] EnergyMax={hull.EnergyMax.Value}, f[95] EnergyRate={hull.EnergyRate.Value} (tenths per second, OriginalEnergyScale); f[96] EnergyStart={hull.EnergyMin.Value} equals the maximum. "
                 + "Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). "
@@ -69,6 +69,7 @@ public static class OriginalShipBuilder
                     + "recharge pausing while the boost is engaged is the owner's rule, not original data.",
                 "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
                 "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost.",
+                "Strafe: independent lateral acceleration with no diagonal normalization and normal thrust during boost is NEW/provisional; the original player evaluator and physical keys remain unverified.",
             ],
             Radius = hull.PhysicalRadius.Value,
             Physics = OriginalShipPhysics.From(hull),
