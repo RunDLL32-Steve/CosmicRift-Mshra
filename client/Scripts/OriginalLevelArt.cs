@@ -83,10 +83,22 @@ public sealed class OriginalLevelArt
     {
         var path = ResourceRoot + "level.json";
         if (!Godot.FileAccess.FileExists(path)) return null;
-        var document = JsonSerializer.Deserialize<Document>(Godot.FileAccess.GetFileAsString(path),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-            ?? throw new InvalidOperationException("Invalid original level art JSON.");
-        return new OriginalLevelArt(document);
+        try
+        {
+            var document = JsonSerializer.Deserialize<Document>(Godot.FileAccess.GetFileAsString(path),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? throw new InvalidOperationException("Invalid original level art JSON.");
+            // Every atlas is loaded here, so a partly staged or unimported folder falls back to the NEW look
+            // instead of failing inside _Draw.
+            var art = new OriginalLevelArt(document);
+            art.VerifyPackagedResources();
+            return art;
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or JsonException)
+        {
+            GD.PushWarning($"Original map art not used: {exception.Message}");
+            return null;
+        }
     }
 
     /// <summary>Indices of the entities whose cell can overlap <paramref name="view"/>, in file (draw) order.</summary>
@@ -152,6 +164,21 @@ public sealed class OriginalLevelArt
         var size = new Vector2(sprite.Width, sprite.Height);
         canvas.DrawTextureRectRegion(texture, new Rect2(centre - size / 2, size),
             FrameRect(sprite, FrameAt(sprite.FrameCount, PracticeRockCycle, phase, seconds)));
+    }
+
+    /// <summary>Tiles (16 px) that some placed sprite's cell overlaps, row-major; the same test stage_level_art.py reports.</summary>
+    public bool[] CoverageMask(int width, int height)
+    {
+        var covered = new bool[width * height];
+        foreach (var e in Entities)
+        {
+            var sprite = _document.Objects[e.Object];
+            int x0 = Math.Max(0, e.X / 16), y0 = Math.Max(0, e.Y / 16);
+            int x1 = Math.Min(width - 1, (e.X + sprite.Width - 1) / 16), y1 = Math.Min(height - 1, (e.Y + sprite.Height - 1) / 16);
+            for (var y = y0; y <= y1; y++)
+                Array.Fill(covered, true, y * width + x0, Math.Max(0, x1 - x0 + 1));
+        }
+        return covered;
     }
 
     /// <summary>Loads every staged atlas once and checks its dimensions.</summary>

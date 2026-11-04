@@ -34,6 +34,17 @@ class LevelArtTests(unittest.TestCase):
         self.assertEqual(entities[1]["object"], 1)
         self.assertEqual(entities[1]["frame"], 3)
 
+    def test_uncovered_blocked_tiles_counts_walls_under_no_sprite_cell(self):
+        physics = bytes([1, 1, 0, 1])  # 2 x 2 tiles; three blocked
+        entities = [{"x": 0, "y": 0, "object": 0}]
+        self.assertEqual(level_art.uncovered_blocked_tiles(2, 2, physics, entities, [(16, 16)]), 2)
+        self.assertEqual(level_art.uncovered_blocked_tiles(2, 2, physics, entities, [(32, 32)]), 0)
+        self.assertEqual(level_art.uncovered_blocked_tiles(2, 2, physics, [], [(16, 16)]), 3)
+
+    def test_physics_plane_decodes_the_third_plane(self):
+        width, height, physics = level_art.physics_plane(lvl_fixture([]))
+        self.assertEqual((width, height, physics), (2, 2, bytes(4)))
+
     def test_unknown_object_is_refused(self):
         with self.assertRaises(ValueError):
             level_art.parse_level(lvl_fixture([(0, 0, 2, 0, 0)]))

@@ -20,7 +20,7 @@ public partial class WorldView : Node2D
         set
         {
             _levelArt = value;
-            _mapTexture = _map is null || value is not null ? null : TileTexture(_map);
+            _mapTexture = _map is null ? null : TileTexture(_map, value);
         }
     }
     private OriginalLevelArt? _levelArt;
@@ -47,7 +47,7 @@ public partial class WorldView : Node2D
         set
         {
             _map = value;
-            _mapTexture = value is null || _levelArt is not null ? null : TileTexture(value);
+            _mapTexture = value is null ? null : TileTexture(value, _levelArt);
         }
     }
     /// <summary>Where the player spawns; the launch ring is drawn there.</summary>
@@ -169,16 +169,24 @@ public partial class WorldView : Node2D
             _ => new Color(0.6f, 0.6f, 0.9f, 0.08f),
         };
 
-    /// <summary>One pixel per tile (NEW look). Not used when the original map art is staged: its sprites draw the walls.</summary>
-    private static ImageTexture TileTexture(SectorMap map)
+    /// <summary>
+    /// One pixel per tile (NEW look). With the original map art staged, its sprites draw the walls, so only the blocked
+    /// tiles no sprite cell covers keep the NEW wall colour (otherwise they would be invisible collision), and the zone
+    /// tints are left out.
+    /// </summary>
+    private static ImageTexture TileTexture(SectorMap map, OriginalLevelArt? art)
     {
+        var covered = art?.CoverageMask(map.Width, map.Height);
+        var clear = new byte[4];
         var bytes = new byte[map.Width * map.Height * 4];
         var palette = new byte[256][];
         for (var y = 0; y < map.Height; y++)
         for (var x = 0; x < map.Width; x++)
         {
             var tile = map.TileAt(x, y);
-            var rgba = palette[tile] ??= ToRgba(TileColor(tile));
+            var rgba = covered is null ? palette[tile] ??= ToRgba(TileColor(tile))
+                : (tile & SectorMap.BlockedBit) == 0 || covered[y * map.Width + x] ? clear
+                : palette[tile] ??= ToRgba(TileColor(tile));
             rgba.CopyTo(bytes, (y * map.Width + x) * 4);
         }
         return ImageTexture.CreateFromImage(Image.CreateFromData(map.Width, map.Height, false, Image.Format.Rgba8, bytes));

@@ -98,6 +98,40 @@ def parse_level(data: bytes) -> tuple[list[tuple[str, str]], list[tuple[str, str
     return refs[:object_count], refs[object_count:], entities
 
 
+def physics_plane(data: bytes) -> tuple[int, int, bytes]:
+    """Width, height and the third RLE plane (low 5 bits = physics; non-zero blocks), as the G6 reader decodes it."""
+    version, width, height, _, floor_count, object_count = struct.unpack_from("<6i", data, 0)
+    offset = HEADER_SIZE + (floor_count + object_count) * 64
+    tiles = width * height
+    planes = []
+    for _ in range(3):
+        plane = bytearray()
+        while len(plane) < tiles:
+            length = data[offset]
+            offset += 1
+            if length == 0:
+                length = (data[offset] << 8) | data[offset + 1]
+                offset += 2
+            if length == 0 or len(plane) + length > tiles:
+                raise ValueError("Invalid LVL plane run")
+            plane += bytes([data[offset]]) * length
+            offset += 1
+        planes.append(bytes(plane))
+    return width, height, planes[2]
+
+
+def uncovered_blocked_tiles(width: int, height: int, physics: bytes, entities: list[dict], cells: list[tuple[int, int]]) -> int:
+    """Blocked tiles that no placed sprite's cell overlaps; the client draws these with the NEW wall tint."""
+    covered = bytearray(width * height)
+    for entity in entities:
+        cell_width, cell_height = cells[entity["object"]]
+        x0, y0 = max(0, entity["x"] // 16), max(0, entity["y"] // 16)
+        x1, y1 = min(width - 1, (entity["x"] + cell_width - 1) // 16), min(height - 1, (entity["y"] + cell_height - 1) // 16)
+        for ty in range(y0, y1 + 1):
+            covered[ty * width + x0:ty * width + x1 + 1] = b"\1" * (x1 - x0 + 1)
+    return sum(1 for i, value in enumerate(physics) if value & 0x1F and not covered[i])
+
+
 def mineral_graphics(itm_text: str) -> dict[str, tuple[str, str, str]]:
     found = {}
     for values in csv.reader(itm_text.splitlines(), skipinitialspace=True):
@@ -166,6 +200,9 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
     object_table = [dict(index=index, **sprite(archive, member)) for index, (archive, member) in enumerate(objects)]
     mineral_table = [dict(itemId=item_id, itemName=name, **sprite(archive + ".blo", member + ".cfs"))
         for item_id, (name, archive, member) in sorted(minerals.items())]
+    width, height, physics = physics_plane(level_bytes)
+    blocked = sum(1 for value in physics if value & 0x1F)
+    uncovered = uncovered_blocked_tiles(width, height, physics, entities, [(o["width"], o["height"]) for o in object_table])
     flat = []
     for entity in entities:
         flat += [entity["x"], entity["y"], entity["object"], entity["animationTime"], entity["phase"], entity["frame"]]
@@ -175,6 +212,7 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
         "entityReading": "RECONSTRUCTED: x,y = top-left of the sprite cell in map pixels; object = uint16@4 & 0x1FFF; "
             "frame = uint16@4 >> 13 (starting frame); animationTime = uint16@6 (hundredths of a second per cycle, 0 = still); "
             "phase = byte 14 (percent).",
+        "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered,
         "floors": [{"archive": a, "member": m} for a, m in floors],
         "objects": object_table, "minerals": mineral_table,
         "entityStride": 6, "entityFields": ["x", "y", "object", "animationTime", "phase", "frame"], "entities": flat}
@@ -185,7 +223,7 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
         read_pinned(source, pinned, *blo_pins[pinned])
     child(out, "level.json").write_text(json.dumps(level, separators=(",", ":")) + "\n", encoding="utf-8")
     summary = {"objects": len(object_table), "minerals": len(mineral_table), "entities": len(entities),
-        "archives": len(archives), "output": str(out)}
+        "archives": len(archives), "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered, "output": str(out)}
     print("LEVEL_ART_STAGE_PASS " + json.dumps(summary))
     return level
 
