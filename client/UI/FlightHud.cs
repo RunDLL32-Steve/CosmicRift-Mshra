@@ -225,7 +225,10 @@ public partial class FlightHud : CanvasLayer
             row.AddChild(label);
             var button = Button(FlightInput.Display(binding.Action));
             button.SetMeta("binding_action", binding.Action);
-            button.CustomMinimumSize = new Vector2(185, 31);
+            button.CustomMinimumSize = new Vector2(185, 28);
+            // Slimmer binding rows keep the whole menu on a 720-pixel screen now that the sector map has a row too.
+            foreach (var style in new[] { "normal", "hover", "pressed" })
+                if (button.GetThemeStylebox(style) is StyleBoxFlat flat) flat.ContentMarginTop = flat.ContentMarginBottom = 5;
             button.Pressed += () =>
             {
                 _captureAction = binding.Action;
@@ -272,7 +275,7 @@ public partial class FlightHud : CanvasLayer
     {
         foreach (var binding in FlightInput.Bindings)
             if (_bindingButtons.TryGetValue(binding.Action, out var button)) button.Text = FlightInput.Display(binding.Action);
-        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("station_dock")} dock   ·   {FlightInput.Display("flight_pause")} controls";
+        _controls.Text = $"{FlightInput.Display("flight_forward")} thrust   ·   {FlightInput.Display("flight_reverse")} reverse   ·   {FlightInput.Display("flight_left")} / {FlightInput.Display("flight_right")} turn   ·   {FlightInput.Display("flight_fire")} fire   ·   {FlightInput.Display("flight_reset")} reset   ·   {FlightInput.Display("station_dock")} dock   ·   {FlightInput.Display(FlightInput.MapAction)} map   ·   {FlightInput.Display("flight_pause")} controls";
     }
 
     private static ProgressBar Meter(VBoxContainer parent, string caption, Color color)
