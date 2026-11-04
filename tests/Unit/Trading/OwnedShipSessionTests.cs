@@ -96,6 +96,38 @@ public sealed class OwnedShipSessionTests
     }
 
     [Fact]
+    public async Task TheHangar_SwitchesShipsOnlyWhileDockedAtAHomeStore()
+    {
+        // Steve, Nov 4 2026: a pilot can change to another owned ship, from the hangar of a team's home store.
+        var station = StationSellingASecondHull();
+        var session = await OpenAsync(station);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyShipAsync(SecondHull, station.X, station.Y)).Status);
+        Assert.True((await session.SaveShipAsync(42, station.X, station.Y, 1f)).Saved);
+        var before = session.Profile!;
+
+        // Open space, a Trading Post and a Repair Dock have no hangar: refused, nothing saved.
+        var post = station.SitesOffering(SiteServices.Trade)[0];
+        var dock = station.SitesOffering(SiteServices.Repair)[0];
+        foreach (var (x, y) in new[] { (station.X + 10_000, station.Y), (post.X, post.Y), (dock.X, dock.Y) })
+            Assert.Equal(RejectionReason.StationAccessDenied, (await session.SwitchShipAsync(SecondHull, x, y)).Reason);
+        Assert.Same(before, session.Profile);
+
+        // At the home store the switch goes through and parks the ship flown in with its condition.
+        var switched = await session.SwitchShipAsync(SecondHull, station.X, station.Y);
+        Assert.True(switched.Saved);
+        Assert.Equal(SecondHull, session.Profile!.ShipHullId);
+        Assert.Equal(new ShipCondition(42, station.X, station.Y, 1f), session.Profile.OwnedShips[Starter]);
+        Assert.Equal(RejectionReason.ShipNotOwned, (await session.SwitchShipAsync("fixture-unowned", station.X, station.Y)).Reason);
+
+        // Every team's store has a hangar, so a pilot can switch back at another team's station too.
+        var otherStore = station.SitesOffering(SiteServices.Store)[^1];
+        Assert.True((await session.SwitchShipAsync(Starter, otherStore.X, otherStore.Y)).Saved);
+        Assert.Equal(Starter, session.Profile!.ShipHullId);
+        Assert.Equal(new ShipCondition(42, station.X, station.Y, 1f), session.Profile.Ship);
+        Assert.Equal(Starter, session.Profile.ShipHullId);
+    }
+
+    [Fact]
     public async Task EachShipCarriesItsOwnHoldCap()
     {
         var session = await OpenAsync(StationSellingASecondHull());

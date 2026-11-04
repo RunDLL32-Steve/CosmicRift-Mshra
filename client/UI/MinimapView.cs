@@ -4,7 +4,7 @@ using RogueTrader.Simulation;
 namespace RogueTrader.Client;
 
 /// <summary>
-/// Radar: the whole sector map in the bottom-right corner, with the player, the station, the refinery, the practice targets
+/// Radar: the whole sector map in the bottom-right corner, with the player, the stations, Trading Posts, Repair Docks and refinery, the practice targets
 /// and the mineral drops. NEW: whether Rogue Trader had a radar, and how it looked, is unknown (G10 H3); this one only makes the
 /// full-size map (G10 F10) playable. Each radar pixel covers 8 x 8 tiles and shows a wall when any of them blocks.
 /// </summary>
@@ -37,6 +37,9 @@ public partial class MinimapView : Control
         TextureFilter = TextureFilterEnum.Nearest;
     }
 
+    /// <summary>Trading Posts, Repair Docks and the other teams' stores.</summary>
+    public IReadOnlyList<(System.Numerics.Vector2 Position, float DockRadius, string Name, Color Color)> Outposts { get; init; } = [];
+
     public void Update(WorldSimulation world)
     {
         _world = world;
@@ -53,6 +56,7 @@ public partial class MinimapView : Control
         DrawString(ThemeDB.FallbackFont, new Vector2(0, -5), "RADAR (NEW)", HorizontalAlignment.Left, -1, 11, FlightHud.Muted);
         Mark(_station, Amber, 3);
         Mark(_refinery, new Color("e06a5a"), 3);
+        foreach (var (position, radius, name, color) in Outposts) Mark((position, radius, name), color, 2.5f);
         if (_world is null) return;
         foreach (var pile in _world.Collectibles) DrawRect(new Rect2(ToRadar(pile.Position) - Vector2.One, Vector2.One * 2), new Color(Amber, 0.8f));
         foreach (var target in _world.Targets)

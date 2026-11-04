@@ -5,9 +5,11 @@ using RogueTrader.Trading;
 namespace RogueTrader.Client;
 
 /// <summary>
-/// Queue M8 provisional station screen: market, repairs and upgrades. It only raises requests and renders the authoritative
-/// profile it is given; it never changes wallet, cargo or upgrades itself. Layout and wording are NEW testbed UI, not the
-/// native store (RT-F025/F026 stay open).
+/// Queue M8 provisional station screen. It shows the pages of the one service the docked site offers (Steve, Nov 4 2026):
+/// the Trading Outpost page at a Trading Post, Repairs at a Repair Dock, the Refinery page at a refinery, and Upgrades, Ship
+/// Hulls and the Hangar (change ships) at a team's home store. It only raises requests and renders the authoritative profile it
+/// is given; it never changes wallet, cargo, upgrades or ships itself. Layout and wording are NEW testbed UI, not the native
+/// store (RT-F025/F026 stay open).
 /// </summary>
 public partial class StationScreen : CanvasLayer
 {
@@ -16,6 +18,8 @@ public partial class StationScreen : CanvasLayer
     public event Action<string>? UpgradeRequested;
     public event Action<string, int>? RefineRequested;
     public event Action<string>? BuyShipRequested;
+    /// <summary>The pilot pressed FLY on an owned ship in the Hangar.</summary>
+    public event Action<string>? SwitchShipRequested;
     public event Action? CloseRequested;
 
     private readonly StationDefinition _station;
@@ -29,15 +33,21 @@ public partial class StationScreen : CanvasLayer
     private VBoxContainer _upgrades = null!;
     private VBoxContainer _refinery = null!;
     private VBoxContainer _hulls = null!;
+    private VBoxContainer _hangar = null!;
     private Label _title = null!;
-    private bool _refineryMode;
+    private string _service = SiteServices.Store;
+    private string _siteName;
     private TabContainer _tabs = null!;
+
+    // Page order in the tab container.
+    private const int MarketTab = 0, RepairsTab = 1, UpgradesTab = 2, RefineryTab = 3, HullsTab = 4, HangarTab = 5;
 
     public void ShowTab(int index) => _tabs.CurrentTab = Math.Clamp(index, 0, _tabs.GetTabCount() - 1);
 
     public StationScreen(StationDefinition station)
     {
         _station = station;
+        _siteName = station.Name;
         Layer = 5;
     }
 
@@ -86,7 +96,8 @@ public partial class StationScreen : CanvasLayer
         _upgrades = Page(_tabs, "Upgrades");
         _refinery = Page(_tabs, "Refinery");
         _hulls = Page(_tabs, "Ship Hulls");
-        SetRefineryMode(_refineryMode);
+        _hangar = Page(_tabs, "Hangar");
+        SetMode(_service, _siteName);
 
         _status = FlightHud.Label("", 14, FlightHud.TextColor);
         _status.Name = "StationStatus";
@@ -99,18 +110,31 @@ public partial class StationScreen : CanvasLayer
         column.AddChild(close);
     }
 
-    /// <summary>At the refinery only the Refinery page is offered; at the station every page but it (queue M7 mining slice).</summary>
-    public void SetRefineryMode(bool refinery)
+    /// <summary>The pages a site of <paramref name="service"/> offers, the first one shown when docking.</summary>
+    public static IReadOnlyList<int> PagesOf(string service) => service switch
     {
-        _refineryMode = refinery;
+        SiteServices.Trade => [MarketTab],
+        SiteServices.Repair => [RepairsTab],
+        SiteServices.Refine => [RefineryTab],
+        _ => [UpgradesTab, HullsTab, HangarTab],
+    };
+
+    /// <summary>Shows only the pages of the docked site's service and its name as the title.</summary>
+    public void SetMode(string service, string siteName)
+    {
+        _service = service;
+        _siteName = siteName;
         if (_tabs is null) return;
-        for (var i = 0; i < _tabs.GetTabCount(); i++) _tabs.SetTabHidden(i, (i == 3) != refinery);
-        _tabs.CurrentTab = refinery ? 3 : 0;
-        _title.Text = (refinery && _station.Refinery is { } site ? site.Name : _station.Name).ToUpperInvariant();
+        var pages = PagesOf(service);
+        for (var i = 0; i < _tabs.GetTabCount(); i++) _tabs.SetTabHidden(i, !pages.Contains(i));
+        _tabs.CurrentTab = pages[0];
+        _title.Text = siteName.ToUpperInvariant();
     }
 
-    public bool RefineryMode => _refineryMode;
+    public string Service => _service;
+    public bool RefineryMode => _service == SiteServices.Refine;
     public string TitleText => _title.Text;
+    public int CurrentTab => _tabs.CurrentTab;
 
     public void SetStatus(string text, bool error = false)
     {
@@ -120,8 +144,9 @@ public partial class StationScreen : CanvasLayer
 
     /// <summary>Rebuilds every row from the authoritative profile, the ship's hull and the active upgrade set.</summary>
     /// <param name="blockedUpgrade">Why an unowned upgrade cannot become active (null when it can); such rows are disabled.</param>
+    /// <param name="canFly">Whether this build can fly a hull (the Hangar disables the others).</param>
     public void Refresh(PlayerProfile profile, long cargoWeight, long cargoCapacity, float hull, float maximumHull, IReadOnlySet<string> activeUpgrades,
-        Func<string, string?> blockedUpgrade)
+        Func<string, string?> blockedUpgrade, Func<string, bool> canFly)
     {
         _credits.Text = $"CREDITS  {profile.Wallet:N0}";
         _cargo.Text = $"CARGO  {cargoWeight:N0} / {cargoCapacity:N0}";
@@ -168,7 +193,7 @@ public partial class StationScreen : CanvasLayer
                 ActionButton("REPAIR", $"repair:{repair.Id}", !canRepair, () => RepairRequested?.Invoke(repair.Id))));
 
         Clear(_hulls);
-        _hulls.AddChild(FlightHud.Label("Original hull exchanges. You keep every ship you own, one of each, and choose one when the game loads. A hull needs one you own of the same race.", 12, FlightHud.Muted));
+        _hulls.AddChild(FlightHud.Label("Original hull exchanges. You keep every ship you own, one of each; change ships in the Hangar or when the game loads. A hull needs one you own of the same race.", 12, FlightHud.Muted));
         foreach (var ship in _station.Ships ?? [])
         {
             var owned = profile.OwnedShips.ContainsKey(ship.HullId);
@@ -179,6 +204,18 @@ public partial class StationScreen : CanvasLayer
             _hulls.AddChild(Row(Cell(ship.Name, 160), Cell($"{ship.Price:N0} cr", 90), Cell(note, 200), button));
         }
         if (_station.Ships is not { Count: > 0 }) _hulls.AddChild(FlightHud.Label("No hulls are sold here.", 14, FlightHud.Muted));
+
+        Clear(_hangar);
+        _hangar.AddChild(FlightHud.Label("Your ships. Pick one to fly it out of this dock with the hull it was parked with; the ship you leave stays parked here.", 12, FlightHud.Muted));
+        var names = (_station.Ships ?? []).ToDictionary(h => h.HullId, h => h.Name);
+        foreach (var (hullId, parked) in profile.OwnedShips)
+        {
+            var flying = hullId == profile.ShipHullId;
+            var condition = flying ? $"hull {hull:0} / {maximumHull:0}" : parked is null ? "full hull" : $"hull {parked.Hull:0}";
+            var fly = ActionButton(flying ? "FLYING" : "FLY", $"hangar:{hullId}", flying || !canFly(hullId), () => SwitchShipRequested?.Invoke(hullId));
+            _hangar.AddChild(Row(Cell(names.GetValueOrDefault(hullId, hullId), 160), Cell(condition, 120),
+                Cell(flying ? "flying now" : canFly(hullId) ? "parked" : "not flyable in this build yet", 170), fly));
+        }
 
         Clear(_upgrades);
         _upgrades.AddChild(FlightHud.Label("Original modules and prices. Effects are provisional; one active item per slot.", 12, FlightHud.Muted));

@@ -82,8 +82,31 @@ public sealed record SectorDefinition
     /// open practice sector with no walls.
     /// </summary>
     public string? MapFile { get; init; }
+    /// <summary>
+    /// The teams a joining pilot can be put on, in the order they are filled (Steve, Nov 4 2026: the first pilot joins Cold
+    /// Harbor, then pilots alternate so the teams stay even). Empty for a practice sector: every pilot uses <see cref="PlayerSpawn"/>.
+    /// </summary>
+    public IReadOnlyList<TeamDefinition> Teams { get; init; } = [];
     /// <summary>Where each part of a derived sector came from, and which parts are NEW. Not read by the simulation.</summary>
     public IReadOnlyList<string> Evidence { get; init; } = [];
+
+    /// <summary>The spawn of a team, or <see cref="PlayerSpawn"/> when the sector has no such team.</summary>
+    public SpawnDefinition SpawnOf(int team) => Teams.FirstOrDefault(t => t.Index == team)?.Spawn ?? PlayerSpawn;
+}
+
+/// <summary>
+/// A team of the sector (CFG [TeamInfoN]): its name, how many pilots it takes, where it spawns and the station it calls home.
+/// </summary>
+public sealed record TeamDefinition
+{
+    /// <summary>The CFG team number (N of [TeamInfoN]).</summary>
+    public int Index { get; init; }
+    public string Name { get; init; } = "";
+    /// <summary>CFG [TeamInfoN] MaxPlayers; a full team takes no more pilots.</summary>
+    public int MaxPlayers { get; init; }
+    public SpawnDefinition Spawn { get; init; } = new();
+    /// <summary>Station id of the team's home store (see the station data); null when it has none.</summary>
+    public string? HomeStationId { get; init; }
 }
 
 public sealed record SpawnDefinition

@@ -105,7 +105,8 @@ public sealed class StationPriceTable : IPriceSource
     }
 
     /// <summary>Adds "must own one of" hull requirements at every station of this table; a repeated or empty entry is refused.</summary>
-    public StationPriceTable WithShipRequirements(IEnumerable<(string HullId, IReadOnlyCollection<string> RequiresOneOf)> requirements)
+    public StationPriceTable WithShipRequirements(IEnumerable<(string HullId, IReadOnlyCollection<string> RequiresOneOf)> requirements,
+        IEnumerable<string>? at = null)
     {
         ArgumentNullException.ThrowIfNull(requirements);
         var batch = requirements.ToArray();
@@ -113,8 +114,9 @@ public sealed class StationPriceTable : IPriceSource
         foreach (var (hull, anyOf) in batch)
             if (string.IsNullOrEmpty(hull) || anyOf is null || anyOf.Count == 0 || anyOf.Any(string.IsNullOrEmpty) || !seen.Add(hull))
                 throw new ArgumentException($"Invalid or duplicate ship requirement for '{hull}'.", nameof(requirements));
+        var stations = Stations(at);
         foreach (var (hull, anyOf) in batch)
-            foreach (var station in _stationIds)
+            foreach (var station in stations)
                 _shipRequirement[(station, hull)] = anyOf.ToArray();
         return this;
     }
@@ -148,32 +150,46 @@ public sealed class StationPriceTable : IPriceSource
     /// Adds explicit upgrade prices (NEW fixtures or hand-authored data) at every station of this table, replacing none: a repeated
     /// upgrade id is refused. Returns this table.
     /// </summary>
-    public StationPriceTable WithUpgradePrices(IEnumerable<(string UpgradeId, long Price)> prices) => AddPrices(prices, _upgrade, "upgrade");
+    public StationPriceTable WithUpgradePrices(IEnumerable<(string UpgradeId, long Price)> prices, IEnumerable<string>? at = null) =>
+        AddPrices(prices, _upgrade, "upgrade", at);
 
     /// <summary>Adds hull prices (schema 6 owned ships) at every station of this table; a repeated hull id is refused. Returns this table.</summary>
-    public StationPriceTable WithShipPrices(IEnumerable<(string HullId, long Price)> prices) => AddPrices(prices, _ship, "ship");
+    public StationPriceTable WithShipPrices(IEnumerable<(string HullId, long Price)> prices, IEnumerable<string>? at = null) =>
+        AddPrices(prices, _ship, "ship", at);
 
     /// <summary>
     /// Adds explicit repair prices. The original repair rows (ids 39/40/43) have buy 0 and no decoded cost (RT-F047), so no price
     /// is ever derived from original data: every repair price here is authored and NEW/provisional.
     /// </summary>
-    public StationPriceTable WithRepairPrices(IEnumerable<(string RepairId, long Price)> prices) => AddPrices(prices, _repair, "repair");
+    public StationPriceTable WithRepairPrices(IEnumerable<(string RepairId, long Price)> prices, IEnumerable<string>? at = null) =>
+        AddPrices(prices, _repair, "repair", at);
+
+    /// <summary>The stations a With* call prices at: <paramref name="at"/> when given, otherwise every station of this table.</summary>
+    private string[] Stations(IEnumerable<string>? at)
+    {
+        if (at is null) return _stationIds;
+        var stations = at.ToArray();
+        if (stations.Length == 0 || stations.Any(string.IsNullOrEmpty)) throw new ArgumentException("Prices need at least one station id.", nameof(at));
+        return stations;
+    }
 
     /// <summary>All-or-nothing: the whole batch is checked against itself and the table before anything is written.</summary>
-    private StationPriceTable AddPrices(IEnumerable<(string Id, long Price)> prices, Dictionary<(string, string), long> target, string what)
+    private StationPriceTable AddPrices(IEnumerable<(string Id, long Price)> prices, Dictionary<(string, string), long> target, string what,
+        IEnumerable<string>? at = null)
     {
         ArgumentNullException.ThrowIfNull(prices);
+        var stations = Stations(at);
         var batch = prices.ToArray();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (id, price) in batch)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentException($"A {what} price needs an id.", nameof(prices));
-            if (!seen.Add(id) || _stationIds.Any(s => target.ContainsKey((s, id))))
+            if (!seen.Add(id) || stations.Any(s => target.ContainsKey((s, id))))
                 throw new ArgumentException($"Duplicate {what} price for '{id}'.", nameof(prices));
             if (price < 0) throw new ArgumentException($"Negative {what} price for '{id}'.", nameof(prices));
         }
         foreach (var (id, price) in batch)
-            foreach (var station in _stationIds) target[(station, id)] = price;
+            foreach (var station in stations) target[(station, id)] = price;
         return this;
     }
 }

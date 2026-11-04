@@ -63,13 +63,18 @@ public sealed class OriginalMapTests
     [RequiresOriginalAssetsFact]
     public void CommittedSector_MatchesPinnedOriginals()
     {
-        var (sector, spawn) = OriginalMapBuilder.BuildSector(OriginalAssets.Root!, Practice());
+        var (sector, spawns) = OriginalMapBuilder.BuildSector(OriginalAssets.Root!, Practice(), Map.Value);
+        var spawn = spawns[0];
         var derived = OriginalMapBuilder.SectorToJson(sector);
         if (Environment.GetEnvironmentVariable("RT_WRITE_DERIVED_MAP") == "1") File.WriteAllText(Committed("sectors", "rogue.json"), derived);
         Assert.Equal(derived, File.ReadAllText(Committed("sectors", "rogue.json")).ReplaceLineEndings("\n"));
         // CFG [WarpGroup] InitialEntry=0; LIO row 6 is the group 0 warp for team 0 (SpecificTeam mode 2).
         Assert.Equal((6, "Cold Harbor SpawnA", 1936, 1776, 300, 250, 0, 2, 0),
             (spawn.LioRow, spawn.Name, spawn.X, spawn.Y, spawn.Width, spawn.Height, spawn.WarpGroup, spawn.WarpMode, spawn.WarpModeParameter));
+        // The four station teams have an initial-entry warp; their first warps are rows 6, 7, 29 and 30.
+        Assert.Equal(new[] { (0, 6), (1, 7), (2, 29), (3, 30) }, spawns.Select(s => (s.WarpModeParameter, s.LioRow)));
+        Assert.Equal(new[] { "Cold Harbor", "Northern Cross", "Cassandra", "Yankee Station" }, sector.Teams.Select(t => t.Name));
+        Assert.All(sector.Teams, t => Assert.Equal(10, t.MaxPlayers)); // CFG [TeamInfo0..3] MaxPlayers=10
     }
 
     // ---- Shipped data -------------------------------------------------------------------------------------------------
@@ -134,6 +139,28 @@ public sealed class OriginalMapTests
         var map = Map.Value;
         var ship = GameCatalog.FromJson(Data("ships", "starter_interceptor.json"), Data("weapons", "plasma_cannon.json"), Data("sectors", "rogue.json")).Ship;
         Assert.InRange(map.PixelWidth / ship.Physics.MaximumSpeed, 98, 99);
+    }
+
+    [Fact]
+    public void ShippedSector_SpawnsEveryTeamOnAnOpenTileOfItsStoreZone()
+    {
+        var map = Map.Value;
+        var sector = Sector();
+        Assert.Equal(new[] { 0, 1, 2, 3 }, sector.Teams.Select(t => t.Index));
+        Assert.Equal(sector.PlayerSpawn, sector.Teams[0].Spawn); // the first pilot's spawn is Cold Harbor SpawnA
+        Assert.Equal(sector.PlayerSpawn, sector.SpawnOf(0));
+        foreach (var team in sector.Teams)
+        {
+            var at = new Vector2(team.Spawn.X, team.Spawn.Y);
+            Assert.False(map.IsBlocked(at), $"{team.Name} spawns on a wall at {at}.");
+            Assert.Equal(10, map.TerrainAt(at)); // the SpaceDock store zone of its station
+            Assert.NotNull(team.HomeStationId);
+        }
+        // Cassandra's warp box centre is on the station itself; the spawn is the nearest open tile inside the box.
+        var cassandra = sector.Teams[2];
+        Assert.True(map.IsBlocked(map.FromLio(25888, 21376)));
+        Assert.InRange(Math.Abs(cassandra.Spawn.X - (25888 - 48)), 0, 175);
+        Assert.InRange(Math.Abs(cassandra.Spawn.Y - (21376 - 48)), 0, 150);
     }
 
     private static void AssertOpenCircle(SectorMap map, Vector2 centre, float radius, string what)

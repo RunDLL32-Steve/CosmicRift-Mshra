@@ -17,6 +17,18 @@ public partial class WorldView : Node2D
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Station { get; set; }
     /// <summary>Provisional refinery marker (queue M7 mining slice), drawn like the station.</summary>
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Refinery { get; set; }
+    /// <summary>Trading Posts, Repair Docks and the other teams' stores, drawn like the station in their service's colour.</summary>
+    public IReadOnlyList<(System.Numerics.Vector2 Position, float DockRadius, string Name, Color Color)> Outposts { get; set; } = [];
+
+    /// <summary>Marker colour of a site's service: amber stores, teal Trading Posts, blue Repair Docks, red refineries.</summary>
+    public static Color ServiceColor(string service) => service switch
+    {
+        RogueTrader.Trading.SiteServices.Trade => new Color("62dfd1"),
+        RogueTrader.Trading.SiteServices.Repair => new Color("7fb6ff"),
+        RogueTrader.Trading.SiteServices.Refine => new Color("e06a5a"),
+        _ => Amber,
+    };
+
     /// <summary>The sector's walls and terrain, drawn one texture pixel per 16-pixel tile; null for the open practice sector.</summary>
     public SectorMap? Map
     {
@@ -81,6 +93,7 @@ public partial class WorldView : Node2D
         DrawOrigin();
         DrawStation(Station, Amber);
         DrawStation(Refinery, new Color("e06a5a"));
+        foreach (var (position, radius, name, color) in Outposts) DrawStation((position, radius, name), color);
         foreach (var pile in _world.Collectibles)
             if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(ToGodot(pile.Position), pile.Radius);
             else DrawPile(ToGodot(pile.Position), Mathf.Min(pile.Radius, 24));

@@ -22,7 +22,7 @@ public sealed class OriginalStationTests
     [RequiresOriginalAssetsFact]
     public void CommittedStationMatchesPinnedOriginals()
     {
-        var derived = OriginalStationBuilder.Build(OriginalAssets.Root!).ToJson();
+        var derived = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams).ToJson();
         if (Environment.GetEnvironmentVariable("RT_WRITE_DERIVED_STATION") == "1") File.WriteAllText(CommittedPath, derived);
         Assert.Equal(derived, File.ReadAllText(CommittedPath).ReplaceLineEndings("\n"));
     }
@@ -30,7 +30,7 @@ public sealed class OriginalStationTests
     [RequiresOriginalAssetsFact]
     public void OriginalValuesAreCarriedUnchanged()
     {
-        var station = OriginalStationBuilder.Build(OriginalAssets.Root!);
+        var station = OriginalStationBuilder.Build(OriginalAssets.Root!, TestWorld.RogueMap, TestWorld.RogueCatalog().Sector.Teams);
         var items = OriginalItemCatalog.Load(OriginalAssets.Root!);
 
         Assert.Equal(items.Resources.Select(i => (i.Id.ToString(), i.Name, (long)i.Mass.Value)), station.Goods.Select(g => (g.Id, g.Name, g.UnitWeight)));

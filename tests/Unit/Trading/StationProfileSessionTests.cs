@@ -17,6 +17,64 @@ public sealed class StationProfileSessionTests
     private static StationDefinition LoadStation() =>
         StationDefinition.FromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "stations", "trading_outpost.json")));
 
+    /// <summary>The first original Trading Post (goods sell only there) and Repair Dock (repairs only there).</summary>
+    private static ServiceSite Post(StationDefinition station) => station.SitesOffering(SiteServices.Trade)[0];
+    private static ServiceSite Dock(StationDefinition station) => station.SitesOffering(SiteServices.Repair)[0];
+
+    [Fact]
+    public async Task Services_AreSplitBetweenTradingPostsRepairDocksAndStores()
+    {
+        // Steve, Nov 4 2026: goods sell at the original Trading Posts and repairs are bought at the Repair Docks.
+        var station = LoadStation();
+        var session = await OpenAsync(station: station);
+        var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
+        await Give(session, trade.InputItemId, 10);
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.SellAsync(trade.InputItemId, 1, station.X, station.Y)).Reason);
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.SellAsync(trade.InputItemId, 1, Dock(station).X, Dock(station).Y)).Reason);
+        foreach (var post in station.SitesOffering(SiteServices.Trade))
+        {
+            Assert.Equal(post, session.DockedAt(post.X, post.Y));
+            Assert.Equal(TransactionStatus.Applied, (await session.SellAsync(trade.InputItemId, 1, post.X, post.Y)).Status);
+        }
+        var repair = station.Repairs[0];
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.RepairAsync(repair.Id, station.X, station.Y, 60, FullHull)).Reason);
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.RepairAsync(repair.Id, Post(station).X, Post(station).Y, 60, FullHull)).Reason);
+        foreach (var dock in station.SitesOffering(SiteServices.Repair))
+            Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(repair.Id, dock.X, dock.Y, 60, FullHull)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync(trade.InputItemId, 8, Post(station).X, Post(station).Y)).Status);
+        // Upgrades and hulls sell at every team's home store, never at a Trading Post or Repair Dock.
+        var cheapest = station.Upgrades.Where(u => u.Effect != UpgradeEffect.None).OrderBy(u => u.Price).First();
+        Assert.True(session.Profile!.Wallet >= cheapest.Price, $"{session.Profile.Wallet} credits cannot buy {cheapest.Name} at {cheapest.Price}.");
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.BuyUpgradeAsync(cheapest.Id, Post(station).X, Post(station).Y)).Reason);
+        var store = station.SitesOffering(SiteServices.Store)[^1];
+        Assert.NotEqual(station.StationId, store.StationId);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(cheapest.Id, store.X, store.Y)).Status);
+    }
+
+    [Fact]
+    public void ShippedOutposts_StandOnTheirOriginalTerrains()
+    {
+        var station = LoadStation();
+        var map = TestWorld.RogueMap;
+        Assert.Equal(new[] { "trading_post_a", "trading_post_b" }, station.SitesOffering(SiteServices.Trade).Select(s => s.StationId));
+        Assert.Equal(new[] { 36, 37, 38, 39, 58 }, station.SitesOffering(SiteServices.Repair).Select(s => s.LioRow));
+        Assert.Equal(new[] { "Cold Harbor", "Northern Cross", "Cassandra", "Yankee Station" }, station.SitesOffering(SiteServices.Store).Select(s => s.Name));
+        foreach (var site in station.ServiceSites)
+        {
+            var at = new System.Numerics.Vector2(site.X, site.Y);
+            Assert.False(map.IsBlocked(at), $"{site.Name} stands on a wall.");
+            var expected = site.Service switch { SiteServices.Trade or SiteServices.Refine => 15, SiteServices.Repair => 9, _ => 10 };
+            Assert.Equal(expected, map.TerrainAt(at));
+        }
+        // No two sites overlap, so the ship is never docked at two at once.
+        foreach (var a in station.ServiceSites)
+        foreach (var b in station.ServiceSites.Where(b => b != a))
+            Assert.True(System.Numerics.Vector2.Distance(new(a.X, a.Y), new(b.X, b.Y)) > a.DockRadius + b.DockRadius, $"{a.Name} overlaps {b.Name}.");
+        // Every team's home store is a store of this station.
+        foreach (var team in TestWorld.RogueCatalog().Sector.Teams)
+            Assert.Contains(station.SitesOffering(SiteServices.Store), s => s.StationId == team.HomeStationId);
+    }
+
     private static async Task<StationProfileSession> OpenAsync(IProfileRepository? repo = null, StationDefinition? station = null)
     {
         var session = new StationProfileSession(repo ?? new InMemoryProfileRepository(), station ?? LoadStation(), "starter_interceptor", TestCargo.Capacity);
@@ -76,7 +134,7 @@ public sealed class StationProfileSessionTests
         var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
         await Give(session, trade.InputItemId, 9);
 
-        var sold = await session.SellAsync(trade.InputItemId, 9, station.X, station.Y);
+        var sold = await session.SellAsync(trade.InputItemId, 9, Post(station).X, Post(station).Y);
 
         Assert.Equal(TransactionStatus.Applied, sold.Status);
         Assert.Equal(station.StartingWallet + 9 * trade.CreditsPerUnit, session.Profile!.Wallet);
@@ -94,8 +152,8 @@ public sealed class StationProfileSessionTests
         var noRecipe = station.Goods.First(g => station.Trades.All(t => t.InputItemId != g.Id));
         await Give(session, noRecipe.Id, 1);
 
-        Assert.Equal(RejectionReason.NotForSale, (await session.SellAsync(noRecipe.Id, 1, station.X, station.Y)).Reason);
-        Assert.Equal(RejectionReason.NotForSale, (await session.BuyAsync(noRecipe.Id, 1, station.X, station.Y)).Reason);
+        Assert.Equal(RejectionReason.NotForSale, (await session.SellAsync(noRecipe.Id, 1, Post(station).X, Post(station).Y)).Reason);
+        Assert.Equal(RejectionReason.NotForSale, (await session.BuyAsync(noRecipe.Id, 1, Post(station).X, Post(station).Y)).Reason);
     }
 
     [Theory]
@@ -106,10 +164,10 @@ public sealed class StationProfileSessionTests
         var station = LoadStation();
         var session = await OpenAsync(station: station);
         await Give(session, station.Trades[0].InputItemId, 20);
-        await session.SellAsync(station.Trades[0].InputItemId, 20, station.X, station.Y);
+        await session.SellAsync(station.Trades[0].InputItemId, 20, Post(station).X, Post(station).Y);
         var before = session.Profile!;
 
-        var result = await session.RepairAsync(station.Repairs[^1].Id, station.X, station.Y, hull, FullHull);
+        var result = await session.RepairAsync(station.Repairs[^1].Id, Dock(station).X, Dock(station).Y, hull, FullHull);
 
         Assert.Equal(RejectionReason.NothingToRepair, result.Reason);
         Assert.Same(before, session.Profile);
@@ -122,11 +180,11 @@ public sealed class StationProfileSessionTests
         var session = await OpenAsync(station: station);
         var trade = station.Trades.OrderByDescending(t => t.CreditsPerUnit).First();
         await Give(session, trade.InputItemId, 5);
-        await session.SellAsync(trade.InputItemId, 5, station.X, station.Y);
+        await session.SellAsync(trade.InputItemId, 5, Post(station).X, Post(station).Y);
         var minor = station.Repairs[0];
         var wallet = session.Profile!.Wallet;
 
-        Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(minor.Id, station.X, station.Y, 60, FullHull)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.RepairAsync(minor.Id, Dock(station).X, Dock(station).Y, 60, FullHull)).Status);
         Assert.Equal(wallet - minor.Price, session.Profile.Wallet);
         Assert.Equal(minor.HullPoints, session.RepairHullPoints(minor.Id, 100f));
     }
@@ -182,7 +240,7 @@ public sealed class StationProfileSessionTests
         for (var round = 0; round < 3; round++) // 9,000 credits; the hold takes 20 units at a time
         {
             await Give(session, trade.InputItemId, 10);
-            await session.SellAsync(trade.InputItemId, 10, station.X, station.Y);
+            await session.SellAsync(trade.InputItemId, 10, Post(station).X, Post(station).Y);
         }
         var hyper = station.Upgrades.Single(u => u.Name == "Hyper AfterBurners");   // 7,500, same held category
         var turbo = station.Upgrades.Single(u => u.Name == "Turbo AfterBurners");   // 2,500, same held category

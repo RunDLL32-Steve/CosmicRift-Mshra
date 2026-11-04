@@ -1,5 +1,11 @@
 # Changelog
 
+## Teams, Trading Posts, Repair Docks and a hangar — November 4, 2026
+
+-   Teams (Steve's rule): the first pilot to join goes to Cold Harbor. After that, each new pilot joins whichever of the four station teams (Cold Harbor, Northern Cross, Cassandra, Yankee Station) has the fewest pilots, so the teams take turns and stay even. A team stops at its CFG limit of 10 pilots. Each team spawns at its original initial-entry warp, on the nearest open store-zone tile when the warp box centre is a wall (Cassandra's is). The original did not force even teams (CFG [Arena] ForceEvenTeams=0), so the rule is NEW.
+-   Services moved to their original places (Steve's call): goods and the Trading Outpost recipes now trade only at the two original Trading Posts, and repairs are sold only at the five original Repair Docks. Upgrades and hulls sell at each team's home store. The radar and the world mark every site in its service's colour, and docking opens only that site's pages.
+-   A NEW Hangar page at every team's home store lets a docked pilot fly another owned ship. The ship left behind is parked there as it is, and the chosen ship keeps the hull it was parked with. The server refuses a change anywhere but a home store, and the client refuses it while a destruction is still being saved, so changing ships is never a way out of a fight or a free repair.
+
 ## The sector is the full-size original map — November 4, 2026
 
 -   G10 F10: the game now flies the original Rogue map at its real size, 1999 × 1998 tiles of 16 pixels, instead of a practice sector drawn about 23 times smaller. Crossing it at the Asp's top speed takes 98 s, as the original reading predicts. World units are the original map's pixels, and every LIO position is moved by the map's 48-pixel offset as the community server does.

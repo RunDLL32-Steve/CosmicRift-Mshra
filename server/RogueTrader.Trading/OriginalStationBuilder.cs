@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Numerics;
+using RogueTrader.GameData;
 using RogueTrader.OriginalData;
 using RogueTrader.Simulation;
 
@@ -37,7 +39,8 @@ public static class OriginalStationBuilder
 
     private static readonly string[] NewValueNotes =
     [
-        "Position: the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; the original sells goods at the Trading Posts (LIO rows 21-22, terrain 15) and repairs at the Repair Docks (terrain 9), which this one testbed station does not split yet. Dock radius 150 map pixels.",
+        "Position: the main station is the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; it sells upgrades and hulls and holds the hangar. Every other team's home store stands at the open store-zone (terrain 10) point nearest the centre of its LIO station-area row. Dock radius 150 map pixels everywhere.",
+        "Services (Steve, November 4, 2026): goods and the Trading Outpost recipes trade only at the Trading Posts (LIO type 5 rows placing actor -404, VEH 404 Trading Outpost, terrain 15), and repairs are sold only at the Repair Docks (actor -407, VEH 407 Repair Dock, terrain 9). Upgrades and hulls sell at every team's home store (NEW: whether the original restricted a store to its team is unknown).",
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
         "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
@@ -51,13 +54,73 @@ public static class OriginalStationBuilder
     public const int RefineryActor = -OriginalRefinery.VehicleId;
     private const float RefineryDockRadius = 150;
 
-    public static StationDefinition Build(string assetsRoot)
+    public const int TradingPostActor = -OriginalTradingPost.VehicleId;
+    /// <summary>VEH id 407 is the Repair Dock; LIO type 5 rows place it as actor -407.</summary>
+    public const int RepairDockVehicleId = 407;
+    public const int RepairDockActor = -RepairDockVehicleId;
+    private const int AreaType = 8;
+
+    /// <summary>
+    /// The station id of a team's home store: the main station for team 0 (kept as <see cref="StationId"/> so saved ledgers stay
+    /// valid), <c>store_&lt;name&gt;</c> for the others.
+    /// </summary>
+    public static string StoreIdOf(int team, string teamName) => team == OriginalMapBuilder.PilotTeam ? StationId : $"store_{Slug(teamName)}";
+
+    /// <param name="map">The derived map (<c>data/sectors/rogue_map.json</c>); stores move to its nearest open point.</param>
+    /// <param name="teams">The sector's teams (<c>data/sectors/rogue.json</c>); each one gets its home store.</param>
+    public static StationDefinition Build(string assetsRoot, SectorMap map, IReadOnlyList<TeamDefinition> teams)
     {
+        ArgumentNullException.ThrowIfNull(map);
+        ArgumentNullException.ThrowIfNull(teams);
         var items = OriginalItemCatalog.Load(assetsRoot);
         var veh = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, PinnedAssets.Veh), PinnedAssets.Veh.RelativePath);
         var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
-        return Build(items, OriginalTradingPost.FromRecords(veh, items), StationName(veh), Refinery(veh, lio, items),
-            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items));
+        var home = teams.FirstOrDefault(t => t.Index == OriginalMapBuilder.PilotTeam)?.Name;
+        return Build(items, OriginalTradingPost.FromRecords(veh, items), home ?? StationName(veh), Refinery(veh, lio, items),
+            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items), Outposts(veh, lio, map, teams));
+    }
+
+    /// <summary>
+    /// The Trading Posts and Repair Docks in LIO order (named after their VEH row and the letter ending the LIO name), then the
+    /// home store of every team after the first, at the open point nearest the centre of the LIO station-area row (type 8) whose
+    /// name, without spaces, starts with the team's name.
+    /// </summary>
+    private static IReadOnlyList<ServiceSite> Outposts(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio, SectorMap map, IReadOnlyList<TeamDefinition> teams)
+    {
+        var sites = new List<ServiceSite>();
+        foreach (var (actor, service, vehicle, prefix) in new[]
+                 {
+                     (TradingPostActor, SiteServices.Trade, OriginalTradingPost.VehicleId, "trading_post"),
+                     (RepairDockActor, SiteServices.Repair, RepairDockVehicleId, "repair_dock"),
+                 })
+        {
+            var name = VehName(veh, vehicle);
+            foreach (var row in lio.Where(r => r.FieldCount == OriginalMineralSpawns.FieldCount && r.Value(0) == "5" && r.Int(OriginalMineralSpawns.ItemField).Value == actor))
+            {
+                var letter = row.Value(3).Trim('"')[^1..].ToUpperInvariant();
+                var at = new Vector2(OriginalMapBuilder.World(row.Int(4).Value), OriginalMapBuilder.World(row.Int(5).Value));
+                if (map.IsBlocked(at)) throw new OriginalDataException($"LIO row {row.RowNumber} {name} stands on a blocked tile.");
+                sites.Add(new ServiceSite($"{prefix}_{letter.ToLowerInvariant()}", $"{name} {letter}", service, at.X, at.Y, DockRadius) { LioRow = row.RowNumber });
+            }
+        }
+        static string Squash(string text) => string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        foreach (var team in teams.Where(t => t.Index != OriginalMapBuilder.PilotTeam))
+        {
+            var area = lio.FirstOrDefault(r => r.FieldCount > 7 && r.Value(0) == AreaType.ToString(CultureInfo.InvariantCulture)
+                && Squash(r.Value(3).Trim('"')).StartsWith(Squash(team.Name), StringComparison.Ordinal))
+                ?? throw new OriginalDataException($"No LIO station area is named after team {team.Index} '{team.Name}'.");
+            var centre = new Vector2(OriginalMapBuilder.World(area.Int(4).Value), OriginalMapBuilder.World(area.Int(5).Value));
+            var at = map.NearestOpen(centre, area.Int(6).Value / 2f, area.Int(7).Value / 2f, OriginalMapBuilder.StoreZoneTerrain)
+                ?? throw new OriginalDataException($"LIO row {area.RowNumber} '{team.Name}' has no open tile.");
+            sites.Add(new ServiceSite(StoreIdOf(team.Index, team.Name), team.Name, SiteServices.Store, at.X, at.Y, DockRadius) { LioRow = area.RowNumber });
+        }
+        return sites;
+    }
+
+    private static string VehName(IReadOnlyList<RawRecord> veh, int vehicleId)
+    {
+        var row = veh.Single(v => v.FieldCount > 3 && v.Value(2) == vehicleId.ToString(CultureInfo.InvariantCulture));
+        return row.Value(3).Trim('"');
     }
 
     /// <summary>The refinery: name and recipes from VEH id 400, position from the first LIO type 5 row that places actor -400.</summary>
@@ -74,7 +137,7 @@ public static class OriginalStationBuilder
     }
 
     public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName,
-        RefineryDefinition? refinery = null, IReadOnlyList<StationShip>? ships = null)
+        RefineryDefinition? refinery = null, IReadOnlyList<StationShip>? ships = null, IReadOnlyList<ServiceSite>? outposts = null)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(recipes);
@@ -116,6 +179,7 @@ public static class OriginalStationBuilder
             ],
             Refinery = refinery,
             Ships = ships,
+            Outposts = outposts ?? [],
         };
     }
 

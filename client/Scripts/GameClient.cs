@@ -40,7 +40,11 @@ public partial class GameClient : Node2D
     private long _nextPickupRetryTick;
     private readonly PickupCommitQueue _pickups = new();
     private MineralFieldCatalog? _minerals;
-    private bool _atRefinery;
+    /// <summary>The site the station screen was opened at (main station, refinery, Trading Post, Repair Dock or team store).</summary>
+    private ServiceSite? _dockedSite;
+    /// <summary>The team this pilot joined (Steve, Nov 4 2026: the first pilot joins Cold Harbor, then teams take turns).</summary>
+    private TeamDefinition? _team;
+    private TeamRoster _teams = null!;
     /// <summary>One id per WorldSimulation: pickup ids and mineral placement key on it, never on the sector instance (review R1-1).</summary>
     private string _worldInstanceId = "";
     private int _smokeWorlds;
@@ -95,6 +99,13 @@ public partial class GameClient : Node2D
                     throw new InvalidOperationException($"Roster hull '{entry.HullId}' points at ship definition '{shipCatalog.Ship.Id}'.");
                 _shipCatalogs[entry.HullId] = shipCatalog;
             }
+            // The local server holds this one pilot, who joins the sector and so the first team (Cold Harbor). A new ship, and
+            // a ship respawned after its destruction, starts at the team's spawn.
+            _teams = new TeamRoster(_shipCatalogs[_roster.StarterHullId].Sector.Teams);
+            _team = _teams.Join(LocalProfileId);
+            if (_team is { } team)
+                foreach (var (hullId, catalog) in _shipCatalogs.ToArray())
+                    _shipCatalogs[hullId] = new GameCatalog(catalog.Ship, catalog.Weapon, catalog.Sector with { PlayerSpawn = catalog.Sector.SpawnOf(team.Index) });
             _catalog = _shipCatalogs[_roster.StarterHullId];
             _practiceCatalog = GameCatalog.FromJson(ReadDefinition($"ships/{_roster.Ships.First(s => s.HullId == _roster.StarterHullId).Definition}"), weaponJson, practiceJson);
             if (_catalog.Sector.MapFile is { } mapFile) _map = SectorMap.FromJson(ReadDefinition($"sectors/{mapFile}"));
@@ -120,6 +131,7 @@ public partial class GameClient : Node2D
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
             if (_stationDefinition.Refinery is { } refinery)
                 _view.Refinery = (new System.Numerics.Vector2(refinery.X, refinery.Y), refinery.DockRadius, refinery.Name);
+            _view.Outposts = _stationDefinition.Outposts.Select(o => (new System.Numerics.Vector2(o.X, o.Y), o.DockRadius, o.Name, WorldView.ServiceColor(o.Service))).ToArray();
             _view.Map = _map;
             _view.Spawn = new System.Numerics.Vector2(_catalog.Sector.PlayerSpawn.X, _catalog.Sector.PlayerSpawn.Y);
             AddChild(_view);
@@ -133,7 +145,7 @@ public partial class GameClient : Node2D
             _hud.OriginalContentRequested += () => SetInspectionVisible(true);
             _hud.ReloadProfileRequested += () => ReloadProfile();
             AddChild(_hud);
-            _minimap = new MinimapView(_map, _view.Station, _view.Refinery);
+            _minimap = new MinimapView(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
             _hud.AddChild(_minimap);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
@@ -141,7 +153,8 @@ public partial class GameClient : Node2D
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
-                $"Bought the {_stationDefinition.NameOf(hull)}. It waits in your hangar; choose it in the ship picker when the game loads.");
+                $"Bought the {_stationDefinition.NameOf(hull)}. It waits in your hangar; fly it from the Hangar page.");
+            _stationScreen.SwitchShipRequested += hull => SwitchShipInHangar(hull);
             _stationScreen.CloseRequested += () => SetStationVisible(false);
             AddChild(_stationScreen);
             _hud.SetOriginalContentAvailable(_originals is not null);
@@ -180,6 +193,7 @@ public partial class GameClient : Node2D
             _initialized = true;
             GD.Print($"CLIENT_READY: {_catalog.Sector.Name}; {WorldSimulation.TickRate} Hz fixed simulation; {_world.Targets.Count} targets; {_world.Asteroids.Count} asteroids.");
             GD.Print($"CLIENT_PROFILE: {_profileStatus}");
+            GD.Print($"CLIENT_TEAM: {(_team is null ? "no team (practice sector)" : $"joined {_team.Name} (team {_team.Index})")}");
             // The player picks a ship whenever the client and map load (Steve, Nov 3 2026). Acceptance, capture and inspection runs
             // drive their own fixtures and keep flying the active ship.
             var fixtureRun = smokeRequested || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused;
@@ -368,7 +382,10 @@ public partial class GameClient : Node2D
     public StationProfileSession? Session => _session;
     public StationScreen Station => _stationScreen;
     public bool StationVisible => _stationVisible;
-    public bool AtRefinery => _stationVisible && _atRefinery;
+    public bool AtRefinery => _stationVisible && _dockedSite?.Service == SiteServices.Refine;
+    /// <summary>The site the open station screen belongs to; null while undocked.</summary>
+    public ServiceSite? DockedSite => _stationVisible ? _dockedSite : null;
+    public TeamDefinition? Team => _team;
     public string ProfileStatus => _profileStatus;
     public bool Paused => _paused;
 
@@ -760,6 +777,47 @@ public partial class GameClient : Node2D
     }
 
     /// <summary>
+    /// Changes ships in a home store's hangar (Steve, Nov 4 2026). The ship flown in is parked here exactly as it is; the chosen
+    /// ship keeps the hull it was parked with and launches from this dock, wherever it was parked before. Refused away from a
+    /// store, and while the flown ship is destroyed, so a pilot cannot dodge a fight or the destruction penalty.
+    /// </summary>
+    public void SwitchShipInHangar(string hullId)
+    {
+        if (_session?.Profile is null || !_stationVisible) return;
+        if (_world.Player.IsDestroyed || _pendingDestruction is not null)
+        {
+            _stationScreen.SetStatus("Refused: the ship's destruction must be saved first.", error: true);
+            return;
+        }
+        if (!_shipCatalogs.ContainsKey(hullId))
+        {
+            _stationScreen.SetStatus("Refused: that hull cannot be flown yet.", error: true);
+            return;
+        }
+        if (hullId == _session.Profile.ShipHullId) return;
+        var dock = _world.Player.Position;
+        var heading = _world.Player.Heading;
+        SaveShip(); // the ship left behind is parked here as it is now
+        var result = Await(_session.SwitchShipAsync(hullId, dock.X, dock.Y));
+        if (!result.Saved)
+        {
+            _stationScreen.SetStatus($"Refused: {Describe(result.Reason)}", error: true);
+            if (result.Reason is RejectionReason.PersistenceFailed or RejectionReason.PersistenceConflict) ReloadProfile();
+            RefreshProfileViews(rebuildStation: true);
+            return;
+        }
+        FlyActiveShip();
+        _world = NewWorld(restoreSavedShip: true, loadSector: false);
+        _world.RestorePlayer(dock, heading, _world.Player.Hull); // out of this dock, with the hull it was parked with
+        _view.SetWorld(_world);
+        SaveShip();
+        ReconcileHold();
+        _stationScreen.SetStatus($"Now flying the {_catalog.Ship.Name}. The ship you left is parked in this hangar.");
+        Notice($"Flying the {_catalog.Ship.Name}.");
+        RefreshProfileViews(rebuildStation: true);
+    }
+
+    /// <summary>
     /// When the flown ship is destroyed, records the destruction once (stable id: world instance and tick) through the transaction
     /// core, which takes 20% of the credits held and saves before acknowledging; then the ship respawns at the spawn with a full
     /// hull, keeping weapons, upgrades and cargo (Steve, Nov 3 2026). A refused save is retried once a second with the same id,
@@ -848,10 +906,10 @@ public partial class GameClient : Node2D
                 _profileStatus = $"Station services are offline: {_profileOutcome}";
                 return;
             }
-            _atRefinery = !_session.IsDocked(PlayerX, PlayerY) && _session.IsDockedAtRefinery(PlayerX, PlayerY);
-            if (!_atRefinery && !_session.IsDocked(PlayerX, PlayerY)) return;
-            _stationScreen.SetRefineryMode(_atRefinery);
-            _stationScreen.SetStatus($"Welcome to the {(_atRefinery ? _stationDefinition.Refinery!.Name : _stationDefinition.Name)}.");
+            if (_session.DockedAt(PlayerX, PlayerY) is not { } site) return;
+            _dockedSite = site;
+            _stationScreen.SetMode(site.Service, site.Name);
+            _stationScreen.SetStatus($"Welcome to {site.Name}. {ServiceHint(site.Service)}");
         }
         _stationVisible = visible;
         _stationScreen.Visible = visible;
@@ -859,6 +917,14 @@ public partial class GameClient : Node2D
         _hud.Visible = !visible && !_inspectionVisible;
         RefreshProfileViews(rebuildStation: true);
     }
+
+    private static string ServiceHint(string service) => service switch
+    {
+        SiteServices.Trade => "Goods and recipes trade here.",
+        SiteServices.Repair => "Repairs are sold here.",
+        SiteServices.Refine => "Ore is refined here.",
+        _ => "Upgrades, hulls and your hangar are here. Goods sell at the Trading Posts and repairs at the Repair Docks.",
+    };
 
     private void StationTransaction(Func<StationProfileSession, Task<TransactionResult>> run, string? success, string? repairId = null)
     {
@@ -910,13 +976,14 @@ public partial class GameClient : Node2D
     private void RefreshProfileViews(bool rebuildStation = false)
     {
         var profile = _session?.Profile;
-        var docked = profile is not null && (_session!.IsDocked(PlayerX, PlayerY) || _session.IsDockedAtRefinery(PlayerX, PlayerY));
-        _hud.UpdateProfile(profile, _session?.IsDocked(PlayerX, PlayerY) == false && _stationDefinition.Refinery is { } site ? site.Name : _stationDefinition.Name,
+        var site = _session?.DockedAt(PlayerX, PlayerY);
+        var docked = profile is not null && site is not null;
+        _hud.UpdateProfile(profile, site?.Name ?? _stationDefinition.Name,
             _stationDefinition, _world.Cargo.TotalWeight, _world.Cargo.Capacity, docked && !_stationVisible,
             $"{_profileStatus}\nSave folder: {_profileRoot}");
         if (rebuildStation && _stationVisible && profile is not null)
             _stationScreen.Refresh(profile, _world.Cargo.TotalWeight, _world.Cargo.Capacity, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull,
-                UpgradeEffects.Active(_stationDefinition, profile.Upgrades).Select(u => u.Id).ToHashSet(), BlockedUpgradeText);
+                UpgradeEffects.Active(_stationDefinition, profile.Upgrades).Select(u => u.Id).ToHashSet(), BlockedUpgradeText, _shipCatalogs.ContainsKey);
     }
 
     /// <summary>The local services do file I/O without capturing a context, so blocking here cannot deadlock the main thread.</summary>

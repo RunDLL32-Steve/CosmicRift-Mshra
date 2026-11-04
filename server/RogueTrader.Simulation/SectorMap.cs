@@ -92,6 +92,36 @@ public sealed class SectorMap
         return IsBlockedTile(x, y);
     }
 
+    /// <summary>
+    /// The open point nearest to <paramref name="centre"/> inside the box of half size <paramref name="halfWidth"/> by
+    /// <paramref name="halfHeight"/>: the centre itself when it is open, otherwise the centre of the nearest open tile whose
+    /// centre lies in the box (ties go to the lower row, then the lower column, so the answer never changes). Null when the box
+    /// holds no open tile. A deterministic stand-in for the emulator's random open point in a warp box. With
+    /// <paramref name="terrain"/>, only tiles of that terrain count.
+    /// </summary>
+    public Vector2? NearestOpen(Vector2 centre, float halfWidth, float halfHeight, int? terrain = null)
+    {
+        if (!IsBlocked(centre) && (terrain is null || TerrainAt(centre) == terrain)) return centre;
+        Vector2? best = null;
+        var bestDistance = float.MaxValue;
+        var (x0, y0) = TileOf(centre - new Vector2(halfWidth, halfHeight));
+        var (x1, y1) = TileOf(centre + new Vector2(halfWidth, halfHeight));
+        for (var y = Math.Max(0, y0); y <= Math.Min(Height - 1, y1); y++)
+        for (var x = Math.Max(0, x0); x <= Math.Min(Width - 1, x1); x++)
+        {
+            if (IsBlockedTile(x, y) || (terrain is { } wanted && (TileAt(x, y) & 0x0F) != wanted)) continue;
+            var point = new Vector2(x * TileSize + TileSize / 2f, y * TileSize + TileSize / 2f);
+            if (MathF.Abs(point.X - centre.X) > halfWidth || MathF.Abs(point.Y - centre.Y) > halfHeight) continue;
+            var distance = Vector2.DistanceSquared(point, centre);
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = point;
+            }
+        }
+        return best;
+    }
+
     /// <summary>The terrain number under a position; 0 (open space) outside the map.</summary>
     public int TerrainAt(Vector2 position)
     {

@@ -114,9 +114,64 @@
   ],
   "targetRespawnSeconds": 60,
   "mapFile": "rogue_map.json",
+  "teams": [
+    {
+      "index": 0,
+      "name": "Cold Harbor",
+      "maxPlayers": 10,
+      "spawn": {
+        "x": 1888,
+        "y": 1728,
+        "heading": -1.5707964,
+        "velocityX": 0,
+        "velocityY": 0
+      },
+      "homeStationId": "trading_outpost"
+    },
+    {
+      "index": 1,
+      "name": "Northern Cross",
+      "maxPlayers": 10,
+      "spawn": {
+        "x": 26128,
+        "y": 2928,
+        "heading": -1.5707964,
+        "velocityX": 0,
+        "velocityY": 0
+      },
+      "homeStationId": "store_northern_cross"
+    },
+    {
+      "index": 2,
+      "name": "Cassandra",
+      "maxPlayers": 10,
+      "spawn": {
+        "x": 25928,
+        "y": 21320,
+        "heading": -1.5707964,
+        "velocityX": 0,
+        "velocityY": 0
+      },
+      "homeStationId": "store_cassandra"
+    },
+    {
+      "index": 3,
+      "name": "Yankee Station",
+      "maxPlayers": 10,
+      "spawn": {
+        "x": 6848,
+        "y": 27024,
+        "heading": -1.5707964,
+        "velocityX": 0,
+        "velocityY": 0
+      },
+      "homeStationId": "store_yankee_station"
+    }
+  ],
   "evidence": [
     "Map: rogue_map.json, the pinned LVL/Rogue.lvl at map-pixel scale (1 world unit = 1 original pixel).",
-    "Player spawn: centre of LIO row 6 'Cold Harbor SpawnA' (1936, 1776, box 300 x 250) minus the LVL offset 48; the warp of CFG [WarpGroup] InitialEntry=0 for team 0 (TeamInfo0 Cold Harbor). NEW: the pilot's team, and the centre instead of the emulator's random point in the box.",
+    "Teams and spawns: the SpecificTeam warps of CFG [WarpGroup] InitialEntry=0 (team 0 Cold Harbor: LIO row 6 'Cold Harbor SpawnA' (1936, 1776, box 300 x 250); team 1 Northern Cross: LIO row 7 'Northern CrossA' (26176, 2976, box 100 x 80); team 2 Cassandra: LIO row 29 'CassandraA' (25888, 21376, box 350 x 300); team 3 Yankee Station: LIO row 30 'YankeeStationA' (6896, 27072, box 100 x 100)), minus the LVL offset 48; names and MaxPlayers from CFG [TeamInfoN]. NEW: the open store-zone (terrain 10) point nearest each box centre instead of the emulator's random point, and the first warp of a team when it has several.",
+    "NEW (Steve, November 4, 2026): the first pilot joins team 0 (Cold Harbor); after that each pilot joins the team with the fewest pilots, ties going to the lower team (CFG [Arena] ForceEvenTeams=0: the original did not force even teams).",
     "NEW: the practice targets and asteroids of first_contact.json, moved unchanged to (4400, 1600) in open space east of Cold Harbor."
   ]
 }

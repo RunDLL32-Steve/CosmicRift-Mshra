@@ -406,9 +406,9 @@ public sealed class MiningRewardTests
         Assert.Equal(40, session.Profile.Inventory["2004"]);
         Assert.Equal(wallet, session.Profile.Wallet);
 
-        // Refined Tellerium then trades at the outpost at the original recipe value.
+        // Refined Tellerium then trades at a Trading Post at the original recipe value.
         var trade = session.Station.Trades.Single(t => t.InputItemId == "2004");
-        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, session.Station.X, session.Station.Y)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, session.Station.SitesOffering(SiteServices.Trade)[0].X, session.Station.SitesOffering(SiteServices.Trade)[0].Y)).Status);
         Assert.Equal(wallet + 40 * trade.CreditsPerUnit, session.Profile!.Wallet);
     }
 

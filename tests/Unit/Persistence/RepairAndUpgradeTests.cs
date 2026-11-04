@@ -365,8 +365,8 @@ public sealed class RepairAndUpgradeTests
         var table = new StationPriceTable(["s"], []);
         var kinds = new (string Name, Func<IEnumerable<(string, long)>, StationPriceTable> Add, Func<string, bool> Has)[]
         {
-            ("repair", table.WithRepairPrices, id => table.TryGetRepairPrice("s", id, out _)),
-            ("upgrade", table.WithUpgradePrices, id => table.TryGetUpgradePrice("s", id, out _)),
+            ("repair", p => table.WithRepairPrices(p), id => table.TryGetRepairPrice("s", id, out _)),
+            ("upgrade", p => table.WithUpgradePrices(p), id => table.TryGetUpgradePrice("s", id, out _)),
         };
         foreach (var (name, add, has) in kinds)
         {

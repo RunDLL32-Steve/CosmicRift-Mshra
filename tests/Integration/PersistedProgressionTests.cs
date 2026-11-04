@@ -54,14 +54,19 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             Assert.Equal(TransactionStatus.Applied, (await run.Session.GrantPickupAsync(sector, pickup)).Status);
             Assert.Equal(pile.Quantity, run.Profile.Inventory[pile.ItemId]);
 
-            // 3. Trade it at the outpost (the ship is still inside the dock radius).
+            // 3. Trade it at the first original Trading Post, where goods sell (Steve, Nov 4 2026). Nothing at Cold Harbor buys it.
             Assert.True(run.Session.IsDocked(run.World.Player.Position.X, run.World.Player.Position.Y), $"Ship at {run.World.Player.Position} must be docked.");
+            Assert.Equal(RejectionReason.StationAccessDenied, (await run.Session.SellAsync(pile.ItemId, pile.Quantity, run.X, run.Y)).Reason);
+            var cold = run.World.Player.Position;
+            var post = content.Station.SitesOffering(SiteServices.Trade)[0];
+            Arrive(run, post); // the flight there is a teleport in this test; flying it takes about a minute at the Asp's speed
             var trade = content.Station.Trades.Single(t => t.InputItemId == pile.ItemId);
             Assert.Equal(TransactionStatus.Applied, (await run.Session.SellAsync(pile.ItemId, pile.Quantity, run.X, run.Y)).Status);
             run.ReconcileHold();
             Assert.Equal(start + reward + pile.Quantity * trade.CreditsPerUnit, run.Profile.Wallet);
 
-            // 4. Buy the cheapest affordable speed upgrade and apply it to the flying ship.
+            // 4. Back at the Cold Harbor store, buy the cheapest affordable speed upgrade and apply it to the flying ship.
+            run.World.RestorePlayer(cold, run.World.Player.Heading, run.World.Player.Hull);
             var upgrade = content.Station.Upgrades.Where(u => u.Effect.MaximumSpeed > 0 && u.Price <= run.Profile.Wallet
                 && run.Session.UpgradeRefusal(u.Id) == RejectionReason.None).OrderBy(u => u.Price).First();
             Assert.Equal(TransactionStatus.Applied, (await run.Session.BuyUpgradeAsync(upgrade.Id, run.X, run.Y)).Status);
@@ -72,6 +77,7 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
             var maximumHull = run.World.Player.Definition.Defense.MaximumHull;
             run.World.RestorePlayer(run.World.Player.Position, run.World.Player.Heading, maximumHull - 20);
             var repair = content.Station.Repairs[0];
+            Arrive(run, content.Station.SitesOffering(SiteServices.Repair)[0]); // repairs are sold at the Repair Docks
             Assert.Equal(TransactionStatus.Applied, (await run.Session.RepairAsync(repair.Id, run.X, run.Y, run.World.Player.Hull, maximumHull)).Status);
             run.World.RepairPlayerHull(run.Session.RepairHullPoints(repair.Id, run.World.Player.Definition.Defense.MaximumHull));
 
@@ -227,6 +233,12 @@ public sealed class PersistedProgressionTests(ITestOutputHelper output)
         Assert.Equal(expected.ShipHullId, actual.ShipHullId);
         Assert.Equal(expected.Ledger.ToArray(), actual.Ledger.ToArray());
         Assert.Equal(expected.AppliedTransactions.Select(t => t.TransactionId), actual.AppliedTransactions.Select(t => t.TransactionId));
+    }
+
+    private static void Arrive(Launch run, ServiceSite site)
+    {
+        run.World.RestorePlayer(new System.Numerics.Vector2(site.X, site.Y), run.World.Player.Heading, run.World.Player.Hull);
+        Assert.Equal(site, run.Session.DockedAt(run.X, run.Y));
     }
 
     private static string Describe(PlayerProfile p) =>

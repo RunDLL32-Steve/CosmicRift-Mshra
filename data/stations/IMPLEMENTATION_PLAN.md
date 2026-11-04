@@ -34,5 +34,6 @@ No original resource has a positive buy price (sell is 0 or -1), so there is no 
 ## Open
 
 -   [ ] RT-F044 refinery quantities, cost, radius and conditions; the second refinery (LIO row 14) is not placed.
+-   [ ] Services are split by site (Steve, 2026-11-04): goods at the Trading Posts (LIO rows 21 and 22), repairs at the Repair Docks (rows 36 to 39 and 58), upgrades, hulls and the hangar at each team's home store. Whether a store served only its own team, and the original dock radius, are unknown (dock radius 150 is NEW).
 -   [ ] Original station placement/dock rule, recipe quantities, repair cost, starting cash and every upgrade effect (RT-F041/F045/F047/F048/F049, RT-F068).
 -   [ ] Collectible piles respawn on a sector reset (not on an upgrade or reload); the original respawn rule is unknown.

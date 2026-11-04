@@ -40,8 +40,11 @@ public static class OriginalMapBuilder
     /// <summary>NEW: centre of the practice range (targets and asteroids of <c>first_contact.json</c>), in open space east of Cold Harbor.</summary>
     public const float PracticeRangeX = 4400, PracticeRangeY = 1600;
 
-    /// <summary>NEW: the team the solo pilot is on. CFG [TeamInfo0] is Cold Harbor; nothing pinned says which team a new pilot joins.</summary>
+    /// <summary>The team the first pilot joins: CFG [TeamInfo0] Cold Harbor (Steve, November 4, 2026).</summary>
     public const int PilotTeam = 0;
+
+    /// <summary>CFG [Terrain10], the SpaceDock store zone around each team's station. Spawns and stores sit on it.</summary>
+    public const int StoreZoneTerrain = 10;
 
     private const int WarpType = 4;
     private const int FWarpGroup = 14, FWarpMode = 15, FWarpModeParameter = 16;
@@ -109,43 +112,72 @@ public static class OriginalMapBuilder
     public static float World(int lio) => lio - LioOffsetPixels;
 
     /// <summary>
-    /// The full-size sector: the player spawns at the centre of the warp the CFG's [WarpGroup] InitialEntry group offers the
-    /// pilot's team (Cold Harbor SpawnA for team 0), and the NEW practice range of <paramref name="practice"/> is moved, unchanged
-    /// in shape, to <see cref="PracticeRangeX"/>, <see cref="PracticeRangeY"/>.
+    /// The full-size sector. Every team that the CFG's [WarpGroup] InitialEntry group has a SpecificTeam warp for becomes a
+    /// joinable team, in CFG order, spawning at the open point nearest the centre of its first warp box (Cold Harbor SpawnA for
+    /// team 0, which is also <see cref="SectorDefinition.PlayerSpawn"/>). The NEW practice range of <paramref name="practice"/>
+    /// is moved, unchanged in shape, to <see cref="PracticeRangeX"/>, <see cref="PracticeRangeY"/>.
     /// </summary>
-    public static (SectorDefinition Sector, SectorSpawnSource Spawn) BuildSector(string assetsRoot, SectorDefinition practice)
+    public static (SectorDefinition Sector, IReadOnlyList<SectorSpawnSource> Spawns) BuildSector(string assetsRoot, SectorDefinition practice, SectorMap map)
     {
         var cfg = OriginalCfg.LoadRogue(assetsRoot);
         var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
-        return BuildSector(lio, cfg.Section("WarpGroup").Int("InitialEntry"), practice);
+        return BuildSector(lio, cfg, practice, map);
     }
 
-    public static (SectorDefinition Sector, SectorSpawnSource Spawn) BuildSector(IReadOnlyList<RawRecord> lio, int initialEntryGroup, SectorDefinition practice)
+    public static (SectorDefinition Sector, IReadOnlyList<SectorSpawnSource> Spawns) BuildSector(IReadOnlyList<RawRecord> lio, OriginalCfg cfg,
+        SectorDefinition practice, SectorMap map)
     {
         ArgumentNullException.ThrowIfNull(lio);
+        ArgumentNullException.ThrowIfNull(cfg);
         ArgumentNullException.ThrowIfNull(practice);
-        var warp = lio.First(r => r.FieldCount > FWarpModeParameter && r.Value(0) == WarpType.ToString(CultureInfo.InvariantCulture)
-            && r.Int(FWarpGroup).Value == initialEntryGroup && r.Int(FWarpMode).Value == SpecificTeamMode && r.Int(FWarpModeParameter).Value == PilotTeam);
-        var source = new SectorSpawnSource(warp.RowNumber, warp.Value(3).Trim('"'), warp.Int(4).Value, warp.Int(5).Value, warp.Int(6).Value, warp.Int(7).Value,
-            warp.Int(FWarpGroup).Value, warp.Int(FWarpMode).Value, warp.Int(FWarpModeParameter).Value);
+        ArgumentNullException.ThrowIfNull(map);
+        var initialEntryGroup = cfg.Section("WarpGroup").Int("InitialEntry");
+        var warps = lio.Where(r => r.FieldCount > FWarpModeParameter && r.Value(0) == WarpType.ToString(CultureInfo.InvariantCulture)
+            && r.Int(FWarpGroup).Value == initialEntryGroup && r.Int(FWarpMode).Value == SpecificTeamMode).ToArray();
+        var teams = new List<TeamDefinition>();
+        var sources = new List<SectorSpawnSource>();
+        for (var index = 0; index < OriginalTeamInfo.TeamCount; index++)
+        {
+            var warp = warps.FirstOrDefault(r => r.Int(FWarpModeParameter).Value == index);
+            if (warp is null) continue;
+            var info = OriginalTeamInfo.Read(cfg, index);
+            var source = new SectorSpawnSource(warp.RowNumber, warp.Value(3).Trim('"'), warp.Int(4).Value, warp.Int(5).Value, warp.Int(6).Value, warp.Int(7).Value,
+                warp.Int(FWarpGroup).Value, warp.Int(FWarpMode).Value, warp.Int(FWarpModeParameter).Value);
+            var point = map.NearestOpen(new System.Numerics.Vector2(World(source.X), World(source.Y)), source.Width / 2f, source.Height / 2f, StoreZoneTerrain)
+                ?? throw new OriginalDataException($"LIO row {source.LioRow} '{source.Name}' has no open tile in its box.");
+            sources.Add(source);
+            teams.Add(new TeamDefinition
+            {
+                Index = index,
+                Name = info.Name,
+                MaxPlayers = info.MaxPlayers,
+                Spawn = practice.PlayerSpawn with { X = point.X, Y = point.Y },
+                HomeStationId = OriginalStationBuilder.StoreIdOf(index, info.Name),
+            });
+        }
+        if (teams.Count == 0 || teams[0].Index != PilotTeam)
+            throw new OriginalDataException($"CFG [WarpGroup] InitialEntry={initialEntryGroup} has no SpecificTeam warp for team {PilotTeam}.");
         float dx = PracticeRangeX - practice.PlayerSpawn.X, dy = PracticeRangeY - practice.PlayerSpawn.Y;
+        var spawns = string.Join("; ", sources.Select((s, i) => $"team {s.WarpModeParameter} {teams[i].Name}: LIO row {s.LioRow} '{s.Name}' ({s.X}, {s.Y}, box {s.Width} x {s.Height})"));
         var sector = practice with
         {
             Id = SectorId,
             Name = "Rogue",
             EvidenceClassification = "ORIGINAL+NEW",
             MapFile = $"{MapId}.json",
-            PlayerSpawn = practice.PlayerSpawn with { X = World(source.X), Y = World(source.Y) },
+            PlayerSpawn = teams[0].Spawn,
             Targets = practice.Targets.Select(t => t with { X = t.X + dx, Y = t.Y + dy }).ToArray(),
             Asteroids = practice.Asteroids.Select(a => a with { X = a.X + dx, Y = a.Y + dy }).ToArray(),
+            Teams = teams,
             Evidence =
             [
                 $"Map: {MapId}.json, the pinned LVL/Rogue.lvl at map-pixel scale (1 world unit = 1 original pixel).",
-                $"Player spawn: centre of LIO row {source.LioRow} '{source.Name}' ({source.X}, {source.Y}, box {source.Width} x {source.Height}) minus the LVL offset {LioOffsetPixels}; the warp of CFG [WarpGroup] InitialEntry={initialEntryGroup} for team {PilotTeam} (TeamInfo0 Cold Harbor). NEW: the pilot's team, and the centre instead of the emulator's random point in the box.",
+                $"Teams and spawns: the SpecificTeam warps of CFG [WarpGroup] InitialEntry={initialEntryGroup} ({spawns}), minus the LVL offset {LioOffsetPixels}; names and MaxPlayers from CFG [TeamInfoN]. NEW: the open store-zone (terrain 10) point nearest each box centre instead of the emulator's random point, and the first warp of a team when it has several.",
+                $"NEW (Steve, November 4, 2026): the first pilot joins team {PilotTeam} ({teams[0].Name}); after that each pilot joins the team with the fewest pilots, ties going to the lower team (CFG [Arena] ForceEvenTeams=0: the original did not force even teams).",
                 $"NEW: the practice targets and asteroids of first_contact.json, moved unchanged to ({PracticeRangeX}, {PracticeRangeY}) in open space east of Cold Harbor.",
             ],
         };
-        return (sector, source);
+        return (sector, sources);
     }
 
     public static string SectorToJson(SectorDefinition sector) =>
