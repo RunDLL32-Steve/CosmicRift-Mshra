@@ -3,7 +3,7 @@ using RogueTrader.Simulation;
 
 namespace RogueTrader.Client;
 
-/// <summary>Canonical raw ship pixels where staged; provisional range/effects remain engine independent.</summary>
+/// <summary>Canonical raw ship pixels and original map art where staged; provisional range/effects remain engine independent.</summary>
 public partial class WorldView : Node2D
 {
     private readonly record struct Burst(Vector2 Position, Color Color, float Age, float Duration);
@@ -13,7 +13,18 @@ public partial class WorldView : Node2D
     private float _time;
     public ShipInput InputState { get; set; }
     public OriginalSpriteLibrary? Originals { get; set; }
-    /// <summary>Provisional station marker (queue M8); no original station art or position is claimed.</summary>
+    /// <summary>Original Rogue.lvl sprites (rocks, stations, walls) and mineral prize sprites; null draws the NEW tile/marker look.</summary>
+    public OriginalLevelArt? LevelArt
+    {
+        get => _levelArt;
+        set
+        {
+            _levelArt = value;
+            _mapTexture = _map is null ? null : TileTexture(_map, value);
+        }
+    }
+    private OriginalLevelArt? _levelArt;
+    /// <summary>Provisional station marker (queue M8). With <see cref="LevelArt"/> staged, the original station sprites stand on the map and only the name and dock ring are drawn here.</summary>
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Station { get; set; }
     /// <summary>Provisional refinery marker (queue M7 mining slice), drawn like the station.</summary>
     public (System.Numerics.Vector2 Position, float DockRadius, string Name)? Refinery { get; set; }
@@ -36,7 +47,7 @@ public partial class WorldView : Node2D
         set
         {
             _map = value;
-            _mapTexture = value is null ? null : TileTexture(value);
+            _mapTexture = value is null ? null : TileTexture(value, _levelArt);
         }
     }
     /// <summary>Where the player spawns; the launch ring is drawn there.</summary>
@@ -90,12 +101,14 @@ public partial class WorldView : Node2D
         DrawStars(player);
         if (_mapTexture is not null && _map is not null)
             DrawTextureRect(_mapTexture, new Rect2(Vector2.Zero, new Vector2(_map.PixelWidth, _map.PixelHeight)), false);
+        if (_levelArt is not null && _map is not null)
+            foreach (var index in _levelArt.Visible(VisibleWorldRect())) _levelArt.Draw(this, index, _time);
         DrawOrigin();
         DrawStation(Station, Amber);
         DrawStation(Refinery, new Color("e06a5a"));
         foreach (var (position, radius, name, color) in Outposts) DrawStation((position, radius, name), color);
         foreach (var pile in _world.Collectibles)
-            if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(ToGodot(pile.Position), pile.Radius);
+            if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(pile.ItemId, ToGodot(pile.Position), pile.Radius);
             else DrawPile(ToGodot(pile.Position), Mathf.Min(pile.Radius, 24));
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
@@ -141,6 +154,9 @@ public partial class WorldView : Node2D
         DrawString(ThemeDB.FallbackFont, spawn + new Vector2(-51, 107), "LAUNCH POINT", HorizontalAlignment.Left, -1, 13, new Color("426676"));
     }
 
+    /// <summary>The world rectangle the camera currently shows.</summary>
+    private Rect2 VisibleWorldRect() => GetCanvasTransform().AffineInverse() * GetViewportRect();
+
     /// <summary>Wall and terrain colours: blocked tiles are rock; store, trade and repair zones get a faint tint (NEW look).</summary>
     internal static Color TileColor(byte tile) =>
         (tile & SectorMap.BlockedBit) != 0 ? new Color("3b5161")
@@ -153,15 +169,24 @@ public partial class WorldView : Node2D
             _ => new Color(0.6f, 0.6f, 0.9f, 0.08f),
         };
 
-    private static ImageTexture TileTexture(SectorMap map)
+    /// <summary>
+    /// One pixel per tile (NEW look). With the original map art staged, its sprites draw the walls, so only the blocked
+    /// tiles no sprite cell covers keep the NEW wall colour (otherwise they would be invisible collision), and the zone
+    /// tints are left out.
+    /// </summary>
+    private static ImageTexture TileTexture(SectorMap map, OriginalLevelArt? art)
     {
+        var covered = art?.CoverageMask(map.Width, map.Height);
+        var clear = new byte[4];
         var bytes = new byte[map.Width * map.Height * 4];
         var palette = new byte[256][];
         for (var y = 0; y < map.Height; y++)
         for (var x = 0; x < map.Width; x++)
         {
             var tile = map.TileAt(x, y);
-            var rgba = palette[tile] ??= ToRgba(TileColor(tile));
+            var rgba = covered is null ? palette[tile] ??= ToRgba(TileColor(tile))
+                : (tile & SectorMap.BlockedBit) == 0 || covered[y * map.Width + x] ? clear
+                : palette[tile] ??= ToRgba(TileColor(tile));
             rgba.CopyTo(bytes, (y * map.Width + x) * 4);
         }
         return ImageTexture.CreateFromImage(Image.CreateFromData(map.Width, map.Height, false, Image.Format.Rgba8, bytes));
@@ -172,6 +197,11 @@ public partial class WorldView : Node2D
     private void DrawAsteroid(Vector2 position, float radius)
     {
         var seed = unchecked((int)(position.X * 73 + position.Y * 97));
+        if (_levelArt?.RockFor(radius, seed) is { } rock)
+        {
+            _levelArt.DrawObjectCentred(this, rock, position, _time, (int)((uint)seed % 100));
+            return;
+        }
         var points = new Vector2[13];
         for (var i = 0; i < 12; i++)
         {
@@ -244,15 +274,22 @@ public partial class WorldView : Node2D
         if (site is not { } station) return;
         var centre = ToGodot(station.Position);
         DrawArc(centre, station.DockRadius, 0, Mathf.Tau, 90, new Color(color, 0.10f), 1, true);
+        if (_levelArt is not null && _map is not null)
+        {
+            // The original station sprites are already on the map; only the NEW dock ring and name are added.
+            DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, color.Darkened(0.25f));
+            return;
+        }
         DrawCircle(centre, 26, new Color("1a2a36"));
         DrawArc(centre, 26, 0, Mathf.Tau, 40, color.Darkened(0.2f), 2, true);
         DrawRect(new Rect2(centre - new Vector2(9, 9), new Vector2(18, 18)), new Color(color, 0.55f));
         DrawString(ThemeDB.FallbackFont, centre + new Vector2(-40, 46), station.Name.ToUpperInvariant(), HorizontalAlignment.Left, -1, 12, color.Darkened(0.25f));
     }
 
-    /// <summary>Mineral piles: a small marker; the 80-pixel pickup distance (CFG ItemPickupDistance) would hide a whole clump.</summary>
-    private void DrawMineral(Vector2 position, float radius)
+    /// <summary>Mineral piles: the item's original prize sprite when staged, else a small marker; the 80-pixel pickup distance (CFG ItemPickupDistance) would hide a whole clump.</summary>
+    private void DrawMineral(string itemId, Vector2 position, float radius)
     {
+        if (_levelArt is not null && _levelArt.DrawMineral(this, itemId, position, _time)) return;
         var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 2);
         DrawCircle(position, 12, new Color(Amber, 0.07f + 0.05f * pulse));
         DrawArc(position, 7, 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);

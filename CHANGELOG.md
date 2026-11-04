@@ -1,5 +1,12 @@
 # Changelog
 
+## The map shows its original asteroids, stations and walls — November 4, 2026
+
+-   Steve's ask: the asteroids and stations no longer show as gray blocks. `LVL/Rogue.lvl` places 22,356 original sprites across the map (asteroid rocks, the four-part team stations and their docks, walls, gas clouds, safe-zone markings and the map border), drawn from nine pinned BLO archives (`O_Asteroids`, `O_SpaceStation`, `O_Neutral_Walls`, `O_Animated_Walls`, `O_GasClouds`, `O_Specialtiles`, `o_crmisc`, `o_mapborder`, `Resources`). The client now draws them where the level puts them, and the gray wall tiles and coloured zone tints are no longer drawn when the art is staged. The 4,373 blocked tiles (of 116,065) that no sprite covers, mostly spans between station pylons, keep the NEW wall colour so no collision is invisible. A partly staged or unimported art folder falls back to the NEW look with a warning.
+-   Mineral drops show their original prize sprites from `ITM/Rogue_mp.itm` (Tellerium `ResourceA`, Krandazite `ResourceB`, Iron Ore `IronOre`), and the practice asteroids use the original rocks (RockA to RockI, picked by size).
+-   The art is never committed. `scripts/original-assets/stage_level_art.py` reads the pinned reference checkout, checks every file's SHA-256, and writes the atlases and `level.json` to the git-ignored `client/OriginalContent/level/`. `scripts/run-client.ps1` runs it on its own when the reference checkout is there and the art is not staged yet; `scripts/sync-reference-assets.ps1` now also fetches the nine archives. Without the staged art the game draws its NEW look as before.
+-   RECONSTRUCTED readings: an LVL entity is int16 X, int16 Y (top-left of the sprite in map pixels), an object index in the low 13 bits of the next uint16 and a starting frame in its top 3 bits, then an animation cycle in hundredths of a second (0 = still) and a start phase byte. Rocks sit exactly on their collision tiles and the station trusses join up with this reading. Native blending is still open (RT-F074), so gas clouds draw solid rather than translucent, and the cycle units are not confirmed.
+
 ## A zoomable sector map on M — November 4, 2026
 
 -   Steve's ask: pressing M opens a full-screen map of the Rogue sector with the walls, the store, trade and repair zones, every team store, Trading Post, Repair Dock and the refinery, and your ship's position and heading, updated live as you fly. The map is NEW (like the radar, whether the original had one is unknown).

@@ -16,6 +16,7 @@ public partial class GameClient : Node2D
     private Camera2D _camera = null!;
     private OriginalContentInspector _inspector = null!;
     private OriginalSpriteLibrary? _originals;
+    private OriginalLevelArt? _levelArt;
     private bool _inspectionVisible;
     private bool _verifyOriginals;
     private long _inspectionStartTick;
@@ -132,6 +133,9 @@ public partial class GameClient : Node2D
             _world = NewWorld(restoreSavedShip: true, loadSector: true);
             _originals = OriginalSpriteLibrary.LoadIfAvailable();
             _view = new WorldView { Originals = _originals, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
+            _levelArt = OriginalLevelArt.LoadIfAvailable();
+            _view.LevelArt = _levelArt;
+            if (_levelArt is not null) GD.Print($"ORIGINAL_LEVEL_ART: {_levelArt.Entities.Length} placed sprites, {_levelArt.Objects.Count} objects.");
             _view.Station = (new System.Numerics.Vector2(_stationDefinition.X, _stationDefinition.Y), _stationDefinition.DockRadius, _stationDefinition.Name);
             if (_stationDefinition.Refinery is { } refinery)
                 _view.Refinery = (new System.Numerics.Vector2(refinery.X, refinery.Y), refinery.DockRadius, refinery.Name);
@@ -285,6 +289,7 @@ public partial class GameClient : Node2D
             try
             {
                 _originals!.VerifyPackagedResources();
+                _levelArt?.VerifyPackagedResources();
                 if (_world.TickNumber != _inspectionStartTick) throw new InvalidOperationException("Original inspector advanced the world.");
                 GD.Print($"ORIGINAL_INSPECTION_PASS: page={_inspector.Page}; world ticks unchanged at {_world.TickNumber}.");
                 if (_capturePath is null) GetTree().Quit(0);

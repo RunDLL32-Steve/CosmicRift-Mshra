@@ -42,6 +42,8 @@ try {
             $env:PYTHONUSERBASE = $assetPythonUserBase
             & python (Join-Path $PSScriptRoot 'original-assets/stage_original_assets.py')
             if ($LASTEXITCODE -ne 0) { throw 'Original asset staging/integrity failed.' }
+            & python (Join-Path $PSScriptRoot 'original-assets/stage_level_art.py')
+            if ($LASTEXITCODE -ne 0) { throw 'Original map art staging/integrity failed.' }
         } finally { $env:PYTHONUSERBASE = $savedPythonUserBase }
     }
     & $dotnetExe build client/RogueTrader.Client.csproj --configuration ExportRelease --no-restore --nologo -nr:false
