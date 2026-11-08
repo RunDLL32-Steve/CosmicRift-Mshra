@@ -1,5 +1,12 @@
 # Changelog
 
+## Meteor showers — November 8, 2026
+
+-   The original map's meteor showers are in (RT-F061). Four hidden spawners in `LIO/Rogue.lio` (MeteorShowerA to D) place a Meteor Shower (VEH 402) somewhere in a 15,000-pixel square around the map centre: one each when the sector starts, then every 5 to 20 minutes, never while a pilot is within 500 pixels of the centre, and never more than three at once. Each one announces "Meteor Shower Detected!".
+-   A shower fires a meteor (ITM 1007) every 0.35 s at the nearest pilot within 20,000 pixels, aimed where the pilot will be if they hold course. A meteor drains 750 shield energy and, once the shield cannot take that, does 15 hull damage, so a few hits can destroy an Asp; the usual destruction penalty applies. Meteors stop on walls and asteroids and never hit practice targets.
+-   NEW: a shower disappears after 5 seconds (VEH RemoveGlobalTimer 5 read as seconds; Steve's call pending). Meteor speed, range and size use the same provisional scale as the player's cannon. RandomizeAim is not applied. The client draws showers and meteors with NEW shapes until their original sprites are staged.
+-   Shower timers and standing showers are saved with the sector and keep running while docked, paused or closed, so a relaunch neither brings one early nor clears one. Older sector files load with fresh spawners.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

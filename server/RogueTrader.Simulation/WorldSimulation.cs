@@ -44,7 +44,7 @@ public sealed partial class WorldSimulation
     /// <param name="map">Walls and terrain; omitted means open space everywhere and drops keep their spawn's own life.</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
         IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null,
-        SectorMap? map = null)
+        SectorMap? map = null, MeteorShowerCatalog? meteors = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
@@ -71,6 +71,12 @@ public sealed partial class WorldSimulation
         _miningEquipment = mining?.Equipment;
         _mineralSpawns = CreateMineralSpawns(minerals, cargo);
         _mineralRandom = minerals?.Seed ?? 0;
+        if (meteors is not null && meteors.Spawns.Count > 0)
+        {
+            _shower = meteors.Shower;
+            _meteorSpawns = meteors.Spawns.Select(s => new MeteorSpawnState(s)).ToArray();
+            _meteorRandom = meteors.Seed;
+        }
     }
 
     public void Tick(ShipInput input)
@@ -78,6 +84,7 @@ public sealed partial class WorldSimulation
         TickNumber++;
         if (TargetRespawnTick is { } respawnAt && TickNumber >= respawnAt) RespawnTargets();
         StepMineralSpawns();
+        StepMeteorShowers();
         if (!Player.IsDestroyed)
         {
             var previous = Player.Position;
@@ -179,6 +186,7 @@ public sealed partial class WorldSimulation
         ArgumentOutOfRangeException.ThrowIfNegative(ticks);
         if (ticks == 0) return;
         ElapseMineralSpawns(ticks);
+        ElapseMeteorShowers(ticks);
         if (TargetRespawnTick is not { } respawnAt) return;
         TargetRespawnTick = respawnAt - ticks;
         if (TargetRespawnTick <= TickNumber) RespawnTargets();
@@ -249,7 +257,7 @@ public sealed partial class WorldSimulation
         var velocity = direction * weapon.MuzzleVelocity;
         if (weapon.InheritsShipVelocity)
             velocity += Player.Velocity;
-        _projectiles.Add(new ProjectileState(++_nextProjectileId, Player, position, velocity));
+        _projectiles.Add(new ProjectileState(++_nextProjectileId, Player.Id, weapon, position, velocity));
         ShotsFired++;
     }
 
@@ -270,13 +278,22 @@ public sealed partial class WorldSimulation
             }
             foreach (var target in Targets)
             {
-                if (!target.IsDestroyed && target.Id != projectile.OwnerShipId
+                // Practice targets are hit by the player's shots only, so a meteor never takes a kill from the player.
+                if (!target.IsDestroyed && projectile.OwnerShipId == Player.Id
                     && CircleCollision.Sweep(projectile.Position, end, target.Position,
                         projectile.Radius + target.Radius, out var fraction) && fraction < hitFraction)
                 {
                     hitFraction = fraction;
                     hitShip = target;
                 }
+            }
+            // Meteors (and any shot the player did not fire) hit the player's ship.
+            if (!Player.IsDestroyed && projectile.OwnerShipId != Player.Id
+                && CircleCollision.Sweep(projectile.Position, end, Player.Position, projectile.Radius + Player.Radius, out var playerHit)
+                && playerHit < hitFraction)
+            {
+                hitFraction = playerHit;
+                hitShip = Player;
             }
             projectile.AgeTicks++;
             if (float.IsFinite(hitFraction))
@@ -314,6 +331,12 @@ public sealed partial class WorldSimulation
         }
         target.LastDamagedByShipId = projectile.OwnerShipId;
         target.LastDamageWeaponId = projectile.WeaponId;
+        if (ReferenceEquals(target, Player))
+        {
+            // The client records the player's destruction (CommitDestruction); it is not a target kill.
+            MeteorHits++;
+            return;
+        }
         if (target.IsDestroyed)
         {
             target.DestroyedByShipId = projectile.OwnerShipId;

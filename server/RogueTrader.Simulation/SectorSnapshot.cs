@@ -25,8 +25,8 @@ public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 /// The shared state of one sector that must outlive any one <see cref="WorldSimulation"/> (owner rule, November 2, 2026: the
 /// world keeps its state for as long as the server runs, so a client relaunch, a logout or a sector reset never refills it).
 /// It holds what a player could otherwise farm: the target group (condition, wave and the time left on a pending respawn), the
-/// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, and the mining
-/// deposits. The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
+/// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, the mining
+/// deposits, and the meteor shower spawner timers and standing showers (null in a snapshot saved before showers existed). The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
 /// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
 /// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
 /// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
@@ -42,12 +42,18 @@ public sealed record SectorSnapshot(
     IReadOnlyList<AsteroidSnapshot> Asteroids,
     long NextMiningPileId,
     long TicksUntilNextMine,
-    int MapVersion = 0);
+    int MapVersion = 0,
+    IReadOnlyList<MeteorSpawnSnapshot>? MeteorSpawns = null,
+    IReadOnlyList<MeteorShowerSnapshot>? MeteorShowers = null,
+    ulong MeteorRandomState = 0);
 
 public sealed partial class WorldSimulation
 {
     /// <summary>Captures the sector state that must survive this world (see <see cref="SectorSnapshot"/>).</summary>
-    public SectorSnapshot CaptureSector() => new(
+    public SectorSnapshot CaptureSector()
+    {
+        CaptureMeteors(out var meteorSpawns, out var showers);
+        return new(
         Catalog.Sector.Id,
         TargetWave,
         TargetRespawnTick is { } at ? Math.Max(1, at - TickNumber) : null,
@@ -60,7 +66,11 @@ public sealed partial class WorldSimulation
         Asteroids.Select(a => new AsteroidSnapshot(a.Id, a.ResourceQuantity)).ToArray(),
         NextMiningPileId,
         Math.Max(0, NextMineTick - TickNumber),
-        Map is null ? 0 : SectorMap.CoordinateVersion);
+        Map is null ? 0 : SectorMap.CoordinateVersion,
+        meteorSpawns,
+        showers,
+        _meteorRandom);
+    }
 
     /// <summary>
     /// Puts a captured sector state into this world, replacing its target group, piles, mineral timers and deposits, so a new
@@ -145,6 +155,8 @@ public sealed partial class WorldSimulation
                 asteroid.ResourceQuantity = Math.Clamp(saved.ResourceQuantity, 0, asteroid.ResourceQuantity);
         NextMiningPileId = Math.Max(NextMiningPileId, snapshot.NextMiningPileId);
         NextMineTick = Math.Max(0, snapshot.TicksUntilNextMine);
+        // A snapshot saved before meteor showers existed has none: the spawners start fresh, as a new sector's would.
+        if (snapshot.MeteorSpawns is not null) RestoreMeteors(snapshot);
         return true;
     }
 

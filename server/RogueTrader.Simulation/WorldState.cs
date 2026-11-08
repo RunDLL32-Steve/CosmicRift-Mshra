@@ -88,17 +88,17 @@ public sealed class ProjectileState
     public int AgeTicks { get; internal set; }
     public int LifetimeTicks { get; }
 
-    internal ProjectileState(long id, ShipState owner, Vector2 position, Vector2 velocity)
+    internal ProjectileState(long id, string ownerId, WeaponDefinition weapon, Vector2 position, Vector2 velocity)
     {
         Id = id;
-        OwnerShipId = owner.Id;
-        WeaponId = owner.Weapon.Id;
+        OwnerShipId = ownerId;
+        WeaponId = weapon.Id;
         Position = position;
         Velocity = velocity;
-        Radius = owner.Weapon.ProjectileRadius;
-        Damage = owner.Weapon.Damage;
-        ShieldDrain = owner.Weapon.ShieldDrain;
-        LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(owner.Weapon.LifetimeSeconds * WorldSimulation.TickRate));
+        Radius = weapon.ProjectileRadius;
+        Damage = weapon.Damage;
+        ShieldDrain = weapon.ShieldDrain;
+        LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * WorldSimulation.TickRate));
     }
 }
 
