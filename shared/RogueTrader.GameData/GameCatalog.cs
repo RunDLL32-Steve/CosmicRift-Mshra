@@ -61,6 +61,7 @@ public sealed class GameCatalog
             throw new ArgumentException("Asteroid restitution must be between zero and one.");
         Positive(Ship.Defense.MaximumHull, "hull");
         Nonnegative(Ship.Defense.MaximumShield, "shield");
+        ValidateArmor(Ship.Defense.Armor);
         Nonnegative(Ship.Reactor.MaximumEnergy, "energy");
         Nonnegative(Ship.Reactor.EnergyRegenerationPerSecond, "energy regeneration");
         if (Ship.Defense.EnergyShield && Ship.Defense.MaximumShield != 0)
@@ -102,6 +103,7 @@ public sealed class GameCatalog
             if (!identifiers.Add(target.Id))
                 throw new ArgumentException($"Duplicate entity ID: {target.Id}.");
             Positive(target.Radius, "target radius");
+            ValidateArmor(target.Armor);
             FiniteSquared(target.Radius + Weapon.ProjectileRadius, "projectile/target collision radius");
             Positive(target.Hull, "target hull");
             Nonnegative(target.Shield, "target shield");
@@ -132,6 +134,18 @@ public sealed class GameCatalog
     {
         if (!float.IsFinite(value) || value <= 0)
             throw new ArgumentException($"{name} must be finite and positive.");
+    }
+
+    private static void ValidateArmor(ShipArmor? armor)
+    {
+        if (armor is null) return;
+        foreach (var type in Enum.GetValues<DamageType>())
+        {
+            var protection = armor.For(type);
+            Nonnegative(protection.Ignore, $"{type} armour ignore");
+            Nonnegative(protection.Reduction, $"{type} armour reduction");
+            if (protection.Reduction > 1) throw new ArgumentException($"{type} armour reduction must be between zero and one.");
+        }
     }
 
     private static void Nonnegative(float value, string name)

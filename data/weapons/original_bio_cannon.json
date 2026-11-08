@@ -6,16 +6,17 @@
   "projectileRadius": 3,
   "damage": 5,
   "shieldDrain": 266,
+  "damageType": "Energy",
   "cooldownSeconds": 0.25,
   "energyCost": 60,
   "lifetimeSeconds": 2.5,
   "inheritsShipVelocity": true,
-  "source": "Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row 50 (id 1036, 'Cannon'): f[36] energy cost 60000, f[54] fireDelay 25 (10 ms units), f[172] drain 266000, f[160] hull damage 5000; energy amounts in thousandths (OriginalEnergyScale).",
+  "source": "Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row 50 (id 1036, 'Cannon'): f[36] energy cost 60000, f[54] fireDelay 25 (10 ms units), f[172] drain 266000, f[160] Energy hull damage 5000; energy amounts in thousandths (OriginalEnergyScale).",
   "newValues": [
     "Muzzle velocity 700 px/s (f[101]=2200; unit open, G10 W2).",
     "Lifetime 2.5 s (f[110]=550; unit open, G10 W3).",
     "Projectile radius 3 (f[108] proximityRadius=4; meaning open).",
     "Inherits the ship's whole velocity (f[94]=1000; read as per mille, unvalidated).",
-    "Hull damage ignores the damage type and armour (RT-F041); drain and damage use the inner value at the point of impact."
+    "Drain and hull damage use the inner value at the point of impact (the radius and outer value are not applied)."
   ]
 }

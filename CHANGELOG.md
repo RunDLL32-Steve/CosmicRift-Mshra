@@ -1,5 +1,11 @@
 # Changelog
 
+## Armour protects against Kinetic, Explosive and Energy damage — November 8, 2026
+
+-   Every weapon now does one of the three original hull damage types (NWS row 133): the three starting cannons do Energy damage, Mass Drivers Kinetic and Moltor weapons Explosive.
+-   The nine armours at the station now protect the way their help text says, from their original values (ITM f[52..57], the emulator's utility-item armour pairs): each hit first loses the ignored points, then the armour stops a share of the rest. Ablative Shell stops nothing against Kinetic; Sillicate stops nothing against Energy. Armour still slows the ship, and the invented "+ hull points" bonus is gone. The station list shows each armour's protection.
+-   Armour only matters once the shield is empty, as before. The percent unit (read as tenths of a percent), Remove Armor at the Repair Dock, and the speed-block field order stay open. [Evidence](docs/development-log/2026-11-08-armour-damage-types.md).
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

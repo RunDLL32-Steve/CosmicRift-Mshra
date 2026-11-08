@@ -62,7 +62,7 @@ public sealed partial class WorldSimulation
             target.Id, catalog.Ship with
             {
                 Radius = target.Radius,
-                Defense = new ShipDefense { MaximumHull = target.Hull, MaximumShield = target.Shield }
+                Defense = new ShipDefense { MaximumHull = target.Hull, MaximumShield = target.Shield, Armor = target.Armor }
             }, catalog.Weapon, new Vector2(target.X, target.Y), target.Heading)).ToArray());
         Asteroids = Array.AsReadOnly(catalog.Sector.Asteroids.Select(asteroid => new AsteroidState(asteroid)).ToArray());
         Projectiles = _projectiles.AsReadOnly();
@@ -298,10 +298,13 @@ public sealed partial class WorldSimulation
 
     private void ApplyDamage(ShipState target, ProjectileState projectile)
     {
+        // Armour stops part of the hull damage by type (RT-F041); the shield drain is untouched (every armour's energy-drain
+        // protection, ITM f[62..63], is 0).
+        var hullDamage = ShipArmor.HullDamage(projectile.Damage, projectile.DamageType, target.Definition.Defense.Armor);
         if (projectile.ShieldDrain is { } drain)
         {
             // For a ship whose energy is its shield, the shield is energy.
-            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, projectile.Damage);
+            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, hullDamage);
             if (target.Definition.Defense.EnergyShield) target.Energy = shield;
             else target.Shield = shield;
             target.Hull = hull;
@@ -310,7 +313,7 @@ public sealed partial class WorldSimulation
         {
             var absorbed = MathF.Min(target.Shield, projectile.Damage);
             target.Shield -= absorbed;
-            target.Hull = MathF.Max(0, target.Hull - (projectile.Damage - absorbed));
+            target.Hull = MathF.Max(0, target.Hull - ShipArmor.HullDamage(projectile.Damage - absorbed, projectile.DamageType, target.Definition.Defense.Armor));
         }
         target.LastDamagedByShipId = projectile.OwnerShipId;
         target.LastDamageWeaponId = projectile.WeaponId;

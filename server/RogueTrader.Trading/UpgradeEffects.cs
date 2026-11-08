@@ -5,7 +5,7 @@ namespace RogueTrader.Trading;
 /// <summary>
 /// Applies owned upgrades to a ship definition (NEW/provisional; RT-F048 effects are undecoded). Upgrades sharing a held
 /// category (raw ITM f[20]) occupy one slot, so only the highest-priced owned one per category is active. Fractions add to 1
-/// and multiply the base value; the result never drops below 10% of the base, and hull bonuses add points.
+/// and multiply the base value; the result never drops below 10% of the base, hull bonuses add points, and armour protection adds type by type.
 /// </summary>
 public static class UpgradeEffects
 {
@@ -54,7 +54,12 @@ public static class UpgradeEffects
                 MaximumEnergy = Scale(ship.Reactor.MaximumEnergy, Sum(e => e.MaximumEnergy)),
                 EnergyRegenerationPerSecond = Scale(ship.Reactor.EnergyRegenerationPerSecond, Sum(e => e.EnergyRegeneration)),
             },
-            Defense = ship.Defense with { MaximumHull = ship.Defense.MaximumHull + Sum(e => e.MaximumHull) },
+            Defense = ship.Defense with
+            {
+                MaximumHull = ship.Defense.MaximumHull + Sum(e => e.MaximumHull),
+                // Armour adds to the hull's own protection (NEW: every pinned hull's VEH armour, f[9..32], is 0, so the two never meet).
+                Armor = active.Aggregate(ship.Defense.Armor, (armor, u) => ShipArmor.Combine(armor, u.Effect.Armor)),
+            },
         };
     }
 }
