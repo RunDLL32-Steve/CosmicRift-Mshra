@@ -11,7 +11,7 @@ public sealed record SectorSpawnSource(int LioRow, string Name, int X, int Y, in
 
 /// <summary>The document behind <c>data/sectors/rogue_map.json</c>; <see cref="SectorMap.FromJson"/> reads it.</summary>
 public sealed record SectorMapDocument(string Id, string EvidenceClassification, string Source, IReadOnlyList<string> NewRules,
-    int Width, int Height, int TileSize, SectorMapOffset LioOffset, IReadOnlyList<int> TerrainPrizeExpireSeconds, string TileEncoding,
+    int Width, int Height, int TileSize, SectorMapOffset LioOffset, IReadOnlyList<int> TerrainPrizeExpireSeconds, IReadOnlyList<TerrainRule> TerrainRules, string TileEncoding,
     int BlockedTiles, IReadOnlyDictionary<string, int> TerrainTiles, string Tiles)
 {
     public string ToJson() => JsonSerializer.Serialize(this, StationDefinition.Json).ReplaceLineEndings("\n") + "\n";
@@ -90,6 +90,7 @@ public static class OriginalMapBuilder
             terrainTiles[terrain] = terrainTiles.GetValueOrDefault(terrain) + 1;
         }
         var expire = new int[SectorMap.TerrainCount];
+        var rules = new TerrainRule[SectorMap.TerrainCount];
         var lines = new List<string>();
         for (var t = 0; t < expire.Length; t++)
         {
@@ -97,14 +98,22 @@ public static class OriginalMapBuilder
             var entry = section.Find("PrizeExpire") ?? throw new OriginalDataException($"CFG [Terrain{t}] has no PrizeExpire.");
             expire[t] = section.Int("PrizeExpire");
             lines.Add(entry.LineNumber.ToString(CultureInfo.InvariantCulture));
+            rules[t] = new TerrainRule(Flag(section, "Safety"), Flag(section, "DeleteLiveWeapons"), section.Int("EnergyRate"));
         }
         return new SectorMapDocument(MapId, "ORIGINAL+RECONSTRUCTED+NEW",
-            $"Derived by OriginalMapBuilder from pinned {OriginalLevel.LvlRogue.RelativePath} (version {level.Version}, {grid.Width} x {grid.Height} tiles, offset {level.OffsetX}, {level.OffsetY}) through the G6 reader, and {OriginalCfg.Rogue.RelativePath} [Terrain0..15] PrizeExpire (lines {string.Join(", ", lines)}); regenerate, never hand-edit.",
+            $"Derived by OriginalMapBuilder from pinned {OriginalLevel.LvlRogue.RelativePath} (version {level.Version}, {grid.Width} x {grid.Height} tiles, offset {level.OffsetX}, {level.OffsetY}) through the G6 reader, and {OriginalCfg.Rogue.RelativePath} [Terrain0..15] PrizeExpire (lines {string.Join(", ", lines)}), Safety, DeleteLiveWeapons and EnergyRate; regenerate, never hand-edit.",
             MapNewRules, grid.Width, grid.Height, SectorMap.TileSize, new SectorMapOffset(level.OffsetX * SectorMap.TileSize, level.OffsetY * SectorMap.TileSize),
-            expire, "rle-leb128-base64", blocked,
+            expire, rules, "rle-leb128-base64", blocked,
             terrainTiles.ToDictionary(p => p.Key.ToString(CultureInfo.InvariantCulture), p => p.Value),
             Convert.ToBase64String(SectorMap.EncodeTiles(tiles)));
     }
+
+    private static bool Flag(CfgSection section, string key) => section.Int(key) switch
+    {
+        0 => false,
+        1 => true,
+        var other => throw new OriginalDataException($"CFG [{section.Name}] {key}={other} is not 0 or 1."),
+    };
 
     // ---- Sector -------------------------------------------------------------------------------------------------------
 

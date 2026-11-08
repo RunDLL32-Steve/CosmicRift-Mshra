@@ -5,6 +5,25 @@ using System.Text.Json.Serialization;
 namespace RogueTrader.Simulation;
 
 /// <summary>
+/// The safe-zone keys of one CFG <c>[TerrainN]</c> block (RT-F065), as the game applies them.
+/// </summary>
+/// <param name="Safety">CFG <c>Safety</c>: a ship on this terrain cannot be damaged and cannot fire.</param>
+/// <param name="DeleteLiveWeapons">CFG <c>DeleteLiveWeapons</c>: a shot that flies onto this terrain disappears.</param>
+/// <param name="EnergyRate">
+/// CFG <c>EnergyRate</c>, raw: tenths of an energy unit per second (the VEH EnergyRate scale, see OriginalEnergyScale), added to
+/// the hull's own recharge while the ship is on this terrain. Rogue's safe zones have -2000, a 200 energy-per-second drain.
+/// </param>
+public sealed record TerrainRule(bool Safety = false, bool DeleteLiveWeapons = false, int EnergyRate = 0)
+{
+    /// <summary>Open space with no safe-zone rule (CFG [Terrain0] of Rogue).</summary>
+    public static readonly TerrainRule Open = new();
+
+    /// <summary><see cref="EnergyRate"/> in energy per second.</summary>
+    [JsonIgnore]
+    public float EnergyPerSecond => EnergyRate / 10f;
+}
+
+/// <summary>
 /// The tile map a sector is flown on: which 16-pixel tiles block a ship and which CFG terrain each tile belongs to. World
 /// coordinates are map pixels, origin at the top-left corner of tile (0, 0), so a tile is <c>floor(x / 16), floor(y / 16)</c>
 /// as in the InfantryOnline emulator's lookups. For the original Rogue map the tiles come from the pinned LVL/Rogue.lvl through
@@ -36,8 +55,11 @@ public sealed class SectorMap
 
     private readonly byte[] _tiles;
     private readonly long[] _prizeExpireTicks;
+    private readonly TerrainRule[] _rules;
 
-    public SectorMap(int width, int height, byte[] tiles, IReadOnlyList<int> terrainPrizeExpireSeconds, int lioOffsetX = 0, int lioOffsetY = 0)
+    /// <param name="terrainRules">Safe-zone rules per terrain (16 entries); omitted means open space everywhere.</param>
+    public SectorMap(int width, int height, byte[] tiles, IReadOnlyList<int> terrainPrizeExpireSeconds, int lioOffsetX = 0, int lioOffsetY = 0,
+        IReadOnlyList<TerrainRule>? terrainRules = null)
     {
         ArgumentNullException.ThrowIfNull(tiles);
         ArgumentNullException.ThrowIfNull(terrainPrizeExpireSeconds);
@@ -53,6 +75,9 @@ public sealed class SectorMap
         _tiles = tiles;
         TerrainPrizeExpireSeconds = terrainPrizeExpireSeconds.ToArray();
         _prizeExpireTicks = TerrainPrizeExpireSeconds.Select(s => (long)s * WorldSimulation.TickRate).ToArray();
+        if (terrainRules is not null && (terrainRules.Count != TerrainCount || terrainRules.Any(r => r is null)))
+            throw new ArgumentException($"A map needs {TerrainCount} terrain rules.", nameof(terrainRules));
+        _rules = terrainRules?.ToArray() ?? Enumerable.Repeat(TerrainRule.Open, TerrainCount).ToArray();
         LioOffset = new Vector2(lioOffsetX, lioOffsetY);
     }
 
@@ -133,6 +158,15 @@ public sealed class SectorMap
     /// <summary>How long a drop lying at <paramref name="position"/> lasts: the PrizeExpire of the terrain under it, in ticks.</summary>
     public long PrizeExpireTicksAt(Vector2 position) => _prizeExpireTicks[TerrainAt(position)];
 
+    /// <summary>Safe-zone rules per terrain number (CFG [Terrain0..15] Safety, DeleteLiveWeapons, EnergyRate).</summary>
+    public IReadOnlyList<TerrainRule> TerrainRules => _rules;
+
+    /// <summary>The safe-zone rule of the terrain under a position (open space outside the map).</summary>
+    public TerrainRule RuleAt(Vector2 position) => _rules[TerrainAt(position)];
+
+    /// <summary>Whether a ship at <paramref name="position"/> is in a safe zone (CFG Safety=1): no damage, no firing.</summary>
+    public bool IsSafeAt(Vector2 position) => RuleAt(position).Safety;
+
     /// <summary>Longest drop life of any terrain, in ticks.</summary>
     public long LongestPrizeExpireTicks => _prizeExpireTicks.Max();
 
@@ -153,7 +187,7 @@ public sealed class SectorMap
 
     /// <summary>
     /// Reads the derived map document (<c>data/sectors/rogue_map.json</c>): <c>width</c>, <c>height</c>, <c>tileSize</c> (must
-    /// be 16), <c>lioOffset</c>, <c>terrainPrizeExpireSeconds</c> and <c>tiles</c>, the run-length encoded tile bytes in base 64
+    /// be 16), <c>lioOffset</c>, <c>terrainPrizeExpireSeconds</c>, the optional <c>terrainRules</c> and <c>tiles</c>, the run-length encoded tile bytes in base 64
     /// (see <see cref="EncodeTiles"/>). Other members are evidence and are ignored.
     /// </summary>
     public static SectorMap FromJson(string json)
@@ -163,7 +197,7 @@ public sealed class SectorMap
         if (document.Tiles is null || document.TerrainPrizeExpireSeconds is null) throw new JsonException("Sector map needs tiles and terrain expiry.");
         var tiles = DecodeTiles(Convert.FromBase64String(document.Tiles), checked(document.Width * document.Height));
         return new SectorMap(document.Width, document.Height, tiles, document.TerrainPrizeExpireSeconds,
-            document.LioOffset?.X ?? 0, document.LioOffset?.Y ?? 0);
+            document.LioOffset?.X ?? 0, document.LioOffset?.Y ?? 0, document.TerrainRules);
     }
 
     /// <summary>
@@ -226,6 +260,7 @@ public sealed class SectorMap
         public int TileSize { get; set; }
         public Offset? LioOffset { get; set; }
         public int[]? TerrainPrizeExpireSeconds { get; set; }
+        public TerrainRule[]? TerrainRules { get; set; }
         public string? Tiles { get; set; }
     }
 
