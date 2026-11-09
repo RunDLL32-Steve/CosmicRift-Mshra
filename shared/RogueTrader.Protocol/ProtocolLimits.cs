@@ -9,15 +9,15 @@ namespace RogueTrader.Protocol;
 public static class ProtocolLimits
 {
     /// <summary>Explicit wire version byte. Bump on any incompatible layout change.</summary>
-    public const byte Version = 1;
+    public const byte Version = 2;
     public const int HeaderBytes = 6;
     /// <summary>NEW/provisional: largest accepted payload (checked before any allocation).</summary>
     public const int MaxPayloadBytes = 65535;
-    /// <summary>NEW/provisional: most entities in one snapshot (512 * 33 B = 16,896 B).</summary>
+    /// <summary>NEW/provisional: most entities in one snapshot (512 * 37 B = 18,944 B).</summary>
     public const int MaxSnapshotEntities = 512;
     /// <summary>NEW/provisional: longest item id in UTF-8 bytes.</summary>
     public const int MaxItemIdBytes = 64;
     public const int MaxFrameBytes = HeaderBytes + MaxPayloadBytes;
-    /// <summary>id u32 + kind u8 + 7 floats.</summary>
-    internal const int EntityBytes = 33;
+    /// <summary>id u32 + kind u8 + 8 floats (version 2 added energy).</summary>
+    internal const int EntityBytes = 37;
 }

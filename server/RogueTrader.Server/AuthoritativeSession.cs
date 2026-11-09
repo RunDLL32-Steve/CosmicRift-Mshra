@@ -27,7 +27,7 @@ namespace RogueTrader.Server;
 /// <see cref="SessionOptions.InputsPerTick"/> per simulated tick up to <see cref="SessionOptions.InputBurst"/>. With none left the
 /// input is <see cref="InputVerdict.RateLimited"/>.</item>
 /// <item>A motion audit checks every tick: the controlled ship may move at most its definition's maximum speed times the tick
-/// duration (plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
+/// duration (its boost top speed when that is higher, plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
 /// <see cref="RestorePlayer"/>. Findings are recorded in <see cref="MotionViolations"/> and counted, never enforced, because no
 /// enforcement policy is approved. The client cannot send a position, so this guards the server's own state.</item>
 /// </list>
@@ -127,7 +127,10 @@ public sealed class AuthoritativeSession
         EndTick();
         AuditBetweenTicks();
         _tickStart = World.Player.Position;
-        _tickLimit = World.Player.Definition.Physics.MaximumSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
+        // A boosting ship may legitimately reach the hull's hyper top speed, so the audit allows the faster of the two.
+        var definition = World.Player.Definition;
+        var topSpeed = MathF.Max(definition.Physics.MaximumSpeed, definition.Hyper?.MaximumSpeed ?? 0);
+        _tickLimit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
         _tickPending = true;
         return TakeInput(tick);
     }
@@ -160,7 +163,7 @@ public sealed class AuthoritativeSession
     {
         if (!SpendAllowance()) return InputVerdict.RateLimited;
         if (input.ClientTick == 0 || !float.IsFinite(input.Thrust) || !float.IsFinite(input.Turn) ||
-            (input.Flags & ~InputFlags.Fire) != 0)
+            (input.Flags & ~MessageCodec.KnownFlags) != 0)
             return InputVerdict.Invalid;
         if (Math.Abs(input.Thrust) > 1 || Math.Abs(input.Turn) > 1) return InputVerdict.OutOfRange;
         if (input.LastSnapshotTick > ServerTick) return InputVerdict.FutureSnapshot;
@@ -210,7 +213,7 @@ public sealed class AuthoritativeSession
         Counters.CountApplied();
         LastProcessedInputSequence = _hasProcessed ? Math.Max(LastProcessedInputSequence, chosen.Sequence) : chosen.Sequence;
         _hasProcessed = true;
-        return new ShipInput(chosen.Thrust, chosen.Turn, chosen.Flags.HasFlag(InputFlags.Fire));
+        return new ShipInput(chosen.Thrust, chosen.Turn, chosen.Flags.HasFlag(InputFlags.Fire), Hyper: chosen.Flags.HasFlag(InputFlags.Hyper));
     }
 
     private void Remember(uint sequence)

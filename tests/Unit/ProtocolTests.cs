@@ -41,7 +41,7 @@ public class ProtocolTests
         var bytes = MessageCodec.Encode(new TransactionResponse(0x0102030405060708UL, TransactionStatus.Duplicate, 0x0A0B, 0x1112131415161718L));
         var expected = new byte[]
         {
-            1, 4, 19, 0, 0, 0,
+            2, 4, 19, 0, 0, 0,
             0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01,
             2, 0x0B, 0x0A,
             0x18, 0x17, 0x16, 0x15, 0x14, 0x13, 0x12, 0x11,
@@ -49,7 +49,7 @@ public class ProtocolTests
         Assert.Equal(expected, bytes);
 
         var input = MessageCodec.Encode(new PlayerInput(1, 2, 3, 1f, -1f, InputFlags.Fire));
-        Assert.Equal(new byte[] { 1, 1, 21, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0x80, 0x3F, 0, 0, 0x80, 0xBF, 1 }, input);
+        Assert.Equal(new byte[] { 2, 1, 21, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0x80, 0x3F, 0, 0, 0x80, 0xBF, 1 }, input);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class ProtocolTests
     {
         var good = MessageCodec.Encode(new PlayerInput(1, 2, 3, 0f, 0f, InputFlags.None));
 
-        var badVersion = (byte[])good.Clone(); badVersion[0] = 2;
+        var badVersion = (byte[])good.Clone(); badVersion[0] = ProtocolLimits.Version + 1;
         Assert.False(MessageCodec.TryDecode(badVersion, out _, out var e));
         Assert.Equal(ProtocolError.UnsupportedVersion, e);
 
@@ -191,7 +191,7 @@ public class ProtocolTests
     public void ReservedFlagsAndBadEnumsRejected()
     {
         var input = MessageCodec.Encode(new PlayerInput(0, 0, 0, 0f, 0f, InputFlags.None));
-        input[^1] = 0x02;
+        input[^1] = 0x04;
         Assert.False(MessageCodec.TryDecode(input, out _, out var e));
         Assert.Equal(ProtocolError.InvalidFlags, e);
         Assert.False(MessageCodec.TryEncode(new PlayerInput(0, 0, 0, 0f, 0f, (InputFlags)0x80), new byte[64], out _, out e));

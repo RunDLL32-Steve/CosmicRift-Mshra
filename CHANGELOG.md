@@ -1,5 +1,12 @@
 # Changelog
 
+## Client prediction knows the Shift boost and the walls — November 9, 2026
+
+-   Holding Shift is now part of what the client sends (`InputFlags.Hyper`), and the server applies it, so the boost works over the network path and not only in the local game. The motion audit allows a boosting ship its boost top speed.
+-   Client prediction runs the boost exactly as the server does: it engages only while thrusting with a tick's energy, pays 99 to 120 energy a second by hull, and pauses recharge. Snapshots now carry each ship's energy for this (wire version 2: 37 bytes per entity instead of 33; version 1 frames are refused). Energy spent by firing, mining or hits is still decided by the server alone and arrives in the next snapshot.
+-   A predictor given the sector's tile map predicts wall bounces with the same code the server uses, so flying into a wall no longer snaps the ship back when the snapshot arrives. `ShipMotion` and `WorldSimulation` share one step for asteroids, walls, boost and recharge.
+-   Evidence: `tests/Unit/Prediction/BoostAndWallPredictionTests.cs` (eight cases, every one compared bit for bit with a real `AuthoritativeSession` through the wire codec). No original feature checkbox changes; 397/22/375 unchanged.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

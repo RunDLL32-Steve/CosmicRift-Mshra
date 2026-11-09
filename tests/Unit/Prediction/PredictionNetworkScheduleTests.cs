@@ -222,7 +222,7 @@ public sealed class PredictionNetworkScheduleTests(ITestOutputHelper output)
             Assert.InRange(predictor.PendingCount, 0, maximumPending);
             Assert.InRange(authority.QueuedInputCount, 0, SessionOptions.Default.InputQueueCapacity);
             Assert.All(new[] { predictor.Ship.X, predictor.Ship.Y, predictor.Ship.VelX, predictor.Ship.VelY,
-                predictor.Ship.Rotation, predictor.Ship.Hull, predictor.Ship.Shield }, value => Assert.True(float.IsFinite(value)));
+                predictor.Ship.Rotation, predictor.Ship.Hull, predictor.Ship.Shield, predictor.Ship.Energy }, value => Assert.True(float.IsFinite(value)));
         }
         Assert.True(declined > 0);
         Assert.True(recovered);
@@ -289,7 +289,7 @@ public sealed class PredictionNetworkScheduleTests(ITestOutputHelper output)
 
     private static EntityState Ship(WorldSimulation world) => new(ControlledId, EntityKind.Ship,
         world.Player.Position.X, world.Player.Position.Y, world.Player.Velocity.X, world.Player.Velocity.Y,
-        world.Player.Heading, world.Player.Hull, world.Player.Shield);
+        world.Player.Heading, world.Player.Hull, world.Player.Shield, world.Player.Energy);
 
     private static WorldSnapshot Snapshot(AuthoritativeSession authority) =>
         new(checked((uint)authority.ServerTick), authority.LastProcessedInputSequence, [Ship(authority.World)]);

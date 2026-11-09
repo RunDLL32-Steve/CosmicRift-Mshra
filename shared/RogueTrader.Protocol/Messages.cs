@@ -20,6 +20,8 @@ public enum InputFlags : byte
 {
     None = 0,
     Fire = 1,
+    /// <summary>Shift boost (hyper thrust) held; it engages only while thrusting with a tick's energy (ShipMotion).</summary>
+    Hyper = 2,
 }
 
 /// <summary>Client intent for one client tick. Thrust/Turn nominal range is [-1,1]; range policing is a server validation concern (TASK_QUEUE C8).</summary>
@@ -37,8 +39,11 @@ public enum EntityKind : byte
 }
 
 /// <summary>One replicated entity in NEW/provisional world units (position, velocity per second, rotation radians).</summary>
+/// <param name="Energy">Reactor energy, which pays for the Shift boost (and, on an energy-shield hull, is also its shield).
+/// Client prediction reads it to know whether the boost can engage; 0 means the boost is predicted off.</param>
 public readonly record struct EntityState(
-    uint EntityId, EntityKind Kind, float X, float Y, float VelX, float VelY, float Rotation, float Hull, float Shield);
+    uint EntityId, EntityKind Kind, float X, float Y, float VelX, float VelY, float Rotation, float Hull, float Shield,
+    float Energy = 0);
 
 /// <summary>Authoritative state at <see cref="ServerTick"/>; acknowledges inputs up to <see cref="LastProcessedInputSequence"/> for reconciliation.</summary>
 public sealed record WorldSnapshot(uint ServerTick, uint LastProcessedInputSequence, EntityState[] Entities) : Message

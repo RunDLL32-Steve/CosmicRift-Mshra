@@ -85,9 +85,7 @@ public sealed partial class WorldSimulation
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
             if (input.Mine && TryMine()) CollectPickups(Player.Position);
-            if (!Player.IsHyperEngaged || Player.Definition.Hyper!.RechargeWhileEngaged)
-                Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
-                    Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
+            ShipMotion.Recharge(Player);
             if (input.Fire)
                 TryFire();
         }
@@ -211,10 +209,10 @@ public sealed partial class WorldSimulation
 
     private void MovePlayer(ShipInput input)
     {
-        var previous = Player.Position;
-        AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
-        // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
-        if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
+        // The same shared step client prediction runs (ShipMotion), so boost and wall bounces predict exactly.
+        var (asteroidHits, hitWall) = ShipMotion.Step(Player, Asteroids, Map, input);
+        AsteroidCollisions += asteroidHits;
+        if (hitWall) WallCollisions++;
     }
 
     // Piles are visited in catalog order and the swept ship path catches piles passed between ticks. A pile the hold cannot

@@ -17,8 +17,10 @@ public enum ReconciliationVerdict
 
 /// <summary>
 /// NEW/provisional controlled-ship prediction. A single caller serializes issues and reconciliations.
-/// Requires a fresh authoritative baseline and matching ship/sector catalog; recreate on context changes.
-/// Only motion is predicted. Hull/shield and all gameplay side effects remain authoritative.
+/// Requires a fresh authoritative baseline and matching ship/sector catalog and tile map; recreate on context changes.
+/// Motion is predicted through the authority's own <see cref="ShipMotion"/> step, including the Shift boost (paid from the
+/// snapshot's energy, with the tick's recharge) and wall bounces on the supplied map. Hull/shield, energy spent by firing,
+/// mining or hits, and all other gameplay side effects remain authoritative; the next snapshot corrects them.
 /// </summary>
 public sealed class ShipPredictor
 {
@@ -34,7 +36,10 @@ public sealed class ShipPredictor
     public uint LastIssuedSequence { get; private set; }
     public int PendingCount => _pending.Count;
 
-    public ShipPredictor(GameCatalog catalog, uint controlledEntityId, WorldSnapshot initialSnapshot, int maxPending)
+    /// <param name="map">The authority's tile map (<see cref="WorldSimulation.Map"/>), so wall bounces are predicted; null for
+    /// open space. Passing a different map than the authority's makes every wall contact a correction.</param>
+    public ShipPredictor(GameCatalog catalog, uint controlledEntityId, WorldSnapshot initialSnapshot, int maxPending,
+        SectorMap? map = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(initialSnapshot);
@@ -42,7 +47,7 @@ public sealed class ShipPredictor
         if (!TryReadShip(initialSnapshot, controlledEntityId, out var ship) ||
             (initialSnapshot.ServerTick == 0 && initialSnapshot.LastProcessedInputSequence != 0))
             throw new ArgumentException("A fresh baseline requires one finite controlled ship and a valid initial acknowledgement.", nameof(initialSnapshot));
-        _motion = new ShipMotion(catalog);
+        _motion = new ShipMotion(catalog, map);
         ControlledEntityId = controlledEntityId;
         MaxPending = maxPending;
         Ship = ship;
@@ -53,13 +58,13 @@ public sealed class ShipPredictor
     /// <summary>
     /// Issues one immutable intent for the next tick and predicts its motion. Invalid controls, a full queue or exhausted
     /// uint identifiers, or nonfinite derived motion, return false without consuming identifiers or changing prediction state.
-    /// Fire is carried in the message only. Resubmit the returned message itself when transport requires a retry.
+    /// Fire is carried in the message only; Hyper is carried and also predicted. Resubmit the returned message itself when transport requires a retry.
     /// </summary>
     public bool TryPredict(float thrust, float turn, InputFlags flags, [NotNullWhen(true)] out PlayerInput? input)
     {
         input = null;
         if (!float.IsFinite(thrust) || !float.IsFinite(turn) || Math.Abs(thrust) > 1 || Math.Abs(turn) > 1 ||
-            (flags & ~InputFlags.Fire) != 0 || _pending.Count >= MaxPending ||
+            (flags & ~MessageCodec.KnownFlags) != 0 || _pending.Count >= MaxPending ||
             PredictedTick == uint.MaxValue || LastIssuedSequence == uint.MaxValue)
             return false;
         var intent = new PlayerInput(PredictedTick + 1, LastIssuedSequence + 1, LastAcceptedServerTick, thrust, turn, flags);
@@ -108,9 +113,14 @@ public sealed class ShipPredictor
     private EntityState Predict(EntityState ship, PlayerInput input)
     {
         if (ship.Hull <= 0) return ship;
-        var result = _motion.Step(new ShipMotionState(new Vector2(ship.X, ship.Y), new Vector2(ship.VelX, ship.VelY), ship.Rotation),
-            new ShipInput(input.Thrust, input.Turn, false));
-        return ship with { X = result.Position.X, Y = result.Position.Y, VelX = result.Velocity.X, VelY = result.Velocity.Y, Rotation = result.Heading };
+        var result = _motion.Step(
+            new ShipMotionState(new Vector2(ship.X, ship.Y), new Vector2(ship.VelX, ship.VelY), ship.Rotation, ship.Energy),
+            new ShipInput(input.Thrust, input.Turn, false, Hyper: input.Flags.HasFlag(InputFlags.Hyper)));
+        return ship with
+        {
+            X = result.Position.X, Y = result.Position.Y, VelX = result.Velocity.X, VelY = result.Velocity.Y,
+            Rotation = result.Heading, Energy = result.Energy
+        };
     }
 
     private static bool TryReadShip(WorldSnapshot snapshot, uint id, out EntityState ship)
@@ -132,5 +142,5 @@ public sealed class ShipPredictor
 
     private static bool HasFiniteMotion(EntityState ship) =>
         float.IsFinite(ship.X) && float.IsFinite(ship.Y) && float.IsFinite(ship.VelX) &&
-        float.IsFinite(ship.VelY) && float.IsFinite(ship.Rotation);
+        float.IsFinite(ship.VelY) && float.IsFinite(ship.Rotation) && float.IsFinite(ship.Energy);
 }
