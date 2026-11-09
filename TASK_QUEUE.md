@@ -32,7 +32,7 @@ No active rows: M1 to M9 are merged (see the history below).
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
--   RT-F043 (wreckage/drop lifecycle): a destroyed hull drops its original VEH f[68]/f[69] Wreckage where it died. CLAIMED, in progress on `claude/project-thread-mddct7` (November 9, 2026).
+-   RT-F043 (wreckage/drop lifecycle): a destroyed hull drops its original VEH f[68]/f[69] Wreckage where it died. IN REVIEW on `claude/project-thread-mddct7` (November 9, 2026); NWS row 338/340 quantities and spec/team-change order remain open.
 
 Otherwise no active rows: C1 is merged; C7 scoped library acceptance is verified and its [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) awaits final gates.
 

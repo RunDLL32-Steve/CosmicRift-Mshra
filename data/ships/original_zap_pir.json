@@ -33,6 +33,11 @@
     "source": "ORIGINAL: VEH/Rogue.veh Zap'Pir terrain 0 HyperThrust f[209]=50, BackwardHyperThrust f[211]=-1, HyperTopSpeed f[208]=3500, HyperEnergyCost f[373]=1100."
   },
   "weaponId": "1041",
+  "wreck": {
+    "itemId": "2008",
+    "quantity": 1,
+    "source": "ORIGINAL: VEH/Rogue.veh Zap'Pir (vehicle 2008) f[68] DropItemId=2008, f[69] DropQuantity=1; ITM/Rogue_mp.itm row 87 'Wreckage'. NWS/Rogue.nws row 41: a destroyed ship leaves 'a small piece of wreckage where you were'."
+  },
   "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 11 (skill 9), VEH/Rogue.veh row 25 (vehicle 2008), category 'Ship Hull - Grazi'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw. Radius: VEH f[35] PhysicalRadius=21 px. Energy: VEH f[94] EnergyMax=1700, f[95] EnergyRate=1050 (tenths per second, OriginalEnergyScale); f[96] EnergyStart=1700 equals the maximum. Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). Starting weapon: VEH f[129] 'addinv=D-Cannon' (ITM id 1041).",
   "newValues": [
     "Hull points used raw (f[6]); weapon hull damage reads ITM thousandths, so a Plasma Cannon hit takes 5 of the Asp's 50 (unvalidated in play).",

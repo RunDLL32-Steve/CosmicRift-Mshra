@@ -1,4 +1,5 @@
 using System.Numerics;
+using RogueTrader.GameData;
 using RogueTrader.Simulation;
 
 namespace RogueTrader.UnitTests;
@@ -62,5 +63,30 @@ public sealed class CargoDropTests
         Assert.Equal(3, next.Cargo.Quantity(OreA));
         Assert.Empty(next.Collectibles);
         Assert.Equal(pile.Id, Assert.Single(next.Pickups).PileId);
+    }
+
+    [Fact]
+    public void TheHullsOwnWreckDropsWithTheCargoEvenFromAnEmptyHold()
+    {
+        // RT-F043: the hull's VEH f[68..69] drop is produced by the destruction, so it is added to the lost cargo (summed when the
+        // hold carried the same item) and still drops when the hold was empty. OreB stands in for Wreckage here (NEW fixture).
+        var wreck = new ShipWreck { ItemId = OreB, Quantity = 1 };
+        Assert.Equal(new[] { KeyValuePair.Create(OreA, 3), KeyValuePair.Create(OreB, 3) }, WorldSimulation.DestructionDrop(Hold(3, 2), wreck));
+        Assert.Equal(new[] { KeyValuePair.Create(OreB, 1) }, WorldSimulation.DestructionDrop(Hold(0, 0), wreck));
+        Assert.Equal(new[] { KeyValuePair.Create(OreA, 3) }, WorldSimulation.DestructionDrop(Hold(3, -1), null));
+        Assert.Empty(WorldSimulation.DestructionDrop([], null));
+
+        var world = World();
+        var pile = Assert.Single(world.DropCargo("w1:12", new Vector2(0, -300), WorldSimulation.DestructionDrop(Hold(0, 0), wreck)));
+        Assert.Equal(($"{WorldSimulation.WreckPilePrefix}w1:12:{OreB}", 1), (pile.Id, pile.Quantity));
+        Assert.Empty(world.DropCargo("w1:12", new Vector2(0, -300), WorldSimulation.DestructionDrop(Hold(0, 0), wreck))); // never twice
+    }
+
+    [Fact]
+    public void AWreckWithNoItemOrNoQuantityIsRefusedByTheCatalog()
+    {
+        var catalog = TestWorld.Catalog();
+        Assert.Throws<ArgumentException>(() => new GameCatalog(catalog.Ship with { Wreck = new ShipWreck { ItemId = "", Quantity = 1 } }, catalog.Weapon, catalog.Sector));
+        Assert.Throws<ArgumentException>(() => new GameCatalog(catalog.Ship with { Wreck = new ShipWreck { ItemId = "2008", Quantity = 0 } }, catalog.Weapon, catalog.Sector));
     }
 }

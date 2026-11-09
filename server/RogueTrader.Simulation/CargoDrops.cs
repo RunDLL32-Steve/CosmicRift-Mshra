@@ -1,4 +1,5 @@
 using System.Numerics;
+using RogueTrader.GameData;
 
 namespace RogueTrader.Simulation;
 
@@ -24,6 +25,22 @@ public sealed partial class WorldSimulation
     /// the destruction's world and tick), so the same spill can never be placed twice. Items with zero or negative quantity and
     /// items this world's cargo catalog does not know are skipped. Returns the piles placed.
     /// </summary>
+    /// <summary>
+    /// What a destroyed ship leaves where it died: the cargo it lost plus the hull's own wreck (VEH f[68..69], RT-F043), summed per
+    /// item so a ship that carried Wreckage drops one pile holding both. The hull's wreck is produced by the destruction itself,
+    /// so it drops even from an empty hold. Non-positive cargo quantities are left out.
+    /// </summary>
+    public static IReadOnlyList<KeyValuePair<string, int>> DestructionDrop(IEnumerable<KeyValuePair<string, int>> lostCargo, ShipWreck? hullWreck)
+    {
+        ArgumentNullException.ThrowIfNull(lostCargo);
+        var drop = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (item, quantity) in lostCargo)
+            if (quantity > 0) drop[item] = checked(drop.GetValueOrDefault(item) + quantity);
+        if (hullWreck is { Quantity: > 0 } wreck && !string.IsNullOrEmpty(wreck.ItemId))
+            drop[wreck.ItemId] = checked(drop.GetValueOrDefault(wreck.ItemId) + wreck.Quantity);
+        return drop.ToArray();
+    }
+
     public IReadOnlyList<CollectibleState> DropCargo(string dropId, Vector2 position, IEnumerable<KeyValuePair<string, int>> items)
     {
         ArgumentException.ThrowIfNullOrEmpty(dropId);

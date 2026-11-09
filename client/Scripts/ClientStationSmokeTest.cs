@@ -290,11 +290,14 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(beforeDeath.Wallet > 0 && afterDeath.Wallet == beforeDeath.Wallet - penalty && afterDeath.Ledger[^1].Kind == TransactionKind.ShipDestroyed,
                 $"A destroyed ship must cost {penalty} credits (20% of {beforeDeath.Wallet}), got wallet {afterDeath.Wallet}.");
             var lostUnits = beforeDeath.Inventory.Values.Sum();
+            // The hull itself also leaves its original wreck, VEH f[68..69] = 2008 x1 (Wreckage) on every original hull (RT-F043).
+            var hullWreck = readWorld().Player.Definition.Wreck;
+            var expectedDrop = WorldSimulation.DestructionDrop(beforeDeath.Inventory, hullWreck);
             var wreck = readWorld().Collectibles.Where(c => c.Id.StartsWith(WorldSimulation.WreckPilePrefix, StringComparison.Ordinal)).ToArray();
-            Require(lostUnits > 0 && wreck.Sum(c => c.Quantity) == lostUnits && wreck.All(c => c.ExpiresAt is not null)
-                && wreck.Select(c => c.ItemId).Order().SequenceEqual(beforeDeath.Inventory.Keys.Order())
+            Require(lostUnits > 0 && hullWreck is { ItemId: "2008", Quantity: 1 } && wreck.All(c => c.ExpiresAt is not null)
+                && wreck.OrderBy(c => c.ItemId, StringComparer.Ordinal).Select(c => KeyValuePair.Create(c.ItemId, c.Quantity)).SequenceEqual(expectedDrop)
                 && wreck.All(c => System.Numerics.Vector2.Distance(c.Position, deathPoint) < WorldSimulation.WreckSpreadRadius + 1),
-                $"The destroyed ship's {lostUnits} cargo units must spill into space as expiring piles, got {wreck.Sum(c => c.Quantity)}.");
+                $"The destroyed ship's {lostUnits} cargo units and its hull's Wreckage must spill into space as expiring piles, got {wreck.Sum(c => c.Quantity)}.");
             Require(afterDeath.Inventory.Count == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0 && client.PendingPickups == 0
                 && afterDeath.Upgrades.SequenceEqual(beforeDeath.Upgrades)
                 && afterDeath.OwnedShips.Keys.SequenceEqual(beforeDeath.OwnedShips.Keys) && !client.DestructionPending,
@@ -305,7 +308,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.NoticeText.Contains("Ship destroyed") && hud.CreditsText == $"CREDITS  {afterDeath.Wallet:N0}",
                 $"The HUD must report the loss and the new wallet, got '{hud.NoticeText}' / '{hud.CreditsText}'.");
-            GD.Print($"STATION SMOKE PASS: a destroyed ship cost {penalty:N0} credits (20%) once, dropped its cargo where it died and respawned with its upgrades");
+            GD.Print($"STATION SMOKE PASS: a destroyed ship cost {penalty:N0} credits (20%) once, dropped its cargo and 1 Wreckage where it died and respawned with its upgrades");
 
             // Fly a little so the saved position differs from spawn, then save/load.
             SendKey(Key.W, true);
