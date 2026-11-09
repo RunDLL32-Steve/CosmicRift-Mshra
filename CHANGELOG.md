@@ -1,5 +1,11 @@
 # Changelog
 
+## Shots fly at their original speed and range — November 9, 2026
+
+-   G10 W2/W3: the starting Plasma Cannon, Bio Cannon and D-Cannon now fire at their original speed and lifetime. A shot leaves at 220 px/s plus the ship's own speed and lives 5.5 s, about 1,210 px from a ship at rest (was 700 px/s for 2.5 s, invented). Fired straight ahead at the Asp's top speed it flies 545 px/s; a shot fired from rest cannot catch a ship fleeing at top speed.
+-   RECONSTRUCTED readings, from the InfantryOnline emulator (bb97579): muzzleVelocity is thousandths of a pixel per 10 ms tick, the same unit that gives the Asp its 325 px/s (lead-aim code `Vehicle.Computer.cs:202`, `Bot/WeaponController.cs:197/205`, `Math.cs:207–230`), and aliveTime is in 10 ms ticks like fireDelay. `OriginalShipPhysics.MuzzleVelocityPixelsPerSecond` and `LifetimeSeconds` hold the two readings and refuse negative sentinels and still projectiles. No native measurement has confirmed them; FLIGHT_FIELD_EVIDENCE section 5 now lists the shot and ship-size checks for a local run.
+-   The G10 table marks W2, W3, W5 and F11 (radius 21 px since #120) as matching the original reading, and its tests now measure the derived Asp and Plasma Cannon. The legacy Interceptor's NEW `plasma_cannon.json` is unchanged. [G10_VALIDATION.md](docs/original-research/G10_VALIDATION.md).
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.
