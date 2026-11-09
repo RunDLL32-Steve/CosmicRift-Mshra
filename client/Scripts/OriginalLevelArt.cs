@@ -7,8 +7,8 @@ namespace RogueTrader.Client;
 /// The original Rogue map art staged by scripts/original-assets/stage_level_art.py: every sprite Rogue.lvl places
 /// (asteroids, space stations, walls, gas clouds, map border) and the mineral prize sprites named by Rogue_mp.itm.
 /// Originals are never read here; only the derived, git-ignored client/OriginalContent/level/ folder.
-/// The entity reading (top-left anchor, animation time, phase) is RECONSTRUCTED; see the staging script.
-/// Draw order and translucency flags follow the Gibbed LVL format source; the strength of smart translucency is RECONSTRUCTED.
+/// Entity fields follow the Gibbed LVL format source; the top-left anchor, the animation unit (milliseconds per frame),
+/// the strength of smart translucency and the Value brightness scale are RECONSTRUCTED; see the staging script.
 /// </summary>
 public sealed class OriginalLevelArt
 {
@@ -39,11 +39,12 @@ public sealed class OriginalLevelArt
     }
 
     /// <summary>
-    /// One placed sprite: cell top-left in map pixels, object index, cycle in hundredths of a second (0 = still), start phase in percent,
-    /// starting frame, LVL draw order (0-5; 5 = dynamic last, drawn over ships), translucency (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%)
-    /// and the smart translucency flag.
+    /// One placed sprite: cell top-left in map pixels, object index, starting frame, milliseconds per frame (0 = still), the raw
+    /// TimeDelta, LVL draw order (0-5; 5 = dynamic last, drawn over ships), translucency (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%),
+    /// the smart translucency flag, and the entity's signed Value and Saturation, Hue, light and palette shift.
     /// </summary>
-    public readonly record struct Entity(int X, int Y, int Object, int AnimationTime, int Phase, int Frame, int DrawOrder, int Translucency, bool SmartTranslucency)
+    public readonly record struct Entity(int X, int Y, int Object, int Frame, int AnimationTime, int TimeDelta, int DrawOrder, int Translucency,
+        bool SmartTranslucency, int Value, int Saturation, int Hue, int Light, int PaletteShift)
     {
         /// <summary>True for sprites the original draws after ships (Rogue.lvl: the translucent gas clouds).</summary>
         public bool OverShips => DrawOrder == DynamicLast;
@@ -59,6 +60,19 @@ public sealed class OriginalLevelArt
             3 => 0.25f,
             _ => SmartTranslucency ? SmartOpacity : 1f,
         };
+
+        /// <summary>
+        /// Colour the sprite is drawn with: its opacity, and its Value as a brightness change in percent (Rogue.lvl: 927 gas clouds
+        /// carry -10). The percent scale is RECONSTRUCTED. Hue, Saturation and light are kept but not applied; their scale is unknown.
+        /// </summary>
+        public Color Modulate
+        {
+            get
+            {
+                var brightness = Math.Clamp(1f + Value / 100f, 0f, 1f);
+                return new Color(brightness, brightness, brightness, Opacity);
+            }
+        }
     }
 
     public const int DynamicLast = 5;
@@ -68,10 +82,10 @@ public sealed class OriginalLevelArt
     private const string ResourceRoot = "res://OriginalContent/level/";
     /// <summary>Bucket size for culling; larger than the biggest sprite (288-pixel station) so a sprite is found from its neighbours.</summary>
     private const int Bucket = 512;
-    private const int SchemaVersion = 2;
-    private const int Stride = 9;
-    /// <summary>Spin cycle for simulation-placed rocks: 4000 hundredths, the cycle Rogue.lvl gives most of its rocks.</summary>
-    private const int PracticeRockCycle = 4000;
+    private const int SchemaVersion = 3;
+    private const int Stride = 14;
+    /// <summary>Frame time for simulation-placed rocks: 250 ms, the time Rogue.lvl gives most of its rocks (8,839 of 13,790).</summary>
+    private const int PracticeRockFrameMs = 250;
 
     private readonly Document _document;
     private readonly Dictionary<long, List<int>> _buckets = [];
@@ -97,8 +111,10 @@ public sealed class OriginalLevelArt
         {
             var v = document.Entities.AsSpan(i * Stride, Stride);
             if ((uint)v[2] >= (uint)document.Objects.Count) throw new InvalidOperationException($"Entity {i} names an unknown object.");
-            if ((uint)v[6] > 7 || (uint)v[7] > 3 || (uint)v[8] > 1) throw new InvalidOperationException($"Entity {i} has invalid draw flags.");
-            Entities[i] = new Entity(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8] == 1);
+            if ((uint)v[3] > 0x7F || (uint)v[4] > 0x3FF || (uint)v[5] > 0x1FFF || (uint)v[6] > 7 || (uint)v[7] > 3 || (uint)v[8] > 1 ||
+                v[9] is < -128 or > 127 || v[10] is < -128 or > 127 || (uint)v[11] > 0x7F || (uint)v[12] > 0x7F || (uint)v[13] > 0x3F)
+                throw new InvalidOperationException($"Entity {i} has invalid draw fields.");
+            Entities[i] = new Entity(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8] == 1, v[9], v[10], v[11], v[12], v[13]);
             var key = BucketKey(Math.DivRem(v[0], Bucket).Quotient, Math.DivRem(v[1], Bucket).Quotient);
             if (!_buckets.TryGetValue(key, out var list)) _buckets[key] = list = [];
             list.Add(i);
@@ -161,9 +177,8 @@ public sealed class OriginalLevelArt
         var sprite = _document.Objects[e.Object];
         var texture = _objectTextures[e.Object] ??= LoadTexture(sprite);
         // The entity's own cycle decides whether it moves: safe-zone markings and the map border carry 0 and stay still.
-        var frame = (e.Frame + FrameAt(sprite.FrameCount, e.AnimationTime, e.Phase, seconds)) % sprite.FrameCount;
-        canvas.DrawTextureRectRegion(texture, new Rect2(e.X, e.Y, sprite.Width, sprite.Height), FrameRect(sprite, frame),
-            new Color(1, 1, 1, e.Opacity));
+        var frame = (e.Frame + FrameAt(sprite.FrameCount, e.AnimationTime, 0, seconds)) % sprite.FrameCount;
+        canvas.DrawTextureRectRegion(texture, new Rect2(e.X, e.Y, sprite.Width, sprite.Height), FrameRect(sprite, frame), e.Modulate);
     }
 
     /// <summary>Draws a mineral's original prize sprite centred on <paramref name="centre"/>; false when the item has none staged.</summary>
@@ -194,7 +209,7 @@ public sealed class OriginalLevelArt
         var texture = _objectTextures[objectIndex] ??= LoadTexture(sprite);
         var size = new Vector2(sprite.Width, sprite.Height);
         canvas.DrawTextureRectRegion(texture, new Rect2(centre - size / 2, size),
-            FrameRect(sprite, FrameAt(sprite.FrameCount, PracticeRockCycle, phase, seconds)));
+            FrameRect(sprite, FrameAt(sprite.FrameCount, PracticeRockFrameMs, phase, seconds)));
     }
 
     /// <summary>Tiles (16 px) that some placed sprite's cell overlaps, row-major; the same test stage_level_art.py reports.</summary>
@@ -220,11 +235,15 @@ public sealed class OriginalLevelArt
         GD.Print($"ORIGINAL_LEVEL_ART_PASS: {_objectTextures.Length} objects; {_document.Minerals.Count} mineral sprites; {Entities.Length} placed sprites.");
     }
 
-    /// <summary>Frame shown at <paramref name="seconds"/> for a cycle of <paramref name="hundredths"/>; 0 holds the first frame.</summary>
-    public static int FrameAt(int frameCount, int hundredths, int phasePercent, float seconds)
+    /// <summary>
+    /// Frame shown at <paramref name="seconds"/> when each frame lasts <paramref name="frameMilliseconds"/> (entity and CFS
+    /// AnimationTime, RECONSTRUCTED as milliseconds per frame); 0 holds the first frame. <paramref name="phasePercent"/> offsets
+    /// the start by a share of the cycle (only simulation-placed rocks use it; Rogue.lvl has no per-entity phase).
+    /// </summary>
+    public static int FrameAt(int frameCount, int frameMilliseconds, int phasePercent, float seconds)
     {
-        if (frameCount <= 1 || hundredths <= 0) return 0;
-        var cycles = seconds * 100f / hundredths + phasePercent / 100f;
+        if (frameCount <= 1 || frameMilliseconds <= 0) return 0;
+        var cycles = seconds * 1000f / ((float)frameMilliseconds * frameCount) + phasePercent / 100f;
         var frame = (int)Math.Floor((cycles - Math.Floor(cycles)) * frameCount);
         return Math.Clamp(frame, 0, frameCount - 1);
     }

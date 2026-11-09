@@ -16,31 +16,39 @@ def lvl_fixture(entities, objects=(("O_Asteroids.blo", "RockA.cfs"), ("o_crmisc.
     struct.pack_into("<6i", header, 0, 6, 2, 2, len(entities), len(floors), len(objects))
     refs = b"".join(a.encode().ljust(32, b"\0") + m.encode().ljust(32, b"\0") for a, m in list(objects) + list(floors))
     planes = bytes([4, 0]) * 3  # one RLE run of four zero tiles per plane
-    table = b""
-    for x, y, word, animation, phase, *bits_b in entities:
-        record = bytearray(level_art.ENTITY_SIZE)
-        struct.pack_into("<hhHHI", record, 0, x, y, word, animation, bits_b[0] if bits_b else 0)
-        record[14] = phase
-        table += bytes(record)
+    table = b"".join(struct.pack("<hhIIIB", x, y, *bits) for x, y, *bits in
+        ((e + (0, 0, 0, 0))[:6] for e in entities))
     return bytes(header) + refs + planes + table
 
 
 class LevelArtTests(unittest.TestCase):
     def test_entities_read_position_object_frame_and_animation(self):
-        objects, floors, entities = level_art.parse_level(lvl_fixture([(16, 48, 0, 4000, 25), (304, 16, 0x6001, 0, 0)]))
+        # Rock: AnimationTime 250 at BitsA 20-29, TimeDelta 5; safe-zone marking: object 1, FrameIndex 3, still.
+        objects, floors, entities = level_art.parse_level(lvl_fixture([(16, 48, 250 << 20, 5), (304, 16, 1 | 3 << 13)]))
         self.assertEqual(objects[1], ("o_crmisc.blo", "safezone.cfs"))
         self.assertEqual(floors, [("f_default.blo", "default.cfs")])
-        self.assertEqual(entities[0], {"x": 16, "y": 48, "object": 0, "animationTime": 4000, "phase": 25, "frame": 0,
-            "drawOrder": 0, "translucency": 0, "smartTranslucency": 0})
-        self.assertEqual(entities[1]["object"], 1)
-        self.assertEqual(entities[1]["frame"], 3)
+        self.assertEqual(entities[0], {"x": 16, "y": 48, "object": 0, "frame": 0, "animationTime": 250, "timeDelta": 5,
+            "drawOrder": 0, "translucency": 0, "smartTranslucency": 0, "value": 0, "saturation": 0, "hue": 0, "light": 0,
+            "paletteShift": 0})
+        self.assertEqual((entities[1]["object"], entities[1]["frame"], entities[1]["animationTime"]), (1, 3, 0))
+
+    def test_frame_index_uses_all_seven_bits(self):
+        _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0x7F << 13 | 1)]))
+        self.assertEqual((entities[0]["object"], entities[0]["frame"], entities[0]["animationTime"]), (1, 127, 0))
 
     def test_entities_read_draw_order_and_translucency_flags(self):
         # Gas cloud record: BitsB = 0x94000000 (DrawOrder 5, SmartTransluency); BitsA top bits = Transluency 50%.
-        _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0, 0x4960, 0, 0x94000000), (0, 0, 0, 0x0FA0, 0, 0x10000000)]))
+        _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0x40000000 | 150 << 20, 0x94000000), (0, 0, 0, 0x10000000)]))
         self.assertEqual((entities[0]["drawOrder"], entities[0]["translucency"], entities[0]["smartTranslucency"]), (5, 1, 1))
-        self.assertEqual(entities[0]["animationTime"], 0x4960)
+        self.assertEqual(entities[0]["animationTime"], 150)
         self.assertEqual((entities[1]["drawOrder"], entities[1]["translucency"], entities[1]["smartTranslucency"]), (4, 0, 0))
+
+    def test_entities_read_value_saturation_hue_light_and_palette_shift(self):
+        # Value -10 (0xF6), Saturation -3 (0xFD), Hue 90, light 50; PaletteShift 7 with the unknown top bits set.
+        bits_c = 0xF6 | 0xFD << 8 | 90 << 16 | 50 << 23
+        _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0, 0, bits_c, 0xC7)]))
+        e = entities[0]
+        self.assertEqual((e["value"], e["saturation"], e["hue"], e["light"], e["paletteShift"]), (-10, -3, 90, 50, 7))
 
     def test_uncovered_blocked_tiles_counts_walls_under_no_sprite_cell(self):
         physics = bytes([1, 1, 0, 1])  # 2 x 2 tiles; three blocked
@@ -55,7 +63,7 @@ class LevelArtTests(unittest.TestCase):
 
     def test_unknown_object_is_refused(self):
         with self.assertRaises(ValueError):
-            level_art.parse_level(lvl_fixture([(0, 0, 2, 0, 0)]))
+            level_art.parse_level(lvl_fixture([(0, 0, 2)]))
 
     def test_unsupported_version_is_refused(self):
         data = bytearray(lvl_fixture([]))

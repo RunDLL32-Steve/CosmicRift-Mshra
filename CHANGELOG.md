@@ -1,5 +1,11 @@
 # Changelog
 
+## Map art timing and gas-cloud shading from the LVL format source — November 9, 2026
+
+-   Every placed sprite in `LVL/Rogue.lvl` is now read with the format source's field layout (Gibbed `Level/Entity.cs`): a 7-bit starting frame, a 10-bit AnimationTime, TimeDelta, the draw flags, and the signed Value and Saturation, Hue, light and palette shift. `level.json` moves to schema 3 (14 fields per sprite); `run-client.ps1` re-stages older copies. The old reading took 16 x AnimationTime as a cycle length and Hue as a start phase.
+-   Animation timing, RECONSTRUCTED: entity and CFS AnimationTime are milliseconds per frame (Gibbed's Blob Editor steps one frame per CFS AnimationTime ms; the Rogue.lvl entity values sit in the same range as the CFS values), and 0 is a still frame. Gas clouds now loop in 8.7 s (58 frames x 150 ms) instead of 24 s, rocks turn in 15 s or 18 s instead of 40 s or 48 s, and mineral prize sprites run at 150 ms (Tellerium, Krandazite) and 80 ms (Iron Ore) per frame.
+-   The 927 gas clouds with Value -10 draw 10% darker (percent scale RECONSTRUCTED), on top of the 50% smart translucency. Hue, Saturation and light are staged but not applied because their scale is unknown and Hue is also set on stations, walls and safe-zone markings. The gas cloud CFS files have blit mode 0 and no shadow or light indices, so no other native blit applies to them. RT-F074 stays open.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.
