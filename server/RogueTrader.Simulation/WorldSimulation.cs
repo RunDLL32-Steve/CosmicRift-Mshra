@@ -44,7 +44,8 @@ public sealed partial class WorldSimulation
     /// <param name="map">Walls and terrain; omitted means open space everywhere and drops keep their spawn's own life.</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
         IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null,
-        SectorMap? map = null, MeteorShowerCatalog? meteors = null)
+        SectorMap? map = null, MeteorShowerCatalog? meteors = null,
+        DefenseSatelliteCatalog? satellites = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
@@ -77,6 +78,12 @@ public sealed partial class WorldSimulation
             _meteorSpawns = meteors.Spawns.Select(s => new MeteorSpawnState(s)).ToArray();
             _meteorRandom = meteors.Seed;
         }
+        if (satellites is not null && satellites.Spawns.Count > 0)
+        {
+            _satellite = satellites.Satellite;
+            _satelliteSpawns = satellites.Spawns.Select(s => new SatelliteSpawnState(s)).ToArray();
+            _satelliteRandom = satellites.Seed;
+        }
     }
 
     public void Tick(ShipInput input)
@@ -85,6 +92,7 @@ public sealed partial class WorldSimulation
         if (TargetRespawnTick is { } respawnAt && TickNumber >= respawnAt) RespawnTargets();
         StepMineralSpawns();
         StepMeteorShowers();
+        StepDefenseSatellites();
         if (!Player.IsDestroyed)
         {
             var previous = Player.Position;
@@ -187,6 +195,7 @@ public sealed partial class WorldSimulation
         if (ticks == 0) return;
         ElapseMineralSpawns(ticks);
         ElapseMeteorShowers(ticks);
+        ElapseDefenseSatellites(ticks);
         if (TargetRespawnTick is not { } respawnAt) return;
         TargetRespawnTick = respawnAt - ticks;
         if (TargetRespawnTick <= TickNumber) RespawnTargets();
@@ -269,6 +278,7 @@ public sealed partial class WorldSimulation
             var end = projectile.Position + projectile.Velocity * TickDuration;
             var hitFraction = float.PositiveInfinity;
             ShipState? hitShip = null;
+            DefenseSatelliteState? hitSatellite = null;
             if (Map is not null && MapCollision.Sweep(Map, projectile.Position, end, out var wall)) hitFraction = wall;
             foreach (var asteroid in Asteroids)
             {
@@ -287,13 +297,20 @@ public sealed partial class WorldSimulation
                     hitShip = target;
                 }
             }
-            // Meteors (and any shot the player did not fire) hit the player's ship.
+            // The player's shots hit enemy defense satellites.
+            if (SweepSatellites(projectile, end, ref hitFraction) is { } satellite)
+            {
+                hitSatellite = satellite;
+                hitShip = null;
+            }
+            // Meteors, satellite shots (and any shot the player did not fire) hit the player's ship.
             if (!Player.IsDestroyed && projectile.OwnerShipId != Player.Id
                 && CircleCollision.Sweep(projectile.Position, end, Player.Position, projectile.Radius + Player.Radius, out var playerHit)
                 && playerHit < hitFraction)
             {
                 hitFraction = playerHit;
                 hitShip = Player;
+                hitSatellite = null;
             }
             projectile.AgeTicks++;
             if (float.IsFinite(hitFraction))
@@ -301,6 +318,8 @@ public sealed partial class WorldSimulation
                 projectile.Position = Vector2.Lerp(projectile.Position, end, hitFraction);
                 if (hitShip is not null)
                     ApplyDamage(hitShip, projectile);
+                else if (hitSatellite is not null)
+                    DamageSatellite(hitSatellite, projectile);
                 _projectiles.RemoveAt(index);
             }
             else if (projectile.AgeTicks >= projectile.LifetimeTicks)
@@ -334,7 +353,8 @@ public sealed partial class WorldSimulation
         if (ReferenceEquals(target, Player))
         {
             // The client records the player's destruction (CommitDestruction); it is not a target kill.
-            MeteorHits++;
+            if (projectile.OwnerShipId.StartsWith(DefenseSatellitePrefix, StringComparison.Ordinal)) SatelliteHits++;
+            else MeteorHits++;
             return;
         }
         if (target.IsDestroyed)

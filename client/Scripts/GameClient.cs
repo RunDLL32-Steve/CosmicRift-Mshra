@@ -43,6 +43,8 @@ public partial class GameClient : Node2D
     private MineralFieldCatalog? _minerals;
     private MeteorShowerCatalog? _meteors;
     private int _showersSeen;
+    private DefenseSatelliteCatalog? _satellites;
+    private int _satelliteKillsSeen;
     /// <summary>The site the station screen was opened at (main station, refinery, Trading Post, Repair Dock or team store).</summary>
     private ServiceSite? _dockedSite;
     /// <summary>The team this pilot joined (Steve, Nov 4 2026: the first pilot joins Cold Harbor, then teams take turns).</summary>
@@ -122,6 +124,8 @@ public partial class GameClient : Node2D
             _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
             // Meteor showers are placed on the full-size Rogue map only; the practice sector has none.
             if (_map is not null) _meteors = MeteorShowerCatalog.FromJson(ReadDefinition("hazards/meteor_showers.json"));
+            // The station defense satellites stand around the four stations of the full-size map only.
+            if (_map is not null) _satellites = DefenseSatelliteCatalog.FromJson(ReadDefinition("defenses/defense_satellites.json"));
             var userArgs = OS.GetCmdlineUserArgs();
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
             foreach (var arg in userArgs)
@@ -260,6 +264,7 @@ public partial class GameClient : Node2D
                 _world.Tick(input);
                 _view.InputState = input;
                 AnnounceMeteorShowers();
+                AnnounceSatelliteKills();
                 CommitPickups();
                 CommitKills();
                 CommitDestruction();
@@ -643,9 +648,15 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         var meteors = _meteors?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 8));
         _showersSeen = 0;
+        var satellites = _satellites?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 4));
+        _satelliteKillsSeen = 0;
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map, meteors: meteors);
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map, meteors: meteors, satellites: satellites)
+        {
+            // The pilot's own team's satellites hold their fire and let the pilot's shots through (emulator isValidTarget).
+            PlayerTeam = _team?.Index,
+        };
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -701,6 +712,17 @@ public partial class GameClient : Node2D
     {
         for (; _showersSeen < _world.MeteorShowerEvents.Count; _showersSeen++)
             if (_world.MeteorShowerEvents[_showersSeen].Announcement is { Length: > 0 } message) Notice(message, warning: true);
+    }
+
+    /// <summary>Names each defense satellite the pilot destroyed since the last call (NEW message; the original text is not known).</summary>
+    private void AnnounceSatelliteKills()
+    {
+        for (; _satelliteKillsSeen < _world.DefenseSatelliteKills.Count; _satelliteKillsSeen++)
+        {
+            var kill = _world.DefenseSatelliteKills[_satelliteKillsSeen];
+            var team = _teams?.Teams.FirstOrDefault(t => t.Index == kill.Team)?.Name ?? $"team {kill.Team}";
+            Notice($"Destroyed a {team} defense satellite.");
+        }
     }
 
     /// <summary>Queues the pickups and kills the world recorded since the last call.</summary>

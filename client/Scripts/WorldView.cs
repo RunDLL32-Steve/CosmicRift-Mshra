@@ -59,6 +59,9 @@ public partial class WorldView : Node2D
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
     private static readonly Color MeteorColor = new("ff8a4c");
+    // CFG [Radar] ColorFriendly 0xffff00 and an enemy red, the colours the original radar gives friend and foe (RT-F064).
+    private static readonly Color FriendlySatellite = new("ffff00");
+    private static readonly Color EnemySatellite = new("ff4a3d");
 
     public void SetWorld(WorldSimulation world)
     {
@@ -118,11 +121,21 @@ public partial class WorldView : Node2D
             if (!target.IsDestroyed) DrawShip(target, false);
         if (!_world.Player.IsDestroyed) DrawShip(_world.Player, true);
         foreach (var shower in _world.MeteorShowers) DrawMeteorShower(ToGodot(shower.Position));
+        if (_world.DefenseSatellite is { } gunSat)
+            foreach (var satellite in _world.DefenseSatellites) DrawSatellite(satellite, gunSat);
         foreach (var projectile in _world.Projectiles)
         {
             if (projectile.OwnerShipId.StartsWith(WorldSimulation.MeteorShowerPrefix, StringComparison.Ordinal))
             {
                 DrawMeteor(ToGodot(projectile.Position), ToGodot(projectile.Velocity), projectile.Radius);
+                continue;
+            }
+            if (projectile.OwnerShipId.StartsWith(WorldSimulation.DefenseSatellitePrefix, StringComparison.Ordinal))
+            {
+                var at = ToGodot(projectile.Position);
+                var heading = ToGodot(projectile.Velocity).Normalized();
+                DrawLine(at - heading * 12, at, new Color(EnemySatellite, 0.6f), 3, true);
+                DrawCircle(at, projectile.Radius + 2, new Color("ffd2c8"));
                 continue;
             }
             var position = ToGodot(projectile.Position);
@@ -320,6 +333,36 @@ public partial class WorldView : Node2D
             var direction = Vector2.FromAngle(i * Mathf.Tau / 6 + _time);
             DrawLine(position + direction * 10, position + direction * 22, new Color(MeteorColor, 0.8f), 2, true);
         }
+    }
+
+    /// <summary>
+    /// NEW marker for a station defense satellite (its original VEH 410 sprite is not staged yet): a hub with two solar panels and a
+    /// barrel pointing where it last aimed, yellow for the pilot's own team and red for an enemy one, with its hull as a bar.
+    /// </summary>
+    private void DrawSatellite(DefenseSatelliteState satellite, DefenseSatelliteDefinition definition)
+    {
+        var position = ToGodot(satellite.Position);
+        var friendly = _world!.PlayerTeam is { } team && team == satellite.Team;
+        var color = friendly ? FriendlySatellite : EnemySatellite;
+        var radius = definition.Radius;
+        DrawCircle(position, radius, new Color(color, 0.06f));
+        DrawArc(position, radius, 0, Mathf.Tau, 32, new Color(color, 0.35f), 1, true);
+        var panel = new Vector2(radius * 0.42f, radius * 0.26f);
+        foreach (var side in new[] { -1f, 1f })
+        {
+            var centre = position + new Vector2(side * radius * 0.62f, 0);
+            DrawRect(new Rect2(centre - panel / 2, panel), new Color("2c4a6e"));
+            DrawRect(new Rect2(centre - panel / 2, panel), new Color(color, 0.7f), false, 1);
+        }
+        DrawLine(position + new Vector2(-radius * 0.42f, 0), position + new Vector2(radius * 0.42f, 0), new Color("8fa3b3"), 2);
+        var aim = Vector2.FromAngle(satellite.Heading);
+        DrawLine(position, position + aim * radius * 0.55f, new Color("c9d6df"), 3, true);
+        DrawCircle(position, radius * 0.22f, new Color("4d5c68"));
+        DrawCircle(position, radius * 0.1f, color);
+        var health = Mathf.Clamp(satellite.Hull / definition.MaximumHull, 0, 1);
+        var bar = new Rect2(position + new Vector2(-radius * 0.6f, radius + 6), new Vector2(radius * 1.2f, 4));
+        DrawRect(bar, new Color(0, 0, 0, 0.5f));
+        DrawRect(new Rect2(bar.Position, new Vector2(bar.Size.X * health, bar.Size.Y)), new Color(color, 0.85f));
     }
 
     /// <summary>NEW meteor drawing (its original creffects/Meteor sprite and MeteorTrail are not staged yet): a rock with a fading trail.</summary>
