@@ -8,6 +8,9 @@ public sealed partial class WorldSimulation
     /// <summary>Id prefix of piles spilled by a destroyed ship: <c>wreck:&lt;drop id&gt;:&lt;item id&gt;</c>.</summary>
     public const string WreckPilePrefix = "wreck:";
 
+    /// <summary>Id segment of the hull's own wreck pile: <c>wreck:&lt;drop id&gt;:hull:&lt;item id&gt;</c>, apart from the cargo piles.</summary>
+    public const string HullWreckSegment = "hull:";
+
     /// <summary>Open-space drop life, CFG [Terrain0] PrizeExpire = 720 s; on a map the terrain under the pile decides (120 s in docks and trade zones).</summary>
     public const long WreckDropExpireTicks = 720L * TickRate;
 
@@ -18,6 +21,12 @@ public sealed partial class WorldSimulation
     public const float WreckSpreadRadius = 12f;
 
     /// <summary>
+    /// The pilot flying this world's ship (the profile id). A pile whose <see cref="CollectibleState.DroppedBy"/> names this
+    /// pilot is never collected by this world's ship; null means the pilot is unnamed, and such a world collects every pile.
+    /// </summary>
+    public string? PilotId { get; init; }
+
+    /// <summary>
     /// Spills a destroyed ship's cargo into space where it died (Steve, Nov 4 2026): one pile per item, in item-id order, spread
     /// around <paramref name="position"/>. Each pile expires after <see cref="WreckDropExpireTicks"/> on the mineral clock, so it
     /// keeps counting while nobody is in the sector, and is carried by <see cref="CaptureSector"/> like any other drop. Anyone
@@ -25,28 +34,11 @@ public sealed partial class WorldSimulation
     /// the destruction's world and tick), so the same spill can never be placed twice. Items with zero or negative quantity and
     /// items this world's cargo catalog does not know are skipped. Returns the piles placed.
     /// </summary>
-    /// <summary>
-    /// What a destroyed ship leaves where it died: the cargo it lost plus the hull's own wreck (VEH f[68..69], RT-F043), summed per
-    /// item so a ship that carried Wreckage drops one pile holding both. The hull's wreck is produced by the destruction itself,
-    /// so it drops even from an empty hold. Non-positive cargo quantities are left out.
-    /// </summary>
-    public static IReadOnlyList<KeyValuePair<string, int>> DestructionDrop(IEnumerable<KeyValuePair<string, int>> lostCargo, ShipWreck? hullWreck)
-    {
-        ArgumentNullException.ThrowIfNull(lostCargo);
-        var drop = new SortedDictionary<string, int>(StringComparer.Ordinal);
-        foreach (var (item, quantity) in lostCargo)
-            if (quantity > 0) drop[item] = checked(drop.GetValueOrDefault(item) + quantity);
-        if (hullWreck is { Quantity: > 0 } wreck && !string.IsNullOrEmpty(wreck.ItemId))
-            drop[wreck.ItemId] = checked(drop.GetValueOrDefault(wreck.ItemId) + wreck.Quantity);
-        return drop.ToArray();
-    }
-
     public IReadOnlyList<CollectibleState> DropCargo(string dropId, Vector2 position, IEnumerable<KeyValuePair<string, int>> items)
     {
         ArgumentException.ThrowIfNullOrEmpty(dropId);
         ArgumentNullException.ThrowIfNull(items);
-        if (!float.IsFinite(position.X) || !float.IsFinite(position.Y))
-            throw new ArgumentOutOfRangeException(nameof(position), "The drop position must be finite.");
+        RequireFinite(position);
         var spill = items.Where(i => i.Value > 0 && Cargo.Catalog.IsKnown(i.Key))
             .OrderBy(i => i.Key, StringComparer.Ordinal).ToArray();
         var placed = new List<CollectibleState>(spill.Length);
@@ -65,5 +57,42 @@ public sealed partial class WorldSimulation
             placed.Add(pile);
         }
         return placed;
+    }
+
+    /// <summary>
+    /// Leaves the destroyed hull's own wreck (VEH f[68..69], RT-F043: 1 Wreckage on every original hull) where it died, as its own
+    /// pile apart from the spilled cargo. The destruction produces it, so it drops even from an empty hold. It is marked
+    /// <paramref name="droppedBy"/>: that pilot can never collect it, while anyone else can (review R1-1, Nov 9 2026). Otherwise
+    /// dying would pay, since the 20% penalty is below the wreck's 300-credit trade value under 1,500 credits; in the original,
+    /// other pilots collected your wreck. Placed at most once per <paramref name="dropId"/>, and it expires like the cargo piles.
+    /// Returns the pile, or null when the hull drops nothing, the item is unknown here or this drop was already placed.
+    /// </summary>
+    public CollectibleState? DropHullWreck(string dropId, Vector2 position, ShipWreck? wreck, string? droppedBy)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(dropId);
+        RequireFinite(position);
+        if (wreck is not { Quantity: > 0 } || string.IsNullOrEmpty(wreck.ItemId) || !Cargo.Catalog.IsKnown(wreck.ItemId)) return null;
+        var id = $"{WreckPilePrefix}{dropId}:{HullWreckSegment}{wreck.ItemId}";
+        if (!_collectibleIds.Add(id)) return null; // already dropped
+        var pile = new CollectibleState(new CollectibleSpawn(id, wreck.ItemId, wreck.Quantity, position.X, position.Y, WreckPileRadius))
+        {
+            ExpiresAt = checked(MineralClock + DropLifeAt(position, WreckDropExpireTicks)),
+            DroppedBy = string.IsNullOrEmpty(droppedBy) ? null : droppedBy,
+        };
+        _collectibles.Add(pile);
+        return pile;
+    }
+
+    /// <summary>True when this world's ship may collect <paramref name="pile"/>: every pile except one its own pilot's hull dropped.</summary>
+    public bool CanCollect(CollectibleState pile)
+    {
+        ArgumentNullException.ThrowIfNull(pile);
+        return pile.DroppedBy is null || PilotId is null || !string.Equals(pile.DroppedBy, PilotId, StringComparison.Ordinal);
+    }
+
+    private static void RequireFinite(Vector2 position)
+    {
+        if (!float.IsFinite(position.X) || !float.IsFinite(position.Y))
+            throw new ArgumentOutOfRangeException(nameof(position), "The drop position must be finite.");
     }
 }

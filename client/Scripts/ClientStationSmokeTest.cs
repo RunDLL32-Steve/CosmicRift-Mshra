@@ -290,12 +290,15 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(beforeDeath.Wallet > 0 && afterDeath.Wallet == beforeDeath.Wallet - penalty && afterDeath.Ledger[^1].Kind == TransactionKind.ShipDestroyed,
                 $"A destroyed ship must cost {penalty} credits (20% of {beforeDeath.Wallet}), got wallet {afterDeath.Wallet}.");
             var lostUnits = beforeDeath.Inventory.Values.Sum();
-            // The hull itself also leaves its original wreck, VEH f[68..69] = 2008 x1 (Wreckage) on every original hull (RT-F043).
+            // The hull itself also leaves its original wreck, VEH f[68..69] = 2008 x1 (Wreckage) on every original hull (RT-F043),
+            // as its own pile that the pilot who died can never collect (review R1-1), so a death never pays.
             var hullWreck = readWorld().Player.Definition.Wreck;
-            var expectedDrop = WorldSimulation.DestructionDrop(beforeDeath.Inventory, hullWreck);
             var wreck = readWorld().Collectibles.Where(c => c.Id.StartsWith(WorldSimulation.WreckPilePrefix, StringComparison.Ordinal)).ToArray();
+            var hullPile = wreck.Where(c => c.DroppedBy is not null).ToArray();
+            var cargoPiles = wreck.Where(c => c.DroppedBy is null).ToArray();
             Require(lostUnits > 0 && hullWreck is { ItemId: "2008", Quantity: 1 } && wreck.All(c => c.ExpiresAt is not null)
-                && wreck.OrderBy(c => c.ItemId, StringComparer.Ordinal).Select(c => KeyValuePair.Create(c.ItemId, c.Quantity)).SequenceEqual(expectedDrop)
+                && hullPile.Length == 1 && hullPile[0].ItemId == "2008" && hullPile[0].Quantity == 1 && !readWorld().CanCollect(hullPile[0])
+                && cargoPiles.Sum(c => c.Quantity) == lostUnits && cargoPiles.Select(c => c.ItemId).Order().SequenceEqual(beforeDeath.Inventory.Keys.Order())
                 && wreck.All(c => System.Numerics.Vector2.Distance(c.Position, deathPoint) < WorldSimulation.WreckSpreadRadius + 1),
                 $"The destroyed ship's {lostUnits} cargo units and its hull's Wreckage must spill into space as expiring piles, got {wreck.Sum(c => c.Quantity)}.");
             Require(afterDeath.Inventory.Count == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0 && client.PendingPickups == 0

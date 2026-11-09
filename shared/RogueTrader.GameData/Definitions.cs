@@ -33,11 +33,6 @@ public sealed record ShipDefinition
 }
 
 /// <summary>
-/// The most cargo weight the hull can hold, in raw ITM weight units (the ITM item weights use the same scale). The default is the
-/// original Asp's VEH f[48] StopWeight (2,500,000), the hull the original gives a new pilot (RPG row 1); reading StopWeight as a
-/// hard cap is NEW (RT-F030 keeps the NormalWeight encumbrance formula open).
-/// </summary>
-/// <summary>
 /// The item a destroyed hull leaves behind (RT-F043): every original player hull's VEH f[68..69] is 2008 x1, ITM row 87
 /// Wreckage, as NWS/Rogue.nws row 41 says ("leave a small piece of wreckage where you were").
 /// </summary>
@@ -49,6 +44,11 @@ public sealed record ShipWreck
     public string? Source { get; init; }
 }
 
+/// <summary>
+/// The most cargo weight the hull can hold, in raw ITM weight units (the ITM item weights use the same scale). The default is the
+/// original Asp's VEH f[48] StopWeight (2,500,000), the hull the original gives a new pilot (RPG row 1); reading StopWeight as a
+/// hard cap is NEW (RT-F030 keeps the NormalWeight encumbrance formula open).
+/// </summary>
 public sealed record ShipCargo
 {
     public long Capacity { get; init; } = 2_500_000;

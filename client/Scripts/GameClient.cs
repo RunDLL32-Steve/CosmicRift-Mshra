@@ -638,7 +638,7 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map);
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map) { PilotId = LocalProfileId };
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -961,14 +961,15 @@ public partial class GameClient : Node2D
     /// Places the destroyed ship's cargo, and the hull's own wreck (VEH f[68..69], RT-F043: every original hull leaves one
     /// Wreckage), as piles where it died, once per destruction (the drop id is the destruction's world and tick, so a retry or a
     /// relaunch can never place it twice). It runs only once the destruction is recorded, so the wreck is never dropped without
-    /// the penalty. The piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
+    /// the penalty, and the pilot who died can never collect their own hull's wreck (review R1-1), so a death never pays. The
+    /// piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
     /// </summary>
     private void SpillCargo(IReadOnlyCollection<KeyValuePair<string, int>> items)
     {
         if (_world is null || _pendingDestruction is not { } destruction) return;
-        var drop = WorldSimulation.DestructionDrop(items, _catalog.Ship.Wreck);
-        if (drop.Count == 0) return;
-        _world.DropCargo($"{destruction.WorldInstanceId}:{destruction.Tick}", _world.Player.Position, drop);
+        var dropId = $"{destruction.WorldInstanceId}:{destruction.Tick}";
+        if (items.Count > 0) _world.DropCargo(dropId, _world.Player.Position, items);
+        _world.DropHullWreck(dropId, _world.Player.Position, _catalog.Ship.Wreck, LocalProfileId);
     }
 
     /// <summary>", and N Wreckage" for the respawn notice when the flown hull leaves a wreck.</summary>

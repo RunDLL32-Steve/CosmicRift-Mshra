@@ -66,20 +66,57 @@ public sealed class CargoDropTests
     }
 
     [Fact]
-    public void TheHullsOwnWreckDropsWithTheCargoEvenFromAnEmptyHold()
+    public void TheHullsOwnWreckDropsOnceEvenFromAnEmptyHoldAsItsOwnPile()
     {
-        // RT-F043: the hull's VEH f[68..69] drop is produced by the destruction, so it is added to the lost cargo (summed when the
-        // hold carried the same item) and still drops when the hold was empty. OreB stands in for Wreckage here (NEW fixture).
+        // RT-F043: the hull's VEH f[68..69] drop is produced by the destruction, so it drops even when the hold was empty, and it
+        // is its own pile apart from cargo of the same item. OreB stands in for Wreckage here (NEW fixture).
         var wreck = new ShipWreck { ItemId = OreB, Quantity = 1 };
-        Assert.Equal(new[] { KeyValuePair.Create(OreA, 3), KeyValuePair.Create(OreB, 3) }, WorldSimulation.DestructionDrop(Hold(3, 2), wreck));
-        Assert.Equal(new[] { KeyValuePair.Create(OreB, 1) }, WorldSimulation.DestructionDrop(Hold(0, 0), wreck));
-        Assert.Equal(new[] { KeyValuePair.Create(OreA, 3) }, WorldSimulation.DestructionDrop(Hold(3, -1), null));
-        Assert.Empty(WorldSimulation.DestructionDrop([], null));
-
         var world = World();
-        var pile = Assert.Single(world.DropCargo("w1:12", new Vector2(0, -300), WorldSimulation.DestructionDrop(Hold(0, 0), wreck)));
-        Assert.Equal(($"{WorldSimulation.WreckPilePrefix}w1:12:{OreB}", 1), (pile.Id, pile.Quantity));
-        Assert.Empty(world.DropCargo("w1:12", new Vector2(0, -300), WorldSimulation.DestructionDrop(Hold(0, 0), wreck))); // never twice
+        Assert.Single(world.DropCargo("w1:12", new Vector2(0, -300), Hold(0, 2)));
+        var pile = world.DropHullWreck("w1:12", new Vector2(0, -300), wreck, "pilot-a");
+        Assert.NotNull(pile);
+        Assert.Equal(($"{WorldSimulation.WreckPilePrefix}w1:12:{WorldSimulation.HullWreckSegment}{OreB}", OreB, 1, "pilot-a"),
+            (pile.Id, pile.ItemId, pile.Quantity, pile.DroppedBy));
+        Assert.Equal(720L * WorldSimulation.TickRate, pile.ExpiresAt);
+        Assert.Null(world.DropHullWreck("w1:12", new Vector2(0, -300), wreck, "pilot-a")); // never twice
+        Assert.Null(world.DropHullWreck("w1:13", Vector2.Zero, null, "pilot-a")); // a hull with no drop
+        Assert.Null(world.DropHullWreck("w1:14", Vector2.Zero, new ShipWreck { ItemId = "unknown", Quantity = 1 }, "pilot-a"));
+        Assert.Equal(2, world.Collectibles.Count);
+    }
+
+    [Fact]
+    public void ADeathNeverPaysThePilotWhoDied()
+    {
+        // Review R1-1: the 20% penalty is below the wreck's 300-credit trade value under 1,500 credits, so the pilot who died must
+        // not collect their own hull's wreck; anyone else can. The pilot can only take back the cargo they lost, so what they own
+        // after a death (wallet less the penalty, plus all they can pick up) is never more than before it.
+        var wreck = new ShipWreck { ItemId = OreB, Quantity = 1 };
+        var dead = World(capacity: 10_000);
+        dead.DropCargo("w1:20", new Vector2(0, -300), Hold(3, 0));
+        dead.DropHullWreck("w1:20", new Vector2(0, -300), wreck, "pilot-a");
+        var sector = dead.CaptureSector();
+        Assert.Equal("pilot-a", sector.Piles.Single(p => p.ItemId == OreB).DroppedBy);
+
+        var same = new WorldSimulation(TestWorld.Catalog(), new CargoCatalog(10_000, [new(OreA, 10), new(OreB, 25)])) { PilotId = "pilot-a" };
+        Assert.True(same.RestoreSector(sector));
+        TestWorld.Tick(same, 120, new ShipInput(1, 0, false)); // fly through both piles
+        Assert.Equal((3, 0), (same.Cargo.Quantity(OreA), same.Cargo.Quantity(OreB)));
+        var left = Assert.Single(same.Collectibles);
+        Assert.Equal((OreB, "pilot-a"), (left.ItemId, left.DroppedBy));
+        Assert.All(same.Pickups, p => Assert.NotEqual(left.Id, p.PileId));
+        for (var wallet = 0L; wallet <= 2_000; wallet += 50)
+        {
+            var penalty = wallet / 100 * RogueTrader.Persistence.TransactionProcessor.DestructionPenaltyPercent
+                + wallet % 100 * RogueTrader.Persistence.TransactionProcessor.DestructionPenaltyPercent / 100;
+            var collectable = same.Cargo.Quantity(OreB) * 300L; // the wreck's trade value, if it could be taken back
+            Assert.True(wallet - penalty + collectable <= wallet, $"A death at {wallet} credits must not pay.");
+        }
+
+        var other = new WorldSimulation(TestWorld.Catalog(), new CargoCatalog(10_000, [new(OreA, 10), new(OreB, 25)])) { PilotId = "pilot-b" };
+        Assert.True(other.RestoreSector(sector));
+        TestWorld.Tick(other, 120, new ShipInput(1, 0, false));
+        Assert.Equal((3, 1), (other.Cargo.Quantity(OreA), other.Cargo.Quantity(OreB))); // anyone else collects it
+        Assert.Empty(other.Collectibles);
     }
 
     [Fact]
