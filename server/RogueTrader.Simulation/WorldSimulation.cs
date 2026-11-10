@@ -224,7 +224,7 @@ public sealed partial class WorldSimulation
         for (var index = 0; index < _collectibles.Count;)
         {
             var pile = _collectibles[index];
-            if (CircleCollision.Sweep(previous, Player.Position, pile.Position, Player.Radius + pile.Radius, out _))
+            if (CanCollect(pile) && CircleCollision.Sweep(previous, Player.Position, pile.Position, Player.Radius + pile.Radius, out _))
             {
                 var accepted = Cargo.Add(pile.ItemId, pile.Quantity).Accepted;
                 pile.Quantity -= accepted;

@@ -67,6 +67,11 @@ public sealed class GameCatalog
             throw new ArgumentException("A ship whose energy is its shield has no separate shield pool (maximum shield must be 0).");
         if (Ship.WeaponId is { } weaponId && !string.Equals(weaponId, Weapon.Id, StringComparison.Ordinal))
             throw new ArgumentException($"Ship '{Ship.Id}' starts with weapon '{weaponId}', not '{Weapon.Id}'.");
+        if (Ship.Wreck is { } wreck)
+        {
+            if (string.IsNullOrWhiteSpace(wreck.ItemId)) throw new ArgumentException($"Ship '{Ship.Id}' drops a wreck with no item id.");
+            if (wreck.Quantity <= 0) throw new ArgumentException($"Ship '{Ship.Id}' drops a wreck quantity of {wreck.Quantity}; it must be positive.");
+        }
         if (Ship.Hyper is { } hyper)
         {
             Nonnegative(hyper.ForwardThrust, "hyper forward thrust");

@@ -112,6 +112,13 @@ public sealed class CollectibleState
     public float Radius { get; }
     /// <summary>Mineral clock tick at which an unpicked drop vanishes; null for a pile that never expires.</summary>
     public long? ExpiresAt { get; internal set; }
+    /// <summary>
+    /// The pilot whose destroyed hull left this pile (RT-F043); that pilot's ship never collects it, anyone else's can. Null for
+    /// every other pile.
+    /// </summary>
+    public string? DroppedBy { get; internal init; }
+    /// <summary>The origin (computer) the dying pilot played from; no pilot from it collects this wreck. Null for every other pile.</summary>
+    public string? DroppedFrom { get; internal init; }
 
     internal CollectibleState(CollectibleSpawn spawn)
     {

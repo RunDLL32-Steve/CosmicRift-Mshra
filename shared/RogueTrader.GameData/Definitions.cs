@@ -21,10 +21,27 @@ public sealed record ShipDefinition
     /// NEW Plasma cannon fixture (<c>plasma_cannon</c>).
     /// </summary>
     public string? WeaponId { get; init; }
+    /// <summary>
+    /// What the hull itself leaves where it is destroyed, next to the cargo it spills (original VEH f[68] DropItemId and f[69]
+    /// DropQuantity, RT-F043); null when the hull drops nothing.
+    /// </summary>
+    public ShipWreck? Wreck { get; init; }
     /// <summary>Where the values come from (derived original hulls name their source rows; null for hand-written fixtures).</summary>
     public string? Source { get; init; }
     /// <summary>Values that are placeholders rather than original data, one note each (null when there are none listed).</summary>
     public IReadOnlyList<string>? NewValues { get; init; }
+}
+
+/// <summary>
+/// The item a destroyed hull leaves behind (RT-F043): every original player hull's VEH f[68..69] is 2008 x1, ITM row 87
+/// Wreckage, as NWS/Rogue.nws row 41 says ("leave a small piece of wreckage where you were").
+/// </summary>
+public sealed record ShipWreck
+{
+    /// <summary>Cargo item id of the dropped item (the ITM id as text, as the station's cargo catalog keys it).</summary>
+    public string ItemId { get; init; } = "";
+    public int Quantity { get; init; }
+    public string? Source { get; init; }
 }
 
 /// <summary>

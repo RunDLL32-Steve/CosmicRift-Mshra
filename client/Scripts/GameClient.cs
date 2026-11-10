@@ -27,6 +27,11 @@ public partial class GameClient : Node2D
     private bool _captureStarted;
     private int _renderedFrames;
     private const string LocalProfileId = "local-pilot";
+    /// <summary>
+    /// Origin of every pilot on this local client: the sector save is shared only by the profiles on this computer, so a hull
+    /// wreck dropped here can be collected by none of them, which stops a second profile feeding the first (review R2, Nov 10 2026).
+    /// </summary>
+    private const string LocalInstallOrigin = "local-install";
     private StationDefinition _stationDefinition = null!;
     private CargoCatalog _cargo = null!;
     private StationScreen _stationScreen = null!;
@@ -638,7 +643,7 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map);
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map) { PilotId = LocalProfileId, PilotOrigin = LocalInstallOrigin };
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -923,7 +928,7 @@ public partial class GameClient : Node2D
             // Offline (no save folder): there is no wallet to charge; the unsaved hold spills into space with the ship.
             _pickups.StartNewWorld();
             SpillCargo(_world.Cargo.Items.ToArray());
-            Respawn("Ship destroyed and its cargo dropped. Station services are offline, so no credits were charged.");
+            Respawn($"Ship destroyed; its cargo{WreckNotice()} dropped where it died. Station services are offline, so no credits were charged.");
             return true;
         }
         if (_world.TickNumber < _nextDestructionRetryTick) return false;
@@ -953,19 +958,29 @@ public partial class GameClient : Node2D
         var lost = result.ItemDeltas.Where(d => d.Value < 0).Select(d => KeyValuePair.Create(d.Key, -d.Value)).ToArray();
         SpillCargo(lost);
         var lostUnits = lost.Sum(d => d.Value);
-        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and dropped {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")} where it died. Respawned at full hull with all weapons and upgrades.");
+        Respawn($"Ship destroyed: lost {-result.CurrencyDelta:N0} credits ({TransactionProcessor.DestructionPenaltyPercent}% of your credits) and dropped {lostUnits:N0} cargo unit{(lostUnits == 1 ? "" : "s")}{WreckNotice()} where it died. Respawned at full hull with all weapons and upgrades.");
         return true;
     }
 
     /// <summary>
-    /// Places the destroyed ship's cargo as piles where it died, once per destruction (the drop id is the destruction's world and
-    /// tick). The piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
+    /// Places the destroyed ship's cargo, and the hull's own wreck (VEH f[68..69], RT-F043: every original hull leaves one
+    /// Wreckage), as piles where it died, once per destruction (the drop id is the destruction's world and tick, so a retry or a
+    /// relaunch can never place it twice). It runs only once the destruction is recorded, so the wreck is never dropped without
+    /// the penalty, and the pilot who died can never collect their own hull's wreck (review R1-1), so a death never pays. The
+    /// piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
     /// </summary>
     private void SpillCargo(IReadOnlyCollection<KeyValuePair<string, int>> items)
     {
-        if (_world is null || _pendingDestruction is not { } destruction || items.Count == 0) return;
-        _world.DropCargo($"{destruction.WorldInstanceId}:{destruction.Tick}", _world.Player.Position, items);
+        if (_world is null || _pendingDestruction is not { } destruction) return;
+        var dropId = $"{destruction.WorldInstanceId}:{destruction.Tick}";
+        if (items.Count > 0) _world.DropCargo(dropId, _world.Player.Position, items);
+        _world.DropHullWreck(dropId, _world.Player.Position, _catalog.Ship.Wreck, LocalProfileId, LocalInstallOrigin);
     }
+
+    /// <summary>", and N Wreckage" for the respawn notice when the flown hull leaves a wreck.</summary>
+    private string WreckNotice() => _catalog.Ship.Wreck is { } wreck && _cargo.IsKnown(wreck.ItemId)
+        ? $" and {wreck.Quantity:N0} {_stationDefinition.Goods.FirstOrDefault(g => g.Id == wreck.ItemId)?.Name ?? wreck.ItemId} from the hull"
+        : "";
 
     private void Respawn(string message)
     {
