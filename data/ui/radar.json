@@ -1,0 +1,15 @@
+{
+    "evidenceClassification": "ORIGINAL+NEW",
+    "source": "CFG/rogue.cfg (eb1514ea) [Radar] ColorSelf line 2278, ColorFriendly line 2279, ColorEnemy line 2280, and [Uiart] RadarBorder line 2751 (cruiart,newradar). tests/Unit/RadarLookTests.cs checks every value against the pinned file.",
+    "colorSelf": "0x00ff00",
+    "colorFriendly": "0xffff00",
+    "colorEnemy": "0xff4040",
+    "borderArchive": "cruiart",
+    "borderMember": "newradar",
+    "newValues": [
+        "Colours are read as 0xRRGGBB. The CFG does not state the channel order; this reading gives the green self, yellow friendly and red enemy the feature catalog describes.",
+        "Practice targets are drawn in the enemy colour. No other ships exist yet, so the friendly colour is loaded but nothing uses it.",
+        "How the eight newradar pieces join into a frame is RECONSTRUCTED (title plate, tiled title bar, end cap, side and bottom edges, the pipe corner at the lower right); the native layout code is not available.",
+        "The radar still shows the whole sector map, and the station, refinery, outpost and mineral marks keep their NEW colours. The original radar range, zoom, blip shapes, FontColor* keys and line-of-sight rules are not applied."
+    ]
+}
