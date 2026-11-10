@@ -14,7 +14,7 @@ Branch `claude/project-thread-n1dvi7`, stacked on the meteor shower branch (`cla
 -   Line of sight: walls stand in for LVL vision tiles, because the derived map keeps only blocked tiles.
 -   Repair as a steady interval. The emulator ties it to its update-packet timer.
 -   No reward, explosion or drop on destruction yet (the drop is left to the RT-F043 work).
--   The shot's speed, life and radius use the Plasma Cannon scale, as the meteors do (G10 W2/W3).
+-   The shot's radius uses the Plasma Cannon scale, as the meteors do. After merging #130 (which brings #128, #129 and #133, November 10, 2026), its speed and life use the emulator's projectile units (400 px/s, 5.5 s, so it reaches 2,200 px of the 2,500 px FireRadius, as in the emulator), its hull damage keeps its ITM type (Energy, f[160]) so armour applies, and a satellite does not fire at a pilot in a safe zone (RT-F065).
 -   Friendly satellites let the player's shots through.
 -   A disabled satellite (below 5 hull) does not count toward its spawner's limits, and the spawner's next placement in its area replaces it (review follow-up, November 10, 2026, waiting on the owner's ruling). The emulator counts it, and since it never repairs below 5 hull it would block its own respawn for as long as the server runs.
 

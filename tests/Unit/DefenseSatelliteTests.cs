@@ -131,10 +131,11 @@ public sealed class DefenseSatelliteTests
         Assert.Equal((15, 5, 90, 30, 0.5f, 5f, true), (sat.FireIntervalTicks, sat.ClipSize, sat.ReloadTicks, sat.RepairIntervalTicks,
             sat.RepairAmount, sat.HullToOperate, sat.ObeyLos));
         Assert.Equal("1038", sat.Cannon.Id);
-        // Plasma Cannon scale: 2200 raw -> 700 px/s, 550 -> 2.5 s, 4 -> 3.
-        Assert.Equal(MathF.Round(4000 * 700f / 2200, 3), sat.Cannon.MuzzleVelocity);
-        Assert.Equal(MathF.Round(550 * 2.5f / 550, 3), sat.Cannon.LifetimeSeconds);
+        // Emulator projectile units (G10 W2/W3): 4000 thousandths of a pixel per 10 ms = 400 px/s, 550 x 10 ms = 5.5 s, so a shot
+        // reaches 2,200 px, short of the 2,500 px FireRadius. Radius on the Plasma Cannon scale: 4 -> 3. f[160] is Energy hull damage.
+        Assert.Equal((400f, 5.5f), (sat.Cannon.MuzzleVelocity, sat.Cannon.LifetimeSeconds));
         Assert.Equal(MathF.Round(4 * 3f / 4, 3), sat.Cannon.ProjectileRadius);
+        Assert.Equal((DamageType.Energy, 5f, 250f), (sat.Cannon.DamageType, sat.Cannon.Damage, sat.Cannon.ShieldDrain));
         Assert.False(sat.Cannon.InheritsShipVelocity);
     }
 
@@ -244,6 +245,34 @@ public sealed class DefenseSatelliteTests
         Assert.Equal(0, SatelliteShots(hidden));
 
         var open = World(Catalog(Spawn(x: 320, y: 200)), map: map, catalog: catalog);
+        Run(open, 1);
+        Assert.Equal(1, SatelliteShots(open));
+    }
+
+    [Fact]
+    public void ASatellite_DoesNotFireAtAPilotInASafeZone()
+    {
+        // RT-F065 after #128: open 40 x 40 tile map whose tile columns 0..9 (x 0..159) are a safe repair-dock terrain (9).
+        var tiles = new byte[40 * 40];
+        for (var y = 0; y < 40; y++)
+        for (var x = 0; x < 10; x++)
+            tiles[y * 40 + x] = 9;
+        var rules = Enumerable.Repeat(TerrainRule.Open, SectorMap.TerrainCount).ToArray();
+        rules[9] = new TerrainRule(Safety: true, DeleteLiveWeapons: false, EnergyRate: 0);
+        var map = new SectorMap(40, 40, tiles, [720, .. Enumerable.Repeat(120, 15)], terrainRules: rules);
+        WorldSimulation At(float x)
+        {
+            var catalog = TestWorld.Catalog(sector: new SectorDefinition { PlayerSpawn = new SpawnDefinition { X = x, Y = 320 } });
+            return World(Catalog(Spawn(x: 400, y: 320)), map: map, catalog: catalog);
+        }
+
+        var docked = At(80);
+        Assert.True(docked.PlayerInSafeZone);
+        Run(docked, 120);
+        Assert.Equal(0, SatelliteShots(docked));
+
+        var open = At(240);
+        Assert.False(open.PlayerInSafeZone);
         Run(open, 1);
         Assert.Equal(1, SatelliteShots(open));
     }

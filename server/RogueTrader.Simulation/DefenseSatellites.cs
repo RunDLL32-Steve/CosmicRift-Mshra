@@ -320,7 +320,7 @@ public sealed partial class WorldSimulation
     private bool CanTarget(DefenseSatelliteState satellite)
     {
         var d = _satellite!;
-        if (Player.IsDestroyed || IsFriendly(satellite)) return false;
+        if (Player.IsDestroyed || IsFriendly(satellite) || IsSafe(Player)) return false; // RT-F065: no fire into a safe zone
         var range = MathF.Min(d.TrackingRadius, d.FireRadius);
         if (Vector2.DistanceSquared(Player.Position, satellite.Position) > range * range) return false;
         return !d.ObeyLos || Map is null || !MapCollision.Sweep(Map, satellite.Position, Player.Position, out _);

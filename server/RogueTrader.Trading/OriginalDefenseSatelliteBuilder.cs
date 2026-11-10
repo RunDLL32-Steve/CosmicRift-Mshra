@@ -57,9 +57,10 @@ public static class OriginalDefenseSatelliteBuilder
         "Turret (emulator Computer.poll and isValidTarget): it fires only at a pilot of another team who is alive, within VEH TrackingRadius and FireRadius (both 2500), and not hidden behind a wall; one shot every ITM fireDelay (25 x 10 ms), and after ammoCapacity shots (5) it reloads for reloadDelayNormal (150 x 10 ms). Shots are aimed where the pilot will be if they hold course (computeLeadFireAngle, without its 256-step angle and 0.7 isometric Y scale). TrackingWeightLow/High (0 to 10,000,000) is not checked: every player hull weighs 10,000 (VEH f[7]), inside it. AngleStart/AngleLength are 0: no angle limit. RotateSpeed and TrackingTime are kept raw; the emulator turns the turret at once.",
         "NEW line of sight: VEH ObeyLos=1 hides a pilot behind walls. The emulator walks LVL vision tiles; the map here only has blocked tiles, so a wall between the satellite and the pilot stands in for them.",
         "Repair: while its hull is at least HitpointsRequiredToOperate (5) it repairs RepairRate / 100 hull every RepairRate x 10 ms (0.5 every 0.5 s for the GunSat), as Computer.poll reads the field; below 5 hull it neither repairs nor fires. NEW (pending the owner's ruling, November 10, 2026): a satellite below 5 hull does not count toward its spawner's MaxTypeInArea/MaxTypeInLevel, and the spawner's next successful placement in its area replaces it. In the emulator it stays disabled and keeps blocking its own respawn for as long as the server runs. NEW: the emulator ties the repair step to its update-packet timer; here it is a steady interval. Repairs keep running in real time while the world does not tick, like every sector timer (owner rule, November 2, 2026).",
-        "Damage: the player's shots take their hull damage off the satellite (it has no shield and no energy: VEH EnergyMax 0, ComputerEnergyMax 0). The player's shots pass through satellites of the player's own team. Armour and damage types are not applied (RT-F041). Ships fly through satellites (no ship collision yet).",
+        "Damage: the player's shots take their hull damage off the satellite (it has no shield and no energy: VEH EnergyMax 0, ComputerEnergyMax 0). The player's shots pass through satellites of the player's own team. NEW: the satellite's own VEH armour is not applied to the player's shots yet (RT-F041). Ships fly through satellites (no ship collision yet).",
         "Destruction: at 0 hull the satellite is removed and its spawner places a new one on a later attempt. NEW: no credits or bounty are paid for it, and its VEH ExplodeItemId (3004) and DropItemId (2008 Wreckage x1) are not applied yet; the drop is left to the RT-F043 drop work.",
-        "NEW shot speed, life and size: the projectile units are open (G10 W2/W3), so the cannon's raw muzzle velocity, alive time and proximity radius are scaled by the same factors that turn the player's Plasma Cannon (ITM 1004) raw values into its provisional ones, as the meteor showers do.",
+        "Cannon speed, life and damage from ITM 1038 through OriginalWeaponBuilder, in the emulator's projectile units like the player's cannons (G10 W2/W3, RECONSTRUCTED): muzzleVelocity 4000 thousandths of a pixel per 10 ms = 400 px/s and aliveTime 550 x 10 ms = 5.5 s, so a shot reaches 2,200 px and a pilot between 2,200 and 2,500 px is fired at but not hit, as in the emulator. Its hull damage keeps its ITM damage type, and armour reduces it like any other hit of that type (RT-F041). NEW: its hit radius is its proximity radius scaled by the factor that gives the player's Plasma Cannon (ITM 1004) its provisional radius, as the meteor showers do.",
+        "Safe zones (RT-F065): a satellite does not fire at a pilot inside a safe zone, and its shots do not hurt one, like every shot.",
     ];
 
     public static DefenseSatelliteDocument Build(string assetsRoot)
@@ -93,10 +94,10 @@ public static class OriginalDefenseSatelliteBuilder
 
         var reference = OriginalProjectile.Of(referenceCannon);
         var provisional = OriginalWeaponBuilder.Weapon(referenceCannon);
+        // Speed, life and damage type come out of OriginalWeaponBuilder in the emulator's units (G10 W2/W3, #133; RT-F041, #129);
+        // only the radius is scaled, as for the meteors.
         var cannon = OriginalWeaponBuilder.Weapon(satellites.Weapon) with
         {
-            MuzzleVelocity = Scale(projectile.MuzzleVelocity.Value, reference.MuzzleVelocity.Value, provisional.MuzzleVelocity),
-            LifetimeSeconds = Scale(projectile.AliveTime.Value, reference.AliveTime.Value, provisional.LifetimeSeconds),
             ProjectileRadius = Scale(projectile.ProximityRadius.Value, reference.ProximityRadius.Value, provisional.ProjectileRadius),
             InheritsShipVelocity = false,
             EnergyCost = 0,
@@ -105,11 +106,10 @@ public static class OriginalDefenseSatelliteBuilder
         {
             NewValues =
             [
-                $"Muzzle velocity {cannon.MuzzleVelocity} px/s = raw {projectile.MuzzleVelocity.Value} x {provisional.MuzzleVelocity}/{reference.MuzzleVelocity.Value} (Plasma Cannon scale; unit open, G10 W2).",
-                $"Lifetime {cannon.LifetimeSeconds} s = raw {projectile.AliveTime.Value} x {provisional.LifetimeSeconds}/{reference.AliveTime.Value} (Plasma Cannon scale; unit open, G10 W3).",
+                $"Muzzle velocity {cannon.MuzzleVelocity} px/s = raw {projectile.MuzzleVelocity.Value} thousandths of a pixel per 10 ms, and lifetime {cannon.LifetimeSeconds} s = raw {projectile.AliveTime.Value} x 10 ms, in the emulator's units (RECONSTRUCTED, G10 W2/W3). A shot reaches {cannon.MuzzleVelocity * cannon.LifetimeSeconds} px, short of the {record.FireRadius.Value} px FireRadius, as in the emulator.",
                 $"Radius {cannon.ProjectileRadius} = raw proximity {projectile.ProximityRadius.Value} x {provisional.ProjectileRadius}/{reference.ProximityRadius.Value} (Plasma Cannon scale; meaning open).",
                 "A shot does not inherit the satellite's velocity (it does not move) and costs it no energy (the emulator's turret never pays). It stops on walls and asteroids; its BounceCount is not applied.",
-                "Hull damage ignores the damage type and armour (RT-F041).",
+                $"{cannon.DamageType} hull damage: armour reduces it by its {cannon.DamageType} protection like any other {cannon.DamageType} hit (RT-F041).",
             ],
         };
 
