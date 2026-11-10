@@ -57,13 +57,16 @@ public sealed class ClientInputSmokeTest(
             RequireInput(!readPaused() && !hud.ControlsVisible, "Escape must resume and close controls.");
             var resumeTick = readWorld().TickNumber;
             var coastVelocity = readWorld().Player.Velocity;
+            var coastWorld = readWorld();
+            var coastFlight = coastWorld.Map is { } coastMap
+                ? coastWorld.Player.Definition.TerrainFlight(coastMap.TerrainAt(coastWorld.Player.Position)) : null;
             await nextPhysicsFrame();
             RequireInput(readWorld().TickNumber > resumeTick, "The world must resume advancing after pause.");
-            // The ship starts in the Cold Harbor SpaceDock, where the original dock friction (F12) slows a coasting ship, so
-            // coasting may lose speed along its course but must never gain any.
-            var resumed = readWorld().Player.Velocity;
-            RequireInput(resumed.Length() <= coastVelocity.Length() + 0.01f
-                && System.Numerics.Vector2.Distance(resumed, coastVelocity * (resumed.Length() / MathF.Max(coastVelocity.Length(), 1e-6f))) < 0.01f,
+            // The ship starts in the Cold Harbor SpaceDock, where the original dock friction (F12) slows a coasting ship by a fixed
+            // share every tick. Coasting must match that exactly: any phantom thrust, forward, reverse or sideways, shows up.
+            var keepPerTick = coastFlight is null ? 1f : WorldSimulation.TerrainSpeedRetainedPerTick(coastFlight);
+            var expectedCoast = coastVelocity * MathF.Pow(keepPerTick, readWorld().TickNumber - resumeTick);
+            RequireInput(System.Numerics.Vector2.Distance(readWorld().Player.Velocity, expectedCoast) < 0.01f,
                 "Resuming after key remapping must coast without phantom acceleration.");
             SendKey(Key.W, true);
             await nextPhysicsFrame();
