@@ -41,6 +41,8 @@ public partial class GameClient : Node2D
     private long _nextPickupRetryTick;
     private readonly PickupCommitQueue _pickups = new();
     private MineralFieldCatalog? _minerals;
+    private MeteorShowerCatalog? _meteors;
+    private int _showersSeen;
     /// <summary>The site the station screen was opened at (main station, refinery, Trading Post, Repair Dock or team store).</summary>
     private ServiceSite? _dockedSite;
     /// <summary>The team this pilot joined (Steve, Nov 4 2026: the first pilot joins Cold Harbor, then teams take turns).</summary>
@@ -118,6 +120,8 @@ public partial class GameClient : Node2D
             _cargo = _stationDefinition.CreateCargoCatalog(_catalog.Ship.Cargo.Capacity);
             _killReward = KillRewardDefinition.FromJson(ReadDefinition("rewards/kill_reward.json"));
             _minerals = MineralFieldCatalog.FromJson(ReadDefinition("minerals/mineral_spawns.json"));
+            // Meteor showers are placed on the full-size Rogue map only; the practice sector has none.
+            if (_map is not null) _meteors = MeteorShowerCatalog.FromJson(ReadDefinition("hazards/meteor_showers.json"));
             var userArgs = OS.GetCmdlineUserArgs();
             _profileRoot = ProjectSettings.GlobalizePath("user://profiles");
             foreach (var arg in userArgs)
@@ -255,6 +259,7 @@ public partial class GameClient : Node2D
                 var input = FlightInput.Capture();
                 _world.Tick(input);
                 _view.InputState = input;
+                AnnounceMeteorShowers();
                 CommitPickups();
                 CommitKills();
                 CommitDestruction();
@@ -636,9 +641,11 @@ public partial class GameClient : Node2D
         var worldId = _smokeProfileRoot is null ? Guid.NewGuid() : SmokeWorldId(++_smokeWorlds);
         _worldInstanceId = worldId.ToString("N");
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
+        var meteors = _meteors?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 8));
+        _showersSeen = 0;
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map);
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map, meteors: meteors);
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -687,6 +694,13 @@ public partial class GameClient : Node2D
             Notice($"Sector state could not be read ({exception.Message}); the sector starts afresh.", warning: true);
             return null;
         }
+    }
+
+    /// <summary>Shows the sector message of each meteor shower that appeared since the last call (LIO f[23], "Meteor Shower Detected!").</summary>
+    private void AnnounceMeteorShowers()
+    {
+        for (; _showersSeen < _world.MeteorShowerEvents.Count; _showersSeen++)
+            if (_world.MeteorShowerEvents[_showersSeen].Announcement is { Length: > 0 } message) Notice(message, warning: true);
     }
 
     /// <summary>Queues the pickups and kills the world recorded since the last call.</summary>

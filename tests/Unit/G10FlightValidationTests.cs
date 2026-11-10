@@ -97,6 +97,7 @@ public sealed class G10FlightValidationTests
         Assert.Equal(0.25, ObservedFireIntervalSeconds(), 3);
         var catalog = TestWorld.ExternalCatalog();
         Assert.Equal(0.727f, catalog.Ship.Physics.AsteroidRestitution);
+        // The legacy Interceptor's NEW Plasma cannon fixture keeps its invented shot; the original cannons are in G10ProjectileUnitTests.
         Assert.Equal(700, catalog.Weapon.MuzzleVelocity);
         Assert.Equal(2.5f, catalog.Weapon.LifetimeSeconds);
         Assert.True(catalog.Weapon.InheritsShipVelocity);
@@ -153,6 +154,9 @@ public sealed class G10FlightValidationTests
         Assert.Equal(31984, map.PixelWidth);
         Assert.Equal(98.4, map.PixelWidth / ObservedTopSpeed(), 1);
     }
+
+    private static GameData.ShipDefinition ShippedAsp() =>
+        GameData.GameCatalog.ShipFromJson(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "ships", "original_asp.json")));
 
     // ---- Expected: the originals through the emulator's unit chain -------------------------------------------------
 
@@ -242,12 +246,16 @@ public sealed class G10FlightValidationTests
             ("F9 bounce keeps", TestWorld.ExternalCatalog().Ship.Physics.AsteroidRestitution, asp.WallBounceRetained, Verdict.Match),
             ("F10 seconds to cross the map", flownMapWidth / ObservedTopSpeed(), originalMapWidth / asp.TopSpeedPixelsPerSecond, Verdict.Match),
             ("W1 fire interval (s)", ObservedFireIntervalSeconds(), plasma.FireDelay.Value * 10 / 1000.0, Verdict.Match),
+            // W2/W3/F11 measure the ship a new pilot flies: the derived Asp with its derived Plasma Cannon.
+            ("W2 shot speed from rest (px/s)", G10ProjectileUnitTests.ObservedShotSpeedFromRest(), plasma.MuzzleVelocity.Value / 1000.0 * 100, Verdict.Match),
+            ("W3 shot lifetime (s)", G10ProjectileUnitTests.ObservedShotLifetimeSeconds(out _), plasma.AliveTime.Value * 10 / 1000.0, Verdict.Match),
+            ("F11 ship radius (px)", ShippedAsp().Radius, Hulls.Value.ByName("Asp").PhysicalRadius.Value, Verdict.Match),
         };
         foreach (var row in rows)
             Assert.True(Compare(row.Observed, row.Expected) == row.Status,
                 $"{row.Row}: observed {row.Observed:0.###}, expected {row.Expected:0.###}, table says {row.Status}");
         Assert.Equal(1000, plasma.InheritedSpeed.Value); // W4: full inheritance under the per-mille reading; prototype inherits
-        Assert.Equal(2200, plasma.MuzzleVelocity.Value);  // W2: unit open
-        Assert.Equal(550, plasma.AliveTime.Value);         // W3: unit open
+        Assert.Equal(2200, plasma.MuzzleVelocity.Value);  // W2: thousandths of a pixel per 10 ms (emulator lead-aim), 220 px/s
+        Assert.Equal(550, plasma.AliveTime.Value);         // W3: 10 ms units, 5.5 s
     }
 }

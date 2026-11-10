@@ -58,6 +58,7 @@ public partial class WorldView : Node2D
     private ImageTexture? _mapTexture;
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
+    private static readonly Color MeteorColor = new("ff8a4c");
 
     public void SetWorld(WorldSimulation world)
     {
@@ -116,8 +117,14 @@ public partial class WorldView : Node2D
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);
         if (!_world.Player.IsDestroyed) DrawShip(_world.Player, true);
+        foreach (var shower in _world.MeteorShowers) DrawMeteorShower(ToGodot(shower.Position));
         foreach (var projectile in _world.Projectiles)
         {
+            if (projectile.OwnerShipId.StartsWith(WorldSimulation.MeteorShowerPrefix, StringComparison.Ordinal))
+            {
+                DrawMeteor(ToGodot(projectile.Position), ToGodot(projectile.Velocity), projectile.Radius);
+                continue;
+            }
             var position = ToGodot(projectile.Position);
             var direction = ToGodot(projectile.Velocity).Normalized();
             DrawLine(position - direction * 15, position, Teal.Darkened(0.4f), 4, true);
@@ -300,6 +307,31 @@ public partial class WorldView : Node2D
         DrawCircle(position, 12, new Color(Amber, 0.07f + 0.05f * pulse));
         DrawArc(position, 7, 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);
         DrawRect(new Rect2(position - new Vector2(3, 3), new Vector2(6, 6)), new Color("ffe2b8"));
+    }
+
+    /// <summary>NEW marker for a standing meteor shower (its original sprite, VEH 402 effects/gfx00203, is not staged yet).</summary>
+    private void DrawMeteorShower(Vector2 position)
+    {
+        var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 5);
+        DrawCircle(position, 40, new Color(MeteorColor, 0.06f + 0.06f * pulse));
+        DrawArc(position, 28 + 6 * pulse, 0, Mathf.Tau, 32, new Color(MeteorColor, 0.7f), 2, true);
+        for (var i = 0; i < 6; i++)
+        {
+            var direction = Vector2.FromAngle(i * Mathf.Tau / 6 + _time);
+            DrawLine(position + direction * 10, position + direction * 22, new Color(MeteorColor, 0.8f), 2, true);
+        }
+    }
+
+    /// <summary>NEW meteor drawing (its original creffects/Meteor sprite and MeteorTrail are not staged yet): a rock with a fading trail.</summary>
+    private void DrawMeteor(Vector2 position, Vector2 velocity, float radius)
+    {
+        var direction = velocity.Normalized();
+        var size = Mathf.Clamp(radius * 0.4f, 6, 18);
+        for (var i = 1; i <= 4; i++)
+            DrawCircle(position - direction * size * 1.3f * i, size * (1 - i * 0.18f), new Color(MeteorColor, 0.22f - i * 0.04f));
+        DrawCircle(position, size, new Color("6b5848"));
+        DrawCircle(position + new Vector2(-size * 0.3f, -size * 0.25f), size * 0.35f, new Color("8a7563"));
+        DrawArc(position, size, 0, Mathf.Tau, 20, new Color(MeteorColor, 0.9f), 1.5f, true);
     }
 
     private void DrawPile(Vector2 position, float radius)
