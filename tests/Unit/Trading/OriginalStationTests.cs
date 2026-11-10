@@ -61,7 +61,7 @@ public sealed class UpgradeEffectsTests
     }
 
     [Fact]
-    public void Boosters_RaiseThrustAndSpeed_ArmorAddsHullButSlows()
+    public void Boosters_RaiseThrustAndSpeed_ArmorProtectsButSlows()
     {
         var station = Station();
         var ship = new ShipDefinition();
@@ -71,8 +71,11 @@ public sealed class UpgradeEffectsTests
         Assert.Equal(ship.Physics.MaximumSpeed * 1.05f, boosted.Physics.MaximumSpeed, 3);
 
         var armored = UpgradeEffects.Apply(ship, station, [station.Upgrades.Single(u => u.Name == "Duraplas Armor").Id]);
-        Assert.Equal(ship.Defense.MaximumHull + 25, armored.Defense.MaximumHull, 3);
+        Assert.Equal(ship.Defense.MaximumHull, armored.Defense.MaximumHull, 3); // no invented hull bonus any more (RT-F041)
         Assert.True(armored.Physics.MaximumSpeed < ship.Physics.MaximumSpeed);
+        Assert.Equal(0.045f, armored.Defense.Armor!.Kinetic.Reduction, 4);
+        Assert.Equal(0.025f, armored.Defense.Armor.Explosive.Reduction, 4);
+        Assert.Equal(0.015f, armored.Defense.Armor.Energy.Reduction, 4);
     }
 
     [Fact]

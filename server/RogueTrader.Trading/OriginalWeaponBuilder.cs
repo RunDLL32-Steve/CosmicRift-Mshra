@@ -109,23 +109,33 @@ public static class OriginalWeaponBuilder
             ProjectileRadius = Fixture.ProjectileRadius,
             Damage = OriginalEnergyScale.ItemEnergy(hullRaw),
             ShieldDrain = OriginalEnergyScale.ItemEnergy(drain),
+            DamageType = DamageTypeOf(hullField),
             CooldownSeconds = OriginalShipPhysics.FireIntervalSeconds(projectile),
             EnergyCost = OriginalEnergyScale.ItemEnergy(energyCost),
             LifetimeSeconds = Fixture.LifetimeSeconds,
             InheritsShipVelocity = Fixture.InheritsShipVelocity,
             Source = $"Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row {item.RowNumber} (id {item.Id}, '{item.Category}'): "
                 + $"f[{ItmDamageFields.EnergyCostTerrain0}] energy cost {energyCost}, f[{ItmProjectileFields.FireDelay}] fireDelay {projectile.FireDelay.Value} (10 ms units), "
-                + $"f[{ItmDamageFields.EnergyDamageInner}] drain {drain}, f[{hullField}] hull damage {hullRaw}; energy amounts in thousandths (OriginalEnergyScale).",
+                + $"f[{ItmDamageFields.EnergyDamageInner}] drain {drain}, f[{hullField}] {DamageTypeOf(hullField)} hull damage {hullRaw}; energy amounts in thousandths (OriginalEnergyScale).",
             NewValues =
             [
                 $"Muzzle velocity {Fixture.MuzzleVelocity} px/s (f[{ItmProjectileFields.MuzzleVelocity}]={projectile.MuzzleVelocity.Value}; unit open, G10 W2).",
                 $"Lifetime {Fixture.LifetimeSeconds} s (f[{ItmProjectileFields.AliveTime}]={projectile.AliveTime.Value}; unit open, G10 W3).",
                 $"Projectile radius {Fixture.ProjectileRadius} (f[{ItmProjectileFields.ProximityRadius}] proximityRadius={projectile.ProximityRadius.Value}; meaning open).",
                 $"Inherits the ship's whole velocity (f[{ItmProjectileFields.InheritedSpeed}]={projectile.InheritedSpeed.Value}; read as per mille, unvalidated).",
-                "Hull damage ignores the damage type and armour (RT-F041); drain and damage use the inner value at the point of impact.",
+                "Drain and hull damage use the inner value at the point of impact (the radius and outer value are not applied).",
             ],
         };
     }
+
+    /// <summary>The hull damage type a damage field carries (NWS row 133: Kinetic, Explosive or Energy; the emulator's Electronic is Energy).</summary>
+    public static DamageType DamageTypeOf(int hullDamageField) => hullDamageField switch
+    {
+        ItmDamageFields.KineticDamageInner => DamageType.Kinetic,
+        ItmDamageFields.ExplosiveDamageInner => DamageType.Explosive,
+        ItmDamageFields.ElectronicDamageInner => DamageType.Energy,
+        _ => throw new ArgumentOutOfRangeException(nameof(hullDamageField), hullDamageField, "Not a hull damage field."),
+    };
 
     public static string ToJson(WeaponDefinition weapon) => JsonSerializer.Serialize(weapon, OriginalShipBuilder.Json).ReplaceLineEndings("\n") + "\n";
 }

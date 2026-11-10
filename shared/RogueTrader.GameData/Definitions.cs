@@ -58,6 +58,76 @@ public sealed record ShipDefense
     /// damage. Such a ship has no separate shield pool, so <see cref="MaximumShield"/> must be 0.
     /// </summary>
     public bool EnergyShield { get; init; }
+    /// <summary>Protection against each type of hull damage (RT-F041); null means none.</summary>
+    public ShipArmor? Armor { get; init; }
+}
+
+/// <summary>
+/// The three types of hull damage (NWS/Rogue.nws row 133: "All weapons will do one of 3 types of Hull Point Damage: Kinetic,
+/// Explosive or Energy"). Energy is the field the InfantryOnline emulator calls "electronic".
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DamageType>))]
+public enum DamageType
+{
+    Kinetic,
+    Explosive,
+    Energy,
+}
+
+/// <summary>
+/// Protection against one damage type: <see cref="Ignore"/> hull points are taken off each hit first, then
+/// <see cref="Reduction"/> (a fraction from 0 to 1) of what is left is stopped. This is the order of the InfantryOnline
+/// emulator's vehicle armour (<c>(gross - SelfIgnore) * (1 - SelfReduction / 1000)</c>).
+/// </summary>
+public sealed record ArmorProtection
+{
+    public float Ignore { get; init; }
+    public float Reduction { get; init; }
+
+    public static ArmorProtection None { get; } = new();
+
+    public ArmorProtection Plus(ArmorProtection other) =>
+        new() { Ignore = Ignore + other.Ignore, Reduction = Reduction + other.Reduction };
+}
+
+/// <summary>A ship's protection against each type of hull damage (RT-F041).</summary>
+public sealed record ShipArmor
+{
+    public ArmorProtection Kinetic { get; init; } = ArmorProtection.None;
+    public ArmorProtection Explosive { get; init; } = ArmorProtection.None;
+    public ArmorProtection Energy { get; init; } = ArmorProtection.None;
+
+    public ArmorProtection For(DamageType type) => type switch
+    {
+        DamageType.Kinetic => Kinetic,
+        DamageType.Explosive => Explosive,
+        DamageType.Energy => Energy,
+        _ => ArmorProtection.None,
+    };
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsNone => Kinetic == ArmorProtection.None && Explosive == ArmorProtection.None && Energy == ArmorProtection.None;
+
+    /// <summary>Both protections added type by type (a hull's own armour plus an armour upgrade); null when both are null.</summary>
+    public static ShipArmor? Combine(ShipArmor? a, ShipArmor? b) =>
+        a is null ? b : b is null ? a : new ShipArmor
+        {
+            Kinetic = a.Kinetic.Plus(b.Kinetic),
+            Explosive = a.Explosive.Plus(b.Explosive),
+            Energy = a.Energy.Plus(b.Energy),
+        };
+
+    /// <summary>
+    /// The hull damage that gets through: <paramref name="damage"/> less the ignored points, less the reduced fraction of the rest,
+    /// never below 0 and never above <paramref name="damage"/>. An untyped weapon (null) or a ship with no armour takes it all.
+    /// </summary>
+    public static float HullDamage(float damage, DamageType? type, ShipArmor? armor)
+    {
+        if (type is not { } t || armor is null || damage <= 0) return damage;
+        var p = armor.For(t);
+        var reduction = Math.Clamp(p.Reduction, 0f, 1f);
+        return MathF.Min(damage, MathF.Max(0, damage - MathF.Max(0, p.Ignore)) * (1 - reduction));
+    }
 }
 
 /// <summary>
@@ -99,6 +169,8 @@ public sealed record WeaponDefinition
     /// hull. Null keeps the NEW rule, where the shield absorbs <see cref="Damage"/> point for point and the rest reaches the hull.
     /// </summary>
     public float? ShieldDrain { get; init; }
+    /// <summary>The type of <see cref="Damage"/>, which armour protects against (RT-F041); null for an untyped NEW fixture.</summary>
+    public DamageType? DamageType { get; init; }
     public float CooldownSeconds { get; init; } = 0.2f;
     public float EnergyCost { get; init; } = 6;
     public float LifetimeSeconds { get; init; } = 2.5f;
@@ -172,6 +244,8 @@ public sealed record TargetDefinition
     public float Radius { get; init; } = 20;
     public float Hull { get; init; } = 100;
     public float Shield { get; init; } = 40;
+    /// <summary>The target's protection against each hull damage type (RT-F041); null means none.</summary>
+    public ShipArmor? Armor { get; init; }
 }
 
 public sealed record AsteroidDefinition

@@ -88,6 +88,8 @@ public sealed record UpgradeEffect
     public float MaximumEnergy { get; init; }
     public float EnergyRegeneration { get; init; }
     public float MaximumHull { get; init; }
+    /// <summary>Protection against each hull damage type (armour, RT-F041); null for an upgrade that gives none.</summary>
+    public RogueTrader.GameData.ShipArmor? Armor { get; init; }
 
     public static UpgradeEffect None { get; } = new();
 }

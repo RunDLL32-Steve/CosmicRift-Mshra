@@ -34,8 +34,6 @@ public static class OriginalStationBuilder
     private const string FullRepairName = "Full Repair";
     /// <summary>Raw modifier f[42..44] read as thousandths of forward thrust / maximum speed / rotation speed.</summary>
     private const float ModifierScale = 1000f;
-    /// <summary>Armor protection grades are undecoded; hull bonus = raw buy price / 200 hull points.</summary>
-    private const float ArmorPricePerHullPoint = 200f;
 
     private static readonly string[] NewValueNotes =
     [
@@ -44,7 +42,7 @@ public static class OriginalStationBuilder
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
         "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
-        "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
+        "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor protects by damage type from ITM f[52..57] (Ignore in thousandths of a hull point, Percent read as per mille) and its f[42..44] penalty applies like the other blocks; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
         "Collectible piles: placement (offsets from the station) and quantities.",
         "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
     ];
@@ -210,9 +208,10 @@ public static class OriginalStationBuilder
         const string blockBasis = "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions";
         switch (family)
         {
-            case OriginalArmor.ArmorCategory:
-                return (fromBlock with { MaximumHull = item.Buy.Value / ArmorPricePerHullPoint },
-                    blockBasis + "; NEW: + buy/200 hull points (protection grades undecoded)");
+            case OriginalArmor.ArmorCategory when OriginalArmor.TryOf(item, out var armor):
+                return (fromBlock with { Armor = ArmorOf(armor!) },
+                    blockBasis + "; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), "
+                    + "Ignore / 1000 hull points, NEW: Percent read as per mille");
             case "Thruster Mods" when raw.All(v => v == 0):
                 return (fromBlock with { RotationSpeed = 0.05f * tier }, "NEW tier rule: +5/10/15% rotation (raw block is zero)");
             case "Power Mods":
@@ -225,6 +224,14 @@ public static class OriginalStationBuilder
             default:
                 return (fromBlock, blockBasis);
         }
+    }
+
+    /// <summary>The protection an original armour gives (RT-F041).</summary>
+    public static ShipArmor ArmorOf(OriginalArmor armor)
+    {
+        ArgumentNullException.ThrowIfNull(armor);
+        static ArmorProtection P(OriginalArmorPair p) => new() { Ignore = p.IgnoreHullPoints, Reduction = p.ReductionFraction };
+        return new ShipArmor { Kinetic = P(armor.Kinetic), Explosive = P(armor.Explosive), Energy = P(armor.Electronic) };
     }
 
     private static string StationName(IReadOnlyList<RawRecord> veh)

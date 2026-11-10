@@ -14,6 +14,12 @@
 -   Sitting in any of the three zones drains energy (`EnergyRate=-2000`, read in tenths per second like the hull's own 1,050 recharge). The drain is added to the hull's recharge, so a 105-per-second hull loses 95 a second and empties in about 18 s, never going below 0. The news line of 9/06/01 says "You now lose energy when you sit in a safe zone surrounding a refinery/trading post. Dont dawdle." The CFG applies the same drain at the SpaceDocks and Repair Docks. Adding the drain to the recharge, and the unit, are NEW readings. Because energy is the shield, a ship that waits in a dock leaves with an empty shield.
 -   The rules travel in `data/sectors/rogue_map.json` (`terrainRules`, derived by `OriginalMapBuilder` from the CFG and still checked against the pinned originals). `WorldSimulation.DamagePlayer` stays a direct hook that ignores safe zones, so the station acceptance run can still damage a docked ship. Not done yet: the 60-second limit in Repair Docks and trade zones (`MaxTimeAllowed=60`, NWS 8/27/01 "sent to spec"), which needs a ruling on what "spec" means here, and client prediction of the energy drain (C7).
 
+## Armour protects against Kinetic, Explosive and Energy damage — November 8, 2026
+
+-   Every weapon now does one of the three original hull damage types (NWS row 133): the three starting cannons do Energy damage, Mass Drivers Kinetic and Moltor weapons Explosive.
+-   The nine armours at the station now protect the way their help text says, from their original values (ITM f[52..57], the emulator's utility-item armour pairs): each hit first loses the ignored points, then the armour stops a share of the rest. Ablative Shell stops nothing against Kinetic; Sillicate stops nothing against Energy. Armour still slows the ship, and the invented "+ hull points" bonus is gone. The station list shows each armour's protection.
+-   Armour only matters once the shield is empty, as before. The percent unit (read as tenths of a percent), Remove Armor at the Repair Dock, and the speed-block field order stay open. [Evidence](docs/development-log/2026-11-08-armour-damage-types.md).
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.
