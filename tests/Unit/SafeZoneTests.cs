@@ -32,8 +32,9 @@ public sealed class SafeZoneTests
         return new SectorMap(40, 40, tiles, Expire, terrainRules: rules);
     }
 
-    private static WorldSimulation World(SectorMap map, float x, float heading, TargetDefinition[]? targets = null, ShipDefinition? ship = null) =>
-        new(TestWorld.Catalog(ship: ship, sector: new SectorDefinition
+    private static WorldSimulation World(SectorMap map, float x, float heading, TargetDefinition[]? targets = null, ShipDefinition? ship = null,
+        WeaponDefinition? weapon = null) =>
+        new(TestWorld.Catalog(ship: ship, weapon: weapon, sector: new SectorDefinition
         {
             PlayerSpawn = new SpawnDefinition { X = x, Y = 320, Heading = heading },
             Targets = targets ?? [],
@@ -57,6 +58,21 @@ public sealed class SafeZoneTests
         open.Tick(new ShipInput(0, 0, true));
         Assert.Equal(1, open.ShotsFired);
         Assert.Equal(0, open.ShotsRefusedInSafeZone);
+    }
+
+    [Fact]
+    public void A_DeleteLiveWeaponsTile_StopsAShotBeforeALaterHitOnTheSameTick()
+    {
+        var weapon = new WeaponDefinition { MuzzleVelocity = 30_000 };
+        var target = new TargetDefinition { X = 560, Y = 320, Radius = 10 };
+        var deleting = World(Fixture(RogueLikeRules()), 250, 0, [target], weapon: weapon);
+        deleting.Tick(new ShipInput(0, 0, true));
+        Assert.Equal(40, deleting.Targets[0].Shield);
+        Assert.Empty(deleting.Projectiles);
+
+        var crossing = World(Fixture(RogueLikeRules(storeZoneDeletesShots: false)), 250, 0, [target], weapon: weapon);
+        crossing.Tick(new ShipInput(0, 0, true));
+        Assert.True(crossing.Targets[0].Shield < 40);
     }
 
     [Fact]

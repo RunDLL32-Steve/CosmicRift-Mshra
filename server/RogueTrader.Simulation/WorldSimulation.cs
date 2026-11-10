@@ -275,7 +275,8 @@ public sealed partial class WorldSimulation
             var end = projectile.Position + projectile.Velocity * TickDuration;
             var hitFraction = float.PositiveInfinity;
             ShipState? hitShip = null;
-            if (Map is not null && MapCollision.Sweep(Map, projectile.Position, end, out var wall)) hitFraction = wall;
+            if (Map is not null && MapCollision.SweepProjectile(Map, projectile.Position, end, out var terrainHit))
+                hitFraction = terrainHit;
             foreach (var asteroid in Asteroids)
             {
                 if (CircleCollision.Sweep(projectile.Position, end, asteroid.Position,
@@ -301,7 +302,7 @@ public sealed partial class WorldSimulation
                     ApplyDamage(hitShip, projectile);
                 _projectiles.RemoveAt(index);
             }
-            else if (projectile.AgeTicks >= projectile.LifetimeTicks || EntersDeletingTerrain(projectile.Position, end))
+            else if (projectile.AgeTicks >= projectile.LifetimeTicks)
                 _projectiles.RemoveAt(index);
             else
             {
@@ -309,18 +310,6 @@ public sealed partial class WorldSimulation
                 index++;
             }
         }
-    }
-
-    // CFG DeleteLiveWeapons=1 (SpaceDock store zones and refinery/trade zones): a shot that reaches such a tile on this tick
-    // disappears. The step is sampled every half tile so a fast shot cannot skip a tile (RT-F065).
-    private bool EntersDeletingTerrain(Vector2 start, Vector2 end)
-    {
-        if (Map is null) return false;
-        var steps = Math.Max(1, (int)MathF.Ceiling(Vector2.Distance(start, end) / (SectorMap.TileSize / 2f)));
-        for (var step = 1; step <= steps; step++)
-            if (Map.RuleAt(Vector2.Lerp(start, end, step / (float)steps)).DeleteLiveWeapons)
-                return true;
-        return false;
     }
 
     private void ApplyDamage(ShipState target, ProjectileState projectile)

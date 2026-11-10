@@ -106,6 +106,12 @@ public sealed class SectorMap
 
     public bool IsBlockedTile(int tileX, int tileY) => (TileAt(tileX, tileY) & BlockedBit) != 0;
 
+    internal bool StopsProjectileAtTile(int tileX, int tileY)
+    {
+        var tile = TileAt(tileX, tileY);
+        return (tile & BlockedBit) != 0 || _rules[tile & 0x0F].DeleteLiveWeapons;
+    }
+
     public static (int TileX, int TileY) TileOf(Vector2 position) =>
         ((int)MathF.Floor(position.X / TileSize), (int)MathF.Floor(position.Y / TileSize));
 
