@@ -16,6 +16,8 @@ public static class OriginalShipPhysics
     /// <summary>NEW scale factor: thrust is stored as acceleration × this mass.</summary>
     public const float Mass = 100;
 
+    private const float ProjectileTimeTicksPerSecond = 100;
+
     public static ShipPhysics From(OriginalHull hull)
     {
         var reading = EmulatorFlightReading.From(hull);
@@ -44,7 +46,7 @@ public static class OriginalShipPhysics
     public static float FireIntervalSeconds(OriginalProjectile projectile)
     {
         ArgumentNullException.ThrowIfNull(projectile);
-        return projectile.FireDelay.Value * 10 / 1000f;
+        return projectile.FireDelay.Value / ProjectileTimeTicksPerSecond;
     }
 
     /// <summary>
@@ -79,6 +81,6 @@ public static class OriginalShipPhysics
         ArgumentNullException.ThrowIfNull(projectile);
         if (projectile.AliveTime.Value <= 0)
             throw new OriginalDataException($"{projectile.Item.Name}: aliveTime {projectile.AliveTime} is a sentinel whose meaning is open, not a lifetime.");
-        return projectile.AliveTime.Value * 10 / 1000f;
+        return projectile.AliveTime.Value / ProjectileTimeTicksPerSecond;
     }
 }

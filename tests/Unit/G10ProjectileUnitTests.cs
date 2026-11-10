@@ -105,6 +105,21 @@ public sealed class G10ProjectileUnitTests
         Assert.Equal(seconds, OriginalShipPhysics.LifetimeSeconds(projectile), 3);
     }
 
+    [Fact]
+    public void TheLargestPositiveRawProjectileTimesDoNotOverflow()
+    {
+        var fields = Enumerable.Repeat("0", ItmProjectileFields.ProjectileFieldCount).ToArray();
+        fields[ItmFields.RecordType] = "6";
+        fields[1] = OriginalItemCatalog.SupportedVersion;
+        fields[ItmProjectileFields.FireDelay] = fields[ItmProjectileFields.AliveTime] = "2147483647";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(string.Join(",", fields));
+        var projectile = OriginalProjectile.Of(OriginalItemCatalog.FromRecords(RawRecordReader.Parse(bytes, "synthetic.itm")).Items.Single());
+
+        var expectedSeconds = (float)(int.MaxValue / 100.0);
+        Assert.Equal(expectedSeconds, OriginalShipPhysics.FireIntervalSeconds(projectile));
+        Assert.Equal(expectedSeconds, OriginalShipPhysics.LifetimeSeconds(projectile));
+    }
+
     [RequiresOriginalAssetsFact]
     public void SentinelsAndStillProjectilesAreRefusedNotRead()
     {
