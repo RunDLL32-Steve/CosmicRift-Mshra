@@ -30,3 +30,7 @@ Branch `claude/project-thread-w580ul`. Steve asked for the next roadmap features
 -   Minor: meteors in flight are saved with the sector (`SectorSnapshot.MeteorsInFlight`) and come back after a relaunch with their position, velocity and age, so a relaunch cannot dodge a hit. A restored meteor faster than a meteor is slowed to meteor speed, and one past its life is dropped. Tests `MeteorsInFlight_SurviveARelaunch` and `RestoredMeteors_CannotBeFasterOrOlderThanAMeteor`.
 -   Danger probe again (scratch test, not committed; Asp, rogue.json, rogue_map.json, meteor_showers.json, 40 world salts, 30 s each, 3 showers each): idle at the Cold Harbor spawn 0 of 40 worlds hit; slow circles at (12000, 9000) 6 of 40 hit, 2 destroyed; idle at (12000, 9000) 4 of 40 hit, 4 destroyed. Still with the 5 s shower life that waits on Steve.
 -   Checks: unit tests all pass except the environmental `BloCanonicalTests` (LFS bytes missing in cloud); integration 6/6; Godot headless import and `--smoke-test` (input, station, flight) pass.
+
+## Review round 2 follow-up — November 10, 2026
+
+-   R2-1 (minor): meteors in flight now age through time spent away (`ElapseWithoutTicking`: docked, paused or closed), so a meteor saved mid-flight cannot hit hours later on relaunch. Ones whose 20 s life runs out while away are dropped; they do not move while the world is not ticking. Test `MeteorsInFlight_AgeThroughTimeAway` (still there and older after a 1 s pause, gone after 21 s away); 19 cases.
