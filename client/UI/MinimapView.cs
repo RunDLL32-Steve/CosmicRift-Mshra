@@ -22,6 +22,10 @@ public partial class MinimapView : Control
     private readonly OriginalUiArt? _art;
     private readonly Color _self;
     private readonly Color _enemy;
+    /// <summary>Room above the map for the fallback "RADAR" label; the original title plate is also 16 pixels tall.</summary>
+    private const float FallbackLabelHeight = 16;
+    /// <summary>Where the map square sits inside the control: the frame's left edge width and title height.</summary>
+    private readonly Vector2 _inset;
     private WorldSimulation? _world;
     private static readonly Color Amber = new("f4b66b");
 
@@ -39,11 +43,16 @@ public partial class MinimapView : Control
         Visible = map is not null;
         if (map is null) return;
         _texture = RadarTexture(map);
+        // The control's rectangle holds the frame as well as the map, so nothing is drawn outside it; the map square stays where it was.
+        _inset = art is null
+            ? new Vector2(0, FallbackLabelHeight)
+            : new Vector2(art.PieceSize(5).X, Math.Max(art.PieceSize(0).Y, FallbackLabelHeight));
+        var far = art is null ? Vector2.Zero : new Vector2(art.PieceSize(5).X, art.PieceSize(6).Y);
         SetAnchorsAndOffsetsPreset(LayoutPreset.BottomRight);
-        OffsetLeft = -Side - 22;
-        OffsetRight = -22;
-        OffsetTop = -Side - 74;
-        OffsetBottom = -74;
+        OffsetLeft = -Side - 22 - _inset.X;
+        OffsetRight = -22 + far.X;
+        OffsetTop = -Side - 74 - _inset.Y;
+        OffsetBottom = -74 + far.Y;
         TextureFilter = TextureFilterEnum.Nearest;
     }
 
@@ -59,6 +68,7 @@ public partial class MinimapView : Control
     public override void _Draw()
     {
         if (_map is null || _texture is null) return;
+        DrawSetTransform(_inset);
         var size = new Vector2(Side, Side);
         DrawRect(new Rect2(Vector2.Zero, size), new Color("0b151dd8"));
         DrawTextureRect(_texture, new Rect2(Vector2.Zero, size), false);
