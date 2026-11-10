@@ -154,6 +154,29 @@ public sealed class G10FlightValidationTests
         Assert.Equal(98.4, map.PixelWidth / ObservedTopSpeed(), 1);
     }
 
+    // F12: the shipped Asp on a small map of one terrain (TerrainFlightTests builds it).
+    internal static double ObservedTerrainCapPixelsPerSecond(byte terrain)
+    {
+        var world = TerrainFlightTests.Asp(terrain, velocityX: 325); // arrives at the open-space top speed
+        world.Tick(new ShipInput(1, 0, false));
+        return world.Player.Velocity.Length();
+    }
+
+    internal static double ObservedTerrainTurnDegreesPerSecond(byte terrain)
+    {
+        var world = TerrainFlightTests.Asp(terrain);
+        var start = world.Player.Heading;
+        TestWorld.Tick(world, 6, new ShipInput(0, 1, false));
+        return (world.Player.Heading - start) * 10 * 180 / Math.PI;
+    }
+
+    internal static double ObservedTerrainCoastRetainedPerSecond(byte terrain)
+    {
+        var world = TerrainFlightTests.Asp(terrain, velocityX: 200);
+        TestWorld.Tick(world, 60);
+        return world.Player.Velocity.Length() / 200;
+    }
+
     // ---- Expected: the originals through the emulator's unit chain -------------------------------------------------
 
     [Fact]
@@ -224,6 +247,9 @@ public sealed class G10FlightValidationTests
     public void TableVerdictsAreCurrent()
     {
         var asp = EmulatorFlightReading.From(Hulls.Value.ByName("Asp"));
+        var dock = EmulatorFlightReading.From(Hulls.Value.ByName("Asp"), 9);
+        var spaceDock = EmulatorFlightReading.From(Hulls.Value.ByName("Asp"), 10);
+        var trade = EmulatorFlightReading.From(Hulls.Value.ByName("Asp"), 15);
         var plasma = OriginalProjectile.Of(Items.Value.ById(1004));
         Assert.Equal("Plasma Cannon", plasma.Item.Name);
         // Map crossing: the game flies the derived Rogue map at map-pixel scale. Rogue.lvl is 1999 tiles wide (pinned by
@@ -241,11 +267,20 @@ public sealed class G10FlightValidationTests
             ("F6 drag in open space", ObservedCoastRetainedPerSecond(), asp.FrictionRetainedPerSecond(10), Verdict.Match),
             ("F9 bounce keeps", TestWorld.ExternalCatalog().Ship.Physics.AsteroidRestitution, asp.WallBounceRetained, Verdict.Match),
             ("F10 seconds to cross the map", flownMapWidth / ObservedTopSpeed(), originalMapWidth / asp.TopSpeedPixelsPerSecond, Verdict.Match),
+            ("F12 repair dock top speed", ObservedTerrainCapPixelsPerSecond(9), dock.TopSpeedPixelsPerSecond, Verdict.Match),
+            ("F12 repair dock turn rate", ObservedTerrainTurnDegreesPerSecond(9), dock.TurnDegreesPerSecond, Verdict.Match),
+            ("F12 repair dock speed kept per second", ObservedTerrainCoastRetainedPerSecond(9), dock.FrictionRetainedPerSecond(10), Verdict.Match),
+            ("F12 space dock top speed", ObservedTerrainCapPixelsPerSecond(10), spaceDock.TopSpeedPixelsPerSecond, Verdict.Match),
+            ("F12 space dock speed kept per second", ObservedTerrainCoastRetainedPerSecond(10), spaceDock.FrictionRetainedPerSecond(10), Verdict.Match),
+            ("F12 trade zone turn rate", ObservedTerrainTurnDegreesPerSecond(15), trade.TurnDegreesPerSecond, Verdict.Match),
+            ("F12 trade zone speed kept per second", ObservedTerrainCoastRetainedPerSecond(15), trade.FrictionRetainedPerSecond(10), Verdict.Match),
             ("W1 fire interval (s)", ObservedFireIntervalSeconds(), plasma.FireDelay.Value * 10 / 1000.0, Verdict.Match),
         };
         foreach (var row in rows)
             Assert.True(Compare(row.Observed, row.Expected) == row.Status,
                 $"{row.Row}: observed {row.Observed:0.###}, expected {row.Expected:0.###}, table says {row.Status}");
+        Assert.Equal(0, dock.HyperTopSpeedPixelsPerSecond); // F12: no boost in docks or trade zones (TerrainFlightTests measures it)
+        Assert.Equal(0, trade.HyperTopSpeedPixelsPerSecond);
         Assert.Equal(1000, plasma.InheritedSpeed.Value); // W4: full inheritance under the per-mille reading; prototype inherits
         Assert.Equal(2200, plasma.MuzzleVelocity.Value);  // W2: unit open
         Assert.Equal(550, plasma.AliveTime.Value);         // W3: unit open

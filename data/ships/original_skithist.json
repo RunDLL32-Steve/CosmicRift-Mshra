@@ -32,12 +32,53 @@
     "rechargeWhileEngaged": false,
     "source": "ORIGINAL: VEH/Rogue.veh Skithist terrain 0 HyperThrust f[209]=50, BackwardHyperThrust f[211]=-1, HyperTopSpeed f[208]=3600, HyperEnergyCost f[373]=990."
   },
+  "terrains": [
+    {
+      "terrain": 9,
+      "physics": {
+        "mass": 100,
+        "forwardThrust": 16870,
+        "reverseThrust": 16870,
+        "rotationSpeed": 2.6179938,
+        "maximumSpeed": 300,
+        "asteroidRestitution": 0.727
+      },
+      "frictionPerTenMilliseconds": 0.0140625,
+      "source": "ORIGINAL: VEH/Rogue.veh Skithist terrain 9 f[292..301]: RollFriction 45, RollThrust 45, RollRotate 1000, RollTopSpeed 3000, HyperTopSpeed 0, BackwardThrust -1 (-1 = RollThrust); RECONSTRUCTED units (G10 F12)."
+    },
+    {
+      "terrain": 10,
+      "physics": {
+        "mass": 100,
+        "forwardThrust": 16870,
+        "reverseThrust": 16870,
+        "rotationSpeed": 2.6179938,
+        "maximumSpeed": 300,
+        "asteroidRestitution": 0.727
+      },
+      "frictionPerTenMilliseconds": 0.0140625,
+      "source": "ORIGINAL: VEH/Rogue.veh Skithist terrain 10 f[302..311]: RollFriction 45, RollThrust 45, RollRotate 1000, RollTopSpeed 3000, HyperTopSpeed 0, BackwardThrust -1 (-1 = RollThrust); RECONSTRUCTED units (G10 F12)."
+    },
+    {
+      "terrain": 15,
+      "physics": {
+        "mass": 100,
+        "forwardThrust": 16870,
+        "reverseThrust": 16870,
+        "rotationSpeed": 3.403392,
+        "maximumSpeed": 300,
+        "asteroidRestitution": 0.727
+      },
+      "frictionPerTenMilliseconds": 0.009375,
+      "source": "ORIGINAL: VEH/Rogue.veh Skithist terrain 15 f[352..361]: RollFriction 30, RollThrust 45, RollRotate 1300, RollTopSpeed 3000, HyperTopSpeed 0, BackwardThrust -1 (-1 = RollThrust); RECONSTRUCTED units (G10 F12)."
+    }
+  ],
   "weaponId": "1036",
   "source": "Derived by OriginalShipBuilder from RPG/Rogue.rpg row 5 (skill 1), VEH/Rogue.veh row 19 (vehicle 2001), category 'Ship Hull - Skithzar'. Flight: OriginalShipPhysics (G10 emulator reading, mass 100 is a NEW scale). Hull points: VEH f[6]=50, raw. Radius: VEH f[35] PhysicalRadius=21 px. Energy: VEH f[94] EnergyMax=1700, f[95] EnergyRate=1050 (tenths per second, OriginalEnergyScale); f[96] EnergyStart=1700 equals the maximum. Shield: the energy itself (CFG EnergyShieldMode=2, NWS/Rogue.nws rows 39-41 and 131). Starting weapon: VEH f[129] 'addinv=Bio Cannon' (ITM id 1036).",
   "newValues": [
     "Hull points used raw (f[6]); weapon hull damage reads ITM thousandths, so a Plasma Cannon hit takes 5 of the Asp's 50 (unvalidated in play).",
     "Energy recharge 105/s and boost cost 99/s read f[95] and f[373] as tenths per second (the recharge items' 'kj/s' wording); recharge pausing while the boost is engaged is the owner's rule, not original data.",
     "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
-    "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost."
+    "Dock and trade-zone flight (terrains 9, 10, 15) uses each terrain's own VEH block in the open-space units; the emulator's bot looks the block up but keeps flying terrain 0, so no emulator path applies it. Friction is the bot's formula at the 60 Hz step. Terrains whose block is all zero (1-8, 11-14, unused by the Rogue map) fly the open-space values."
   ]
 }

@@ -13,7 +13,7 @@ namespace RogueTrader.Trading;
 /// Taken from the originals: name, flight (<see cref="OriginalShipPhysics"/>, G10's emulator reading), hold cap (VEH f[48]
 /// StopWeight, read as a hard cap as for the Interceptor), hull points (VEH f[6], raw), the buy price (ITM f[8]) and the
 /// same-race requirement (ITM f[5], RPG skill ids), radius (f[35]), energy and recharge (f[94..95]), energy as the shield, the
-/// Shift boost (terrain-0 hyper fields and f[373]) and the starting weapon (f[129]). Every remaining assumption is listed in each
+/// Shift boost (terrain-0 hyper fields and f[373]), dock and trade-zone flight (terrain blocks 9, 10, 15) and the starting weapon (f[129]). Every remaining assumption is listed in each
 /// <see cref="ShipDefinition.NewValues"/>. Regenerate with RT_WRITE_DERIVED_SHIPS=1; never hand-edit the outputs.
 /// </summary>
 public static class OriginalShipBuilder
@@ -68,21 +68,13 @@ public static class OriginalShipBuilder
                 $"Energy recharge {OriginalEnergyScale.PerSecond(hull.EnergyRate.Value)}/s and boost cost {OriginalEnergyScale.PerSecond(hull.HyperEnergyCost.Value)}/s read f[95] and f[373] as tenths per second (the recharge items' 'kj/s' wording); "
                     + "recharge pausing while the boost is engaged is the owner's rule, not original data.",
                 "Boost thrust and top speed (HyperThrust, HyperTopSpeed, BackwardHyperThrust -1 = HyperThrust) use the RollThrust/RollTopSpeed units; no emulator code reads them. Releasing Shift clamps the ship back to its normal top speed.",
-                "Terrain blocks other than open space (0) are not applied yet (F12), for flight or boost.",
+                "Dock and trade-zone flight (terrains 9, 10, 15) uses each terrain's own VEH block in the open-space units; the emulator's bot looks the block up but keeps flying terrain 0, so no emulator path applies it. "
+                    + "Friction is the bot's formula at the 60 Hz step. Terrains whose block is all zero (1-8, 11-14, unused by the Rogue map) fly the open-space values.",
             ],
             Radius = hull.PhysicalRadius.Value,
             Physics = OriginalShipPhysics.From(hull),
-            Hyper = new ShipHyper
-            {
-                ForwardThrust = (float)(flight.HyperForwardAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
-                ReverseThrust = (float)(flight.HyperReverseAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
-                MaximumSpeed = (float)flight.HyperTopSpeedPixelsPerSecond,
-                EnergyPerSecond = OriginalEnergyScale.PerSecond(hull.HyperEnergyCost.Value),
-                RechargeWhileEngaged = HyperRechargeWhileEngaged,
-                Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} terrain 0 HyperThrust f[{flight.Block.HyperThrust.FieldIndex}]={flight.Block.HyperThrust.Value}, "
-                    + $"BackwardHyperThrust f[{flight.Block.BackwardHyperThrust.FieldIndex}]={flight.Block.BackwardHyperThrust.Value}, HyperTopSpeed f[{flight.Block.HyperTopSpeed.FieldIndex}]={flight.Block.HyperTopSpeed.Value}, "
-                    + $"HyperEnergyCost f[{VehFields.HyperEnergyCost}]={hull.HyperEnergyCost.Value}.",
-            },
+            Hyper = Hyper(flight),
+            Terrains = Terrains(hull),
             WeaponId = OriginalWeaponBuilder.WeaponId(weapon),
             Defense = new ShipDefense { MaximumHull = hull.HullPoints.Value, MaximumShield = 0, EnergyShield = true },
             Reactor = new ShipReactor
@@ -96,6 +88,51 @@ public static class OriginalShipBuilder
                 Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} (vehicle {hull.VehicleId}) f[48] StopWeight; NEW: read as the hold's hard weight cap.",
             },
         };
+    }
+
+    // The boost one terrain block gives, or null when its HyperTopSpeed is 0 (the boost does not work there).
+    private static ShipHyper? Hyper(EmulatorFlightReading flight)
+    {
+        var hull = flight.Hull;
+        var block = flight.Block;
+        if (block.HyperTopSpeed.Value <= 0) return null;
+        return new ShipHyper
+        {
+            ForwardThrust = (float)(flight.HyperForwardAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
+            ReverseThrust = (float)(flight.HyperReverseAccelerationPixelsPerSecondSquared * OriginalShipPhysics.Mass),
+            MaximumSpeed = (float)flight.HyperTopSpeedPixelsPerSecond,
+            EnergyPerSecond = OriginalEnergyScale.PerSecond(hull.HyperEnergyCost.Value),
+            RechargeWhileEngaged = HyperRechargeWhileEngaged,
+            Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} terrain {block.TerrainIndex} HyperThrust f[{block.HyperThrust.FieldIndex}]={block.HyperThrust.Value}, "
+                + $"BackwardHyperThrust f[{block.BackwardHyperThrust.FieldIndex}]={block.BackwardHyperThrust.Value}, HyperTopSpeed f[{block.HyperTopSpeed.FieldIndex}]={block.HyperTopSpeed.Value}, "
+                + $"HyperEnergyCost f[{VehFields.HyperEnergyCost}]={hull.HyperEnergyCost.Value}.",
+        };
+    }
+
+    /// <summary>
+    /// F12: the hull's flight in every terrain other than open space whose VEH block holds data (RollAllowed..HyperThrust not all
+    /// zero; for Rogue that is the Repair Docks 9, the SpaceDocks 10 and the Trading Posts / refinery zone 15). Values go through the
+    /// same emulator unit chain as terrain 0. RollAllowed (1 in these terrains, 0 in open space) is read by no emulator code and is
+    /// not applied.
+    /// </summary>
+    public static IReadOnlyList<ShipTerrainFlight> Terrains(OriginalHull hull)
+    {
+        ArgumentNullException.ThrowIfNull(hull);
+        return OriginalFlightProfile.From(hull).ActiveTerrainIndexes.Where(t => t != 0).Select(t =>
+        {
+            var flight = EmulatorFlightReading.From(hull, t);
+            var b = flight.Block;
+            return new ShipTerrainFlight
+            {
+                Terrain = t,
+                Physics = OriginalShipPhysics.From(hull, t),
+                FrictionPerTenMilliseconds = (float)flight.FrictionLossPerTenMilliseconds,
+                Hyper = Hyper(flight),
+                Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} terrain {t} f[{b.FirstFieldIndex}..{b.FirstFieldIndex + VehFields.TerrainBlockSize - 1}]: "
+                    + $"RollFriction {b.RollFriction.Value}, RollThrust {b.RollThrust.Value}, RollRotate {b.RollRotate.Value}, RollTopSpeed {b.RollTopSpeed.Value}, "
+                    + $"HyperTopSpeed {b.HyperTopSpeed.Value}, BackwardThrust {b.BackwardThrust.Value} (-1 = RollThrust); RECONSTRUCTED units (G10 F12).",
+            };
+        }).ToList();
     }
 
     /// <summary>The Asp is the starter; the Interceptor stays listed (last) so saves that own it keep flying it.</summary>

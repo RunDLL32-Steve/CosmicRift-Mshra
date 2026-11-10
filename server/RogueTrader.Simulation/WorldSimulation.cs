@@ -212,9 +212,56 @@ public sealed partial class WorldSimulation
     private void MovePlayer(ShipInput input)
     {
         var previous = Player.Position;
-        AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        var flight = Map is null ? null : Player.Definition.TerrainFlight(Map.TerrainAt(previous));
+        if (flight is null)
+            AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        else
+            StepInTerrain(input, flight);
         // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
         if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
+    }
+
+    private (ShipDefinition Own, ShipTerrainFlight Flight, ShipDefinition Flown)? _terrainFlight;
+
+    /// <summary>The fraction of its speed a ship keeps over one tick in a terrain with this friction (the emulator's formula).</summary>
+    public static float TerrainSpeedRetainedPerTick(ShipTerrainFlight flight)
+    {
+        ArgumentNullException.ThrowIfNull(flight);
+        return 1 - flight.FrictionPerTenMilliseconds * (TickDuration * 1000 / 10);
+    }
+
+    // F12: inside a dock or trade zone (the terrain under the ship's centre at the start of the tick) the hull flies that terrain's
+    // values. The emulator bot's order is thrust, then friction, then the top-speed clamp: (v + a·dt)·f. The shared motion step
+    // is thrust then clamp, so the speed is scaled by f first and the thrust by f too, which gives exactly (v + a·dt)·f before the
+    // clamp. Like the walls this runs only here, not in the shared C7 motion path, so client prediction does not know terrains yet.
+    private void StepInTerrain(ShipInput input, ShipTerrainFlight flight)
+    {
+        var own = Player.Definition;
+        if (_terrainFlight is not { } cached || !ReferenceEquals(cached.Own, own) || !ReferenceEquals(cached.Flight, flight))
+        {
+            var keep = TerrainSpeedRetainedPerTick(flight);
+            var flown = own with
+            {
+                Physics = flight.Physics with
+                {
+                    ForwardThrust = flight.Physics.ForwardThrust * keep,
+                    ReverseThrust = flight.Physics.ReverseThrust * keep,
+                },
+                Hyper = flight.Hyper,
+            };
+            cached = (own, flight, flown);
+            _terrainFlight = cached;
+        }
+        Player.Velocity *= TerrainSpeedRetainedPerTick(flight);
+        Player.Definition = cached.Flown;
+        try
+        {
+            AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        }
+        finally
+        {
+            Player.Definition = own;
+        }
     }
 
     // Piles are visited in catalog order and the swept ship path catches piles passed between ticks. A pile the hold cannot
