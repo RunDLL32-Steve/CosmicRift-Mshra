@@ -138,7 +138,7 @@ public sealed class AuthoritativeSession
         // The limit is picked after the tick (review R1-1 on #131): the hull's boost top speed only on a tick that really boosted,
         // otherwise its normal top speed, so the audit is no looser than the tick that ran.
         var player = World.Player;
-        var topSpeed = player.IsHyperEngaged ? player.Definition.Hyper!.MaximumSpeed : player.Definition.Physics.MaximumSpeed;
+        var topSpeed = player.IsHyperEngaged && player.Definition.Hyper is { } hyper ? hyper.MaximumSpeed : player.Definition.Physics.MaximumSpeed;
         var limit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
         if (distance > limit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, limit));
         _settledPosition = World.Player.Position;
