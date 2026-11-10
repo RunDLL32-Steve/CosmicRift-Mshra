@@ -22,8 +22,8 @@ public sealed record MineralSpawnSnapshot(string Id, long TicksUntilAttempt, lon
 /// <summary>An asteroid's remaining mining deposit in a <see cref="SectorSnapshot"/>.</summary>
 public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 
-/// <summary>A hazard's shot in flight: who fired it, where it is, its velocity and its age in ticks.</summary>
-public sealed record HazardProjectileSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks);
+/// <summary>A hazard's shot in flight: who fired it, where it is, its velocity, its age and its firing order.</summary>
+public sealed record HazardProjectileSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks, long Order = 0);
 
 /// <summary>
 /// The shared state of one sector that must outlive any one <see cref="WorldSimulation"/> (owner rule, November 2, 2026: the
@@ -176,19 +176,27 @@ public sealed partial class WorldSimulation
         if (snapshot.MeteorSpawns is not null) RestoreMeteors(snapshot);
         // Likewise for defense satellites: a snapshot saved before they existed leaves the spawners to place them fresh.
         if (snapshot.SatelliteSpawns is not null) RestoreSatellites(snapshot);
+        RestoreHazardProjectiles(
+            (MeteorShowerPrefix, _shower?.Meteor, snapshot.MeteorsInFlight),
+            (DefenseSatellitePrefix, _satellite?.Cannon, snapshot.SatelliteShotsInFlight));
         return true;
     }
 
     private IReadOnlyList<HazardProjectileSnapshot> CaptureHazardProjectiles(string ownerPrefix) =>
         _projectiles.Where(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal))
-            .Select(p => new HazardProjectileSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks)).ToArray();
+            .Select(p => new HazardProjectileSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks, p.Id)).ToArray();
 
-    private void RestoreHazardProjectiles(string ownerPrefix, WeaponDefinition weapon, IReadOnlyList<HazardProjectileSnapshot>? saved)
+    private void RestoreHazardProjectiles(
+        params (string OwnerPrefix, WeaponDefinition? Weapon, IReadOnlyList<HazardProjectileSnapshot>? Shots)[] hazards)
     {
-        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal));
-        var lifetime = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * TickRate));
-        foreach (var shot in saved ?? [])
+        _projectiles.RemoveAll(p => hazards.Any(h => p.OwnerShipId.StartsWith(h.OwnerPrefix, StringComparison.Ordinal)));
+        // A meteor and cannon shot can hit the same shield in one tick, so restore the common firing order across both lists.
+        var saved = hazards.Where(h => h.Weapon is not null)
+            .SelectMany(h => (h.Shots ?? []).Select(shot => (h.OwnerPrefix, Weapon: h.Weapon!, Shot: shot)))
+            .OrderBy(entry => entry.Shot?.Order ?? 0);
+        foreach (var (ownerPrefix, weapon, shot) in saved)
         {
+            var lifetime = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * TickRate));
             if (shot is null || string.IsNullOrEmpty(shot.OwnerId) || !shot.OwnerId.StartsWith(ownerPrefix, StringComparison.Ordinal)
                 || !float.IsFinite(shot.X) || !float.IsFinite(shot.Y) || !float.IsFinite(shot.VelocityX) || !float.IsFinite(shot.VelocityY)
                 || shot.AgeTicks < 0 || shot.AgeTicks >= lifetime)

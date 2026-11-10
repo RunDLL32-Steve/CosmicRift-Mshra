@@ -423,7 +423,6 @@ public sealed partial class WorldSimulation
             });
         }
         if (saved.Count > 0) _satelliteRandom = snapshot.SatelliteRandomState;
-        RestoreHazardProjectiles(DefenseSatellitePrefix, _satellite.Cannon, snapshot.SatelliteShotsInFlight);
     }
 }
 

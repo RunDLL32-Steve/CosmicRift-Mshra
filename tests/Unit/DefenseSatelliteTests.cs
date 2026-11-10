@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text.Json;
 using RogueTrader.GameData;
 using RogueTrader.OriginalData;
 using RogueTrader.Simulation;
@@ -441,6 +442,38 @@ public sealed class DefenseSatelliteTests
         Assert.Equal(shot.AgeTicks + 10, restored.AgeTicks);
         next.ElapseWithoutTicking(3 * WorldSimulation.TickRate);
         Assert.Empty(next.Projectiles);
+    }
+
+    [Fact]
+    public void A_Relaunch_PreservesTheHitOrderOfMeteorAndCannonShots()
+    {
+        var gun = Gun();
+        var ship = gun.Ship with { Defense = new ShipDefense { MaximumHull = 100, MaximumShield = 750 } };
+        var game = new GameCatalog(ship, gun.Weapon, gun.Sector);
+        var satellite = Catalog(Spawn());
+        var meteor = Cannon with { Id = "1007", ShieldDrain = 750, Damage = 15, DamageType = DamageType.Kinetic };
+        var showers = new MeteorShowerCatalog(new MeteorShowerDefinition("402", 1000, 21, 0, meteor),
+            [new MeteorShowerSpawnDefinition("46", 0, -300, 0, 0, 600, 600)], 7);
+        WorldSimulation NewWorld() => new(game, meteors: showers, satellites: satellite);
+
+        // Both shots will hit this tick. The cannon was fired first, so it consumes enough shield for the meteor to do hull damage.
+        var original = NewWorld();
+        var shotY = -(original.Player.Radius + Cannon.ProjectileRadius + 5);
+        Assert.True(original.RestoreSector(original.CaptureSector() with
+        {
+            MeteorSpawns = [new MeteorSpawnSnapshot("46", 100, 1)],
+            SatelliteSpawns = [new SatelliteSpawnSnapshot("93", 100, 1)],
+            MeteorsInFlight = [new HazardProjectileSnapshot("meteor-shower:46:1", 0, shotY, 0, 600, 0, Order: 2)],
+            SatelliteShotsInFlight = [new HazardProjectileSnapshot("defense-sat:93:1", 0, shotY, 0, 600, 1, Order: 1)],
+        }));
+        var saved = JsonSerializer.Deserialize<SectorSnapshot>(JsonSerializer.Serialize(original.CaptureSector()));
+        var relaunched = NewWorld();
+        Assert.True(relaunched.RestoreSector(saved!));
+        Run(relaunched, 1);
+        Assert.Equal(1, relaunched.SatelliteHits);
+        Assert.Equal(1, relaunched.MeteorHits);
+        Assert.Equal(85, relaunched.Player.Hull);
+        Assert.Equal("1007", relaunched.Player.LastDamageWeaponId);
     }
 
     [Fact]
