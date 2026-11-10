@@ -1,5 +1,11 @@
 # Changelog
 
+## Gas clouds are see-through and drift over ships — November 10, 2026
+
+-   Steve's ask: gas clouds no longer draw as solid blocks. `LVL/Rogue.lvl` gives each placed sprite draw flags that the map art did not read until now (format source: Gibbed `Level/Entity.cs` at the pinned InfantryOnline tools commit). 1,408 gas clouds (gasCloud, gasCloud1*, gasCloud2* and gasCloud3sm*) are "smart translucent" and drawn last, so the client now draws them over ships, shots and explosions at 50% opacity. The 275 small dense gasCloud4sm* clouds are opaque in the level, so they stay solid and under ships. The 50% strength is RECONSTRUCTED: the format source does not give it or say when it applies.
+-   Two other visible changes come from the same flags. The 61 safe-zone floor markings that the level marks smart translucent now also draw at 50%, still under ships. The 37 animated station dishes (`Dish_ani_`) are opaque but marked "drawn last", so they now draw over ships.
+-   `level.json` moves to schema 2; `scripts/run-client.ps1` re-stages an older copy on its own. No gameplay change.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

@@ -125,6 +125,9 @@ public partial class WorldView : Node2D
             DrawCircle(position, projectile.Radius, new Color("e3fff8"));
         }
         foreach (var burst in _bursts) DrawBurst(burst);
+        // Rogue.lvl's gas clouds are "dynamic last" with smart translucency: drawn see-through over ships and shots.
+        if (_levelArt is not null && _map is not null)
+            foreach (var index in _levelArt.Visible(VisibleWorldRect(), overShips: true)) _levelArt.Draw(this, index, _time);
     }
 
     private void DrawStars(Vector2 player)
