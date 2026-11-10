@@ -9,7 +9,7 @@
     "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
     "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
-    "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
+    "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor protects by damage type from ITM f[52..57] (Ignore in thousandths of a hull point, Percent read as per mille) and its f[42..44] penalty applies like the other blocks; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
     "Collectible piles: placement (offsets from the station) and quantities.",
     "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
   ],
@@ -658,9 +658,23 @@
         "rotationSpeed": -0.02,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 25
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 0,
+            "reduction": 0.045
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.025
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.015
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "5",
@@ -679,9 +693,23 @@
         "rotationSpeed": -0.025,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 50
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 1,
+            "reduction": 0.09
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.05
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.03
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "6",
@@ -700,9 +728,23 @@
         "rotationSpeed": -0.015,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 10
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 1,
+            "reduction": 0.04
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.02
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.01
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "13",
@@ -721,9 +763,23 @@
         "rotationSpeed": -0.025,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 60
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 1,
+            "reduction": 0.05
+          },
+          "explosive": {
+            "ignore": 1,
+            "reduction": 0.05
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "16",
@@ -742,9 +798,23 @@
         "rotationSpeed": -0.035,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 75
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 2,
+            "reduction": 0.1
+          },
+          "explosive": {
+            "ignore": 1,
+            "reduction": 0.1
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.04
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "23",
@@ -763,9 +833,23 @@
         "rotationSpeed": -0.025,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 75
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 1,
+            "reduction": 0.09
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.01
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.08
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "24",
@@ -784,9 +868,23 @@
         "rotationSpeed": -0.025,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 100
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 1,
+            "reduction": 0.1
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.045
+          },
+          "energy": {
+            "ignore": 0,
+            "reduction": 0.1
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "37",
@@ -805,9 +903,23 @@
         "rotationSpeed": -0.02,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 25
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 0,
+            "reduction": 0
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.045
+          },
+          "energy": {
+            "ignore": 1,
+            "reduction": 0.07
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     },
     {
       "id": "38",
@@ -826,9 +938,23 @@
         "rotationSpeed": -0.035,
         "maximumEnergy": 0,
         "energyRegeneration": 0,
-        "maximumHull": 50
+        "maximumHull": 0,
+        "armor": {
+          "kinetic": {
+            "ignore": 0,
+            "reduction": 0
+          },
+          "explosive": {
+            "ignore": 0,
+            "reduction": 0.06
+          },
+          "energy": {
+            "ignore": 2,
+            "reduction": 0.12
+          }
+        }
       },
-      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; NEW: + buy/200 hull points (protection grades undecoded)"
+      "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
     }
   ],
   "ships": [

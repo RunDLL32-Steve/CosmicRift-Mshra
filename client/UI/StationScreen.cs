@@ -1,4 +1,5 @@
 using Godot;
+using RogueTrader.GameData;
 using RogueTrader.Persistence;
 using RogueTrader.Trading;
 
@@ -229,7 +230,14 @@ public partial class StationScreen : CanvasLayer
                 var state = owned ? (activeUpgrades.Contains(upgrade.Id) ? "ACTIVE" : "OWNED") : blocked is null ? "BUY" : "-";
                 var button = ActionButton(state, $"upgrade:{upgrade.Id}", owned || blocked is not null, () => UpgradeRequested?.Invoke(upgrade.Id));
                 button.TooltipText = blocked ?? "";
-                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), Cell(blocked ?? Summary(upgrade.Effect), 200), button));
+                var effect = Cell(blocked ?? (upgrade.Effect.Armor is { } armor ? ArmorSummary(armor) : Summary(upgrade.Effect)), 200);
+                if (blocked is null && upgrade.Effect.Armor is not null)
+                {
+                    // Armour rows show the protection; the full effect, speed penalty included, is in the tooltip.
+                    effect.TooltipText = ArmorDetail(upgrade.Effect.Armor) + "\n" + Summary(upgrade.Effect with { Armor = null });
+                    effect.MouseFilter = Control.MouseFilterEnum.Pass;
+                }
+                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), effect, button));
             }
         }
     }
@@ -245,6 +253,25 @@ public partial class StationScreen : CanvasLayer
         Add("regen", e.EnergyRegeneration);
         if (e.MaximumHull != 0) parts.Add($"hull +{e.MaximumHull:0}");
         return parts.Count == 0 ? "no effect yet" : string.Join(", ", parts);
+    }
+
+    /// <summary>Compact protection, for example "Kin 2+10% Exp 1+10% En 4%": ignored hull points, then the share of the rest stopped.</summary>
+    private static string ArmorSummary(ShipArmor armor)
+    {
+        static string One(string name, ArmorProtection p) =>
+            p.Ignore == 0 && p.Reduction == 0 ? ""
+            : p.Ignore == 0 ? $"{name} {p.Reduction * 100:0.#}%"
+            : p.Reduction == 0 ? $"{name} {p.Ignore:0.#}"
+            : $"{name} {p.Ignore:0.#}+{p.Reduction * 100:0.#}%";
+        var parts = new[] { One("Kin", armor.Kinetic), One("Exp", armor.Explosive), One("En", armor.Energy) }.Where(p => p.Length > 0).ToList();
+        return parts.Count == 0 ? "no protection" : string.Join(" ", parts);
+    }
+
+    private static string ArmorDetail(ShipArmor armor)
+    {
+        static string One(string name, ArmorProtection p) =>
+            $"{name}: ignores {p.Ignore:0.#} hull points of each hit, then stops {p.Reduction * 100:0.#}% of the rest";
+        return string.Join("\n", One("Kinetic", armor.Kinetic), One("Explosive", armor.Explosive), One("Energy", armor.Energy));
     }
 
     private static VBoxContainer Page(TabContainer tabs, string name)
