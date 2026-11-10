@@ -297,7 +297,8 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var hullPile = wreck.Where(c => c.DroppedBy is not null).ToArray();
             var cargoPiles = wreck.Where(c => c.DroppedBy is null).ToArray();
             Require(lostUnits > 0 && hullWreck is { ItemId: "2008", Quantity: 1 } && wreck.All(c => c.ExpiresAt is not null)
-                && hullPile.Length == 1 && hullPile[0].ItemId == "2008" && hullPile[0].Quantity == 1 && !readWorld().CanCollect(hullPile[0])
+                && hullPile.Length == 1 && hullPile[0].ItemId == "2008" && hullPile[0].Quantity == 1 && hullPile[0].DroppedFrom is not null
+                && !readWorld().CanCollect(hullPile[0])
                 && cargoPiles.Sum(c => c.Quantity) == lostUnits && cargoPiles.Select(c => c.ItemId).Order().SequenceEqual(beforeDeath.Inventory.Keys.Order())
                 && wreck.All(c => System.Numerics.Vector2.Distance(c.Position, deathPoint) < WorldSimulation.WreckSpreadRadius + 1),
                 $"The destroyed ship's {lostUnits} cargo units and its hull's Wreckage must spill into space as expiring piles, got {wreck.Sum(c => c.Quantity)}.");

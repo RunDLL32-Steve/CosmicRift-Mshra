@@ -27,6 +27,14 @@ public sealed partial class WorldSimulation
     public string? PilotId { get; init; }
 
     /// <summary>
+    /// Where this world's pilot plays from: the install (one computer's game) on the local client, later a connection's account
+    /// or machine on a server. A hull wreck whose <see cref="CollectibleState.DroppedFrom"/> is this origin is never collected by
+    /// this world's ship either, so a second profile on the same computer cannot feed itself a wreck (review R2, Nov 10 2026).
+    /// Null means unknown, and then only <see cref="PilotId"/> is checked.
+    /// </summary>
+    public string? PilotOrigin { get; init; }
+
+    /// <summary>
     /// Spills a destroyed ship's cargo into space where it died (Steve, Nov 4 2026): one pile per item, in item-id order, spread
     /// around <paramref name="position"/>. Each pile expires after <see cref="WreckDropExpireTicks"/> on the mineral clock, so it
     /// keeps counting while nobody is in the sector, and is carried by <see cref="CaptureSector"/> like any other drop. Anyone
@@ -65,9 +73,11 @@ public sealed partial class WorldSimulation
     /// <paramref name="droppedBy"/>: that pilot can never collect it, while anyone else can (review R1-1, Nov 9 2026). Otherwise
     /// dying would pay, since the 20% penalty is below the wreck's 300-credit trade value under 1,500 credits; in the original,
     /// other pilots collected your wreck. Placed at most once per <paramref name="dropId"/>, and it expires like the cargo piles.
+    /// <paramref name="droppedFrom"/> is the dying pilot's <see cref="PilotOrigin"/>: no pilot from that origin can collect it
+    /// either, so another profile on the same computer cannot collect it for them.
     /// Returns the pile, or null when the hull drops nothing, the item is unknown here or this drop was already placed.
     /// </summary>
-    public CollectibleState? DropHullWreck(string dropId, Vector2 position, ShipWreck? wreck, string? droppedBy)
+    public CollectibleState? DropHullWreck(string dropId, Vector2 position, ShipWreck? wreck, string? droppedBy, string? droppedFrom = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(dropId);
         RequireFinite(position);
@@ -78,16 +88,21 @@ public sealed partial class WorldSimulation
         {
             ExpiresAt = checked(MineralClock + DropLifeAt(position, WreckDropExpireTicks)),
             DroppedBy = string.IsNullOrEmpty(droppedBy) ? null : droppedBy,
+            DroppedFrom = string.IsNullOrEmpty(droppedFrom) ? null : droppedFrom,
         };
         _collectibles.Add(pile);
         return pile;
     }
 
-    /// <summary>True when this world's ship may collect <paramref name="pile"/>: every pile except one its own pilot's hull dropped.</summary>
+    /// <summary>
+    /// True when this world's ship may collect <paramref name="pile"/>: every pile except a hull wreck its own pilot dropped, or
+    /// that any pilot from the same origin (the same computer) dropped.
+    /// </summary>
     public bool CanCollect(CollectibleState pile)
     {
         ArgumentNullException.ThrowIfNull(pile);
-        return pile.DroppedBy is null || PilotId is null || !string.Equals(pile.DroppedBy, PilotId, StringComparison.Ordinal);
+        if (pile.DroppedBy is not null && PilotId is not null && string.Equals(pile.DroppedBy, PilotId, StringComparison.Ordinal)) return false;
+        return pile.DroppedFrom is null || PilotOrigin is null || !string.Equals(pile.DroppedFrom, PilotOrigin, StringComparison.Ordinal);
     }
 
     private static void RequireFinite(Vector2 position)

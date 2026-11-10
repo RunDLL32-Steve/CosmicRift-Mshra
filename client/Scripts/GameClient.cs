@@ -27,6 +27,11 @@ public partial class GameClient : Node2D
     private bool _captureStarted;
     private int _renderedFrames;
     private const string LocalProfileId = "local-pilot";
+    /// <summary>
+    /// Origin of every pilot on this local client: the sector save is shared only by the profiles on this computer, so a hull
+    /// wreck dropped here can be collected by none of them, which stops a second profile feeding the first (review R2, Nov 10 2026).
+    /// </summary>
+    private const string LocalInstallOrigin = "local-install";
     private StationDefinition _stationDefinition = null!;
     private CargoCatalog _cargo = null!;
     private StationScreen _stationScreen = null!;
@@ -638,7 +643,7 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map) { PilotId = LocalProfileId };
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map) { PilotId = LocalProfileId, PilotOrigin = LocalInstallOrigin };
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -969,7 +974,7 @@ public partial class GameClient : Node2D
         if (_world is null || _pendingDestruction is not { } destruction) return;
         var dropId = $"{destruction.WorldInstanceId}:{destruction.Tick}";
         if (items.Count > 0) _world.DropCargo(dropId, _world.Player.Position, items);
-        _world.DropHullWreck(dropId, _world.Player.Position, _catalog.Ship.Wreck, LocalProfileId);
+        _world.DropHullWreck(dropId, _world.Player.Position, _catalog.Ship.Wreck, LocalProfileId, LocalInstallOrigin);
     }
 
     /// <summary>", and N Wreckage" for the respawn notice when the flown hull leaves a wreck.</summary>

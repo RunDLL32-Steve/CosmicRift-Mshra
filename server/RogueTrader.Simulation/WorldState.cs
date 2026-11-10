@@ -117,6 +117,8 @@ public sealed class CollectibleState
     /// every other pile.
     /// </summary>
     public string? DroppedBy { get; internal init; }
+    /// <summary>The origin (computer) the dying pilot played from; no pilot from it collects this wreck. Null for every other pile.</summary>
+    public string? DroppedFrom { get; internal init; }
 
     internal CollectibleState(CollectibleSpawn spawn)
     {

@@ -120,6 +120,27 @@ public sealed class CargoDropTests
     }
 
     [Fact]
+    public void NoProfileFromTheSameComputerCanCollectTheWreck()
+    {
+        // Review R2: a second profile on the same computer shares the sector save, so a 0-credit alt could die and the main profile
+        // could sell its 300-credit wreck. The wreck records the computer it was dropped from, and no pilot from there collects it;
+        // a pilot from anywhere else still can.
+        var dead = World(capacity: 10_000);
+        dead.DropHullWreck("w1:30", new Vector2(0, -300), new ShipWreck { ItemId = OreB, Quantity = 1 }, "alt", "pc-1");
+        var sector = dead.CaptureSector();
+        Assert.Equal(("alt", "pc-1"), (sector.Piles.Single().DroppedBy, sector.Piles.Single().DroppedFrom));
+
+        foreach (var (pilot, origin, collects) in new[] { ("main", "pc-1", false), ("alt", "pc-2", false), ("main", "pc-2", true), ("main", (string?)null, true) })
+        {
+            var world = new WorldSimulation(TestWorld.Catalog(), new CargoCatalog(10_000, [new(OreA, 10), new(OreB, 25)])) { PilotId = pilot, PilotOrigin = origin };
+            Assert.True(world.RestoreSector(sector));
+            TestWorld.Tick(world, 120, new ShipInput(1, 0, false)); // fly through the wreck
+            Assert.Equal(collects ? 1 : 0, world.Cargo.Quantity(OreB));
+            Assert.Equal(collects, world.Collectibles.Count == 0);
+        }
+    }
+
+    [Fact]
     public void AWreckWithNoItemOrNoQuantityIsRefusedByTheCatalog()
     {
         var catalog = TestWorld.Catalog();
