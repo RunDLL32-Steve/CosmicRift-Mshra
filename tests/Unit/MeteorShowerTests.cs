@@ -270,7 +270,12 @@ public sealed class MeteorShowerTests
 
         var next = World(catalog);
         Assert.True(next.RestoreSector(snapshot));
+        Assert.True(next.RestoreSector(snapshot)); // a second pre-tick restore replaces the previous snapshot
         Assert.Equal(flying, next.Projectiles.Select(p => (p.OwnerShipId, p.Position, p.Velocity, p.AgeTicks)).ToArray());
+        Run(world, 16);
+        Run(next, 16);
+        Assert.Single(world.Projectiles);
+        Assert.Single(next.Projectiles); // restoring a shower does not skip the remaining fire interval
         // Both worlds go on to the same hits: a relaunch is no way to dodge a meteor already on its way.
         Run(world, 120);
         Run(next, 120);
@@ -295,10 +300,10 @@ public sealed class MeteorShowerTests
         Assert.Equal(before.Select(b => (b.Position, b.AgeTicks + WorldSimulation.TickRate)),
             paused.Projectiles.Select(p => (p.Position, p.AgeTicks)));
 
-        // More than a meteor's 20 s life away: every meteor saved in flight is gone, so none can hit on the return.
+        // More than the fixture meteor's lifetime away: no saved shot can hit on return.
         var away = World(catalog);
         Assert.True(away.RestoreSector(snapshot));
-        away.ElapseWithoutTicking(21 * WorldSimulation.TickRate);
+        away.ElapseWithoutTicking((int)Math.Ceiling(catalog.Shower.Meteor.LifetimeSeconds * WorldSimulation.TickRate));
         Assert.Empty(away.Projectiles);
     }
 
@@ -312,9 +317,9 @@ public sealed class MeteorShowerTests
         {
             MeteorsInFlight =
             [
-                new MeteorSnapshot("meteor-shower:46:1", 0, -300, 0, 6000, 0),
-                new MeteorSnapshot("meteor-shower:46:1", 0, -300, 0, 600, 10_000),
-                new MeteorSnapshot("player", 0, -300, 0, 600, 0),
+                new HazardProjectileSnapshot("meteor-shower:46:1", 0, -300, 0, float.MaxValue, 0),
+                new HazardProjectileSnapshot("meteor-shower:46:1", 0, -300, 0, 600, 10_000),
+                new HazardProjectileSnapshot("player", 0, -300, 0, 600, 0),
             ],
         };
         var next = World(catalog);
@@ -345,8 +350,19 @@ public sealed class MeteorShowerTests
         Assert.True(docked.PlayerInSafeZone);
         Run(docked, 120);
         Assert.Single(docked.MeteorShowers);
+        Assert.Empty(docked.Projectiles);
         Assert.Equal(0, docked.MeteorHits);
         Assert.Null(docked.Player.LastDamagedByShipId);
+
+        // A meteor fired before the pilot entered the dock can still cross its position without damage.
+        var alreadyFired = World(80);
+        Assert.True(alreadyFired.RestoreSector(docked.CaptureSector() with
+        {
+            MeteorsInFlight = [new HazardProjectileSnapshot("meteor-shower:46:1", 240, 320, -600, 0, 0)],
+        }));
+        Run(alreadyFired, 20);
+        Assert.Equal(40, Assert.Single(alreadyFired.Projectiles).Position.X, 2);
+        Assert.Equal(0, alreadyFired.MeteorHits);
 
         // The same shower hits a pilot just outside the dock.
         var outside = World(200);
