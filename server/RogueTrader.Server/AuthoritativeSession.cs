@@ -27,7 +27,7 @@ namespace RogueTrader.Server;
 /// <see cref="SessionOptions.InputsPerTick"/> per simulated tick up to <see cref="SessionOptions.InputBurst"/>. With none left the
 /// input is <see cref="InputVerdict.RateLimited"/>.</item>
 /// <item>A motion audit checks every tick: the controlled ship may move at most its definition's maximum speed times the tick
-/// duration (plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
+/// duration (its boost top speed on a tick where the boost engaged, plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
 /// <see cref="RestorePlayer"/>. Findings are recorded in <see cref="MotionViolations"/> and counted, never enforced, because no
 /// enforcement policy is approved. The client cannot send a position, so this guards the server's own state.</item>
 /// </list>
@@ -52,7 +52,6 @@ public sealed class AuthoritativeSession
     private readonly List<MotionViolation> _violations = [];
     private Vector2 _settledPosition;
     private Vector2 _tickStart;
-    private float _tickLimit;
     private bool _tickPending;
 
     /// <summary>The most motion audit findings kept; older ones drop off (the counters keep totals).</summary>
@@ -127,7 +126,6 @@ public sealed class AuthoritativeSession
         EndTick();
         AuditBetweenTicks();
         _tickStart = World.Player.Position;
-        _tickLimit = World.Player.Definition.Physics.MaximumSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
         _tickPending = true;
         return TakeInput(tick);
     }
@@ -137,7 +135,12 @@ public sealed class AuthoritativeSession
         if (!_tickPending) return;
         _tickPending = false;
         var distance = Vector2.Distance(_tickStart, World.Player.Position);
-        if (distance > _tickLimit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, _tickLimit));
+        // The limit is picked after the tick (review R1-1 on #131): the hull's boost top speed only on a tick that really boosted,
+        // otherwise its normal top speed, so the audit is no looser than the tick that ran.
+        var player = World.Player;
+        var topSpeed = player.IsHyperEngaged && player.Definition.Hyper is { } hyper ? hyper.MaximumSpeed : player.Definition.Physics.MaximumSpeed;
+        var limit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
+        if (distance > limit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, limit));
         _settledPosition = World.Player.Position;
     }
 
@@ -160,7 +163,7 @@ public sealed class AuthoritativeSession
     {
         if (!SpendAllowance()) return InputVerdict.RateLimited;
         if (input.ClientTick == 0 || !float.IsFinite(input.Thrust) || !float.IsFinite(input.Turn) ||
-            (input.Flags & ~InputFlags.Fire) != 0)
+            (input.Flags & ~MessageCodec.KnownFlags) != 0)
             return InputVerdict.Invalid;
         if (Math.Abs(input.Thrust) > 1 || Math.Abs(input.Turn) > 1) return InputVerdict.OutOfRange;
         if (input.LastSnapshotTick > ServerTick) return InputVerdict.FutureSnapshot;
@@ -210,7 +213,7 @@ public sealed class AuthoritativeSession
         Counters.CountApplied();
         LastProcessedInputSequence = _hasProcessed ? Math.Max(LastProcessedInputSequence, chosen.Sequence) : chosen.Sequence;
         _hasProcessed = true;
-        return new ShipInput(chosen.Thrust, chosen.Turn, chosen.Flags.HasFlag(InputFlags.Fire));
+        return new ShipInput(chosen.Thrust, chosen.Turn, chosen.Flags.HasFlag(InputFlags.Fire), Hyper: chosen.Flags.HasFlag(InputFlags.Hyper));
     }
 
     private void Remember(uint sequence)
