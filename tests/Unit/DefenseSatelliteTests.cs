@@ -305,9 +305,44 @@ public sealed class DefenseSatelliteTests
         var sat = ShootOnce(world);
         Assert.Equal(4f, sat.Hull);
         var shots = world.Projectiles.Where(p => p.OwnerShipId.StartsWith("defense-sat:", StringComparison.Ordinal)).Select(p => p.Id).DefaultIfEmpty(0).Max();
-        Run(world, 600);
+        Run(world, (int)(600 - world.TickNumber)); // up to the spawner's next attempt at tick 601
         Assert.Equal(4f, sat.Hull);
+        Assert.Same(sat, Assert.Single(world.DefenseSatellites));
         Assert.Equal(0, world.Projectiles.Count(p => p.Id > shots && p.OwnerShipId.StartsWith("defense-sat:", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public void ADisabledSatellite_IsReplacedAtTheSpawnersNextAttempt_AndNotBefore()
+    {
+        // NEW (pending Steve's ruling): the emulator would leave it disabled, blocking its own respawn, for as long as the server runs.
+        var world = World(Catalog(Spawn(team: 0, attempt: 600)), team: null, catalog: Gun(46));
+        Run(world, 1);
+        var sat = ShootOnce(world);
+        Assert.Equal(4f, sat.Hull);
+
+        Run(world, (int)(600 - world.TickNumber));
+        Assert.Same(sat, Assert.Single(world.DefenseSatellites));
+        Run(world, 1);
+        var replacement = Assert.Single(world.DefenseSatellites);
+        Assert.Equal(("defense-sat:93:2", 50f), (replacement.Id, replacement.Hull));
+        Assert.Empty(world.DefenseSatelliteKills); // replaced, not destroyed: no kill notice
+
+        // Also while docked: shot down to 4 again, the next attempt replaces it without a tick.
+        var again = ShootOnce(world);
+        Assert.Equal(4f, again.Hull);
+        world.ElapseWithoutTicking(600);
+        Assert.Equal("defense-sat:93:3", Assert.Single(world.DefenseSatellites).Id);
+    }
+
+    [Fact]
+    public void AnOperatingSatellite_IsNeverReplaced()
+    {
+        var world = World(Catalog(Spawn(team: 0, attempt: 600)), team: null, catalog: Gun(28));
+        Run(world, 1);
+        var sat = ShootOnce(world);
+        Assert.Equal(22f, sat.Hull);
+        Run(world, 1300);
+        Assert.Same(sat, Assert.Single(world.DefenseSatellites));
     }
 
     // ---- Real time and persistence -----------------------------------------------------------------------------------

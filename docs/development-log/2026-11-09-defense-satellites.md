@@ -16,8 +16,9 @@ Branch `claude/project-thread-n1dvi7`, stacked on the meteor shower branch (`cla
 -   No reward, explosion or drop on destruction yet (the drop is left to the RT-F043 work).
 -   The shot's speed, life and radius use the Plasma Cannon scale, as the meteors do (G10 W2/W3).
 -   Friendly satellites let the player's shots through.
+-   A disabled satellite (below 5 hull) does not count toward its spawner's limits, and the spawner's next placement in its area replaces it (review follow-up, November 10, 2026, waiting on the owner's ruling). The emulator counts it, and since it never repairs below 5 hull it would block its own respawn for as long as the server runs.
 
 ## Checks (cloud, apt SDK 8.0.133 with global.json temporarily pointed at it, not committed; pinned assets eb1514e)
 
--   `dotnet test tests/Unit`: 1252 passed, 13 skipped, 1 failed. The failure is `BloCanonicalTests.AllCanonicalArchivesMatchIndependentDirectoryOracleAndDirectSourceSlices`, which needs Git LFS BLO bytes that the cloud checkout does not have. It is environmental and also fails on main in cloud. `DefenseSatelliteTests`: 19 passed.
+-   `dotnet test tests/Unit`: 1252 passed, 13 skipped, 1 failed. The failure is `BloCanonicalTests.AllCanonicalArchivesMatchIndependentDirectoryOracleAndDirectSourceSlices`, which needs Git LFS BLO bytes that the cloud checkout does not have. It is environmental and also fails on main in cloud. `DefenseSatelliteTests`: 21 passed (1254 passed in all after the November 10 follow-up).
 -   Not run: the Godot headless smoke test (running the downloaded editor was not allowed in this session) and `scripts/verify.ps1` on Windows. Both need a local run.

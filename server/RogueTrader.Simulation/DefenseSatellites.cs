@@ -254,12 +254,24 @@ public sealed partial class WorldSimulation
 
     private bool CanPlaceMore(DefenseSatelliteSpawnDefinition d)
     {
-        if (d.MaxInLevel != -1 && _satellites.Count >= d.MaxInLevel) return false;
+        if (d.MaxInLevel != -1 && OperatingCount >= d.MaxInLevel) return false;
         return d.MaxInArea == -1 || CountInArea(d) < d.MaxInArea;
     }
 
-    private int CountInArea(DefenseSatelliteSpawnDefinition d) =>
-        _satellites.Count(s => MathF.Abs(s.Position.X - d.X) <= d.Width / 2 && MathF.Abs(s.Position.Y - d.Y) <= d.Height / 2);
+    /// <summary>
+    /// True while the satellite has at least <see cref="DefenseSatelliteDefinition.HullToOperate"/> hull. NEW (Steve, November 10, 2026,
+    /// pending his ruling): a disabled satellite does not count toward a spawner's limits, and the spawner's next attempt replaces it, so
+    /// stopping just short of a kill cannot leave a station undefended for longer than a kill would. The emulator counts it and, since it
+    /// never repairs below that hull, it would block its own respawn for as long as the server runs.
+    /// </summary>
+    private bool IsOperating(DefenseSatelliteState satellite) => satellite.Hull >= _satellite!.HullToOperate;
+
+    private int OperatingCount => _satellites.Count(IsOperating);
+
+    private static bool InArea(DefenseSatelliteSpawnDefinition d, DefenseSatelliteState s) =>
+        MathF.Abs(s.Position.X - d.X) <= d.Width / 2 && MathF.Abs(s.Position.Y - d.Y) <= d.Height / 2;
+
+    private int CountInArea(DefenseSatelliteSpawnDefinition d) => _satellites.Count(s => InArea(d, s) && IsOperating(s));
 
     /// <summary>One attempt (the emulator's <c>hideSpawn</c> for a vehicle): timer first, then the player and sector-wide limits.</summary>
     private void AttemptDefenseSatellite(SatelliteSpawnState spawn, long now)
@@ -270,7 +282,7 @@ public sealed partial class WorldSimulation
         if (!initial && d.Probability == 0) return;
         if (PlayersInSector > d.MaxPlayers || PlayersInSector < d.MinPlayers) return;
         // Every satellite in the sector counts, whichever spawner placed it (the emulator counts vehicles of the same type).
-        if (d.MaxInLevel != -1 && _satellites.Count >= d.MaxInLevel) return;
+        if (d.MaxInLevel != -1 && OperatingCount >= d.MaxInLevel) return;
         var events = initial && d.InitialCount > 0 ? d.InitialCount : 1;
         var succeeded = false;
         for (var e = 0; e < events; e++) succeeded |= PlaceDefenseSatellite(spawn, now);
@@ -289,6 +301,8 @@ public sealed partial class WorldSimulation
         {
             var point = new Vector2(d.X + (float)((NextSatelliteUnit() - 0.5) * d.Width), d.Y + (float)((NextSatelliteUnit() - 0.5) * d.Height));
             if (Map is not null && Map.IsBlocked(point)) continue;
+            // The new satellite replaces any disabled one in its area (see IsOperating).
+            _satellites.RemoveAll(s => InArea(d, s) && !IsOperating(s));
             _satellites.Add(new DefenseSatelliteState($"{DefenseSatellitePrefix}{d.Id}:{++spawn.Placed}", d.Id, d.Team, point, _satellite!.MaximumHull)
             {
                 NextFireAt = now,
