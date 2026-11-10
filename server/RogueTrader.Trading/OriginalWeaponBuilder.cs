@@ -56,7 +56,7 @@ public static class ItmDamageFields
 /// </summary>
 public static class OriginalWeaponBuilder
 {
-    /// <summary>NEW values kept from the Plasma cannon fixture until G10 rows W2/W3 decide the projectile units.</summary>
+    /// <summary>NEW values kept from the Plasma cannon fixture: the projectile radius and the inherit switch (W4).</summary>
     private static readonly WeaponDefinition Fixture = new();
 
     /// <summary>The weapon id a hull starts with: the ITM id of its <c>addinv</c> item.</summary>
@@ -105,22 +105,23 @@ public static class OriginalWeaponBuilder
             Id = WeaponId(item),
             Name = item.Name,
             EvidenceClassification = "ORIGINAL+NEW",
-            MuzzleVelocity = Fixture.MuzzleVelocity,
+            MuzzleVelocity = OriginalShipPhysics.MuzzleVelocityPixelsPerSecond(projectile),
             ProjectileRadius = Fixture.ProjectileRadius,
             Damage = OriginalEnergyScale.ItemEnergy(hullRaw),
             ShieldDrain = OriginalEnergyScale.ItemEnergy(drain),
             DamageType = DamageTypeOf(hullField),
             CooldownSeconds = OriginalShipPhysics.FireIntervalSeconds(projectile),
             EnergyCost = OriginalEnergyScale.ItemEnergy(energyCost),
-            LifetimeSeconds = Fixture.LifetimeSeconds,
+            LifetimeSeconds = OriginalShipPhysics.LifetimeSeconds(projectile),
             InheritsShipVelocity = Fixture.InheritsShipVelocity,
             Source = $"Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row {item.RowNumber} (id {item.Id}, '{item.Category}'): "
                 + $"f[{ItmDamageFields.EnergyCostTerrain0}] energy cost {energyCost}, f[{ItmProjectileFields.FireDelay}] fireDelay {projectile.FireDelay.Value} (10 ms units), "
-                + $"f[{ItmDamageFields.EnergyDamageInner}] drain {drain}, f[{hullField}] {DamageTypeOf(hullField)} hull damage {hullRaw}; energy amounts in thousandths (OriginalEnergyScale).",
+                + $"f[{ItmDamageFields.EnergyDamageInner}] drain {drain}, f[{hullField}] {DamageTypeOf(hullField)} hull damage {hullRaw}; energy amounts in thousandths (OriginalEnergyScale); "
+                + $"f[{ItmProjectileFields.MuzzleVelocity}] muzzleVelocity {projectile.MuzzleVelocity.Value} (thousandths of a pixel per 10 ms, G10 W2), "
+                + $"f[{ItmProjectileFields.AliveTime}] aliveTime {projectile.AliveTime.Value} (10 ms units, G10 W3).",
             NewValues =
             [
-                $"Muzzle velocity {Fixture.MuzzleVelocity} px/s (f[{ItmProjectileFields.MuzzleVelocity}]={projectile.MuzzleVelocity.Value}; unit open, G10 W2).",
-                $"Lifetime {Fixture.LifetimeSeconds} s (f[{ItmProjectileFields.AliveTime}]={projectile.AliveTime.Value}; unit open, G10 W3).",
+                "Muzzle velocity and lifetime use the emulator's units (RECONSTRUCTED, G10 W2/W3); no native measurement has confirmed them.",
                 $"Projectile radius {Fixture.ProjectileRadius} (f[{ItmProjectileFields.ProximityRadius}] proximityRadius={projectile.ProximityRadius.Value}; meaning open).",
                 $"Inherits the ship's whole velocity (f[{ItmProjectileFields.InheritedSpeed}]={projectile.InheritedSpeed.Value}; read as per mille, unvalidated).",
                 "Drain and hull damage use the inner value at the point of impact (the radius and outer value are not applied).",

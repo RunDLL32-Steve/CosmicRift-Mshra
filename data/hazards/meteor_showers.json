@@ -8,8 +8,8 @@
     "Firing (emulator Computer.poll): one meteor every ITM fireDelay (35, 10 ms units = 0.35 s) at the nearest pilot within VEH FireRadius, aimed where the pilot will be if they hold course (computeLeadFireAngle, without its 256-step angle and 0.7 isometric Y scale). The shower is not destroyable (VEH Destroyable 0) and does not block shots; it does not track TrackingRadius/TrackingTime, energy or LOS separately (its ObeyLos is 0).",
     "NEW lifetime: VEH f[212] RemoveGlobalTimer=5 is read as 5 seconds. The emulator never reads it (a shower would stand for ever); its unit is undocumented. Steve's call is pending.",
     "NEW: VEH f[213] RandomizeAim=5 is kept raw and not applied (unit unknown; the emulator ignores it).",
-    "Meteor damage from ITM 1007 through OriginalWeaponBuilder: kinetic hull damage f[152] 15000 = 15 and shield drain f[172] 750000 = 750 (thousandths). Damage type and armour are not applied (RT-F041).",
-    "NEW meteor speed, life and size: the projectile units are open (G10 W2/W3), so the meteor's raw muzzle velocity, alive time and proximity radius are scaled by the same factors that turn the player's Plasma Cannon (ITM 1004) raw values into its provisional ones, so meteors keep their original speed, range and size relative to the player's own shots.",
+    "Meteor damage from ITM 1007 through OriginalWeaponBuilder: Kinetic hull damage f[152] 15000 = 15 and shield drain f[172] 750000 = 750 (thousandths). Armour reduces the hull damage by its Kinetic protection like any other Kinetic hit (RT-F041).",
+    "Meteor speed and life use the emulator's projectile units like the player's cannons (G10 W2/W3, RECONSTRUCTED): muzzleVelocity 4250 thousandths of a pixel per 10 ms = 425 px/s, aliveTime 2000 x 10 ms = 20 s. NEW: its hit radius is its proximity radius 56 scaled by the factor that gives the player's Plasma Cannon (ITM 1004) its provisional radius (3 for 4).",
     "Meteors hit only the player's ship (and stop on walls and asteroids); they do not hit practice targets, so a meteor never takes a kill from the player."
   ],
   "seed": 5932471394634059602,
@@ -23,21 +23,20 @@
       "id": "1007",
       "name": "Meteor",
       "evidenceClassification": "ORIGINAL+NEW",
-      "muzzleVelocity": 1352.273,
+      "muzzleVelocity": 425,
       "projectileRadius": 42,
       "damage": 15,
       "shieldDrain": 750,
+      "damageType": "Kinetic",
       "cooldownSeconds": 0.35,
       "energyCost": 0,
-      "lifetimeSeconds": 9.091,
+      "lifetimeSeconds": 20,
       "inheritsShipVelocity": false,
-      "source": "Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row 72 (id 1007, 'Child Effects'): f[36] energy cost 0, f[54] fireDelay 35 (10 ms units), f[172] drain 750000, f[152] hull damage 15000; energy amounts in thousandths (OriginalEnergyScale).",
+      "source": "Derived by OriginalWeaponBuilder from ITM/Rogue_mp.itm row 72 (id 1007, 'Child Effects'): f[36] energy cost 0, f[54] fireDelay 35 (10 ms units), f[172] drain 750000, f[152] Kinetic hull damage 15000; energy amounts in thousandths (OriginalEnergyScale); f[101] muzzleVelocity 4250 (thousandths of a pixel per 10 ms, G10 W2), f[110] aliveTime 2000 (10 ms units, G10 W3).",
       "newValues": [
-        "Muzzle velocity 1352.273 px/s = raw 4250 x 700/2200 (Plasma Cannon scale; unit open, G10 W2).",
-        "Lifetime 9.091 s = raw 2000 x 2.5/550 (Plasma Cannon scale; unit open, G10 W3).",
+        "Muzzle velocity 425 px/s = raw 4250 thousandths of a pixel per 10 ms, and lifetime 20 s = raw 2000 x 10 ms, in the emulator's units (RECONSTRUCTED, G10 W2/W3).",
         "Radius 42 = raw proximity 56 x 3/4 (Plasma Cannon scale; meaning open).",
-        "A meteor does not inherit the shower's velocity (the shower does not move) and costs the shower no energy (the emulator's turret never pays).",
-        "Hull damage ignores the damage type and armour (RT-F041)."
+        "A meteor does not inherit the shower's velocity (the shower does not move) and costs the shower no energy (the emulator's turret never pays)."
       ]
     },
     "source": {
