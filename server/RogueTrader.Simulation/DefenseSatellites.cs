@@ -213,6 +213,7 @@ public sealed partial class WorldSimulation
     {
         if (_satellite is not null && _satelliteSpawns.Length > 0)
         {
+            AgeHazardProjectiles(DefenseSatellitePrefix, ticks);
             var end = checked(SatelliteClock + ticks);
             var first = SatelliteClock + 1;
             foreach (var spawn in _satelliteSpawns)
@@ -381,11 +382,14 @@ public sealed partial class WorldSimulation
         return (z >> 11) * (1.0 / (1UL << 53));
     }
 
-    private void CaptureSatellites(out IReadOnlyList<SatelliteSpawnSnapshot> spawns, out IReadOnlyList<DefenseSatelliteSnapshot> satellites)
+    private void CaptureSatellites(out IReadOnlyList<SatelliteSpawnSnapshot> spawns, out IReadOnlyList<DefenseSatelliteSnapshot> satellites,
+        out IReadOnlyList<HazardProjectileSnapshot> inFlight)
     {
         spawns = _satelliteSpawns.Select(s => new SatelliteSpawnSnapshot(s.Definition.Id,
             s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - SatelliteClock), s.Placed)).ToArray();
-        satellites = _satellites.Select(s => new DefenseSatelliteSnapshot(s.Id, s.SpawnId, s.Position.X, s.Position.Y, s.Hull)).ToArray();
+        satellites = _satellites.Select(s => new DefenseSatelliteSnapshot(s.Id, s.SpawnId, s.Position.X, s.Position.Y, s.Hull,
+            Math.Max(0, s.NextFireAt - SatelliteClock), s.ShotsLeft, s.RepairTicks, s.Heading)).ToArray();
+        inFlight = CaptureHazardProjectiles(DefenseSatellitePrefix);
     }
 
     /// <summary>
@@ -412,16 +416,20 @@ public sealed partial class WorldSimulation
                 continue;
             _satellites.Add(new DefenseSatelliteState(s.Id, spawn.Id, spawn.Team, new Vector2(s.X, s.Y), MathF.Min(s.Hull, _satellite.MaximumHull))
             {
-                NextFireAt = SatelliteClock,
-                ShotsLeft = _satellite.ClipSize,
+                NextFireAt = SatelliteClock + Math.Clamp(s.TicksUntilFire, 0, Math.Max(_satellite.FireIntervalTicks, _satellite.ReloadTicks)),
+                ShotsLeft = _satellite.ClipSize > 0 ? Math.Clamp(s.ShotsLeft ?? _satellite.ClipSize, 1, _satellite.ClipSize) : 0,
+                RepairTicks = Math.Clamp(s.RepairTicks, 0, Math.Max(0, _satellite.RepairIntervalTicks - 1)),
+                Heading = float.IsFinite(s.Heading) ? s.Heading : -MathF.PI / 2,
             });
         }
         if (saved.Count > 0) _satelliteRandom = snapshot.SatelliteRandomState;
+        RestoreHazardProjectiles(DefenseSatellitePrefix, _satellite.Cannon, snapshot.SatelliteShotsInFlight);
     }
 }
 
 /// <summary>One defense satellite spawner's timer in a <see cref="SectorSnapshot"/> (as <see cref="MeteorSpawnSnapshot"/>).</summary>
 public sealed record SatelliteSpawnSnapshot(string Id, long TicksUntilAttempt, long Placed);
 
-/// <summary>A standing defense satellite in a <see cref="SectorSnapshot"/> with the hull it had.</summary>
-public sealed record DefenseSatelliteSnapshot(string Id, string? SpawnId, float X, float Y, float Hull);
+/// <summary>A standing defense satellite with its hull, firing delay, clip, partial repair and last aim.</summary>
+public sealed record DefenseSatelliteSnapshot(string Id, string? SpawnId, float X, float Y, float Hull,
+    long TicksUntilFire = 0, int? ShotsLeft = null, long RepairTicks = 0, float Heading = -MathF.PI / 2);

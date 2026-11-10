@@ -22,3 +22,9 @@ Branch `claude/project-thread-n1dvi7`, stacked on the meteor shower branch (`cla
 
 -   `dotnet test tests/Unit`: 1252 passed, 13 skipped, 1 failed. The failure is `BloCanonicalTests.AllCanonicalArchivesMatchIndependentDirectoryOracleAndDirectSourceSlices`, which needs Git LFS BLO bytes that the cloud checkout does not have. It is environmental and also fails on main in cloud. `DefenseSatelliteTests`: 21 passed (1254 passed in all after the November 10 follow-up).
 -   Not run: the Godot headless smoke test (running the downloaded editor was not allowed in this session) and `scripts/verify.ps1` on Windows. Both need a local run.
+
+## Local review follow-up — November 10, 2026
+
+-   Verified the earlier notes on safe-zone targeting, typed damage and projectile units in `23eb71e`. The pinned oracle matches the twelve spawners and the Energy cannon at 400 px/s with a 5.5 s lifetime. The existing documentation wording now marks the disabled-satellite rule as pending the owner's ruling. The wreck-farming fix in PR 134 remains a deployment dependency.
+-   A relaunch now restores cannon shots in flight, along with the standing satellite's clip, remaining firing delay, partial repair and last aim. Shots age in place while the world is paused or offline and expire when their remaining lifetime runs out. The new fields are optional for older sector saves.
+-   Both new persistence regressions failed at `23eb71e` because the reloaded world had no cannon shots. The fixed stack passed Windows `scripts/verify.ps1` with the pinned toolchain and original assets. Build 0 warnings and 0 errors, 1,301 unit passes including all 24 satellite cases and 5 unrelated key-listing skips, 6 integration passes, Godot import and all three smoke markers. TRACKERS_CONSISTENT. The original feature entries stay open.

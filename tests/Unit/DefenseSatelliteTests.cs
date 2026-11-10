@@ -423,6 +423,52 @@ public sealed class DefenseSatelliteTests
     }
 
     [Fact]
+    public void CannonShots_SurviveARelaunch_AndAgeThroughTimeAway()
+    {
+        var catalog = Catalog(Spawn());
+        var world = World(catalog);
+        Run(world, 1);
+        var snapshot = world.CaptureSector();
+        var shot = Assert.Single(world.Projectiles);
+        var next = World(catalog);
+        Assert.True(next.RestoreSector(snapshot));
+
+        var restored = Assert.Single(next.Projectiles);
+        Assert.Equal((shot.OwnerShipId, shot.Position, shot.Velocity, shot.AgeTicks),
+            (restored.OwnerShipId, restored.Position, restored.Velocity, restored.AgeTicks));
+        next.ElapseWithoutTicking(10);
+        Assert.Equal(shot.Position, restored.Position);
+        Assert.Equal(shot.AgeTicks + 10, restored.AgeTicks);
+        next.ElapseWithoutTicking(3 * WorldSimulation.TickRate);
+        Assert.Empty(next.Projectiles);
+    }
+
+    [Fact]
+    public void A_Relaunch_DoesNotResetTheCannonClipOrRepairInterval()
+    {
+        var catalog = Catalog(Spawn());
+        var world = World(catalog, catalog: Gun(28));
+        Run(world, 1);
+        ShootOnce(world);
+        Run(world, 61 - (int)world.TickNumber); // the fifth shot is fired on tick 61, beginning the reload
+        var snapshot = world.CaptureSector();
+        var next = World(catalog, catalog: Gun(28));
+        Assert.True(next.RestoreSector(snapshot));
+
+        // The next repair falls on the same tick in both worlds. Neither cannon fires during the next 89 ticks of reload.
+        var lastShot = next.Projectiles.Select(p => p.Id).DefaultIfEmpty(0).Max();
+        for (var i = 0; i < 89; i++)
+        {
+            Run(world, 1);
+            Run(next, 1);
+            Assert.Equal(world.DefenseSatellites[0].Hull, next.DefenseSatellites[0].Hull);
+            Assert.DoesNotContain(next.Projectiles, p => p.Id > lastShot);
+        }
+        Run(next, 1);
+        Assert.Contains(next.Projectiles, p => p.Id > lastShot);
+    }
+
+    [Fact]
     public void ASectorSavedBeforeSatellites_StartsItsSpawnersFresh()
     {
         var catalog = Catalog(Spawn());
