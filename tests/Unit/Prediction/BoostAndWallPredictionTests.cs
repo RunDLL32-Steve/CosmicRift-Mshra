@@ -23,12 +23,13 @@ public sealed class BoostAndWallPredictionTests
     };
 
     // 30 energy at 60/s lasts 30 ticks of boost; after that the 30/s recharge lets it re-engage every other tick.
-    private static GameCatalog BoostCatalog(float x = 0, float y = 0, float energy = 30) => TestWorld.Catalog(ship: new ShipDefinition
+    private static GameCatalog BoostCatalog(float x = 0, float y = 0, float energy = 30,
+        IReadOnlyList<AsteroidDefinition>? asteroids = null) => TestWorld.Catalog(ship: new ShipDefinition
     {
         Physics = new ShipPhysics { ForwardThrust = 12000, ReverseThrust = 12000, MaximumSpeed = 360 },
         Reactor = new ShipReactor { MaximumEnergy = energy, EnergyRegenerationPerSecond = 30 },
         Hyper = Boost,
-    }, sector: new SectorDefinition { PlayerSpawn = new SpawnDefinition { X = x, Y = y, Heading = 0 } });
+    }, sector: new SectorDefinition { PlayerSpawn = new SpawnDefinition { X = x, Y = y, Heading = 0 }, Asteroids = asteroids ?? [] });
 
     /// <summary>A 40 x 40 open map with a wall column at tile x = 30 (pixels 480 to 496).</summary>
     private static SectorMap WallMap()
@@ -179,6 +180,25 @@ public sealed class BoostAndWallPredictionTests
         Assert.Equal(500, authority.World.Player.Velocity.Length(), 2);
         Assert.Equal(Ship(authority), predictor.Ship);
         Assert.Empty(authority.MotionViolations);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TheAuditUsesTheBoostTopSpeedOnlyOnATickThatBoosted(bool boost)
+    {
+        // Review R1-1: restoring the ship onto an asteroid's centre pushes it out far faster than it can fly, so the tick is
+        // flagged, and the finding's limit shows which top speed the audit used for that tick.
+        var catalog = BoostCatalog(energy: 1000, asteroids: [new AsteroidDefinition { X = 1000, Y = 0, Radius = 40 }]);
+        var authority = new AuthoritativeSession(new WorldSimulation(catalog));
+        Assert.True(authority.RestorePlayer(new Vector2(1000, 0), 0, authority.World.Player.Hull));
+        Assert.Equal(InputVerdict.Accepted, authority.Submit(new PlayerInput(1, 1, 0, 1, 0, boost ? InputFlags.Hyper : InputFlags.None)));
+        authority.Step();
+        Assert.Equal(boost, authority.World.Player.IsHyperEngaged);
+        var finding = Assert.Single(authority.MotionViolations);
+        Assert.Equal(MotionViolationKind.SpeedExceeded, finding.Kind);
+        var topSpeed = boost ? Boost.MaximumSpeed : 360;
+        Assert.Equal(topSpeed * WorldSimulation.TickDuration + SessionOptions.Default.DisplacementTolerance, finding.Limit, 4);
     }
 
     [Fact]

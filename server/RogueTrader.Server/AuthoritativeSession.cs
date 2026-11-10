@@ -27,7 +27,7 @@ namespace RogueTrader.Server;
 /// <see cref="SessionOptions.InputsPerTick"/> per simulated tick up to <see cref="SessionOptions.InputBurst"/>. With none left the
 /// input is <see cref="InputVerdict.RateLimited"/>.</item>
 /// <item>A motion audit checks every tick: the controlled ship may move at most its definition's maximum speed times the tick
-/// duration (its boost top speed when that is higher, plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
+/// duration (its boost top speed on a tick where the boost engaged, plus <see cref="SessionOptions.DisplacementTolerance"/>), and may not move between ticks except through
 /// <see cref="RestorePlayer"/>. Findings are recorded in <see cref="MotionViolations"/> and counted, never enforced, because no
 /// enforcement policy is approved. The client cannot send a position, so this guards the server's own state.</item>
 /// </list>
@@ -52,7 +52,6 @@ public sealed class AuthoritativeSession
     private readonly List<MotionViolation> _violations = [];
     private Vector2 _settledPosition;
     private Vector2 _tickStart;
-    private float _tickLimit;
     private bool _tickPending;
 
     /// <summary>The most motion audit findings kept; older ones drop off (the counters keep totals).</summary>
@@ -127,10 +126,6 @@ public sealed class AuthoritativeSession
         EndTick();
         AuditBetweenTicks();
         _tickStart = World.Player.Position;
-        // A boosting ship may legitimately reach the hull's hyper top speed, so the audit allows the faster of the two.
-        var definition = World.Player.Definition;
-        var topSpeed = MathF.Max(definition.Physics.MaximumSpeed, definition.Hyper?.MaximumSpeed ?? 0);
-        _tickLimit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
         _tickPending = true;
         return TakeInput(tick);
     }
@@ -140,7 +135,12 @@ public sealed class AuthoritativeSession
         if (!_tickPending) return;
         _tickPending = false;
         var distance = Vector2.Distance(_tickStart, World.Player.Position);
-        if (distance > _tickLimit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, _tickLimit));
+        // The limit is picked after the tick (review R1-1 on #131): the hull's boost top speed only on a tick that really boosted,
+        // otherwise its normal top speed, so the audit is no looser than the tick that ran.
+        var player = World.Player;
+        var topSpeed = player.IsHyperEngaged ? player.Definition.Hyper!.MaximumSpeed : player.Definition.Physics.MaximumSpeed;
+        var limit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
+        if (distance > limit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, limit));
         _settledPosition = World.Player.Position;
     }
 
