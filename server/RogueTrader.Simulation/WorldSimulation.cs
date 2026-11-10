@@ -81,11 +81,11 @@ public sealed partial class WorldSimulation
         if (!Player.IsDestroyed)
         {
             var previous = Player.Position;
-            MovePlayer(input);
+            var engagedHyper = MovePlayer(input);
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
             if (input.Mine && TryMine()) CollectPickups(Player.Position);
-            if (!Player.IsHyperEngaged || Player.Definition.Hyper!.RechargeWhileEngaged)
+            if (engagedHyper is not { RechargeWhileEngaged: false })
                 Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
                     Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
             if (input.Fire)
@@ -209,7 +209,7 @@ public sealed partial class WorldSimulation
         TargetRespawnTick = previous.TargetRespawnTick is { } at ? TickNumber + Math.Max(1, at - previous.TickNumber) : null;
     }
 
-    private void MovePlayer(ShipInput input)
+    private ShipHyper? MovePlayer(ShipInput input)
     {
         var previous = Player.Position;
         var flight = Map is null ? null : Player.Definition.TerrainFlight(Map.TerrainAt(previous));
@@ -219,6 +219,8 @@ public sealed partial class WorldSimulation
             StepInTerrain(input, flight);
         // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
         if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
+        var hyper = flight is null ? Player.Definition.Hyper : flight.Hyper;
+        return Player.IsHyperEngaged ? hyper : null;
     }
 
     private (ShipDefinition Own, ShipTerrainFlight Flight, ShipDefinition Flown)? _terrainFlight;
@@ -247,7 +249,11 @@ public sealed partial class WorldSimulation
                     ForwardThrust = flight.Physics.ForwardThrust * keep,
                     ReverseThrust = flight.Physics.ReverseThrust * keep,
                 },
-                Hyper = flight.Hyper,
+                Hyper = flight.Hyper is { } hyper ? hyper with
+                {
+                    ForwardThrust = hyper.ForwardThrust * keep,
+                    ReverseThrust = hyper.ReverseThrust * keep,
+                } : null,
             };
             cached = (own, flight, flown);
             _terrainFlight = cached;

@@ -7,3 +7,9 @@
 -   Not verified: `scripts/verify.ps1` and the Godot client on Windows; play feel in docks (no client change, but the client flies `WorldSimulation`).
 -   Review follow-ups: round 1 and 2 approved (40fb814, 56a7a83). The round 2 note (a phantom reverse thrust along the course would pass the relaxed coast check) is closed: `ClientInputSmokeTest` now expects the exact dock friction over the ticks that passed (`TerrainSpeedRetainedPerTick`), so any phantom thrust in any direction fails it.
 -   Status: done, in review. Resume point: review findings on the PR.
+
+## November 10 review follow-up
+
+-   Kept the existing F11 radius evidence and removed stale text about the selectable roster. The exact dock-friction coast smoke check remains in place.
+-   A terrain-only boost now uses its own reactor recharge policy and drag. The new theory checks a terrain boost with no open-space boost and covers both recharge settings. The three original dock/trade-zone profiles still have no boost.
+-   Windows SDK 8.0.419 verify wrapper exited 0. Build had zero warnings and errors. Unit tests passed 1,244 with five archived-key skips, and all six integration cases passed. Godot import, original level art, input, station and flight smoke passed. FORMAT_CLEAN and TRACKERS_CONSISTENT (397/22/375). New head review and merge gates remain open.

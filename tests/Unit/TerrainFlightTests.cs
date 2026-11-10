@@ -169,6 +169,29 @@ public sealed class TerrainFlightTests
         Assert.Same(own, world.Player.Definition);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TerrainOnlyBoostUsesItsOwnRechargePolicyAndFriction(bool rechargeWhileEngaged)
+    {
+        // NEW fixture: the catalog permits a boost in one terrain without an open-space boost.
+        var asp = Hull("original_asp.json");
+        var dock = asp.TerrainFlight(9)!;
+        var boost = asp.Hyper! with { MaximumSpeed = 300, RechargeWhileEngaged = rechargeWhileEngaged };
+        var ship = asp with { Hyper = null, Terrains = [dock with { Hyper = boost }] };
+        var world = World(ship, Map(9));
+        var initialEnergy = world.Player.Energy;
+
+        world.Tick(new ShipInput(1, 0, false, Hyper: true));
+
+        Assert.Same(ship, world.Player.Definition);
+        Assert.True(world.Player.IsHyperEngaged);
+        var expectedRate = -boost.EnergyPerSecond + (rechargeWhileEngaged ? ship.Reactor.EnergyRegenerationPerSecond : 0);
+        Assert.Equal(initialEnergy + expectedRate * WorldSimulation.TickDuration, world.Player.Energy, 3);
+        var keep = WorldSimulation.TerrainSpeedRetainedPerTick(dock);
+        Assert.Equal(boost.ForwardThrust / dock.Physics.Mass * WorldSimulation.TickDuration * keep, world.Player.Velocity.X, 4);
+    }
+
     [Fact]
     public void WithoutAMapOrInAnUnlistedTerrainTheShipFliesItsOpenSpaceValues()
     {
