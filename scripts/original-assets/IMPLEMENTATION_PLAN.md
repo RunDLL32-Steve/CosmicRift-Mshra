@@ -23,6 +23,7 @@ This subplan reconciles with [master §1.2](../../ROGUE_TRADER_2_PLAN.md#12-user
 
 -   [ ] Establish native-client bank/pose-column selection. Column 5 looks visually balanced but is not proven to be the original neutral state.
 -   [ ] Implement native user-palette/HSV transformations, shadow/light blend modes and all original sprite blit behavior. Raw source palette/index values are retained; no approximate recoloring is applied.
+-   [x] Re-read the LVL entity fields that `stage_level_art.py` took from its RECONSTRUCTED reading where the Gibbed format source (`Level/Entity.cs` at the pinned tools commit) disagrees. Done in PR #132 (`level.json` schema 3): AnimationTime is BitsA bits 20-29, FrameIndex is the full 7 bits 13-19, and byte 14 is Hue (BitsC bits 16-22), now staged as hue instead of a start phase; Value, Saturation, light, TimeDelta and PaletteShift are staged too. Animation timing is read as milliseconds per frame (RECONSTRUCTED); exact native timing stays open under the item below.
 -   [ ] Validate exact native animation timing and state evaluators. CFS animation-time values are preserved raw; preview-tool timing is not sufficient proof of original runtime behavior.
 -   [ ] Decode audio and other non-CFS payloads. Zero unsupported entries in this selected batch does not establish support for all BLO archives.
 -   [ ] Resolve all remaining content dependencies outside this selected sprite batch and prove complete runtime record closure.
