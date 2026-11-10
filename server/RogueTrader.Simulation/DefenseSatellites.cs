@@ -259,8 +259,8 @@ public sealed partial class WorldSimulation
     }
 
     /// <summary>
-    /// True while the satellite has at least <see cref="DefenseSatelliteDefinition.HullToOperate"/> hull. NEW (Steve, November 10, 2026,
-    /// pending his ruling): a disabled satellite does not count toward a spawner's limits, and the spawner's next attempt replaces it, so
+    /// True while the satellite has at least <see cref="DefenseSatelliteDefinition.HullToOperate"/> hull. NEW (pending Steve's ruling,
+    /// November 10, 2026): a disabled satellite does not count toward a spawner's limits, and the spawner's next attempt replaces it, so
     /// stopping just short of a kill cannot leave a station undefended for longer than a kill would. The emulator counts it and, since it
     /// never repairs below that hull, it would block its own respawn for as long as the server runs.
     /// </summary>
