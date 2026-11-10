@@ -40,7 +40,7 @@ public static class OriginalMeteorShowerBuilder
     public const string DocumentId = "original_meteor_showers";
     /// <summary>NEW placement seed; the client derives a fresh one per sector instance.</summary>
     public const ulong Seed = 0x52545F4D45544F52UL; // "RT_METOR"
-    /// <summary>The cannon whose provisional speed, size and life scale the meteor (the player's Plasma Cannon, ITM 1004).</summary>
+    /// <summary>The cannon whose provisional hit radius scales the meteor's (the player's Plasma Cannon, ITM 1004).</summary>
     public const int ReferenceCannonId = 1004;
     /// <summary>
     /// NEW: VEH f[212] RemoveGlobalTimer (5 for the shower, 0 on every other computer) read as seconds. The unit is not documented and
@@ -59,8 +59,8 @@ public static class OriginalMeteorShowerBuilder
         "Firing (emulator Computer.poll): one meteor every ITM fireDelay (35, 10 ms units = 0.35 s) at the nearest pilot within VEH FireRadius, aimed where the pilot will be if they hold course (computeLeadFireAngle, without its 256-step angle and 0.7 isometric Y scale). The shower is not destroyable (VEH Destroyable 0) and does not block shots; it does not track TrackingRadius/TrackingTime, energy or LOS separately (its ObeyLos is 0).",
         "NEW lifetime: VEH f[212] RemoveGlobalTimer=5 is read as 5 seconds. The emulator never reads it (a shower would stand for ever); its unit is undocumented. Steve's call is pending.",
         "NEW: VEH f[213] RandomizeAim=5 is kept raw and not applied (unit unknown; the emulator ignores it).",
-        "Meteor damage from ITM 1007 through OriginalWeaponBuilder: kinetic hull damage f[152] 15000 = 15 and shield drain f[172] 750000 = 750 (thousandths). Damage type and armour are not applied (RT-F041).",
-        "NEW meteor speed, life and size: the projectile units are open (G10 W2/W3), so the meteor's raw muzzle velocity, alive time and proximity radius are scaled by the same factors that turn the player's Plasma Cannon (ITM 1004) raw values into its provisional ones, so meteors keep their original speed, range and size relative to the player's own shots.",
+        "Meteor damage from ITM 1007 through OriginalWeaponBuilder: Kinetic hull damage f[152] 15000 = 15 and shield drain f[172] 750000 = 750 (thousandths). Armour reduces the hull damage by its Kinetic protection like any other Kinetic hit (RT-F041).",
+        "Meteor speed and life use the emulator's projectile units like the player's cannons (G10 W2/W3, RECONSTRUCTED): muzzleVelocity 4250 thousandths of a pixel per 10 ms = 425 px/s, aliveTime 2000 x 10 ms = 20 s. NEW: its hit radius is its proximity radius 56 scaled by the factor that gives the player's Plasma Cannon (ITM 1004) its provisional radius (3 for 4).",
         "Meteors hit only the player's ship (and stop on walls and asteroids); they do not hit practice targets, so a meteor never takes a kill from the player.",
     ];
 
@@ -80,10 +80,9 @@ public static class OriginalMeteorShowerBuilder
         var projectile = shower.Projectile ?? throw new OriginalDataException($"ITM {shower.Weapon.Id} is not a projectile.");
         var reference = OriginalProjectile.Of(referenceCannon);
         var provisional = OriginalWeaponBuilder.Weapon(referenceCannon);
+        // Speed and life come out of OriginalWeaponBuilder in the emulator's units (G10 W2/W3, #133); only the radius is scaled.
         var meteor = OriginalWeaponBuilder.Weapon(shower.Weapon) with
         {
-            MuzzleVelocity = Scale(projectile.MuzzleVelocity.Value, reference.MuzzleVelocity.Value, provisional.MuzzleVelocity),
-            LifetimeSeconds = Scale(projectile.AliveTime.Value, reference.AliveTime.Value, provisional.LifetimeSeconds),
             ProjectileRadius = Scale(projectile.ProximityRadius.Value, reference.ProximityRadius.Value, provisional.ProjectileRadius),
             InheritsShipVelocity = false,
             EnergyCost = 0,
@@ -92,11 +91,9 @@ public static class OriginalMeteorShowerBuilder
         {
             NewValues =
             [
-                $"Muzzle velocity {meteor.MuzzleVelocity} px/s = raw {projectile.MuzzleVelocity.Value} x {provisional.MuzzleVelocity}/{reference.MuzzleVelocity.Value} (Plasma Cannon scale; unit open, G10 W2).",
-                $"Lifetime {meteor.LifetimeSeconds} s = raw {projectile.AliveTime.Value} x {provisional.LifetimeSeconds}/{reference.AliveTime.Value} (Plasma Cannon scale; unit open, G10 W3).",
+                $"Muzzle velocity {meteor.MuzzleVelocity} px/s = raw {projectile.MuzzleVelocity.Value} thousandths of a pixel per 10 ms, and lifetime {meteor.LifetimeSeconds} s = raw {projectile.AliveTime.Value} x 10 ms, in the emulator's units (RECONSTRUCTED, G10 W2/W3).",
                 $"Radius {meteor.ProjectileRadius} = raw proximity {projectile.ProximityRadius.Value} x {provisional.ProjectileRadius}/{reference.ProximityRadius.Value} (Plasma Cannon scale; meaning open).",
                 "A meteor does not inherit the shower's velocity (the shower does not move) and costs the shower no energy (the emulator's turret never pays).",
-                "Hull damage ignores the damage type and armour (RT-F041).",
             ],
         };
         var record = shower.Record;

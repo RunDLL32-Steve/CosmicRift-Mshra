@@ -85,10 +85,11 @@ public sealed class MeteorShowerTests
         var shower = catalog.Shower;
         Assert.Equal(("402", 20000f, 21), (shower.VehicleId, shower.FireRadius, shower.FireIntervalTicks));
         Assert.Equal(300, shower.LifetimeTicks); // RemoveGlobalTimer 5 read as seconds (NEW, Steve's call pending)
-        Assert.Equal(("1007", 15f, 750f), (shower.Meteor.Id, shower.Meteor.Damage, shower.Meteor.ShieldDrain));
-        // Plasma Cannon scale: 2200 raw -> 700 px/s, 550 -> 2.5 s, 4 -> 3.
-        Assert.Equal(MathF.Round(4250 * 700f / 2200, 3), shower.Meteor.MuzzleVelocity);
-        Assert.Equal(MathF.Round(2000 * 2.5f / 550, 3), shower.Meteor.LifetimeSeconds);
+        Assert.Equal(("1007", 15f, 750f, DamageType.Kinetic), (shower.Meteor.Id, shower.Meteor.Damage, shower.Meteor.ShieldDrain, shower.Meteor.DamageType));
+        // The emulator's projectile units (G10 W2/W3): 4250 thousandths of a pixel per 10 ms = 425 px/s; 2000 x 10 ms = 20 s.
+        Assert.Equal(425f, shower.Meteor.MuzzleVelocity);
+        Assert.Equal(20f, shower.Meteor.LifetimeSeconds);
+        // NEW hit radius: proximity 56 at the Plasma Cannon's provisional 3-for-4 scale.
         Assert.Equal(MathF.Round(56 * 3f / 4, 3), shower.Meteor.ProjectileRadius);
     }
 
@@ -254,6 +255,80 @@ public sealed class MeteorShowerTests
         Run(next, 1);
         Assert.Single(next.MeteorShowers);
         Assert.Equal("meteor-shower:46:2", next.MeteorShowers[0].Id);
+    }
+
+    [Fact]
+    public void MeteorsInFlight_SurviveARelaunch()
+    {
+        var catalog = Catalog(Spawn(attempt: 100000, succeed: 100000), lifetimeTicks: 0);
+        var world = World(catalog);
+        Run(world, 5);
+        var flying = world.Projectiles.Select(p => (p.OwnerShipId, p.Position, p.Velocity, p.AgeTicks)).ToArray();
+        Assert.NotEmpty(flying);
+        var snapshot = world.CaptureSector();
+        Assert.Equal(flying.Length, snapshot.MeteorsInFlight!.Count);
+
+        var next = World(catalog);
+        Assert.True(next.RestoreSector(snapshot));
+        Assert.Equal(flying, next.Projectiles.Select(p => (p.OwnerShipId, p.Position, p.Velocity, p.AgeTicks)).ToArray());
+        // Both worlds go on to the same hits: a relaunch is no way to dodge a meteor already on its way.
+        Run(world, 120);
+        Run(next, 120);
+        Assert.Equal(world.MeteorHits, next.MeteorHits);
+        Assert.True(next.MeteorHits > 0);
+    }
+
+    [Fact]
+    public void RestoredMeteors_CannotBeFasterOrOlderThanAMeteor()
+    {
+        var catalog = Catalog(Spawn(attempt: 100000, succeed: 100000), lifetimeTicks: 0);
+        var world = World(catalog);
+        Run(world, 1);
+        var snapshot = world.CaptureSector() with
+        {
+            MeteorsInFlight =
+            [
+                new MeteorSnapshot("meteor-shower:46:1", 0, -300, 0, 6000, 0),
+                new MeteorSnapshot("meteor-shower:46:1", 0, -300, 0, 600, 10_000),
+                new MeteorSnapshot("player", 0, -300, 0, 600, 0),
+            ],
+        };
+        var next = World(catalog);
+        Assert.True(next.RestoreSector(snapshot));
+        var meteor = Assert.Single(next.Projectiles);
+        Assert.Equal(600f, meteor.Velocity.Length(), 2);
+    }
+
+    [Fact]
+    public void Meteors_CannotHitAPilotInASafeZone()
+    {
+        // NEW fixture: a 40 x 40 tile map whose left 10 columns are a Repair Dock (terrain 9: Safety=1, DeleteLiveWeapons=0, so the
+        // meteors fly on through it), with the pilot docked at x 80 and a shower in open space at x 240.
+        var rules = Enumerable.Repeat(TerrainRule.Open, SectorMap.TerrainCount).ToArray();
+        rules[9] = new TerrainRule(Safety: true, DeleteLiveWeapons: false, EnergyRate: 0);
+        var tiles = new byte[40 * 40];
+        for (var y = 0; y < 40; y++)
+        for (var x = 0; x < 10; x++)
+            tiles[y * 40 + x] = 9;
+        var map = new SectorMap(40, 40, tiles, [720, .. Enumerable.Repeat(120, 15)], terrainRules: rules);
+        WorldSimulation World(float x) => new(TestWorld.Catalog(sector: new SectorDefinition
+        {
+            PlayerSpawn = new SpawnDefinition { X = x, Y = 320, Heading = 0 },
+            Targets = [],
+        }), map: map, meteors: Catalog(Spawn(attempt: 100000, succeed: 100000, x: 240, y: 320), lifetimeTicks: 0));
+
+        var docked = World(80);
+        Assert.True(docked.PlayerInSafeZone);
+        Run(docked, 120);
+        Assert.Single(docked.MeteorShowers);
+        Assert.Equal(0, docked.MeteorHits);
+        Assert.Null(docked.Player.LastDamagedByShipId);
+
+        // The same shower hits a pilot just outside the dock.
+        var outside = World(200);
+        Assert.False(outside.PlayerInSafeZone);
+        Run(outside, 120);
+        Assert.True(outside.MeteorHits > 0);
     }
 
     [Fact]

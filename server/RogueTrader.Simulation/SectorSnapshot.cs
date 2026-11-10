@@ -26,7 +26,9 @@ public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 /// world keeps its state for as long as the server runs, so a client relaunch, a logout or a sector reset never refills it).
 /// It holds what a player could otherwise farm: the target group (condition, wave and the time left on a pending respawn), the
 /// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, the mining
-/// deposits, and the meteor shower spawner timers and standing showers, and the defense satellite spawner timers and standing satellites with their hull (each null in a snapshot saved before it existed). The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
+/// deposits, the meteor shower spawner timers, standing showers and meteors in flight (null in a snapshot saved before showers existed,
+/// so a relaunch cannot be used to dodge a meteor that is already on its way), and the defense satellite spawner timers and standing
+/// satellites with their hull (null in a snapshot saved before satellites existed). The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
 /// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
 /// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
 /// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
@@ -46,6 +48,7 @@ public sealed record SectorSnapshot(
     IReadOnlyList<MeteorSpawnSnapshot>? MeteorSpawns = null,
     IReadOnlyList<MeteorShowerSnapshot>? MeteorShowers = null,
     ulong MeteorRandomState = 0,
+    IReadOnlyList<MeteorSnapshot>? MeteorsInFlight = null,
     IReadOnlyList<SatelliteSpawnSnapshot>? SatelliteSpawns = null,
     IReadOnlyList<DefenseSatelliteSnapshot>? DefenseSatellites = null,
     ulong SatelliteRandomState = 0);
@@ -55,7 +58,7 @@ public sealed partial class WorldSimulation
     /// <summary>Captures the sector state that must survive this world (see <see cref="SectorSnapshot"/>).</summary>
     public SectorSnapshot CaptureSector()
     {
-        CaptureMeteors(out var meteorSpawns, out var showers);
+        CaptureMeteors(out var meteorSpawns, out var showers, out var meteorsInFlight);
         CaptureSatellites(out var satelliteSpawns, out var satellites);
         return new(
         Catalog.Sector.Id,
@@ -74,6 +77,7 @@ public sealed partial class WorldSimulation
         meteorSpawns,
         showers,
         _meteorRandom,
+        meteorsInFlight,
         satelliteSpawns,
         satellites,
         _satelliteRandom);
