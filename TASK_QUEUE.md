@@ -34,6 +34,8 @@ Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply
 
 No active rows: C1 is merged; C7 scoped library acceptance is verified and its [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) awaits final gates.
 
+In progress (claim by branch `claude/project-thread-n1dvi7`, November 9, 2026, stacked on the meteor shower branch of PR 130): station defense satellites, RT-F278 GunSat (VEH 410) with its PirateStationCannon RT-F168 (ITM 1038) at the twelve team-owned LIO hide rows RT-F351 to RT-F362. Destruction drops stay with the RT-F043 claim.
+
 ## Completed queue history (not active work)
 
 -   C7 — scoped motion prediction/reconciliation acceptance verified; [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) awaits independent current-head review and merge gates. [Evidence](docs/development-log/2026-11-03-c7-publication.md). Master M3 remains open.
