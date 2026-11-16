@@ -8,6 +8,7 @@ namespace RogueTrader.Client;
 /// (asteroids, space stations, walls, gas clouds, map border) and the mineral prize sprites named by Rogue_mp.itm.
 /// Originals are never read here; only the derived, git-ignored client/OriginalContent/level/ folder.
 /// The entity reading (top-left anchor, animation time, phase) is RECONSTRUCTED; see the staging script.
+/// Draw order and translucency flags follow the Gibbed LVL format source; the strength of smart translucency is RECONSTRUCTED.
 /// </summary>
 public sealed class OriginalLevelArt
 {
@@ -37,14 +38,38 @@ public sealed class OriginalLevelArt
         public int[] Entities { get; set; } = [];
     }
 
-    /// <summary>One placed sprite: cell top-left in map pixels, object index, cycle in hundredths of a second (0 = still), start phase in percent, starting frame.</summary>
-    public readonly record struct Entity(int X, int Y, int Object, int AnimationTime, int Phase, int Frame);
+    /// <summary>
+    /// One placed sprite: cell top-left in map pixels, object index, cycle in hundredths of a second (0 = still), start phase in percent,
+    /// starting frame, LVL draw order (0-5; 5 = dynamic last, drawn over ships), translucency (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%)
+    /// and the smart translucency flag.
+    /// </summary>
+    public readonly record struct Entity(int X, int Y, int Object, int AnimationTime, int Phase, int Frame, int DrawOrder, int Translucency, bool SmartTranslucency)
+    {
+        /// <summary>True for sprites the original draws after ships (Rogue.lvl: the translucent gas clouds).</summary>
+        public bool OverShips => DrawOrder == DynamicLast;
+
+        /// <summary>
+        /// Opacity the sprite is drawn with. Smart translucency (every gas cloud except gasCloud4sm_) has no strength in the format
+        /// source; 50%, the first translucency step, is RECONSTRUCTED.
+        /// </summary>
+        public float Opacity => Translucency switch
+        {
+            1 => 0.5f,
+            2 => 0.33f,
+            3 => 0.25f,
+            _ => SmartTranslucency ? SmartOpacity : 1f,
+        };
+    }
+
+    public const int DynamicLast = 5;
+    public const float SmartOpacity = 0.5f;
 
     private const string CanonicalCommit = "eb1514eaae7f9b9425307d9cc043c74ecdd15e35";
     private const string ResourceRoot = "res://OriginalContent/level/";
     /// <summary>Bucket size for culling; larger than the biggest sprite (288-pixel station) so a sprite is found from its neighbours.</summary>
     private const int Bucket = 512;
-    private const int Stride = 6;
+    private const int SchemaVersion = 2;
+    private const int Stride = 9;
     /// <summary>Spin cycle for simulation-placed rocks: 4000 hundredths, the cycle Rogue.lvl gives most of its rocks.</summary>
     private const int PracticeRockCycle = 4000;
 
@@ -58,7 +83,7 @@ public sealed class OriginalLevelArt
 
     private OriginalLevelArt(Document document)
     {
-        if (document.SchemaVersion != 1 || document.CanonicalCommit != CanonicalCommit || document.EntityStride != Stride ||
+        if (document.SchemaVersion != SchemaVersion || document.CanonicalCommit != CanonicalCommit || document.EntityStride != Stride ||
             document.Entities.Length % Stride != 0 || document.Objects.Count == 0)
             throw new InvalidOperationException("Original level art schema or canonical commit mismatch; re-run stage_level_art.py.");
         foreach (var sprite in document.Objects.Concat(document.Minerals))
@@ -72,7 +97,8 @@ public sealed class OriginalLevelArt
         {
             var v = document.Entities.AsSpan(i * Stride, Stride);
             if ((uint)v[2] >= (uint)document.Objects.Count) throw new InvalidOperationException($"Entity {i} names an unknown object.");
-            Entities[i] = new Entity(v[0], v[1], v[2], v[3], v[4], v[5]);
+            if ((uint)v[6] > 7 || (uint)v[7] > 3 || (uint)v[8] > 1) throw new InvalidOperationException($"Entity {i} has invalid draw flags.");
+            Entities[i] = new Entity(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8] == 1);
             var key = BucketKey(Math.DivRem(v[0], Bucket).Quotient, Math.DivRem(v[1], Bucket).Quotient);
             if (!_buckets.TryGetValue(key, out var list)) _buckets[key] = list = [];
             list.Add(i);
@@ -101,8 +127,11 @@ public sealed class OriginalLevelArt
         }
     }
 
-    /// <summary>Indices of the entities whose cell can overlap <paramref name="view"/>, in file (draw) order.</summary>
-    public List<int> Visible(Rect2 view)
+    /// <summary>
+    /// Indices of the entities whose cell can overlap <paramref name="view"/>, in file (draw) order: those drawn under ships,
+    /// or with <paramref name="overShips"/> those the original draws after them.
+    /// </summary>
+    public List<int> Visible(Rect2 view, bool overShips = false)
     {
         var result = new List<int>();
         var x0 = (int)Math.Floor(view.Position.X / Bucket) - 1;
@@ -116,6 +145,7 @@ public sealed class OriginalLevelArt
             foreach (var index in list)
             {
                 var e = Entities[index];
+                if (e.OverShips != overShips) continue;
                 var sprite = _document.Objects[e.Object];
                 if (view.Intersects(new Rect2(e.X, e.Y, sprite.Width, sprite.Height))) result.Add(index);
             }
@@ -132,7 +162,8 @@ public sealed class OriginalLevelArt
         var texture = _objectTextures[e.Object] ??= LoadTexture(sprite);
         // The entity's own cycle decides whether it moves: safe-zone markings and the map border carry 0 and stay still.
         var frame = (e.Frame + FrameAt(sprite.FrameCount, e.AnimationTime, e.Phase, seconds)) % sprite.FrameCount;
-        canvas.DrawTextureRectRegion(texture, new Rect2(e.X, e.Y, sprite.Width, sprite.Height), FrameRect(sprite, frame));
+        canvas.DrawTextureRectRegion(texture, new Rect2(e.X, e.Y, sprite.Width, sprite.Height), FrameRect(sprite, frame),
+            new Color(1, 1, 1, e.Opacity));
     }
 
     /// <summary>Draws a mineral's original prize sprite centred on <paramref name="centre"/>; false when the item has none staged.</summary>
