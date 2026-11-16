@@ -11,6 +11,12 @@
 -   Two other visible changes come from the same flags. The 61 safe-zone floor markings that the level marks smart translucent now also draw at 50%, still under ships. The 37 animated station dishes (`Dish_ani_`) are opaque but marked "drawn last", so they now draw over ships.
 -   `level.json` moves to schema 2; `scripts/run-client.ps1` re-stages an older copy on its own. No gameplay change.
 
+## Shots fly at their original speed and range — November 9, 2026
+
+-   G10 W2/W3: the starting Plasma Cannon, Bio Cannon and D-Cannon now fire at their original speed and lifetime. A shot leaves at 220 px/s plus the ship's own speed and lives 5.5 s, about 1,210 px from a ship at rest (was 700 px/s for 2.5 s, invented). Fired straight ahead at the Asp's top speed it flies 545 px/s; a shot fired from rest cannot catch a ship fleeing at top speed.
+-   RECONSTRUCTED readings, from the InfantryOnline emulator (bb97579): muzzleVelocity is thousandths of a pixel per 10 ms tick, the same unit that gives the Asp its 325 px/s (lead-aim code `Vehicle.Computer.cs:202`, `Bot/WeaponController.cs:197/205`, `Math.cs:207–230`), and aliveTime is in 10 ms ticks like fireDelay. `OriginalShipPhysics.MuzzleVelocityPixelsPerSecond` and `LifetimeSeconds` hold the two readings and refuse negative sentinels and still projectiles. No native measurement has confirmed them; FLIGHT_FIELD_EVIDENCE section 5 now lists the shot and ship-size checks for a local run.
+-   The G10 table marks W2, W3, W5 and F11 (radius 21 px since #120) as matching the original reading, and its tests now measure the derived Asp and Plasma Cannon. The legacy Interceptor's NEW `plasma_cannon.json` is unchanged. [G10_VALIDATION.md](docs/original-research/G10_VALIDATION.md).
+
 ## The radar uses the original colours and frame — November 9, 2026
 
 -   The radar in the lower-right corner now uses Rogue Trader's own look. Your ship is drawn in the CFG `[Radar]` ColorSelf green (`0x00ff00`, `CFG/rogue.cfg` line 2278) and the practice targets in ColorEnemy red (`0xff4040`, line 2280). ColorFriendly yellow (`0xffff00`, line 2279) is loaded but nothing uses it yet, because there are no other ships. The values live in `data/ui/radar.json`, and `RadarLookTests` checks them against the pinned file.
