@@ -25,17 +25,18 @@ public sealed record MineralSpawnSnapshot(string Id, long TicksUntilAttempt, lon
 /// <summary>An asteroid's remaining mining deposit in a <see cref="SectorSnapshot"/>.</summary>
 public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 
-/// <summary>A hazard's shot in flight: who fired it, where it is, its velocity and its age in ticks.</summary>
-public sealed record HazardProjectileSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks);
+/// <summary>A hazard's shot in flight: who fired it, where it is, its velocity, its age and its firing order.</summary>
+public sealed record HazardProjectileSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks, long Order = 0);
 
 /// <summary>
 /// The shared state of one sector that must outlive any one <see cref="WorldSimulation"/> (owner rule, November 2, 2026: the
 /// world keeps its state for as long as the server runs, so a client relaunch, a logout or a sector reset never refills it).
 /// It holds what a player could otherwise farm: the target group (condition, wave and the time left on a pending respawn), the
 /// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, the mining
-/// deposits, and the meteor shower spawner timers, standing showers and meteors in flight (null in a snapshot saved before showers existed),
-/// so a relaunch cannot be used to dodge a meteor that is already on its way. The player's ship and shots and the per-world pickup and kill records are not part of it. Timers are
-/// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
+/// deposits, the meteor shower spawner timers, standing showers and meteors in flight (null in a snapshot saved before showers existed,
+/// so a relaunch cannot be used to dodge a meteor that is already on its way), and the defense satellite spawner timers, standing
+/// satellites with their hull and cannon shots in flight (null in a snapshot saved before those members existed). The player's
+/// ship and shots and the per-world pickup and kill records are not part of it. Timers are stored as ticks remaining.
 /// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
 /// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
 /// </summary>
@@ -54,7 +55,11 @@ public sealed record SectorSnapshot(
     IReadOnlyList<MeteorSpawnSnapshot>? MeteorSpawns = null,
     IReadOnlyList<MeteorShowerSnapshot>? MeteorShowers = null,
     ulong MeteorRandomState = 0,
-    IReadOnlyList<HazardProjectileSnapshot>? MeteorsInFlight = null);
+    IReadOnlyList<HazardProjectileSnapshot>? MeteorsInFlight = null,
+    IReadOnlyList<SatelliteSpawnSnapshot>? SatelliteSpawns = null,
+    IReadOnlyList<DefenseSatelliteSnapshot>? DefenseSatellites = null,
+    ulong SatelliteRandomState = 0,
+    IReadOnlyList<HazardProjectileSnapshot>? SatelliteShotsInFlight = null);
 
 public sealed partial class WorldSimulation
 {
@@ -62,6 +67,7 @@ public sealed partial class WorldSimulation
     public SectorSnapshot CaptureSector()
     {
         CaptureMeteors(out var meteorSpawns, out var showers, out var meteorsInFlight);
+        CaptureSatellites(out var satelliteSpawns, out var satellites, out var satelliteShotsInFlight);
         return new(
         Catalog.Sector.Id,
         TargetWave,
@@ -79,7 +85,11 @@ public sealed partial class WorldSimulation
         meteorSpawns,
         showers,
         _meteorRandom,
-        meteorsInFlight);
+        meteorsInFlight,
+        satelliteSpawns,
+        satellites,
+        _satelliteRandom,
+        satelliteShotsInFlight);
     }
 
     /// <summary>
@@ -169,19 +179,29 @@ public sealed partial class WorldSimulation
         NextMineTick = Math.Max(0, snapshot.TicksUntilNextMine);
         // A snapshot saved before meteor showers existed has none: the spawners start fresh, as a new sector's would.
         if (snapshot.MeteorSpawns is not null) RestoreMeteors(snapshot);
+        // Likewise for defense satellites: a snapshot saved before they existed leaves the spawners to place them fresh.
+        if (snapshot.SatelliteSpawns is not null) RestoreSatellites(snapshot);
+        RestoreHazardProjectiles(
+            (MeteorShowerPrefix, _shower?.Meteor, snapshot.MeteorsInFlight),
+            (DefenseSatellitePrefix, _satellite?.Cannon, snapshot.SatelliteShotsInFlight));
         return true;
     }
 
     private IReadOnlyList<HazardProjectileSnapshot> CaptureHazardProjectiles(string ownerPrefix) =>
         _projectiles.Where(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal))
-            .Select(p => new HazardProjectileSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks)).ToArray();
+            .Select(p => new HazardProjectileSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks, p.Id)).ToArray();
 
-    private void RestoreHazardProjectiles(string ownerPrefix, WeaponDefinition weapon, IReadOnlyList<HazardProjectileSnapshot>? saved)
+    private void RestoreHazardProjectiles(
+        params (string OwnerPrefix, WeaponDefinition? Weapon, IReadOnlyList<HazardProjectileSnapshot>? Shots)[] hazards)
     {
-        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal));
-        var lifetime = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * TickRate));
-        foreach (var shot in saved ?? [])
+        _projectiles.RemoveAll(p => hazards.Any(h => p.OwnerShipId.StartsWith(h.OwnerPrefix, StringComparison.Ordinal)));
+        // A meteor and cannon shot can hit the same shield in one tick, so restore the common firing order across both lists.
+        var saved = hazards.Where(h => h.Weapon is not null)
+            .SelectMany(h => (h.Shots ?? []).Select(shot => (h.OwnerPrefix, Weapon: h.Weapon!, Shot: shot)))
+            .OrderBy(entry => entry.Shot?.Order ?? 0);
+        foreach (var (ownerPrefix, weapon, shot) in saved)
         {
+            var lifetime = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * TickRate));
             if (shot is null || string.IsNullOrEmpty(shot.OwnerId) || !shot.OwnerId.StartsWith(ownerPrefix, StringComparison.Ordinal)
                 || !float.IsFinite(shot.X) || !float.IsFinite(shot.Y) || !float.IsFinite(shot.VelocityX) || !float.IsFinite(shot.VelocityY)
                 || shot.AgeTicks < 0 || shot.AgeTicks >= lifetime)

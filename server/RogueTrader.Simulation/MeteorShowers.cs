@@ -346,9 +346,6 @@ public sealed partial class WorldSimulation
             });
         }
         if (saved.Count > 0) _meteorRandom = snapshot.MeteorRandomState;
-        // Meteors already on their way keep coming after a relaunch (review #130 minor: a relaunch must not dodge a hit). Each one
-        // keeps its position, velocity and age, so it lands or expires exactly when it would have.
-        RestoreHazardProjectiles(MeteorShowerPrefix, _shower.Meteor, snapshot.MeteorsInFlight);
     }
 }
 

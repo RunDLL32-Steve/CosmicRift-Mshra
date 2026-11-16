@@ -7,6 +7,7 @@ docs/original-research/SOURCE_MANIFEST.json
 data/stations/trading_outpost.json
 data/minerals/mineral_spawns.json
 data/hazards/meteor_showers.json
+data/defenses/defense_satellites.json
 data/sectors/rogue.json
 data/sectors/rogue_map.json
 data/ships/original_*.json
