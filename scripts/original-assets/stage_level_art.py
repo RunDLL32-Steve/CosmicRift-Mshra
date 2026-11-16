@@ -16,6 +16,15 @@ exactly on its collision tiles with this reading. uint16 at byte 6 is read as th
 cycle in hundredths of a second; it is non-zero only on things that move (rocks, gas clouds, animated
 walls), and 0 means a still frame. Byte 14 is kept as a start phase in percent. These readings are
 provisional; the raw 17 bytes are not needed by the client and are not copied.
+
+Draw flags (FORMAT SOURCE, Gibbed.Infantry.FileFormats Level/Entity.cs at the pinned InfantryOnline tools commit,
+which reads the record as int16 X, int16 Y, uint32 BitsA, uint32 BitsB, uint32 BitsC, byte BitsD): BitsA bits
+30-31 = Transluency (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%), BitsB bits 26-28 = DrawOrder (0-2 static first/sorted/
+last, 3-5 dynamic first/sorted/last) and BitsB bit 31 = SmartTransluency. In Rogue.lvl every entity has
+Transluency 0; the gas clouds gasCloud, gasCloud1_, gasCloud2_ and gasCloud3sm_ (1,408 entities) are the only
+objects other than 61 safe-zone markings with SmartTransluency set, and they use DrawOrder 5 (dynamic last, over
+ships). gasCloud4sm_ (275 entities) is opaque DrawOrder 4 (dynamic sorted). How strong the native smart
+translucency is, and when the client applies it, is not in the format source; the client's 50% is RECONSTRUCTED.
 """
 from __future__ import annotations
 import argparse
@@ -36,6 +45,8 @@ PINNED_BLO_SOURCE = ROOT / "shared/RogueTrader.OriginalData/PinnedBloArchives.cs
 HEADER_SIZE = 5152
 ENTITY_SIZE = 17
 OBJECT_MASK = 0x1FFF
+DRAW_ORDER_DYNAMIC_LAST = 5
+ENTITY_FIELDS = ("x", "y", "object", "animationTime", "phase", "frame", "drawOrder", "translucency", "smartTranslucency")
 # Prize graphic of each mineral item: ITM item fields f[23]/f[24] (blob archive, member).
 MINERAL_ITEM_IDS = ("2003", "2005", "2019")
 
@@ -91,10 +102,12 @@ def parse_level(data: bytes) -> tuple[list[tuple[str, str]], list[tuple[str, str
     for index in range(entity_count):
         raw = data[tail + index * ENTITY_SIZE:tail + (index + 1) * ENTITY_SIZE]
         x, y, word, animation = struct.unpack_from("<hhHH", raw, 0)
+        bits_a, bits_b = struct.unpack_from("<II", raw, 4)
         obj = word & OBJECT_MASK
         if obj >= object_count:
             raise ValueError(f"Entity {index} names object {obj}; the table has {object_count}")
-        entities.append({"x": x, "y": y, "object": obj, "animationTime": animation, "phase": raw[14], "frame": word >> 13})
+        entities.append({"x": x, "y": y, "object": obj, "animationTime": animation, "phase": raw[14], "frame": word >> 13,
+            "drawOrder": (bits_b >> 26) & 7, "translucency": bits_a >> 30, "smartTranslucency": bits_b >> 31})
     return refs[:object_count], refs[object_count:], entities
 
 
@@ -205,17 +218,21 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
     uncovered = uncovered_blocked_tiles(width, height, physics, entities, [(o["width"], o["height"]) for o in object_table])
     flat = []
     for entity in entities:
-        flat += [entity["x"], entity["y"], entity["object"], entity["animationTime"], entity["phase"], entity["frame"]]
+        flat += [entity[field] for field in ENTITY_FIELDS]
 
-    level = {"schemaVersion": 1, "canonicalCommit": COMMIT,
+    over_ships = sum(1 for entity in entities if entity["drawOrder"] == DRAW_ORDER_DYNAMIC_LAST)
+    translucent = sum(1 for entity in entities if entity["translucency"] or entity["smartTranslucency"])
+    level = {"schemaVersion": 2, "canonicalCommit": COMMIT,
         "source": {"level": LVL_PATH, "levelSha256": sha(level_bytes), "items": ITM_PATH, "itemsSha256": sha(itm_bytes)},
         "entityReading": "RECONSTRUCTED: x,y = top-left of the sprite cell in map pixels; object = uint16@4 & 0x1FFF; "
             "frame = uint16@4 >> 13 (starting frame); animationTime = uint16@6 (hundredths of a second per cycle, 0 = still); "
-            "phase = byte 14 (percent).",
+            "phase = byte 14 (percent). drawOrder = uint32@8 bits 26-28, translucency = uint32@4 bits 30-31, "
+            "smartTranslucency = uint32@8 bit 31 (format source: Gibbed Level/Entity.cs).",
         "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered,
         "floors": [{"archive": a, "member": m} for a, m in floors],
         "objects": object_table, "minerals": mineral_table,
-        "entityStride": 6, "entityFields": ["x", "y", "object", "animationTime", "phase", "frame"], "entities": flat}
+        "entitiesOverShips": over_ships, "translucentEntities": translucent,
+        "entityStride": len(ENTITY_FIELDS), "entityFields": list(ENTITY_FIELDS), "entities": flat}
 
     for relative, (size, digest) in [(LVL_PATH, (len(level_bytes), sha(level_bytes))), (ITM_PATH, (len(itm_bytes), sha(itm_bytes)))]:
         read_pinned(source, relative, size, digest)
@@ -223,7 +240,8 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
         read_pinned(source, pinned, *blo_pins[pinned])
     child(out, "level.json").write_text(json.dumps(level, separators=(",", ":")) + "\n", encoding="utf-8")
     summary = {"objects": len(object_table), "minerals": len(mineral_table), "entities": len(entities),
-        "archives": len(archives), "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered, "output": str(out)}
+        "archives": len(archives), "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered,
+        "entitiesOverShips": over_ships, "translucentEntities": translucent, "output": str(out)}
     print("LEVEL_ART_STAGE_PASS " + json.dumps(summary))
     return level
 
