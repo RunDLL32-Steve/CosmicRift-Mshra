@@ -279,6 +279,30 @@ public sealed class MeteorShowerTests
     }
 
     [Fact]
+    public void MeteorsInFlight_AgeThroughTimeAway()
+    {
+        var catalog = Catalog(Spawn(attempt: 100000, succeed: 100000), lifetimeTicks: 0);
+        var world = World(catalog);
+        Run(world, 5);
+        var snapshot = world.CaptureSector();
+        Assert.NotEmpty(snapshot.MeteorsInFlight!);
+
+        // A short pause: the meteors are still there, older by the pause, and have not moved.
+        var paused = World(catalog);
+        Assert.True(paused.RestoreSector(snapshot));
+        var before = paused.Projectiles.Select(p => (p.Position, p.AgeTicks)).ToArray();
+        paused.ElapseWithoutTicking(WorldSimulation.TickRate);
+        Assert.Equal(before.Select(b => (b.Position, b.AgeTicks + WorldSimulation.TickRate)),
+            paused.Projectiles.Select(p => (p.Position, p.AgeTicks)));
+
+        // More than a meteor's 20 s life away: every meteor saved in flight is gone, so none can hit on the return.
+        var away = World(catalog);
+        Assert.True(away.RestoreSector(snapshot));
+        away.ElapseWithoutTicking(21 * WorldSimulation.TickRate);
+        Assert.Empty(away.Projectiles);
+    }
+
+    [Fact]
     public void RestoredMeteors_CannotBeFasterOrOlderThanAMeteor()
     {
         var catalog = Catalog(Spawn(attempt: 100000, succeed: 100000), lifetimeTicks: 0);

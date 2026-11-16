@@ -181,6 +181,12 @@ public sealed partial class WorldSimulation
     /// </summary>
     private void ElapseMeteorShowers(long ticks)
     {
+        // Meteors in flight age through time spent away (docked, paused or closed) like every other timer here, so one saved
+        // mid-flight cannot hit long after its 20 s life; they do not move while the world is not ticking.
+        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal)
+            && ticks >= p.LifetimeTicks - p.AgeTicks);
+        foreach (var p in _projectiles)
+            if (p.OwnerShipId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal)) p.AgeTicks += (int)ticks;
         if (_shower is null || _meteorSpawns.Length == 0)
         {
             _meteorIdleTicks = checked(_meteorIdleTicks + ticks);
