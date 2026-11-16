@@ -76,6 +76,7 @@ public static class OriginalShipBuilder
             Hyper = Hyper(flight),
             Terrains = Terrains(hull),
             WeaponId = OriginalWeaponBuilder.WeaponId(weapon),
+            Wreck = Wreck(hull, items),
             Defense = new ShipDefense { MaximumHull = hull.HullPoints.Value, MaximumShield = 0, EnergyShield = true },
             Reactor = new ShipReactor
             {
@@ -133,6 +134,27 @@ public static class OriginalShipBuilder
                     + $"HyperTopSpeed {b.HyperTopSpeed.Value}, BackwardThrust {b.BackwardThrust.Value} (-1 = RollThrust); RECONSTRUCTED units (G10 F12).",
             };
         }).ToList();
+    }
+
+    /// <summary>
+    /// The hull's own drop, VEH f[68] DropItemId x f[69] DropQuantity, resolved in ITM (RT-F043); null when either is zero or
+    /// negative. Every original player hull drops 2008 x1 (ITM row 87 Wreckage). The newer NWS lines that say a destroyed player
+    /// drops "more than 1 wreckage" (row 338) are not backed by any field the pinned data carries, so the VEH quantity is used.
+    /// </summary>
+    public static ShipWreck? Wreck(OriginalHull hull, OriginalItemCatalog items)
+    {
+        ArgumentNullException.ThrowIfNull(hull);
+        ArgumentNullException.ThrowIfNull(items);
+        if (hull.DropItemId.Value <= 0 || hull.DropQuantity.Value <= 0) return null;
+        var item = items.ById(hull.DropItemId.Value);
+        return new ShipWreck
+        {
+            ItemId = item.Id.ToString(CultureInfo.InvariantCulture),
+            Quantity = hull.DropQuantity.Value,
+            Source = $"ORIGINAL: VEH/Rogue.veh {hull.Name} (vehicle {hull.VehicleId}) f[{VehFields.DropItemId}] DropItemId={hull.DropItemId.Value}, "
+                + $"f[{VehFields.DropQuantity}] DropQuantity={hull.DropQuantity.Value}; ITM/Rogue_mp.itm row {item.RowNumber} '{item.Name}'. "
+                + "NWS/Rogue.nws row 41: a destroyed ship leaves 'a small piece of wreckage where you were'.",
+        };
     }
 
     /// <summary>The Asp is the starter; the Interceptor stays listed (last) so saves that own it keep flying it.</summary>

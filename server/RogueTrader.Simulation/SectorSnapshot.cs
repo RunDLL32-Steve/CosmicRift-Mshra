@@ -8,9 +8,12 @@ public sealed record TargetSnapshot(string Id, float Hull, float Shield, string?
 
 /// <summary>
 /// One pile still lying in space in a <see cref="SectorSnapshot"/>. <paramref name="ExpiresInTicks"/> is the time left before an
-/// unpicked mineral drop vanishes; null for a pile that never expires.
+/// unpicked mineral drop vanishes; null for a pile that never expires. <paramref name="DroppedBy"/> is the pilot whose destroyed
+/// hull left it (that pilot cannot collect it, RT-F043) and <paramref name="DroppedFrom"/> the computer that pilot played from (no
+/// pilot from it can collect it); both null for every other pile.
 /// </summary>
-public sealed record PileSnapshot(string Id, string ItemId, int Quantity, float X, float Y, float Radius, long? ExpiresInTicks = null);
+public sealed record PileSnapshot(string Id, string ItemId, int Quantity, float X, float Y, float Radius, long? ExpiresInTicks = null,
+    string? DroppedBy = null, string? DroppedFrom = null);
 
 /// <summary>
 /// One mineral spawn's timer in a <see cref="SectorSnapshot"/>. <paramref name="TicksUntilAttempt"/> is 0 only for a spawn that
@@ -53,7 +56,7 @@ public sealed partial class WorldSimulation
         TargetRespawnTick is { } at ? Math.Max(1, at - TickNumber) : null,
         Targets.Select(t => new TargetSnapshot(t.Id, t.Hull, t.Shield, t.LastDamagedByShipId, t.DestroyedByShipId, t.LastDamageWeaponId)).ToArray(),
         _collectibles.Select(p => new PileSnapshot(p.Id, p.ItemId, p.Quantity, p.Position.X, p.Position.Y, p.Radius,
-            p.ExpiresAt is { } at ? Math.Max(1, at - MineralClock) : null)).ToArray(),
+            p.ExpiresAt is { } at ? Math.Max(1, at - MineralClock) : null, p.DroppedBy, p.DroppedFrom)).ToArray(),
         _mineralSpawns.Select(s => new MineralSpawnSnapshot(s.Definition.Id,
             s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - MineralClock), s.Placed)).ToArray(),
         _mineralRandom,
@@ -125,6 +128,8 @@ public sealed partial class WorldSimulation
             _collectibles.Add(new CollectibleState(new CollectibleSpawn(pile.Id, pile.ItemId!, pile.Quantity, pile.X, pile.Y, pile.Radius))
             {
                 ExpiresAt = RestoredExpiry(pile),
+                DroppedBy = string.IsNullOrEmpty(pile.DroppedBy) ? null : pile.DroppedBy,
+                DroppedFrom = string.IsNullOrEmpty(pile.DroppedFrom) ? null : pile.DroppedFrom,
             });
         }
 

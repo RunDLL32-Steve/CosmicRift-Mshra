@@ -10,7 +10,7 @@ public partial class WorldView : Node2D
     private readonly List<Burst> _bursts = [];
     private readonly Dictionary<string, (float Hull, float Shield, bool Destroyed)> _previous = [];
     private WorldSimulation? _world;
-    private float _time;
+    private double _elapsedMilliseconds;
     public ShipInput InputState { get; set; }
     public OriginalSpriteLibrary? Originals { get; set; }
     /// <summary>The atlas bound by the most recent player draw, or null for the geometric fallback (bounded render QA).</summary>
@@ -69,7 +69,7 @@ public partial class WorldView : Node2D
 
     public override void _Process(double delta)
     {
-        _time += (float)delta;
+        _elapsedMilliseconds += delta * 1000;
         for (var i = _bursts.Count - 1; i >= 0; i--)
         {
             var burst = _bursts[i];
@@ -104,7 +104,7 @@ public partial class WorldView : Node2D
         if (_mapTexture is not null && _map is not null)
             DrawTextureRect(_mapTexture, new Rect2(Vector2.Zero, new Vector2(_map.PixelWidth, _map.PixelHeight)), false);
         if (_levelArt is not null && _map is not null)
-            foreach (var index in _levelArt.Visible(VisibleWorldRect())) _levelArt.Draw(this, index, _time);
+            foreach (var index in _levelArt.Visible(VisibleWorldRect())) _levelArt.Draw(this, index, _elapsedMilliseconds);
         DrawOrigin();
         DrawStation(Station, Amber);
         DrawStation(Refinery, new Color("e06a5a"));
@@ -127,7 +127,7 @@ public partial class WorldView : Node2D
         foreach (var burst in _bursts) DrawBurst(burst);
         // Rogue.lvl's gas clouds are "dynamic last" with smart translucency: drawn see-through over ships and shots.
         if (_levelArt is not null && _map is not null)
-            foreach (var index in _levelArt.Visible(VisibleWorldRect(), overShips: true)) _levelArt.Draw(this, index, _time);
+            foreach (var index in _levelArt.Visible(VisibleWorldRect(), overShips: true)) _levelArt.Draw(this, index, _elapsedMilliseconds);
     }
 
     private void DrawStars(Vector2 player)
@@ -204,7 +204,7 @@ public partial class WorldView : Node2D
         var seed = unchecked((int)(position.X * 73 + position.Y * 97));
         if (_levelArt?.RockFor(radius, seed) is { } rock)
         {
-            _levelArt.DrawObjectCentred(this, rock, position, _time, (int)((uint)seed % 100));
+            _levelArt.DrawObjectCentred(this, rock, position, _elapsedMilliseconds, (int)((uint)seed % 100));
             return;
         }
         var points = new Vector2[13];
@@ -254,7 +254,7 @@ public partial class WorldView : Node2D
         if (isPlayer && InputState.Thrust != 0)
         {
             var direction = InputState.Thrust > 0 ? -1 : 1;
-            var flicker = 20 + 6 * Mathf.Sin(_time * 41);
+            var flicker = 20 + 6 * Mathf.Sin((float)(_elapsedMilliseconds / 1000 * 41));
             Vector2[] flame = [new(direction * 14, -5), new(direction * (14 + flicker), 0), new(direction * 14, 5)];
             DrawColoredPolygon(flame, new Color(Teal, 0.4f));
             DrawLine(new Vector2(direction * 15, 0), new Vector2(direction * (20 + flicker * 0.65f), 0), new Color("cefff6"), 3, true);
@@ -298,8 +298,8 @@ public partial class WorldView : Node2D
     /// <summary>Mineral piles: the item's original prize sprite when staged, else a small marker; the 80-pixel pickup distance (CFG ItemPickupDistance) would hide a whole clump.</summary>
     private void DrawMineral(string itemId, Vector2 position, float radius)
     {
-        if (_levelArt is not null && _levelArt.DrawMineral(this, itemId, position, _time)) return;
-        var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 2);
+        if (_levelArt is not null && _levelArt.DrawMineral(this, itemId, position, _elapsedMilliseconds)) return;
+        var pulse = 0.5f + 0.5f * Mathf.Sin((float)(_elapsedMilliseconds / 1000 * 2));
         DrawCircle(position, 12, new Color(Amber, 0.07f + 0.05f * pulse));
         DrawArc(position, 7, 0, Mathf.Tau, 16, new Color(Amber, 0.7f), 1.5f, true);
         DrawRect(new Rect2(position - new Vector2(3, 3), new Vector2(6, 6)), new Color("ffe2b8"));
@@ -307,7 +307,7 @@ public partial class WorldView : Node2D
 
     private void DrawPile(Vector2 position, float radius)
     {
-        var pulse = 0.5f + 0.5f * Mathf.Sin(_time * 3);
+        var pulse = 0.5f + 0.5f * Mathf.Sin((float)(_elapsedMilliseconds / 1000 * 3));
         DrawCircle(position, radius, new Color(Teal, 0.08f + 0.06f * pulse));
         DrawArc(position, radius, 0, Mathf.Tau, 24, new Color(Teal, 0.6f), 1.5f, true);
         DrawRect(new Rect2(position - new Vector2(4, 4), new Vector2(8, 8)), new Color("e3fff8"));
