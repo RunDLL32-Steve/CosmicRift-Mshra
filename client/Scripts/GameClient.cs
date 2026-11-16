@@ -984,7 +984,7 @@ public partial class GameClient : Node2D
     /// Wreckage), as piles where it died, once per destruction (the drop id is the destruction's world and tick, so a retry or a
     /// relaunch can never place it twice). It runs only once the destruction is recorded, so the wreck is never dropped without
     /// the penalty, and the pilot who died can never collect their own hull's wreck (review R1-1), so a death never pays. The
-    /// piles are part of the sector, so the respawned world carries them; they expire after 720 s like other drops.
+    /// piles carry over into the respawned world and expire according to the terrain beneath each pile (720 s in open space).
     /// </summary>
     private void SpillCargo(IReadOnlyCollection<KeyValuePair<string, int>> items)
     {
