@@ -1,5 +1,10 @@
 # Changelog
 
+## The hangar keeps working after a failed save — November 16, 2026
+
+-   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).
+-   The Hangar now says so when the chosen ship's launch from the dock could not be saved, instead of reporting success.
+
 ## Gas clouds are see-through and drift over ships — November 10, 2026
 
 -   Steve's ask: gas clouds no longer draw as solid blocks. `LVL/Rogue.lvl` gives each placed sprite draw flags that the map art did not read until now (format source: Gibbed `Level/Entity.cs` at the pinned InfantryOnline tools commit). 1,408 gas clouds (gasCloud, gasCloud1*, gasCloud2* and gasCloud3sm*) are "smart translucent" and drawn last, so the client now draws them over ships, shots and explosions at 50% opacity. The 275 small dense gasCloud4sm* clouds are opaque in the level, so they stay solid and under ships. The 50% strength is RECONSTRUCTED: the format source does not give it or say when it applies.

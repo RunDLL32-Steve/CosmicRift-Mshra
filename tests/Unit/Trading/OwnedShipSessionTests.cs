@@ -128,6 +128,45 @@ public sealed class OwnedShipSessionTests
         Assert.Equal(Starter, session.Profile.ShipHullId);
     }
 
+    [Theory]
+    [InlineData(false)] // the write failed before anything was stored
+    [InlineData(true)]  // the write was stored, then the acknowledgement was lost
+    public async Task TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull(bool writeLanded)
+    {
+        var fault = writeLanded ? RogueTrader.UnitTests.Persistence.FaultMode.ThrowAfterWrite : RogueTrader.UnitTests.Persistence.FaultMode.FailBeforeWrite;
+        // Hangar save bug: one failed profile write in flight left the core waiting for a reload that the ship-save path never
+        // made, so every later ship save failed (ProfileNotOpen), the hangar refused every switch until a relaunch, and the
+        // damage taken since was never saved (the relaunch restored a healthier hull).
+        var station = StationSellingASecondHull();
+        var repo = new RogueTrader.UnitTests.Persistence.FaultInjectingProfileRepository(new InMemoryProfileRepository());
+        var session = await OpenAsync(station, repo);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyShipAsync(SecondHull, station.X, station.Y)).Status);
+        Assert.True((await session.SaveShipAsync(50, station.X + 3_000, station.Y, 0f)).Saved);
+
+        // A periodic save in flight hits a failed write.
+        repo.Mode = fault;
+        var failed = await session.SaveShipAsync(40, station.X + 2_000, station.Y, 0.5f);
+        repo.Mode = RogueTrader.UnitTests.Persistence.FaultMode.None;
+        if (writeLanded) Assert.True(failed.Saved); // the write landed; the session read it back and acknowledged it
+        else Assert.False(failed.Saved); // nothing was stored
+
+        // The disk is fine again: the next save goes through, without a relaunch, and the hull taken since is kept.
+        var docked = await session.SaveShipAsync(25, station.X, station.Y, 1f);
+        Assert.True(docked.Saved, $"The ship save after a failed write must recover, got {docked.Reason}.");
+        Assert.Equal(new ShipCondition(25, station.X, station.Y, 1f), session.Profile!.Ship);
+
+        // So the hangar switch goes through and parks the ship exactly as it docked, never the older, healthier save.
+        var switched = await session.SwitchShipAsync(SecondHull, station.X, station.Y);
+        Assert.True(switched.Saved, $"The hangar switch must not stay refused after a recovered save, got {switched.Reason}.");
+        Assert.Equal(SecondHull, session.Profile!.ShipHullId);
+        Assert.Equal(new ShipCondition(25, station.X, station.Y, 1f), session.Profile.OwnedShips[Starter]);
+
+        // And that is what is on disk: a relaunch sees the same parked hull.
+        var relaunched = await OpenAsync(station, repo);
+        Assert.Equal(SecondHull, relaunched.Profile!.ShipHullId);
+        Assert.Equal(new ShipCondition(25, station.X, station.Y, 1f), relaunched.Profile.OwnedShips[Starter]);
+    }
+
     [Fact]
     public async Task EveryOwnedShipMovesOntoTheMapOnItsOwn_EvenAfterAFailedProfileWrite()
     {
