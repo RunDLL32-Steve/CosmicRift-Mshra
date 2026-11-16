@@ -38,6 +38,12 @@ public sealed partial class WorldSimulation
     /// <summary>The tile map this world is flown on; null for an open practice sector with no walls.</summary>
     public SectorMap? Map { get; }
     public long ShotsFired { get; private set; }
+    /// <summary>Ticks on which the player held fire inside a safe zone, where weapons are offline (RT-F065).</summary>
+    public long ShotsRefusedInSafeZone { get; private set; }
+    /// <summary>Whether the player's ship is in a safe zone (CFG Safety=1): it cannot be damaged and cannot fire.</summary>
+    public bool PlayerInSafeZone => IsSafe(Player);
+
+    private bool IsSafe(ShipState ship) => Map?.IsSafeAt(ship.Position) == true;
 
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
@@ -85,9 +91,11 @@ public sealed partial class WorldSimulation
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
             if (input.Mine && TryMine()) CollectPickups(Player.Position);
-            if (engagedHyper is not { RechargeWhileEngaged: false })
-                Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
-                    Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
+            var recharge = engagedHyper is not { RechargeWhileEngaged: false }
+                ? Player.Definition.Reactor.EnergyRegenerationPerSecond : 0;
+            // A terrain's EnergyRate adds to the hull's recharge: Rogue's safe zones drain 200 energy a second (RT-F065).
+            var terrainRate = Map?.RuleAt(Player.Position).EnergyPerSecond ?? 0;
+            Player.Energy = Math.Clamp(Player.Energy + (recharge + terrainRate) * TickDuration, 0, Player.Definition.Reactor.MaximumEnergy);
             if (input.Fire)
                 TryFire();
         }
@@ -111,7 +119,8 @@ public sealed partial class WorldSimulation
 
     /// <summary>
     /// Takes hull points from the player's ship, never below zero; the ship is destroyed at zero. Returns the hull actually
-    /// removed. Nothing in the practice sector damages the player yet, so this is the entry point for hazards, enemy fire and
+    /// removed. This direct hook ignores safe zones (acceptance checks use it at a dock); hazards that call it must check
+    /// <see cref="PlayerInSafeZone"/> first, as shots do. Nothing in the practice sector damages the player yet, so this is the entry point for hazards, enemy fire and
     /// acceptance checks of the destruction rule (Steve, Nov 3 2026).
     /// </summary>
     public float DamagePlayer(float hullPoints)
@@ -295,6 +304,11 @@ public sealed partial class WorldSimulation
         var weapon = Player.Weapon;
         if (TickNumber < Player.NextFireTick || Player.Energy < weapon.EnergyCost)
             return;
+        if (IsSafe(Player))
+        {
+            ShotsRefusedInSafeZone++;
+            return;
+        }
         Player.Energy -= weapon.EnergyCost;
         Player.NextFireTick = TickNumber + Math.Max(1, (int)MathF.Ceiling(weapon.CooldownSeconds * TickRate));
         var direction = Direction(Player.Heading);
@@ -314,16 +328,18 @@ public sealed partial class WorldSimulation
             var end = projectile.Position + projectile.Velocity * TickDuration;
             var hitFraction = float.PositiveInfinity;
             ShipState? hitShip = null;
-            if (Map is not null && MapCollision.Sweep(Map, projectile.Position, end, out var wall)) hitFraction = wall;
+            if (Map is not null && MapCollision.SweepProjectile(Map, projectile.Position, end, out var terrainHit))
+                hitFraction = terrainHit;
             foreach (var asteroid in Asteroids)
             {
                 if (CircleCollision.Sweep(projectile.Position, end, asteroid.Position,
                         projectile.Radius + asteroid.Radius, out var fraction) && fraction < hitFraction)
                     hitFraction = fraction;
             }
+            // A ship in a safe zone cannot be hit: the shot flies on through it (RT-F065).
             foreach (var target in Targets)
             {
-                if (!target.IsDestroyed && target.Id != projectile.OwnerShipId
+                if (!target.IsDestroyed && target.Id != projectile.OwnerShipId && !IsSafe(target)
                     && CircleCollision.Sweep(projectile.Position, end, target.Position,
                         projectile.Radius + target.Radius, out var fraction) && fraction < hitFraction)
                 {
