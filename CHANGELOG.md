@@ -1,10 +1,21 @@
 # Changelog
 
+## The hangar keeps working after a failed save — November 16, 2026
+
+-   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).
+-   The Hangar now says so when the chosen ship's launch from the dock could not be saved, instead of reporting success.
+
 ## Gas clouds are see-through and drift over ships — November 10, 2026
 
 -   Steve's ask: gas clouds no longer draw as solid blocks. `LVL/Rogue.lvl` gives each placed sprite draw flags that the map art did not read until now (format source: Gibbed `Level/Entity.cs` at the pinned InfantryOnline tools commit). 1,408 gas clouds (gasCloud, gasCloud1*, gasCloud2* and gasCloud3sm*) are "smart translucent" and drawn last, so the client now draws them over ships, shots and explosions at 50% opacity. The 275 small dense gasCloud4sm* clouds are opaque in the level, so they stay solid and under ships. The 50% strength is RECONSTRUCTED: the format source does not give it or say when it applies.
 -   Two other visible changes come from the same flags. The 61 safe-zone floor markings that the level marks smart translucent now also draw at 50%, still under ships. The 37 animated station dishes (`Dish_ani_`) are opaque but marked "drawn last", so they now draw over ships.
 -   `level.json` moves to schema 2; `scripts/run-client.ps1` re-stages an older copy on its own. No gameplay change.
+
+## Shots fly at their original speed and range — November 9, 2026
+
+-   G10 W2/W3: the starting Plasma Cannon, Bio Cannon and D-Cannon now fire at their original speed and lifetime. A shot leaves at 220 px/s plus the ship's own speed and lives 5.5 s, about 1,210 px from a ship at rest (was 700 px/s for 2.5 s, invented). Fired straight ahead at the Asp's top speed it flies 545 px/s; a shot fired from rest cannot catch a ship fleeing at top speed.
+-   RECONSTRUCTED readings, from the InfantryOnline emulator (bb97579): muzzleVelocity is thousandths of a pixel per 10 ms tick, the same unit that gives the Asp its 325 px/s (lead-aim code `Vehicle.Computer.cs:202`, `Bot/WeaponController.cs:197/205`, `Math.cs:207–230`), and aliveTime is in 10 ms ticks like fireDelay. `OriginalShipPhysics.MuzzleVelocityPixelsPerSecond` and `LifetimeSeconds` hold the two readings and refuse negative sentinels and still projectiles. No native measurement has confirmed them; FLIGHT_FIELD_EVIDENCE section 5 now lists the shot and ship-size checks for a local run.
+-   The G10 table marks W2, W3, W5 and F11 (radius 21 px since #120) as matching the original reading, and its tests now measure the derived Asp and Plasma Cannon. The legacy Interceptor's NEW `plasma_cannon.json` is unchanged. [G10_VALIDATION.md](docs/original-research/G10_VALIDATION.md).
 
 ## The radar uses the original colours and frame — November 9, 2026
 
@@ -29,15 +40,14 @@
 
 ## Armour protects against Kinetic, Explosive and Energy damage — November 8, 2026
 
--   Every weapon now does one of the three original hull damage types (NWS row 133): the three starting cannons do Energy damage, Mass Drivers Kinetic and Moltor weapons Explosive.
+-   The three original starting cannons now deal Energy hull damage. NWS row 133 names three hull damage types, and the pinned weapon records identify Mass Drivers as Kinetic and Moltor weapons as Explosive.
 -   The nine armours at the station now protect the way their help text says, from their original values (ITM f[52..57], the emulator's utility-item armour pairs): each hit first loses the ignored points, then the armour stops a share of the rest. Ablative Shell stops nothing against Kinetic; Sillicate stops nothing against Energy. Armour still slows the ship, and the invented "+ hull points" bonus is gone. The station list shows each armour's protection.
--   Armour only matters once the shield is empty, as before. The percent unit (read as tenths of a percent), Remove Armor at the Repair Dock, and the speed-block field order stay open. [Evidence](docs/development-log/2026-11-08-armour-damage-types.md).
+-   Armour reduces hull damage when a hit exceeds what the shield can absorb. Shield drain is unchanged. The percent unit (read as tenths of a percent), Remove Armor at the Repair Dock, and the speed-block field order stay open. [Evidence](docs/development-log/2026-11-08-armour-damage-types.md).
 
-## Shots fly at their original speed and range — November 9, 2026
+## Ships fly slower inside docks and trade zones — November 4, 2026
 
--   G10 W2/W3: the starting Plasma Cannon, Bio Cannon and D-Cannon now fire at their original speed and lifetime. A shot leaves at 220 px/s plus the ship's own speed and lives 5.5 s, about 1,210 px from a ship at rest (was 700 px/s for 2.5 s, invented). Fired straight ahead at the Asp's top speed it flies 545 px/s; a shot fired from rest cannot catch a ship fleeing at top speed.
--   RECONSTRUCTED readings, from the InfantryOnline emulator (bb97579): muzzleVelocity is thousandths of a pixel per 10 ms tick, the same unit that gives the Asp its 325 px/s (lead-aim code `Vehicle.Computer.cs:202`, `Bot/WeaponController.cs:197/205`, `Math.cs:207–230`), and aliveTime is in 10 ms ticks like fireDelay. `OriginalShipPhysics.MuzzleVelocityPixelsPerSecond` and `LifetimeSeconds` hold the two readings and refuse negative sentinels and still projectiles. No native measurement has confirmed them; FLIGHT_FIELD_EVIDENCE section 5 now lists the shot and ship-size checks for a local run.
--   The G10 table marks W2, W3, W5 and F11 (radius 21 px since #120) as matching the original reading, and its tests now measure the derived Asp and Plasma Cannon. The legacy Interceptor's NEW `plasma_cannon.json` is unchanged. [G10_VALIDATION.md](docs/original-research/G10_VALIDATION.md).
+-   Inside a Repair Dock, a SpaceDock or a Trading Post / refinery zone your ship now flies with the original values each hull has for that zone (VEH terrain blocks 9, 10 and 15): a top speed of 300 px/s, a slower turn (150°/s in docks, 195°/s in trade zones; the Hornet keeps its 248°/s in trade zones), and friction, so a coasting ship keeps only 24 % of its speed per second in a dock and 39 % in a trade zone. Holding thrust in a dock settles at about 117 px/s. The Shift boost does not work in these zones and costs no energy there. Open space is unchanged.
+-   Upgrades raise dock flight by the same share as open-space flight. The values are the hull data read in the same units as open space; the emulator looks up the zone's block but never applies it, so this is a reconstruction (G10 F12, now MATCH). Client prediction does not know the zones yet, like the walls.
 
 ## Selected hull sprite correction — November 4, 2026
 

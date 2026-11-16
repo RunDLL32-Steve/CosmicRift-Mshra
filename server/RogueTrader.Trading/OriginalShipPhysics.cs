@@ -16,9 +16,12 @@ public static class OriginalShipPhysics
     /// <summary>NEW scale factor: thrust is stored as acceleration × this mass.</summary>
     public const float Mass = 100;
 
-    public static ShipPhysics From(OriginalHull hull)
+    private const float ProjectileTimeTicksPerSecond = 100;
+
+    /// <summary>The hull's physics in terrain <paramref name="terrainIndex"/> (0, open space, unless asked otherwise).</summary>
+    public static ShipPhysics From(OriginalHull hull, int terrainIndex = 0)
     {
-        var reading = EmulatorFlightReading.From(hull);
+        var reading = EmulatorFlightReading.From(hull, terrainIndex);
         return new ShipPhysics
         {
             Mass = Mass,
@@ -34,7 +37,7 @@ public static class OriginalShipPhysics
     public static IReadOnlyDictionary<string, ShipPhysics> All(OriginalHullCatalog hulls)
     {
         ArgumentNullException.ThrowIfNull(hulls);
-        return hulls.Hulls.ToDictionary(h => h.Name, From);
+        return hulls.Hulls.ToDictionary(h => h.Name, h => From(h));
     }
 
     /// <summary>
@@ -44,7 +47,7 @@ public static class OriginalShipPhysics
     public static float FireIntervalSeconds(OriginalProjectile projectile)
     {
         ArgumentNullException.ThrowIfNull(projectile);
-        return projectile.FireDelay.Value * 10 / 1000f;
+        return projectile.FireDelay.Value / ProjectileTimeTicksPerSecond;
     }
 
     /// <summary>
@@ -79,6 +82,6 @@ public static class OriginalShipPhysics
         ArgumentNullException.ThrowIfNull(projectile);
         if (projectile.AliveTime.Value <= 0)
             throw new OriginalDataException($"{projectile.Item.Name}: aliveTime {projectile.AliveTime} is a sentinel whose meaning is open, not a lifetime.");
-        return projectile.AliveTime.Value * 10 / 1000f;
+        return projectile.AliveTime.Value / ProjectileTimeTicksPerSecond;
     }
 }

@@ -88,13 +88,19 @@ public sealed class EmulatorFlightReading
     public double SecondsPerRevolution => 360 / TurnDegreesPerSecond;
 
     /// <summary>
+    /// The share of speed the friction formula takes away per 10 ms: <c>RollFriction × 800 / 256 / 10</c> per mille (45 → 0.0140625,
+    /// 30 → 0.009375, 0 in open space). A step of <c>s</c> ms keeps <c>1 − this × s / 10</c> of the speed.
+    /// </summary>
+    public double FrictionLossPerTenMilliseconds => Block.RollFriction.Value * 800.0 / 256 / 10 / 1000;
+
+    /// <summary>
     /// Share of speed left after one second of coasting when the bot updates every <paramref name="stepMilliseconds"/>. The
     /// bot's friction depends on its update step, so this is not a time-invariant law; 1 whenever RollFriction is 0.
     /// </summary>
     public double FrictionRetainedPerSecond(double stepMilliseconds)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(stepMilliseconds);
-        var perStep = (1000 - Block.RollFriction.Value * 800.0 / 256 / 10 * (stepMilliseconds / 10)) / 1000;
+        var perStep = 1 - FrictionLossPerTenMilliseconds * (stepMilliseconds / 10);
         return Math.Pow(perStep, 1000 / stepMilliseconds);
     }
 }

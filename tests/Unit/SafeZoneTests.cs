@@ -32,8 +32,9 @@ public sealed class SafeZoneTests
         return new SectorMap(40, 40, tiles, Expire, terrainRules: rules);
     }
 
-    private static WorldSimulation World(SectorMap map, float x, float heading, TargetDefinition[]? targets = null, ShipDefinition? ship = null) =>
-        new(TestWorld.Catalog(ship: ship, sector: new SectorDefinition
+    private static WorldSimulation World(SectorMap map, float x, float heading, TargetDefinition[]? targets = null, ShipDefinition? ship = null,
+        WeaponDefinition? weapon = null) =>
+        new(TestWorld.Catalog(ship: ship, weapon: weapon, sector: new SectorDefinition
         {
             PlayerSpawn = new SpawnDefinition { X = x, Y = 320, Heading = heading },
             Targets = targets ?? [],
@@ -57,6 +58,21 @@ public sealed class SafeZoneTests
         open.Tick(new ShipInput(0, 0, true));
         Assert.Equal(1, open.ShotsFired);
         Assert.Equal(0, open.ShotsRefusedInSafeZone);
+    }
+
+    [Fact]
+    public void A_DeleteLiveWeaponsTile_StopsAShotBeforeALaterHitOnTheSameTick()
+    {
+        var weapon = new WeaponDefinition { MuzzleVelocity = 30_000 };
+        var target = new TargetDefinition { X = 560, Y = 320, Radius = 10 };
+        var deleting = World(Fixture(RogueLikeRules()), 250, 0, [target], weapon: weapon);
+        deleting.Tick(new ShipInput(0, 0, true));
+        Assert.Equal(40, deleting.Targets[0].Shield);
+        Assert.Empty(deleting.Projectiles);
+
+        var crossing = World(Fixture(RogueLikeRules(storeZoneDeletesShots: false)), 250, 0, [target], weapon: weapon);
+        crossing.Tick(new ShipInput(0, 0, true));
+        Assert.True(crossing.Targets[0].Shield < 40);
     }
 
     [Fact]
@@ -112,6 +128,36 @@ public sealed class SafeZoneTests
         var open = World(map, 240, 0, ship: ship);
         TestWorld.Tick(open, WorldSimulation.TickRate);
         Assert.Equal(1700, open.Player.Energy);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_SafeZonesEnergyRate_AppliesWithEitherTerrainBoostRechargePolicy(bool rechargeWhileEngaged)
+    {
+        // NEW fixture: boost is enabled in this terrain only, to exercise the combination of boost and terrain energy rules.
+        var boost = new ShipHyper
+        {
+            ForwardThrust = 100,
+            ReverseThrust = 100,
+            MaximumSpeed = 200,
+            EnergyPerSecond = 60,
+            RechargeWhileEngaged = rechargeWhileEngaged,
+        };
+        var ship = new ShipDefinition
+        {
+            Reactor = new ShipReactor { MaximumEnergy = 1700, EnergyRegenerationPerSecond = 105 },
+            Terrains = [new ShipTerrainFlight { Terrain = 9, Hyper = boost }],
+        };
+        var world = World(Fixture(RogueLikeRules()), 80, 0, ship: ship);
+        var initialEnergy = world.Player.Energy;
+
+        world.Tick(new ShipInput(1, 0, false, Hyper: true));
+
+        Assert.True(world.Player.IsHyperEngaged);
+        var recharge = rechargeWhileEngaged ? ship.Reactor.EnergyRegenerationPerSecond : 0;
+        var expectedRate = recharge - boost.EnergyPerSecond - 200;
+        Assert.Equal(initialEnergy + expectedRate * WorldSimulation.TickDuration, world.Player.Energy, 3);
     }
 
     [Fact]
