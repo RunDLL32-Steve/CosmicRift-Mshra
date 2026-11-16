@@ -38,6 +38,12 @@ public sealed partial class WorldSimulation
     /// <summary>The tile map this world is flown on; null for an open practice sector with no walls.</summary>
     public SectorMap? Map { get; }
     public long ShotsFired { get; private set; }
+    /// <summary>Ticks on which the player held fire inside a safe zone, where weapons are offline (RT-F065).</summary>
+    public long ShotsRefusedInSafeZone { get; private set; }
+    /// <summary>Whether the player's ship is in a safe zone (CFG Safety=1): it cannot be damaged and cannot fire.</summary>
+    public bool PlayerInSafeZone => IsSafe(Player);
+
+    private bool IsSafe(ShipState ship) => Map?.IsSafeAt(ship.Position) == true;
 
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
@@ -81,13 +87,15 @@ public sealed partial class WorldSimulation
         if (!Player.IsDestroyed)
         {
             var previous = Player.Position;
-            MovePlayer(input);
+            var engagedHyper = MovePlayer(input);
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
             if (input.Mine && TryMine()) CollectPickups(Player.Position);
-            if (!Player.IsHyperEngaged || Player.Definition.Hyper!.RechargeWhileEngaged)
-                Player.Energy = MathF.Min(Player.Definition.Reactor.MaximumEnergy,
-                    Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
+            var recharge = engagedHyper is not { RechargeWhileEngaged: false }
+                ? Player.Definition.Reactor.EnergyRegenerationPerSecond : 0;
+            // A terrain's EnergyRate adds to the hull's recharge: Rogue's safe zones drain 200 energy a second (RT-F065).
+            var terrainRate = Map?.RuleAt(Player.Position).EnergyPerSecond ?? 0;
+            Player.Energy = Math.Clamp(Player.Energy + (recharge + terrainRate) * TickDuration, 0, Player.Definition.Reactor.MaximumEnergy);
             if (input.Fire)
                 TryFire();
         }
@@ -111,7 +119,8 @@ public sealed partial class WorldSimulation
 
     /// <summary>
     /// Takes hull points from the player's ship, never below zero; the ship is destroyed at zero. Returns the hull actually
-    /// removed. Nothing in the practice sector damages the player yet, so this is the entry point for hazards, enemy fire and
+    /// removed. This direct hook ignores safe zones (acceptance checks use it at a dock); hazards that call it must check
+    /// <see cref="PlayerInSafeZone"/> first, as shots do. Nothing in the practice sector damages the player yet, so this is the entry point for hazards, enemy fire and
     /// acceptance checks of the destruction rule (Steve, Nov 3 2026).
     /// </summary>
     public float DamagePlayer(float hullPoints)
@@ -209,12 +218,65 @@ public sealed partial class WorldSimulation
         TargetRespawnTick = previous.TargetRespawnTick is { } at ? TickNumber + Math.Max(1, at - previous.TickNumber) : null;
     }
 
-    private void MovePlayer(ShipInput input)
+    private ShipHyper? MovePlayer(ShipInput input)
     {
         var previous = Player.Position;
-        AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        var flight = Map is null ? null : Player.Definition.TerrainFlight(Map.TerrainAt(previous));
+        if (flight is null)
+            AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        else
+            StepInTerrain(input, flight);
         // Walls are server-side only for now: the shared C7 motion path (and so client prediction) does not know the map yet.
         if (Map is not null && MapCollision.MoveShip(Player, previous, Map, TickDuration)) WallCollisions++;
+        var hyper = flight is null ? Player.Definition.Hyper : flight.Hyper;
+        return Player.IsHyperEngaged ? hyper : null;
+    }
+
+    private (ShipDefinition Own, ShipTerrainFlight Flight, ShipDefinition Flown)? _terrainFlight;
+
+    /// <summary>The fraction of its speed a ship keeps over one tick in a terrain with this friction (the emulator's formula).</summary>
+    public static float TerrainSpeedRetainedPerTick(ShipTerrainFlight flight)
+    {
+        ArgumentNullException.ThrowIfNull(flight);
+        return 1 - flight.FrictionPerTenMilliseconds * (TickDuration * 1000 / 10);
+    }
+
+    // F12: inside a dock or trade zone (the terrain under the ship's centre at the start of the tick) the hull flies that terrain's
+    // values. The emulator bot's order is thrust, then friction, then the top-speed clamp: (v + a·dt)·f. The shared motion step
+    // is thrust then clamp, so the speed is scaled by f first and the thrust by f too, which gives exactly (v + a·dt)·f before the
+    // clamp. Like the walls this runs only here, not in the shared C7 motion path, so client prediction does not know terrains yet.
+    private void StepInTerrain(ShipInput input, ShipTerrainFlight flight)
+    {
+        var own = Player.Definition;
+        if (_terrainFlight is not { } cached || !ReferenceEquals(cached.Own, own) || !ReferenceEquals(cached.Flight, flight))
+        {
+            var keep = TerrainSpeedRetainedPerTick(flight);
+            var flown = own with
+            {
+                Physics = flight.Physics with
+                {
+                    ForwardThrust = flight.Physics.ForwardThrust * keep,
+                    ReverseThrust = flight.Physics.ReverseThrust * keep,
+                },
+                Hyper = flight.Hyper is { } hyper ? hyper with
+                {
+                    ForwardThrust = hyper.ForwardThrust * keep,
+                    ReverseThrust = hyper.ReverseThrust * keep,
+                } : null,
+            };
+            cached = (own, flight, flown);
+            _terrainFlight = cached;
+        }
+        Player.Velocity *= TerrainSpeedRetainedPerTick(flight);
+        Player.Definition = cached.Flown;
+        try
+        {
+            AsteroidCollisions += ShipMotion.Step(Player, Asteroids, input);
+        }
+        finally
+        {
+            Player.Definition = own;
+        }
     }
 
     // Piles are visited in catalog order and the swept ship path catches piles passed between ticks. A pile the hold cannot
@@ -242,6 +304,11 @@ public sealed partial class WorldSimulation
         var weapon = Player.Weapon;
         if (TickNumber < Player.NextFireTick || Player.Energy < weapon.EnergyCost)
             return;
+        if (IsSafe(Player))
+        {
+            ShotsRefusedInSafeZone++;
+            return;
+        }
         Player.Energy -= weapon.EnergyCost;
         Player.NextFireTick = TickNumber + Math.Max(1, (int)MathF.Ceiling(weapon.CooldownSeconds * TickRate));
         var direction = Direction(Player.Heading);
@@ -261,16 +328,18 @@ public sealed partial class WorldSimulation
             var end = projectile.Position + projectile.Velocity * TickDuration;
             var hitFraction = float.PositiveInfinity;
             ShipState? hitShip = null;
-            if (Map is not null && MapCollision.Sweep(Map, projectile.Position, end, out var wall)) hitFraction = wall;
+            if (Map is not null && MapCollision.SweepProjectile(Map, projectile.Position, end, out var terrainHit))
+                hitFraction = terrainHit;
             foreach (var asteroid in Asteroids)
             {
                 if (CircleCollision.Sweep(projectile.Position, end, asteroid.Position,
                         projectile.Radius + asteroid.Radius, out var fraction) && fraction < hitFraction)
                     hitFraction = fraction;
             }
+            // A ship in a safe zone cannot be hit: the shot flies on through it (RT-F065).
             foreach (var target in Targets)
             {
-                if (!target.IsDestroyed && target.Id != projectile.OwnerShipId
+                if (!target.IsDestroyed && target.Id != projectile.OwnerShipId && !IsSafe(target)
                     && CircleCollision.Sweep(projectile.Position, end, target.Position,
                         projectile.Radius + target.Radius, out var fraction) && fraction < hitFraction)
                 {
