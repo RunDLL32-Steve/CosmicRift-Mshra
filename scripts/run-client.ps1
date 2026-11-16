@@ -4,7 +4,9 @@ param([switch]$NoBuild)
 Push-Location $repoRoot
 try {
     $levelArt = Join-Path $repoRoot 'client/OriginalContent/level/level.json'
-    if (-not (Test-Path -LiteralPath $levelArt) -and (Test-Path -LiteralPath (Join-Path $repoRoot '.tools/references/cosmic-rift-assets/LVL/Rogue.lvl'))) {
+    # Re-stage when the staged copy is missing or predates schema 2 (draw order and translucency for the gas clouds).
+    $levelArtCurrent = (Test-Path -LiteralPath $levelArt) -and (Select-String -LiteralPath $levelArt -Pattern '"schemaVersion":2,' -SimpleMatch -Quiet)
+    if (-not $levelArtCurrent -and (Test-Path -LiteralPath (Join-Path $repoRoot '.tools/references/cosmic-rift-assets/LVL/Rogue.lvl'))) {
         # Original map art (asteroids, stations, walls); without it the game draws its plain NEW tiles.
         & python (Join-Path $PSScriptRoot 'original-assets/stage_level_art.py')
         if ($LASTEXITCODE -ne 0) { Write-Warning 'Original map art was not staged; run scripts/sync-reference-assets.ps1, then try again.' }
