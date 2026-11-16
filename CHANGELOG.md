@@ -5,11 +5,23 @@
 -   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).
 -   The Hangar now says so when the chosen ship's launch from the dock could not be saved, instead of reporting success.
 
+## Map art timing and gas-cloud shading from the LVL format source — November 10, 2026
+
+-   Every placed sprite in `LVL/Rogue.lvl` is now read with the format source's field layout (Gibbed `Level/Entity.cs`): a 7-bit starting frame, a 10-bit AnimationTime, TimeDelta, the draw flags, and the signed Value and Saturation, Hue, light, palette shift and the remaining uninterpreted bits. `level.json` moves to schema 4 (19 fields per sprite); `run-client.ps1` re-stages older copies. The old reading took 16 x AnimationTime as a cycle length and Hue as a start phase.
+-   Animation timing, RECONSTRUCTED: entity and CFS AnimationTime are milliseconds per frame (Gibbed's Blob Editor steps one frame per CFS AnimationTime ms; the Rogue.lvl entity values sit in the same range as the CFS values), and 0 is a still frame. Gas clouds now loop in 8.7 s (58 frames x 150 ms) instead of 24 s, rocks turn in 15 s or 18 s instead of 40 s or 48 s, and mineral prize sprites run at 150 ms (Tellerium, Krandazite) and 80 ms (Iron Ore) per frame.
+-   The 927 gas clouds with Value -10 draw 10% darker (percent scale RECONSTRUCTED), on top of the 50% smart translucency. Hue, Saturation and light are staged but not applied because their scale is unknown and Hue is also set on stations, walls and safe-zone markings. The gas cloud CFS files have blit mode 0 and no shadow or light indices, so no additional shadow or light indices are available to apply. RT-F074 stays open.
+
 ## Gas clouds are see-through and drift over ships — November 10, 2026
 
 -   Steve's ask: gas clouds no longer draw as solid blocks. `LVL/Rogue.lvl` gives each placed sprite draw flags that the map art did not read until now (format source: Gibbed `Level/Entity.cs` at the pinned InfantryOnline tools commit). 1,408 gas clouds (gasCloud, gasCloud1*, gasCloud2* and gasCloud3sm*) are "smart translucent" and drawn last, so the client now draws them over ships, shots and explosions at 50% opacity. The 275 small dense gasCloud4sm* clouds are opaque in the level, so they stay solid and under ships. The 50% strength is RECONSTRUCTED: the format source does not give it or say when it applies.
 -   Two other visible changes come from the same flags. The 61 safe-zone floor markings that the level marks smart translucent now also draw at 50%, still under ships. The 37 animated station dishes (`Dish_ani_`) are opaque but marked "drawn last", so they now draw over ships.
 -   `level.json` moves to schema 2; `scripts/run-client.ps1` re-stages an older copy on its own. No gameplay change.
+
+## Shots fly at their original speed and range — November 9, 2026
+
+-   G10 W2/W3: the starting Plasma Cannon, Bio Cannon and D-Cannon now fire at their original speed and lifetime. A shot leaves at 220 px/s plus the ship's own speed and lives 5.5 s, about 1,210 px from a ship at rest (was 700 px/s for 2.5 s, invented). Fired straight ahead at the Asp's top speed it flies 545 px/s; a shot fired from rest cannot catch a ship fleeing at top speed.
+-   RECONSTRUCTED readings, from the InfantryOnline emulator (bb97579): muzzleVelocity is thousandths of a pixel per 10 ms tick, the same unit that gives the Asp its 325 px/s (lead-aim code `Vehicle.Computer.cs:202`, `Bot/WeaponController.cs:197/205`, `Math.cs:207–230`), and aliveTime is in 10 ms ticks like fireDelay. `OriginalShipPhysics.MuzzleVelocityPixelsPerSecond` and `LifetimeSeconds` hold the two readings and refuse negative sentinels and still projectiles. No native measurement has confirmed them; FLIGHT_FIELD_EVIDENCE section 5 now lists the shot and ship-size checks for a local run.
+-   The G10 table marks W2, W3, W5 and F11 (radius 21 px since #120) as matching the original reading, and its tests now measure the derived Asp and Plasma Cannon. The legacy Interceptor's NEW `plasma_cannon.json` is unchanged. [G10_VALIDATION.md](docs/original-research/G10_VALIDATION.md).
 
 ## The radar uses the original colours and frame — November 9, 2026
 
@@ -30,6 +42,12 @@
 -   A shot that flies into a SpaceDock store zone or a refinery/trade zone disappears there (`DeleteLiveWeapons=1` on terrains 10 and 15). Shots still cross a Repair Dock (`DeleteLiveWeapons=0`), and they cannot damage a ship inside one.
 -   Sitting in any of the three zones drains energy (`EnergyRate=-2000`, read in tenths per second like the hull's own 1,050 recharge). The drain is added to the hull's recharge, so a 105-per-second hull loses 95 a second and empties in about 18 s, never going below 0. The news line of 9/06/01 says "You now lose energy when you sit in a safe zone surrounding a refinery/trading post. Dont dawdle." The CFG applies the same drain at the SpaceDocks and Repair Docks. Adding the drain to the recharge, and the unit, are NEW readings. Because energy is the shield, a ship that waits in a dock leaves with an empty shield.
 -   The rules travel in `data/sectors/rogue_map.json` (`terrainRules`, derived by `OriginalMapBuilder` from the CFG and still checked against the pinned originals). `WorldSimulation.DamagePlayer` stays a direct hook that ignores safe zones, so the station acceptance run can still damage a docked ship. Not done yet: the 60-second limit in Repair Docks and trade zones (`MaxTimeAllowed=60`, NWS 8/27/01 "sent to spec"), which needs a ruling on what "spec" means here, and client prediction of the energy drain (C7).
+
+## Armour protects against Kinetic, Explosive and Energy damage — November 8, 2026
+
+-   The three original starting cannons now deal Energy hull damage. NWS row 133 names three hull damage types, and the pinned weapon records identify Mass Drivers as Kinetic and Moltor weapons as Explosive.
+-   The nine armours at the station now protect the way their help text says, from their original values (ITM f[52..57], the emulator's utility-item armour pairs): each hit first loses the ignored points, then the armour stops a share of the rest. Ablative Shell stops nothing against Kinetic; Sillicate stops nothing against Energy. Armour still slows the ship, and the invented "+ hull points" bonus is gone. The station list shows each armour's protection.
+-   Armour reduces hull damage when a hit exceeds what the shield can absorb. Shield drain is unchanged. The percent unit (read as tenths of a percent), Remove Armor at the Repair Dock, and the speed-block field order stay open. [Evidence](docs/development-log/2026-11-08-armour-damage-types.md).
 
 ## Ships fly slower inside docks and trade zones — November 4, 2026
 

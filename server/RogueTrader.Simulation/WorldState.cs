@@ -85,6 +85,8 @@ public sealed class ProjectileState
     public float Damage { get; }
     /// <summary>The weapon's shield drain per hit; null for a weapon under the NEW point-for-point absorption rule.</summary>
     public float? ShieldDrain { get; }
+    /// <summary>The weapon's hull damage type, which the target's armour protects against; null for an untyped weapon.</summary>
+    public DamageType? DamageType { get; }
     public int AgeTicks { get; internal set; }
     public int LifetimeTicks { get; }
 
@@ -98,6 +100,7 @@ public sealed class ProjectileState
         Radius = owner.Weapon.ProjectileRadius;
         Damage = owner.Weapon.Damage;
         ShieldDrain = owner.Weapon.ShieldDrain;
+        DamageType = owner.Weapon.DamageType;
         LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(owner.Weapon.LifetimeSeconds * WorldSimulation.TickRate));
     }
 }
