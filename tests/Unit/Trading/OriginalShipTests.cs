@@ -40,6 +40,23 @@ public sealed class OriginalShipTests
     }
 
     [RequiresOriginalAssetsFact]
+    public void EveryHullLeavesOneOriginalWreckageWhenDestroyed()
+    {
+        // RT-F043: VEH f[68] DropItemId = 2008 and f[69] DropQuantity = 1 on all twelve hulls; 2008 is ITM row 87 Wreckage,
+        // which the station's cargo catalog keys as "2008".
+        var station = StationDefinition.FromJson(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ShipsDir())!, "stations", "trading_outpost.json")));
+        foreach (var hull in Hulls.Hulls)
+        {
+            var wreck = OriginalShipBuilder.Ship(hull, Items).Wreck;
+            Assert.NotNull(wreck);
+            Assert.Equal(("2008", 1), (wreck.ItemId, wreck.Quantity));
+            Assert.Contains("f[68] DropItemId=2008", wreck.Source);
+            Assert.Contains("row 87 'Wreckage'", wreck.Source);
+            Assert.Equal("Wreckage", station.Goods.Single(g => g.Id == wreck.ItemId).Name);
+        }
+    }
+
+    [RequiresOriginalAssetsFact]
     public void EveryHullCarriesItsOriginalFlightHoldAndHullValues()
     {
         var hulls = Hulls;
