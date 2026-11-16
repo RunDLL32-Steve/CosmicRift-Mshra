@@ -61,7 +61,7 @@ public sealed class UpgradeEffectsTests
     }
 
     [Fact]
-    public void Boosters_RaiseThrustAndSpeed_ArmorAddsHullButSlows()
+    public void Boosters_RaiseThrustAndSpeed_ArmorProtectsButSlows()
     {
         var station = Station();
         var ship = new ShipDefinition();
@@ -71,8 +71,11 @@ public sealed class UpgradeEffectsTests
         Assert.Equal(ship.Physics.MaximumSpeed * 1.05f, boosted.Physics.MaximumSpeed, 3);
 
         var armored = UpgradeEffects.Apply(ship, station, [station.Upgrades.Single(u => u.Name == "Duraplas Armor").Id]);
-        Assert.Equal(ship.Defense.MaximumHull + 25, armored.Defense.MaximumHull, 3);
+        Assert.Equal(ship.Defense.MaximumHull, armored.Defense.MaximumHull, 3); // no invented hull bonus any more (RT-F041)
         Assert.True(armored.Physics.MaximumSpeed < ship.Physics.MaximumSpeed);
+        Assert.Equal(0.045f, armored.Defense.Armor!.Kinetic.Reduction, 4);
+        Assert.Equal(0.025f, armored.Defense.Armor.Explosive.Reduction, 4);
+        Assert.Equal(0.015f, armored.Defense.Armor.Energy.Reduction, 4);
     }
 
     [Fact]
@@ -97,6 +100,34 @@ public sealed class UpgradeEffectsTests
         Assert.Equal(350 * 1.05f, turbo.Hyper!.MaximumSpeed, 3);
         Assert.Equal(18750 * 1.05f, turbo.Hyper.ForwardThrust, 1);
         Assert.Null(UpgradeEffects.Apply(new ShipDefinition(), station, [station.Upgrades.Single(u => u.Name == "TurboBoosters").Id]).Hyper);
+    }
+
+    [Fact]
+    public void Upgrades_ScaleDockAndTradeZoneFlightLikeOpenSpace()
+    {
+        // F12: an upgrade helps inside docks too, and a dock never flies faster than open space (armour slows both alike).
+        var station = Station();
+        var dockHyper = new ShipHyper { ForwardThrust = 100, ReverseThrust = 100, MaximumSpeed = 200, EnergyPerSecond = 5 };
+        var ship = new ShipDefinition
+        {
+            Physics = new ShipPhysics { ForwardThrust = 16870, ReverseThrust = 16870, MaximumSpeed = 325, RotationSpeed = 3.6f },
+            Terrains =
+            [
+                new ShipTerrainFlight { Terrain = 9, FrictionPerTenMilliseconds = 0.0140625f, Physics = new ShipPhysics { ForwardThrust = 16870, ReverseThrust = 16870, MaximumSpeed = 300, RotationSpeed = 2.6f } },
+                new ShipTerrainFlight { Terrain = 15, Hyper = dockHyper, Physics = new ShipPhysics { MaximumSpeed = 300 } },
+            ],
+        };
+        foreach (var upgrade in station.Upgrades.Where(u => u.Effect.ForwardThrust != 0 || u.Effect.MaximumSpeed != 0 || u.Effect.RotationSpeed != 0))
+        {
+            var upgraded = UpgradeEffects.Apply(ship, station, [upgrade.Id]);
+            var dock = upgraded.TerrainFlight(9)!;
+            Assert.Equal(upgraded.Physics.ForwardThrust, dock.Physics.ForwardThrust, 1);
+            Assert.Equal(upgraded.Physics.MaximumSpeed / 325 * 300, dock.Physics.MaximumSpeed, 2);
+            Assert.Equal(upgraded.Physics.RotationSpeed / 3.6f * 2.6f, dock.Physics.RotationSpeed, 4);
+            Assert.Equal(0.0140625f, dock.FrictionPerTenMilliseconds);
+            Assert.True(dock.Physics.MaximumSpeed <= upgraded.Physics.MaximumSpeed, upgrade.Name);
+            Assert.Equal(upgraded.TerrainFlight(15)!.Physics.MaximumSpeed / 300 * 200, upgraded.TerrainFlight(15)!.Hyper!.MaximumSpeed, 2);
+        }
     }
 
     [Fact]
