@@ -23,6 +23,11 @@
 -   The frame is the original `[Uiart]` RadarBorder art (`cruiart,newradar`, line 2751): the RADAR title plate, the title bar, the side and bottom edges and the pipe on the lower-right corner. The art is never committed. `scripts/original-assets/stage_ui_art.py` checks `CFG/rogue.cfg` and `BLO/cruiart.blo` against their pins and writes the atlas and `ui.json` to the git-ignored `client/OriginalContent/ui/`. `run-client.ps1` and `export-windows.ps1` run it, and `sync-reference-assets.ps1` now fetches `cruiart.blo`. Without the art, the radar keeps its plain NEW frame.
 -   RECONSTRUCTED: how the eight pieces join into a frame (the native layout code is not available); pieces 4 and 7 are staged but not placed. Still NEW: the whole-map view, the station, outpost and mineral marks, and the colours read as 0xRRGGBB. RT-F064 and RT-F025 stay open: the original radar range, zoom, blip shapes, FontColor keys and line-of-sight rules are not applied.
 
+## Ships fly slower inside docks and trade zones — November 4, 2026
+
+-   Inside a Repair Dock, a SpaceDock or a Trading Post / refinery zone your ship now flies with the original values each hull has for that zone (VEH terrain blocks 9, 10 and 15): a top speed of 300 px/s, a slower turn (150°/s in docks, 195°/s in trade zones; the Hornet keeps its 248°/s in trade zones), and friction, so a coasting ship keeps only 24 % of its speed per second in a dock and 39 % in a trade zone. Holding thrust in a dock settles at about 117 px/s. The Shift boost does not work in these zones and costs no energy there. Open space is unchanged.
+-   Upgrades raise dock flight by the same share as open-space flight. The values are the hull data read in the same units as open space; the emulator looks up the zone's block but never applies it, so this is a reconstruction (G10 F12, now MATCH). Client prediction does not know the zones yet, like the walls.
+
 ## Selected hull sprite correction — November 4, 2026
 
 -   The player renderer resolves the selected ship's canonical vehicle ID through the derived hull manifest instead of always drawing Asp. Picker selection, Hangar switching and profile restoration now use the corresponding atlas. Unmapped legacy hulls use the existing geometric fallback; practice targets retain their explicit provisional Hornet preview.

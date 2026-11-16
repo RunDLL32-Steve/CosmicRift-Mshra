@@ -18,9 +18,10 @@ public static class OriginalShipPhysics
 
     private const float ProjectileTimeTicksPerSecond = 100;
 
-    public static ShipPhysics From(OriginalHull hull)
+    /// <summary>The hull's physics in terrain <paramref name="terrainIndex"/> (0, open space, unless asked otherwise).</summary>
+    public static ShipPhysics From(OriginalHull hull, int terrainIndex = 0)
     {
-        var reading = EmulatorFlightReading.From(hull);
+        var reading = EmulatorFlightReading.From(hull, terrainIndex);
         return new ShipPhysics
         {
             Mass = Mass,
@@ -36,7 +37,7 @@ public static class OriginalShipPhysics
     public static IReadOnlyDictionary<string, ShipPhysics> All(OriginalHullCatalog hulls)
     {
         ArgumentNullException.ThrowIfNull(hulls);
-        return hulls.Hulls.ToDictionary(h => h.Name, From);
+        return hulls.Hulls.ToDictionary(h => h.Name, h => From(h));
     }
 
     /// <summary>
