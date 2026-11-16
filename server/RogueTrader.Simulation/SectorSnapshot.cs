@@ -26,7 +26,7 @@ public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 /// world keeps its state for as long as the server runs, so a client relaunch, a logout or a sector reset never refills it).
 /// It holds what a player could otherwise farm: the target group (condition, wave and the time left on a pending respawn), the
 /// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, and the mining
-/// deposits. The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
+/// deposits, and the space mines still lying in it. The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
 /// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
 /// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
 /// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
@@ -42,7 +42,11 @@ public sealed record SectorSnapshot(
     IReadOnlyList<AsteroidSnapshot> Asteroids,
     long NextMiningPileId,
     long TicksUntilNextMine,
-    int MapVersion = 0);
+    int MapVersion = 0)
+{
+    /// <summary>Space mines still lying in the sector (RT-F038); null in snapshots saved before mines existed.</summary>
+    public IReadOnlyList<MineSnapshot>? Mines { get; init; }
+}
 
 public sealed partial class WorldSimulation
 {
@@ -60,7 +64,10 @@ public sealed partial class WorldSimulation
         Asteroids.Select(a => new AsteroidSnapshot(a.Id, a.ResourceQuantity)).ToArray(),
         NextMiningPileId,
         Math.Max(0, NextMineTick - TickNumber),
-        Map is null ? 0 : SectorMap.CoordinateVersion);
+        Map is null ? 0 : SectorMap.CoordinateVersion)
+    {
+        Mines = CaptureMines(),
+    };
 
     /// <summary>
     /// Puts a captured sector state into this world, replacing its target group, piles, mineral timers and deposits, so a new
@@ -145,6 +152,8 @@ public sealed partial class WorldSimulation
                 asteroid.ResourceQuantity = Math.Clamp(saved.ResourceQuantity, 0, asteroid.ResourceQuantity);
         NextMiningPileId = Math.Max(NextMiningPileId, snapshot.NextMiningPileId);
         NextMineTick = Math.Max(0, snapshot.TicksUntilNextMine);
+        // Mines laid before a map change are not moved: they are short-lived and their old coordinates mean nothing here.
+        RestoreMines(legacy ? null : snapshot.Mines);
         return true;
     }
 

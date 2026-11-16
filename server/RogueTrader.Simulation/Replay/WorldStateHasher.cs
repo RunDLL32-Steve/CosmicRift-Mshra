@@ -66,6 +66,19 @@ public static class WorldStateHasher
             hash = Add(hash, pile.Position.Y);
             hash = Add(hash, pile.Radius);
         }
+        // Space mines (RT-F038) are hashed only once one has been laid or restored, so digests of runs without mines are unchanged.
+        if (world.MinesLaid > 0 || world.Mines.Count > 0)
+        {
+            hash = Add(hash, world.MinesLaid);
+            hash = Add(hash, world.Detonations.Count);
+            foreach (var mine in world.Mines)
+            {
+                hash = Add(hash, mine.Id);
+                hash = Add(hash, mine.Position.X);
+                hash = Add(hash, mine.Position.Y);
+                hash = Add(hash, mine.AgeTicks);
+            }
+        }
         // Mineral spawns (queue M7) are hashed only when configured, so digests of worlds without them are unchanged.
         if (world.MineralSpawns.Count > 0)
         {

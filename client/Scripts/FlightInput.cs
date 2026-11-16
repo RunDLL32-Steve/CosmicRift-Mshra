@@ -16,6 +16,8 @@ public static class FlightInput
         new("flight_fire", "Primary weapon", [Key.Space]),
         // Original Shift+thrust "hyper thrust" (RT archived keys.txt names the action; Shift is the generic Infantry modifier).
         new("flight_hyper", "Boost (hold with thrust)", [Key.Shift]),
+        // Infantry's generic default lays a mine with Shift+Tab (MECHANICS H25); Tab alone lays one here too, as Shift is the boost.
+        new(MineAction, "Lay space mine", [Key.Tab]),
         new("flight_pause", "Pause / controls", [Key.Escape]),
         new("flight_reset", "Reset sector", [Key.R]),
         new("station_dock", "Dock at station", [Key.F]),
@@ -24,6 +26,7 @@ public static class FlightInput
     ];
     /// <summary>Opens and closes the full-screen sector map (NEW).</summary>
     public const string MapAction = "sector_map";
+    public const string MineAction = "flight_mine";
     private const string SettingsPath = "user://controls.cfg";
 
     public static void Initialize()
@@ -45,7 +48,8 @@ public static class FlightInput
         Input.GetAxis("flight_reverse", "flight_forward"),
         Input.GetAxis("flight_left", "flight_right"),
         Input.IsActionPressed("flight_fire"),
-        Hyper: Input.IsActionPressed("flight_hyper"));
+        Hyper: Input.IsActionPressed("flight_hyper"),
+        LayMine: Input.IsActionPressed(MineAction));
 
     /// <summary>True when <paramref name="key"/> is bound to any action in <see cref="Bindings"/>.</summary>
     public static bool IsBound(Key key) => Bindings.Any(binding =>

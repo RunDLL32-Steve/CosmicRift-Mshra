@@ -53,6 +53,8 @@ public sealed class StationProfileSession
     {
         public bool Fits(PlayerProfile current, IReadOnlyDictionary<string, int> proposedInventory) =>
             new CatalogCargoPolicy(session.Cargo).Fits(current, proposedInventory);
+
+        public bool KeptOnDestruction(string itemId) => session.Cargo.KeptOnDestruction(itemId);
     }
     public string? ProfileId { get; private set; }
 
@@ -99,6 +101,14 @@ public sealed class StationProfileSession
 
     public Task<TransactionResult> SellAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
         _trading.SellAsync(RequireProfile(), shipX, shipY, new SellRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Trade, shipX, shipY), itemId, quantity), ct);
+
+    /// <summary>Buys space mines (RT-F038) at the home store the ship is docked at; the carry limit is the cargo rule's.</summary>
+    public Task<TransactionResult> BuyMunitionAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
+        _trading.BuyAsync(RequireProfile(), shipX, shipY, new BuyRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Store, shipX, shipY), itemId, quantity), ct);
+
+    /// <summary>Sells space mines back at the home store the ship is docked at.</summary>
+    public Task<TransactionResult> SellMunitionAsync(string itemId, int quantity, float shipX, float shipY, CancellationToken ct = default) =>
+        _trading.SellAsync(RequireProfile(), shipX, shipY, new SellRequest(NewId(), RequireProfile(), SiteFor(SiteServices.Store, shipX, shipY), itemId, quantity), ct);
 
     /// <summary>
     /// Buys a repair only when it can restore something: a ship at full hull or destroyed is refused locally with
@@ -168,11 +178,18 @@ public sealed class StationProfileSession
     /// core. The source id names the pile, so the ledger shows where cargo came from. Retry with the same arguments after a
     /// refusal; the stable id makes the grant safe to repeat across retries, reloads and relaunches.
     /// </summary>
+    /// <remarks>
+    /// A pickup of a negative quantity is a use: units the ship took out of its hold in space (a laid space mine, RT-F038). It is
+    /// taken from the profile through the UseItems core under the same stable id, so it is saved exactly once too.
+    /// </remarks>
     public Task<TransactionResult> GrantPickupAsync(string worldInstanceId, CargoPickup pickup, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(pickup);
         var profileId = RequireProfile();
         var transactionId = PickupTransactionId(worldInstanceId, pickup.Sequence);
+        if (pickup.Quantity < 0)
+            return _processor.UseItemsAsync(new TransactionContext(profileId, StationAccessVerified: false),
+                new UseItemsRequest(transactionId, profileId, pickup.PileId, pickup.ItemId, -pickup.Quantity), ct);
         return _processor.GrantRewardAsync(new TransactionContext(profileId, StationAccessVerified: false),
             new GrantRewardRequest(transactionId, profileId, $"{PickupSourcePrefix}{pickup.PileId}", 0,
                 new Dictionary<string, int> { [pickup.ItemId] = pickup.Quantity }), ct);

@@ -42,15 +42,17 @@ public sealed partial class WorldSimulation
     /// <param name="cargo">Cargo rules and collectible piles; omitted means no cargo space and no piles.</param>
     /// <param name="initialCargo">Starting contents of the player's hold (for example a persisted inventory).</param>
     /// <param name="map">Walls and terrain; omitted means open space everywhere and drops keep their spawn's own life.</param>
+    /// <param name="playerMine">The space mine the player's ship lays from its hold (RT-F038); omitted means it lays none.</param>
     public WorldSimulation(GameCatalog catalog, CargoCatalog? cargo = null,
         IEnumerable<KeyValuePair<string, int>>? initialCargo = null, MiningCatalog? mining = null, MineralFieldCatalog? minerals = null,
-        SectorMap? map = null)
+        SectorMap? map = null, MineDefinition? playerMine = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         Catalog = catalog;
         Map = map;
         cargo ??= new CargoCatalog(0, []);
         Cargo = new CargoHold(cargo, initialCargo);
+        PlayerMine = ValidatePlayerMine(playerMine, cargo);
         _collectibles = cargo.Collectibles.Select(spawn => new CollectibleState(spawn)).ToList();
         Collectibles = _collectibles.AsReadOnly();
         var spawn = catalog.Sector.PlayerSpawn;
@@ -90,8 +92,11 @@ public sealed partial class WorldSimulation
                     Player.Energy + Player.Definition.Reactor.EnergyRegenerationPerSecond * TickDuration);
             if (input.Fire)
                 TryFire();
+            if (input.LayMine)
+                TryLayMine();
         }
         MoveProjectiles();
+        StepMines();
     }
 
     /// <summary>
@@ -179,6 +184,7 @@ public sealed partial class WorldSimulation
         ArgumentOutOfRangeException.ThrowIfNegative(ticks);
         if (ticks == 0) return;
         ElapseMineralSpawns(ticks);
+        ElapseMines(ticks);
         if (TargetRespawnTick is not { } respawnAt) return;
         TargetRespawnTick = respawnAt - ticks;
         if (TargetRespawnTick <= TickNumber) RespawnTargets();
@@ -283,7 +289,7 @@ public sealed partial class WorldSimulation
             {
                 projectile.Position = Vector2.Lerp(projectile.Position, end, hitFraction);
                 if (hitShip is not null)
-                    ApplyDamage(hitShip, projectile);
+                    ApplyDamage(hitShip, projectile.OwnerShipId, projectile.WeaponId, projectile.ShieldDrain, projectile.Damage);
                 _projectiles.RemoveAt(index);
             }
             else if (projectile.AgeTicks >= projectile.LifetimeTicks)
@@ -296,29 +302,33 @@ public sealed partial class WorldSimulation
         }
     }
 
-    private void ApplyDamage(ShipState target, ProjectileState projectile)
+    /// <summary>
+    /// One hit from <paramref name="ownerShipId"/>'s weapon. A target destroyed by it is counted as a kill; the player's own ship
+    /// is never a target, so its destruction is left to the caller (it is the ship-destroyed flow, not a kill reward).
+    /// </summary>
+    private void ApplyDamage(ShipState target, string ownerShipId, string weaponId, float? shieldDrain, float damage)
     {
-        if (projectile.ShieldDrain is { } drain)
+        if (shieldDrain is { } drain)
         {
             // For a ship whose energy is its shield, the shield is energy.
-            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, projectile.Damage);
+            var (shield, hull) = ShieldRule.Hit(target.ShieldLeft, target.Hull, drain, damage);
             if (target.Definition.Defense.EnergyShield) target.Energy = shield;
             else target.Shield = shield;
             target.Hull = hull;
         }
         else
         {
-            var absorbed = MathF.Min(target.Shield, projectile.Damage);
+            var absorbed = MathF.Min(target.Shield, damage);
             target.Shield -= absorbed;
-            target.Hull = MathF.Max(0, target.Hull - (projectile.Damage - absorbed));
+            target.Hull = MathF.Max(0, target.Hull - (damage - absorbed));
         }
-        target.LastDamagedByShipId = projectile.OwnerShipId;
-        target.LastDamageWeaponId = projectile.WeaponId;
-        if (target.IsDestroyed)
+        target.LastDamagedByShipId = ownerShipId;
+        target.LastDamageWeaponId = weaponId;
+        if (target.IsDestroyed && !ReferenceEquals(target, Player))
         {
-            target.DestroyedByShipId = projectile.OwnerShipId;
+            target.DestroyedByShipId = ownerShipId;
             DestroyedTargets++;
-            _kills.Add(new TargetKill(target.Id, projectile.OwnerShipId, TickNumber, TargetWave));
+            _kills.Add(new TargetKill(target.Id, ownerShipId, TickNumber, TargetWave));
             if (TargetRespawnDelayTicks > 0 && Targets.All(t => t.IsDestroyed)) TargetRespawnTick = TickNumber + TargetRespawnDelayTicks;
         }
     }

@@ -109,6 +109,51 @@ public sealed record WeaponDefinition
     public IReadOnlyList<string>? NewValues { get; init; }
 }
 
+/// <summary>
+/// A space mine (RT-F038): dropped where the ship is and left lying still, it goes off when another ship comes within
+/// <see cref="ProximityRadius"/> of it and drains shields and damages hulls inside <see cref="BlastRadius"/>, falling linearly from
+/// the inner value at its centre to the outer value at the blast's edge. <see cref="ItemId"/> names the cargo item each drop uses up.
+/// </summary>
+public sealed record MineDefinition
+{
+    public string Id { get; init; } = "";
+    public string Name { get; init; } = "";
+    /// <summary>The cargo item one drop uses up (the mine is its own ammunition in the original data).</summary>
+    public string ItemId { get; init; } = "";
+    public float ProximityRadius { get; init; }
+    public float BlastRadius { get; init; }
+    public float ShieldDrainInner { get; init; }
+    public float ShieldDrainOuter { get; init; }
+    public float DamageInner { get; init; }
+    public float DamageOuter { get; init; }
+    /// <summary>Hull damage type (Kinetic, Explosive or Energy), as the NWS names them; armour is RT-F041 and not applied here.</summary>
+    public string DamageType { get; init; } = "";
+    /// <summary>Seconds after the drop before the mine can go off (0: at once).</summary>
+    public float ArmSeconds { get; init; }
+    public float LifetimeSeconds { get; init; }
+    public float DropIntervalSeconds { get; init; }
+    /// <summary>Most of these mines one pilot can have lying in space at once.</summary>
+    public int MaxLivePerPlayer { get; init; }
+    public string? Source { get; init; }
+    public IReadOnlyList<string>? NewValues { get; init; }
+
+    /// <summary>Throws when a value would break the simulation (no id, a negative or non-finite value, no life or no limit).</summary>
+    public void Validate()
+    {
+        if (string.IsNullOrEmpty(Id) || string.IsNullOrEmpty(ItemId)) throw new ArgumentException("A mine needs an id and an item id.");
+        foreach (var (value, what) in new[]
+                 {
+                     (ProximityRadius, "proximity radius"), (BlastRadius, "blast radius"), (ShieldDrainInner, "inner drain"),
+                     (ShieldDrainOuter, "outer drain"), (DamageInner, "inner damage"), (DamageOuter, "outer damage"), (ArmSeconds, "arm time"),
+                     (LifetimeSeconds, "lifetime"), (DropIntervalSeconds, "drop interval"),
+                 })
+            if (!float.IsFinite(value) || value < 0) throw new ArgumentException($"Mine '{Id}' {what} must be finite and not negative.");
+        if (ProximityRadius <= 0 || BlastRadius <= 0 || LifetimeSeconds <= 0)
+            throw new ArgumentException($"Mine '{Id}' needs a positive proximity radius, blast radius and lifetime.");
+        if (MaxLivePerPlayer < 1) throw new ArgumentException($"Mine '{Id}' needs a live limit of at least 1.");
+    }
+}
+
 public sealed record SectorDefinition
 {
     public string Id { get; init; } = "first_contact";

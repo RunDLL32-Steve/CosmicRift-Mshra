@@ -153,6 +153,33 @@ public sealed class StationPriceTable : IPriceSource
     public StationPriceTable WithUpgradePrices(IEnumerable<(string UpgradeId, long Price)> prices, IEnumerable<string>? at = null) =>
         AddPrices(prices, _upgrade, "upgrade", at);
 
+    /// <summary>
+    /// Adds item buy/sell prices at <paramref name="at"/> (for example space mines at the home stores). An item already priced at
+    /// one of those stations is refused, so a batch can never overwrite a good. Returns this table.
+    /// </summary>
+    public StationPriceTable WithItemPrices(IEnumerable<(string ItemId, long? Buy, long? Sell)> prices, IEnumerable<string>? at = null)
+    {
+        ArgumentNullException.ThrowIfNull(prices);
+        var stations = Stations(at);
+        var batch = prices.ToArray();
+        if (batch.Length == 0) return this;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (id, buy, sell) in batch)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentException("An item price needs an id.", nameof(prices));
+            if (!seen.Add(id) || stations.Any(s => _buy.ContainsKey((s, id)) || _sell.ContainsKey((s, id))))
+                throw new ArgumentException($"Duplicate item price for '{id}'.", nameof(prices));
+            if (buy < 0 || sell < 0) throw new ArgumentException($"Negative item price for '{id}'.", nameof(prices));
+        }
+        foreach (var (id, buy, sell) in batch)
+            foreach (var station in stations)
+            {
+                if (buy is { } b) _buy[(station, id)] = b;
+                if (sell is { } s) _sell[(station, id)] = s;
+            }
+        return this;
+    }
+
     /// <summary>Adds hull prices (schema 6 owned ships) at every station of this table; a repeated hull id is refused. Returns this table.</summary>
     public StationPriceTable WithShipPrices(IEnumerable<(string HullId, long Price)> prices, IEnumerable<string>? at = null) =>
         AddPrices(prices, _ship, "ship", at);
