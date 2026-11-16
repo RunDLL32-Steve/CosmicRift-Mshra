@@ -54,7 +54,14 @@ public static class ProfileSchemaMigrations
     /// </summary>
     public static IProfileMigration V6ToV7 { get; } = new Step(6, static p => (JsonObject)p.DeepClone());
 
-    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5, V5ToV6, V6ToV7];
+    /// <summary>
+    /// Schema 8 adds the optional per-ship <c>stillSinceUtc</c> (the 60-second dock rule): when the ship last moved, so the clock
+    /// keeps running while the pilot is away. Older conditions lack it, which reads as a ship that just moved, so the step only
+    /// advances the version; an older build then refuses a schema 8 file as newer instead of dropping the field on its next save.
+    /// </summary>
+    public static IProfileMigration V7ToV8 { get; } = new Step(7, static p => (JsonObject)p.DeepClone());
+
+    public static IReadOnlyList<IProfileMigration> BuiltIn { get; } = [V1ToV2, V2ToV3, V3ToV4, V4ToV5, V5ToV6, V6ToV7, V7ToV8];
 
     private sealed class Step(int from, Func<JsonObject, JsonObject> migrate) : IProfileMigration
     {

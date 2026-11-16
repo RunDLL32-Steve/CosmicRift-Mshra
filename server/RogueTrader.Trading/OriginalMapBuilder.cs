@@ -98,10 +98,10 @@ public static class OriginalMapBuilder
             var entry = section.Find("PrizeExpire") ?? throw new OriginalDataException($"CFG [Terrain{t}] has no PrizeExpire.");
             expire[t] = section.Int("PrizeExpire");
             lines.Add(entry.LineNumber.ToString(CultureInfo.InvariantCulture));
-            rules[t] = new TerrainRule(Flag(section, "Safety"), Flag(section, "DeleteLiveWeapons"), section.Int("EnergyRate"));
+            rules[t] = new TerrainRule(Flag(section, "Safety"), Flag(section, "DeleteLiveWeapons"), section.Int("EnergyRate"), section.Int("MaxTimeAllowed"));
         }
         return new SectorMapDocument(MapId, "ORIGINAL+RECONSTRUCTED+NEW",
-            $"Derived by OriginalMapBuilder from pinned {OriginalLevel.LvlRogue.RelativePath} (version {level.Version}, {grid.Width} x {grid.Height} tiles, offset {level.OffsetX}, {level.OffsetY}) through the G6 reader, and {OriginalCfg.Rogue.RelativePath} [Terrain0..15] PrizeExpire (lines {string.Join(", ", lines)}), Safety, DeleteLiveWeapons and EnergyRate; regenerate, never hand-edit.",
+            $"Derived by OriginalMapBuilder from pinned {OriginalLevel.LvlRogue.RelativePath} (version {level.Version}, {grid.Width} x {grid.Height} tiles, offset {level.OffsetX}, {level.OffsetY}) through the G6 reader, and {OriginalCfg.Rogue.RelativePath} [Terrain0..15] PrizeExpire (lines {string.Join(", ", lines)}), Safety, DeleteLiveWeapons, EnergyRate and MaxTimeAllowed; regenerate, never hand-edit.",
             MapNewRules, grid.Width, grid.Height, SectorMap.TileSize, new SectorMapOffset(level.OffsetX * SectorMap.TileSize, level.OffsetY * SectorMap.TileSize),
             expire, rules, "rle-leb128-base64", blocked,
             terrainTiles.ToDictionary(p => p.Key.ToString(CultureInfo.InvariantCulture), p => p.Value),

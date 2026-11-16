@@ -9,8 +9,14 @@ namespace RogueTrader.Persistence;
 /// is moved onto the full-size map on its own, whenever it is next flown: <see cref="LegacyPracticeSector"/> for every
 /// condition saved before schema 7 (the 1,400-unit practice sector), <see cref="MapPixels"/> for one saved on the map.
 /// </para>
+/// <para>
+/// Schema 8 (the 60-second dock rule): <see cref="StillSinceUtc"/> is when the ship last moved or fired, so the dock clock keeps
+/// running while the pilot is away and a relaunch cannot restart it. Null (every condition saved before schema 8) reads as a
+/// ship that has just moved.
+/// </para>
 /// </summary>
-public sealed record ShipCondition(float Hull, float X, float Y, float Heading, int CoordinateVersion = ShipCondition.MapPixels)
+public sealed record ShipCondition(float Hull, float X, float Y, float Heading, int CoordinateVersion = ShipCondition.MapPixels,
+    DateTimeOffset? StillSinceUtc = null)
 {
     /// <summary>Positions in the old 1,400-unit practice sector (every condition saved before schema 7).</summary>
     public const int LegacyPracticeSector = 0;

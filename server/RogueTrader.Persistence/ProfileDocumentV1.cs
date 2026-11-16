@@ -41,6 +41,8 @@ internal sealed class ProfileDocumentV1
         [JsonRequired] public float Heading { get; set; }
         /// <summary>Schema 7; absent in older payloads, which were all saved in the practice sector's coordinates.</summary>
         public int? CoordinateVersion { get; set; }
+        /// <summary>Schema 8; absent in older payloads (a ship that has just moved).</summary>
+        public DateTimeOffset? StillSinceUtc { get; set; }
     }
 
     internal sealed class AppliedTransactionDto
@@ -116,10 +118,10 @@ internal sealed class ProfileDocumentV1
     };
 
     private static ShipCondition FromDto(ShipConditionDto c) =>
-        new(c.Hull, c.X, c.Y, c.Heading, c.CoordinateVersion ?? ShipCondition.LegacyPracticeSector);
+        new(c.Hull, c.X, c.Y, c.Heading, c.CoordinateVersion ?? ShipCondition.LegacyPracticeSector, c.StillSinceUtc);
 
     private static ShipConditionDto? ToDto(ShipCondition? s) =>
-        s is null ? null : new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading, CoordinateVersion = s.CoordinateVersion };
+        s is null ? null : new ShipConditionDto { Hull = s.Hull, X = s.X, Y = s.Y, Heading = s.Heading, CoordinateVersion = s.CoordinateVersion, StillSinceUtc = s.StillSinceUtc };
 
     /// <summary>Maps to the immutable model; returns null and an error message when the document is structurally unmappable.</summary>
     public PlayerProfile? ToProfile(out string? error)
