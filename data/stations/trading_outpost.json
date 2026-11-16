@@ -11,7 +11,8 @@
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor protects by damage type from ITM f[52..57] (Ignore in thousandths of a hull point, Percent read as per mille) and its f[42..44] penalty applies like the other blocks; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
     "Collectible piles: placement (offsets from the station) and quantities.",
-    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
+    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
+    "Plasma Mine: sold at every home store for its raw buy f[8]=25 and bought back for its raw sell f[15]=25 (NEW: where the original sold mines is unknown); a hold carries at most 10, the magnitude of f[13] maxAllowed -10 (NEW: the sign's meaning is open); every hull may carry it (f[5] '!%1' skill logic undecoded); mines are bought items, so they stay with the pilot when the ship is destroyed (Steve, Nov 3 2026)."
   ],
   "x": 1936,
   "y": 1696,
@@ -955,6 +956,40 @@
         }
       },
       "effectBasis": "NEW: raw f[42..44] / 1000 as forward thrust / maximum speed / rotation fractions; ORIGINAL: protection from ITM f[52..57] (Kinetic, Explosive, Electronic = Energy Ignore/Percent pairs), Ignore / 1000 hull points, NEW: Percent read as per mille"
+    }
+  ],
+  "munitions": [
+    {
+      "id": "102",
+      "name": "Plasma Mine",
+      "unitWeight": 0,
+      "buy": 25,
+      "sell": 25,
+      "maxCarried": 10,
+      "mine": {
+        "id": "102",
+        "name": "Plasma Mine",
+        "itemId": "102",
+        "proximityRadius": 56,
+        "blastRadius": 100,
+        "shieldDrainInner": 750,
+        "shieldDrainOuter": 0,
+        "damageInner": 20,
+        "damageOuter": 5,
+        "damageType": "Energy",
+        "armSeconds": 0,
+        "lifetimeSeconds": 60,
+        "dropIntervalSeconds": 1.5,
+        "maxLivePerPlayer": 3,
+        "source": "Derived by OriginalMineBuilder from ITM/Rogue_mp.itm row 13 (id 102, 'Space Mines'): f[108] proximityRadius 56, f[159..161] electronic (Energy) damage radius/inner/outer 100/20000/5000, f[171..173] energy drain radius/inner/outer 100/750000/0, f[115] inactiveTime 0, f[110] aliveTime 6000, f[54] fireDelay 150, f[131] maxLivePerPlayer 3; energy amounts in thousandths (OriginalEnergyScale), times in 10 ms units.",
+        "newValues": [
+          "Lifetime and arm time read f[110] aliveTime and f[115] inactiveTime in the 10 ms units of fireDelay (G10 W3 reading; the unit is not proven).",
+          "Radii are read as map pixels; the mine goes off when a ship's edge comes within the proximity radius, and its blast reaches ships whose centre is inside the blast radius.",
+          "Drain and damage fall linearly from inner at the centre to outer at the blast radius (the raw damage mode fields are kept unread).",
+          "A mine never goes off for, or hurts, the pilot who laid it; a mine whose life runs out vanishes without a blast.",
+          "Armour reduces the hull damage by its damage type as it does for cannon hits (RT-F041); f[132] maxLivePerTeam 15 is not applied (the sector has one pilot)."
+        ]
+      }
     }
   ],
   "ships": [

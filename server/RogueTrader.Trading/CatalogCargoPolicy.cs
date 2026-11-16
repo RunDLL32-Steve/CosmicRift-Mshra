@@ -18,4 +18,6 @@ public sealed class CatalogCargoPolicy(CargoCatalog catalog) : ICargoPolicy
         ArgumentNullException.ThrowIfNull(current);
         return _catalog.AllowsChange(current.Inventory, proposedInventory);
     }
+
+    public bool KeptOnDestruction(string itemId) => _catalog.KeptOnDestruction(itemId);
 }

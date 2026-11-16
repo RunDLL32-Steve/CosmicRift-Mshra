@@ -11,6 +11,7 @@ public partial class WorldView : Node2D
     private readonly Dictionary<string, (float Hull, float Shield, bool Destroyed)> _previous = [];
     private WorldSimulation? _world;
     private double _elapsedMilliseconds;
+    private float Seconds => (float)(_elapsedMilliseconds / 1000);
     public ShipInput InputState { get; set; }
     public OriginalSpriteLibrary? Originals { get; set; }
     /// <summary>The atlas bound by the most recent player draw, or null for the geometric fallback (bounded render QA).</summary>
@@ -58,12 +59,15 @@ public partial class WorldView : Node2D
     private ImageTexture? _mapTexture;
     private static readonly Color Teal = new("62dfd1");
     private static readonly Color Amber = new("f4b66b");
+    private static readonly Color MineColor = new("ff6f91");
+    private int _detonationsSeen;
 
     public void SetWorld(WorldSimulation world)
     {
         _world = world;
         _previous.Clear();
         _bursts.Clear();
+        _detonationsSeen = world.Detonations.Count;
         ObserveShips();
     }
 
@@ -77,7 +81,36 @@ public partial class WorldView : Node2D
             if (_bursts[i].Age >= burst.Duration) _bursts.RemoveAt(i);
         }
         ObserveShips();
+        ObserveDetonations();
         QueueRedraw();
+    }
+
+    // A mine's blast: a long burst, whose ring grows to about the Plasma Mine's 100-pixel blast radius.
+    private void ObserveDetonations()
+    {
+        if (_world is null) return;
+        if (_detonationsSeen > _world.Detonations.Count) _detonationsSeen = 0;
+        for (; _detonationsSeen < _world.Detonations.Count; _detonationsSeen++)
+        {
+            var blast = _world.Detonations[_detonationsSeen];
+            _bursts.Add(new(new Vector2(blast.X, blast.Y), MineColor, 0, 0.7f));
+        }
+    }
+
+    /// <summary>A laid mine: a pulsing core, and for the player's own mines a faint ring at its proximity radius.</summary>
+    private void DrawMine(MineState mine)
+    {
+        var position = ToGodot(mine.Position);
+        var pulse = 0.5f + 0.5f * Mathf.Sin(Seconds * 5 + mine.Id);
+        if (mine.OwnerShipId == _world!.Player.Id)
+            DrawArc(position, mine.Definition.ProximityRadius, 0, Mathf.Tau, 32, new Color(MineColor, 0.18f), 1, true);
+        DrawCircle(position, 9, new Color(MineColor, 0.15f + 0.15f * pulse));
+        DrawCircle(position, 4, MineColor.Lightened(0.3f * pulse));
+        for (var i = 0; i < 4; i++)
+        {
+            var direction = Vector2.FromAngle(i * Mathf.Tau / 4 + Seconds);
+            DrawLine(position + direction * 5, position + direction * 8, MineColor, 1.5f, true);
+        }
     }
 
     private void ObserveShips()
@@ -112,6 +145,7 @@ public partial class WorldView : Node2D
         foreach (var pile in _world.Collectibles)
             if (pile.Id.StartsWith(WorldSimulation.MineralPilePrefix, StringComparison.Ordinal)) DrawMineral(pile.ItemId, ToGodot(pile.Position), pile.Radius);
             else DrawPile(ToGodot(pile.Position), Mathf.Min(pile.Radius, 24));
+        foreach (var mine in _world.Mines) DrawMine(mine);
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);

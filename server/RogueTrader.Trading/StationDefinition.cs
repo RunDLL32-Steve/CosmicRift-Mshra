@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using RogueTrader.GameData;
 using RogueTrader.Simulation;
 
 namespace RogueTrader.Trading;
@@ -129,6 +130,8 @@ public sealed class StationDefinition
     public IReadOnlyList<StationTrade> Trades { get; init; } = [];
     public IReadOnlyList<StationRepair> Repairs { get; init; } = [];
     public IReadOnlyList<StationUpgrade> Upgrades { get; init; } = [];
+    /// <summary>Space mines the home stores sell (RT-F038); each is also a cargo item that stays with the pilot on destruction.</summary>
+    public IReadOnlyList<StationMunition> Munitions { get; init; } = [];
     /// <summary>Hulls sold here; null (absent from the JSON) sells none.</summary>
     public IReadOnlyList<StationShip>? Ships { get; init; }
     public IReadOnlyList<CollectibleSpawn> Collectibles { get; init; } = [];
@@ -173,7 +176,12 @@ public sealed class StationDefinition
     /// (<c>ShipDefinition.Cargo</c>), the item weights to the station's goods.
     /// </summary>
     public CargoCatalog CreateCargoCatalog(long cargoCapacity) =>
-        new(cargoCapacity, Goods.Select(g => new CargoItemDefinition(g.Id, g.UnitWeight)), Collectibles);
+        new(cargoCapacity, Goods.Select(g => new CargoItemDefinition(g.Id, g.UnitWeight))
+            .Concat(Munitions.Select(m => new CargoItemDefinition(m.Id, m.UnitWeight) { MaxQuantity = m.MaxCarried, KeptOnDestruction = true })),
+            Collectibles);
+
+    /// <summary>The mine the ship lays (the first the stores sell), or null when the station sells none.</summary>
+    [JsonIgnore] public MineDefinition? PlayerMine => Munitions.FirstOrDefault()?.Mine;
 
     /// <summary>Goods at their own prices; a Trading Outpost recipe is a sell price for its input item.</summary>
     /// <remarks>Goods and recipes are priced at the Trading Posts, repairs at the Repair Docks, upgrades and hulls at the stores.</remarks>
@@ -185,6 +193,7 @@ public sealed class StationDefinition
                 (g.Id, g.Buy, Trades.FirstOrDefault(t => t.InputItemId == g.Id) is { } trade ? trade.CreditsPerUnit : g.Sell)))
             .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)), Ids(SiteServices.Repair))
             .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)), stores)
+            .WithItemPrices(Munitions.Select(m => (m.Id, (long?)m.Buy, (long?)m.Sell)), stores)
             .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)), stores)
             .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)), stores)
             .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
@@ -195,6 +204,7 @@ public sealed class StationDefinition
 
     public string NameOf(string itemId) =>
         Goods.FirstOrDefault(g => g.Id == itemId)?.Name
+        ?? Munitions.FirstOrDefault(m => m.Id == itemId)?.Name
         ?? Upgrades.FirstOrDefault(u => u.Id == itemId)?.Name
         ?? Repairs.FirstOrDefault(r => r.Id == itemId)?.Name
         ?? Refinery?.Recipes.FirstOrDefault(r => r.Id == itemId)?.Name
@@ -254,6 +264,15 @@ public sealed class StationDefinition
                 throw new InvalidDataException($"Outpost '{outpost.StationId}' offers an unknown service '{outpost.Service}'.");
         }
         _ = new StationDirectory(Sites); // duplicate ids, positions and radii
+        foreach (var munition in Munitions)
+        {
+            if (munition is null || munition.Mine is null) throw new InvalidDataException("A munition needs its mine.");
+            if (Goods.Any(g => g.Id == munition.Id)) throw new InvalidDataException($"Munition '{munition.Id}' is also a station good.");
+            if (munition.Mine.ItemId != munition.Id) throw new InvalidDataException($"Munition '{munition.Id}' lays a mine that uses '{munition.Mine.ItemId}'.");
+            if (munition.MaxCarried < 1 || munition.Buy < 0 || munition.Sell < 0) throw new InvalidDataException($"Munition '{munition.Id}' needs a carry limit and prices.");
+            try { munition.Mine.Validate(); }
+            catch (ArgumentException e) { throw new InvalidDataException(e.Message, e); }
+        }
         foreach (var upgrade in Upgrades)
             if (upgrade.Effect is null) throw new InvalidDataException($"Upgrade '{upgrade.Id}' has no effect entry.");
         // Constructing the site, catalog and table runs their own checks (radius, weights, duplicates, negative prices).

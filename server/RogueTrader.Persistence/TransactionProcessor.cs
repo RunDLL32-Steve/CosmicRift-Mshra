@@ -136,6 +136,14 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.GrantReward, r.TransactionId, r.ProfileId, r.SourceId, null, null, 0, r.Currency, items, shapeOk), ct);
     }
 
+    public Task<TransactionResult> UseItemsAsync(TransactionContext ctx, UseItemsRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.SourceId) && IdOk(r.ItemId) && r.Quantity > 0;
+        return ExecuteAsync(ctx, new Req(TransactionKind.UseItems, r.TransactionId, r.ProfileId, r.SourceId, r.ItemId, null, r.Quantity, 0, null, shapeOk), ct);
+    }
+
     public Task<TransactionResult> RecordConductAsync(TransactionContext ctx, RecordConductRequest r, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -249,7 +257,7 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
     private sealed record Req(TransactionKind Kind, string? TransactionId, string? ProfileId, string? Place, string? ItemId,
         string? UpgradeId, int Quantity, long Currency, IReadOnlyDictionary<string, int>? Items, bool ShapeOk)
     {
-        public bool NeedsStation => Kind is not (TransactionKind.GrantReward or TransactionKind.RecordConduct or TransactionKind.ShipDestroyed);
+        public bool NeedsStation => Kind is not (TransactionKind.GrantReward or TransactionKind.RecordConduct or TransactionKind.ShipDestroyed or TransactionKind.UseItems);
     }
 
     private sealed record Plan(long CurrencyDelta, long WalletAfter, ImmutableSortedDictionary<string, int> NewInventory,
@@ -448,6 +456,17 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     }
                     break;
                 }
+                case TransactionKind.UseItems:
+                {
+                    inventory.TryGetValue(q.ItemId!, out var held);
+                    if (held < q.Quantity) return RejectionReason.InsufficientInventory;
+                    if (held == q.Quantity) inventory.Remove(q.ItemId!);
+                    else inventory[q.ItemId!] = held - q.Quantity;
+                    deltas[q.ItemId!] = -q.Quantity;
+                    currencyDelta = 0;
+                    walletAfter = c.Wallet;
+                    break;
+                }
                 case TransactionKind.RecordConduct:
                 {
                     if (_conduct is null || !_conduct.TryApply(q.ItemId!, q.Quantity, c.Bounty, c.Reputation, out bounty, out reputation)
@@ -485,10 +504,15 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     if (!string.Equals(c.ShipHullId, q.ItemId, StringComparison.Ordinal)) return RejectionReason.ShipNotActive;
                     // Steve, Nov 3 2026: the ship respawns with its weapons, and all purchased items remain; the player loses 20% of
                     // the credits they hold, and the cargo in the hold (minerals and every other hold item) is lost with the ship.
-                    // Upgrades and owned ships are untouched; the ship returns to the spawn.
+                    // Upgrades and owned ships are untouched; the ship returns to the spawn. Bought items the cargo rules keep
+                    // (space mines) stay with the pilot.
                     var penalty = c.Wallet / 100 * DestructionPenaltyPercent + c.Wallet % 100 * DestructionPenaltyPercent / 100;
-                    foreach (var (item, held) in c.Inventory) deltas[item] = -held;
-                    inventory.Clear();
+                    foreach (var (item, held) in c.Inventory)
+                    {
+                        if (_cargo.KeptOnDestruction(item)) continue;
+                        deltas[item] = -held;
+                        inventory.Remove(item);
+                    }
                     ship = null;
                     currencyDelta = -penalty;
                     walletAfter = c.Wallet - penalty;

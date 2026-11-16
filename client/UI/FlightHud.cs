@@ -132,7 +132,10 @@ public partial class FlightHud : CanvasLayer
         _energy.MaxValue = Math.Max(1, catalog.Ship.Reactor.MaximumEnergy);
         _energy.Value = player.Energy;
         _speed.Text = $"{player.Velocity.Length():000.0}  u/s";
-        _telemetry.Text = $"H {player.Hull:0}   {(energyShield ? "Shield = E" : $"S {player.Shield:0}")}   E {player.Energy:0}{(player.IsHyperEngaged ? "   BOOST" : "")}{(world.PlayerInSafeZone ? "   SAFE ZONE" : "")}\n60 Hz  |  Tick {world.TickNumber:N0}  |  FPS {Engine.GetFramesPerSecond()}\nPosition  {player.Position.X:0}, {player.Position.Y:0}\n{catalog.Weapon.Name}  /  {world.Projectiles.Count} shots";
+        _telemetry.Text = $"H {player.Hull:0}   {(energyShield ? "Shield = E" : $"S {player.Shield:0}")}   E {player.Energy:0}{(player.IsHyperEngaged ? "   BOOST" : "")}{(world.PlayerInSafeZone ? "   SAFE ZONE" : "")}\n60 Hz  |  Tick {world.TickNumber:N0}  |  FPS {Engine.GetFramesPerSecond()}\nPosition  {player.Position.X:0}, {player.Position.Y:0}\n{catalog.Weapon.Name}  /  {world.Projectiles.Count} shots"
+            + (world.PlayerMine is { } mine
+                ? $"\n{mine.Name} x{world.Cargo.Quantity(mine.ItemId)}  /  {world.Mines.Count(m => m.OwnerShipId == player.Id)} of {mine.MaxLivePerPlayer} laid  ({FlightInput.Display(FlightInput.MineAction)})"
+                : "");
         var liveTargets = world.Targets.Count(target => !target.IsDestroyed);
         var respawnSeconds = world.TargetRespawnTick is { } respawnAt
             ? (int)Math.Ceiling((respawnAt - world.TickNumber) / (double)WorldSimulation.TickRate) : (int?)null;
@@ -149,6 +152,7 @@ public partial class FlightHud : CanvasLayer
 
     public string CreditsText => _credits.Text;
     public string CargoText => _cargo.Text;
+    public string TelemetryText => _telemetry.Text;
     public string NoticeText => _notice.Text;
 
     /// <summary>Short flight notice under the cargo line (kill rewards, unsaved-cargo warnings); empty hides it.</summary>

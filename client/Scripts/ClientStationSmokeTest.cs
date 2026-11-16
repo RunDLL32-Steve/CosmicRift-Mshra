@@ -267,10 +267,45 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(flying.Disabled && flying.Text == "FLYING", "The Hangar must list the ship being flown as FLYING.");
             GD.Print("STATION SMOKE PASS: the Hangar at Cold Harbor lists the owned ships (switching is covered by the unit tests)");
 
+            // Space mines (RT-F038): the Plasma Mine sells at the home store for its original price.
+            var munition = station.Munitions.Single();
+            var walletBeforeMines = session.Profile!.Wallet;
+            Press($"munition:{munition.Id}");
+            Press($"munition:{munition.Id}");
+            Require(session.Profile!.Inventory.GetValueOrDefault(munition.Id) == 2 && session.Profile.Wallet == walletBeforeMines - 2 * munition.Buy
+                && readWorld().Cargo.Quantity(munition.Id) == 2,
+                $"Two {munition.Name}s must be bought for {2 * munition.Buy} credits and loaded, got {session.Profile.Inventory.GetValueOrDefault(munition.Id)}.");
+
             SendKey(Key.Escape, true);
             SendKey(Key.Escape, false);
             await nextPhysicsFrame();
             Require(!client.StationVisible && !client.Paused, "Escape must undock without pausing.");
+
+            // No mine is laid in a safe zone (RT-F065); Tab outside one lays it where the ship is, and the profile is charged once,
+            // through the saved pickup queue.
+            var minesBefore = readWorld().MinesLaid;
+            if (readWorld().PlayerInSafeZone)
+            {
+                SendKey(Key.Tab, true);
+                for (var frame = 0; frame < 5; frame++) await nextPhysicsFrame();
+                SendKey(Key.Tab, false);
+                Require(readWorld().MinesLaid == minesBefore && readWorld().Cargo.Quantity(munition.Id) == 2, "No mine may be laid in a safe zone.");
+            }
+            var map = readWorld().Map!;
+            var open = Enumerable.Range(1, 400).SelectMany(step => new[] { new System.Numerics.Vector2(0, step * 16), new System.Numerics.Vector2(step * 16, 0),
+                    new System.Numerics.Vector2(0, -step * 16), new System.Numerics.Vector2(-step * 16, 0) })
+                .Select(offset => readWorld().Player.Position + offset)
+                .First(at => !map.IsBlocked(at) && !map.IsSafeAt(at) && station.DockedAt(at.X, at.Y) is null);
+            readWorld().RestorePlayer(open, readWorld().Player.Heading, readWorld().Player.Hull);
+            SendKey(Key.Tab, true);
+            for (var frame = 0; frame < 10 && readWorld().MinesLaid == minesBefore; frame++) await nextPhysicsFrame();
+            SendKey(Key.Tab, false);
+            for (var frame = 0; frame < 30 && client.PendingPickups > 0; frame++) await nextPhysicsFrame();
+            Require(readWorld().MinesLaid == minesBefore + 1 && readWorld().Mines.Count == 1 && readWorld().Cargo.Quantity(munition.Id) == 1
+                && session.Profile!.Inventory.GetValueOrDefault(munition.Id) == 1 && session.Profile.Ledger[^1].Kind == TransactionKind.UseItems,
+                $"Tab must lay one {munition.Name} and save its use, got {readWorld().MinesLaid - minesBefore} laid, {session.Profile!.Inventory.GetValueOrDefault(munition.Id)} held.");
+            Require(hud.TelemetryText.Contains($"{munition.Name} x1"), $"The HUD must show the mines left, got '{hud.TelemetryText}'.");
+            GD.Print($"STATION SMOKE PASS: {munition.Name} bought at {munition.Buy} credits at {station.Name}, laid with Tab and its use saved once");
 
             // A destroyed ship costs 20% of the credits held, saved once, then respawns at the spawn with a full hull, keeping
             // weapons and upgrades; the cargo in the hold leaves the profile and spills into space where the ship died (Steve, Nov 3-4 2026).
@@ -289,7 +324,9 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var afterDeath = session.Profile!;
             Require(beforeDeath.Wallet > 0 && afterDeath.Wallet == beforeDeath.Wallet - penalty && afterDeath.Ledger[^1].Kind == TransactionKind.ShipDestroyed,
                 $"A destroyed ship must cost {penalty} credits (20% of {beforeDeath.Wallet}), got wallet {afterDeath.Wallet}.");
-            var lostUnits = beforeDeath.Inventory.Values.Sum();
+            // Bought mines are kept (Steve, Nov 3 2026: all purchased items remain); everything else in the hold is lost.
+            var lost = beforeDeath.Inventory.Where(i => i.Key != munition.Id).ToDictionary(i => i.Key, i => i.Value);
+            var lostUnits = lost.Values.Sum();
             // The hull itself also leaves its original wreck, VEH f[68..69] = 2008 x1 (Wreckage) on every original hull (RT-F043),
             // as its own pile that the pilot who died can never collect (review R1-1), so a death never pays.
             var hullWreck = readWorld().Player.Definition.Wreck;
@@ -299,13 +336,14 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(lostUnits > 0 && hullWreck is { ItemId: "2008", Quantity: 1 } && wreck.All(c => c.ExpiresAt is not null)
                 && hullPile.Length == 1 && hullPile[0].ItemId == "2008" && hullPile[0].Quantity == 1 && hullPile[0].DroppedFrom is not null
                 && !readWorld().CanCollect(hullPile[0])
-                && cargoPiles.Sum(c => c.Quantity) == lostUnits && cargoPiles.Select(c => c.ItemId).Order().SequenceEqual(beforeDeath.Inventory.Keys.Order())
+                && cargoPiles.Sum(c => c.Quantity) == lostUnits && cargoPiles.Select(c => c.ItemId).Order().SequenceEqual(lost.Keys.Order())
                 && wreck.All(c => System.Numerics.Vector2.Distance(c.Position, deathPoint) < WorldSimulation.WreckSpreadRadius + 1),
                 $"The destroyed ship's {lostUnits} cargo units and its hull's Wreckage must spill into space as expiring piles, got {wreck.Sum(c => c.Quantity)}.");
-            Require(afterDeath.Inventory.Count == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0 && client.PendingPickups == 0
+            Require(afterDeath.Inventory.Keys.SequenceEqual([munition.Id]) && afterDeath.Inventory[munition.Id] == 1
+                && readWorld().Cargo.Quantity(munition.Id) == 1 && readWorld().Cargo.Quantity(pile.ItemId) == 0 && client.PendingPickups == 0
                 && afterDeath.Upgrades.SequenceEqual(beforeDeath.Upgrades)
                 && afterDeath.OwnedShips.Keys.SequenceEqual(beforeDeath.OwnedShips.Keys) && !client.DestructionPending,
-                "A destroyed ship must lose its cargo and keep its upgrades and owned ships.");
+                "A destroyed ship must lose its cargo and keep its mines, upgrades and owned ships.");
             Require(client.WorldInstanceId != worldBeforeDeath && !readWorld().Player.IsDestroyed
                 && Math.Abs(readWorld().Player.Hull - readWorld().Player.Definition.Defense.MaximumHull) < 0.01f,
                 "A destroyed ship must respawn with a full hull.");

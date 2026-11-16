@@ -153,13 +153,14 @@ public static class OriginalStationBuilder
         var upgrades = OriginalUpgrade.All(items).Select(u => Upgrade(u.Item, u.Family))
             .Concat(OriginalArmor.All(items).Select(a => Upgrade(a.Item, OriginalArmor.ArmorCategory)))
             .ToList();
+        var plasmaMine = OriginalMineBuilder.PlasmaMine(items);
         return new StationDefinition
         {
             StationId = StationId,
             Name = stationName,
             EvidenceClassification = "ORIGINAL+NEW",
             Source = $"Derived by OriginalStationBuilder from pinned {PinnedAssets.Itm.RelativePath} and {PinnedAssets.Veh.RelativePath} (VEH id {OriginalTradingPost.VehicleId}; refinery VEH id {OriginalRefinery.VehicleId} at {OriginalSafeZones.LioRogue.RelativePath} actor {RefineryActor}); regenerate, never hand-edit.",
-            NewValues = NewValueNotes,
+            NewValues = [.. NewValueNotes, OriginalMineBuilder.StationNote(plasmaMine)],
             X = StationX,
             Y = StationY,
             DockRadius = DockRadius,
@@ -168,6 +169,7 @@ public static class OriginalStationBuilder
             Trades = trades,
             Repairs = repairs,
             Upgrades = upgrades,
+            Munitions = [plasmaMine],
             Collectibles =
             [
                 // 100 pixels straight ahead of the Cold Harbor spawn (1888, 1728), inside the bay and the dock radius.

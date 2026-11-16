@@ -17,6 +17,8 @@ public partial class StationScreen : CanvasLayer
     public event Action<string, int>? SellRequested;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
+    /// <summary>Buy (positive) or sell back (negative) this many space mines at the home store.</summary>
+    public event Action<string, int>? MunitionRequested;
     public event Action<string, int>? RefineRequested;
     public event Action<string>? BuyShipRequested;
     /// <summary>The pilot pressed FLY on an owned ship in the Hangar.</summary>
@@ -219,6 +221,20 @@ public partial class StationScreen : CanvasLayer
         }
 
         Clear(_upgrades);
+        foreach (var munition in _station.Munitions)
+        {
+            var held = profile.Inventory.GetValueOrDefault(munition.Id);
+            var room = Math.Max(0, munition.MaxCarried - held);
+            var affordable = munition.Buy == 0 ? room : (int)Math.Min(room, profile.Wallet / munition.Buy);
+            _upgrades.AddChild(FlightHud.Label("SPACE MINES", 11, FlightHud.Teal));
+            _upgrades.AddChild(Row(Cell(munition.Name, 130), Cell($"{munition.Buy:N0} cr", 60), Cell($"held {held} / {munition.MaxCarried}", 100),
+                ActionButton("BUY 1", $"munition:{munition.Id}", affordable == 0, () => MunitionRequested?.Invoke(munition.Id, 1)),
+                ActionButton("FILL", $"munitionfill:{munition.Id}", affordable == 0, () => MunitionRequested?.Invoke(munition.Id, affordable)),
+                ActionButton("SELL 1", $"munitionsell:{munition.Id}", held == 0, () => MunitionRequested?.Invoke(munition.Id, -1))));
+            var m = munition.Mine;
+            _upgrades.AddChild(FlightHud.Label($"Lay with {FlightInput.Display(FlightInput.MineAction)}. Up to {m.MaxLivePerPlayer} at once, one every {m.DropIntervalSeconds:0.#} s; "
+                + $"goes off within {m.ProximityRadius:0} px, drains up to {m.ShieldDrainInner:0} shield and does up to {m.DamageInner:0} hull damage in {m.BlastRadius:0} px, lasts {m.LifetimeSeconds:0} s. Kept if the ship is destroyed.", 12, FlightHud.Muted));
+        }
         _upgrades.AddChild(FlightHud.Label("Original modules and prices. Effects are provisional; one active item per slot.", 12, FlightHud.Muted));
         foreach (var family in _station.Upgrades.GroupBy(u => u.Family))
         {

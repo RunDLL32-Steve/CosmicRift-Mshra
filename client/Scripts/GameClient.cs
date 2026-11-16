@@ -168,6 +168,10 @@ public partial class GameClient : Node2D
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
+            _stationScreen.MunitionRequested += (item, quantity) => StationTransaction(s => quantity > 0
+                    ? s.BuyMunitionAsync(item, quantity, PlayerX, PlayerY)
+                    : s.SellMunitionAsync(item, -quantity, PlayerX, PlayerY),
+                quantity > 0 ? $"Bought {quantity} {_stationDefinition.NameOf(item)}." : $"Sold {-quantity} {_stationDefinition.NameOf(item)}.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
@@ -657,7 +661,7 @@ public partial class GameClient : Node2D
         var minerals = _minerals?.ForWorld(BitConverter.ToUInt64(worldId.ToByteArray(), 0));
         // The hold is the saved inventory plus the pickups still owed to the profile.
         var hold = _pickups.HoldContents(new Dictionary<string, int>(AuthoritativeHold()), _session?.Profile?.AppliedTransactions.Select(t => t.TransactionId));
-        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map) { PilotId = LocalProfileId, PilotOrigin = LocalInstallOrigin };
+        var world = new WorldSimulation(_playCatalog, _cargo, hold, minerals: minerals, map: _map, playerMine: _stationDefinition.PlayerMine) { PilotId = LocalProfileId, PilotOrigin = LocalInstallOrigin };
         if (sector is not null && !world.RestoreSector(sector))
             Notice("The saved sector belongs to another sector and was not used.", warning: true);
         // Real time keeps running toward a pending target respawn while nobody is in the sector (owner rule, Nov 1 2026).
@@ -944,7 +948,8 @@ public partial class GameClient : Node2D
         {
             // Offline (no save folder): there is no wallet to charge; the unsaved hold spills into space with the ship.
             _pickups.StartNewWorld();
-            SpillCargo(_world.Cargo.Items.ToArray());
+            // Bought items such as space mines stay with the pilot, as they do when the loss is saved (Steve, Nov 3 2026).
+            SpillCargo(_world.Cargo.Items.Where(i => !_cargo.KeptOnDestruction(i.Key)).ToArray());
             Respawn($"Ship destroyed; its cargo{WreckNotice()} dropped where it died. Station services are offline, so no credits were charged.");
             return true;
         }

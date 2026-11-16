@@ -95,6 +95,8 @@ public sealed class PickupCommitQueue
         foreach (var (world, pickup) in _pending)
             if (!saved.Contains(StationProfileSession.PickupTransactionId(world, pickup.Sequence)))
                 hold[pickup.ItemId] = checked(hold.GetValueOrDefault(pickup.ItemId) + pickup.Quantity);
+        // A queued use (a laid mine, a negative pickup) never leaves a negative count, even if the saved units are already gone.
+        foreach (var item in hold.Where(h => h.Value <= 0).Select(h => h.Key).ToArray()) hold.Remove(item);
         return hold;
     }
 
@@ -119,8 +121,9 @@ public sealed class PickupCommitQueue
                 _pending.RemoveAt(0);
                 continue;
             }
+            // A use (negative pickup) the profile no longer holds the units for cannot succeed later either.
             if (result.Reason is RejectionReason.InvalidRequest or RejectionReason.CargoCapacityExceeded
-                or RejectionReason.ArithmeticOverflow or RejectionReason.TransactionIdReused)
+                or RejectionReason.ArithmeticOverflow or RejectionReason.TransactionIdReused or RejectionReason.InsufficientInventory)
             {
                 refused.Add((pickup, result.Reason));
                 _pending.RemoveAt(0);
