@@ -85,6 +85,8 @@ public sealed class ProjectileState
     public float Damage { get; }
     /// <summary>The weapon's shield drain per hit; null for a weapon under the NEW point-for-point absorption rule.</summary>
     public float? ShieldDrain { get; }
+    /// <summary>The weapon's hull damage type, which the target's armour protects against; null for an untyped weapon.</summary>
+    public DamageType? DamageType { get; }
     public int AgeTicks { get; internal set; }
     public int LifetimeTicks { get; }
 
@@ -98,6 +100,7 @@ public sealed class ProjectileState
         Radius = owner.Weapon.ProjectileRadius;
         Damage = owner.Weapon.Damage;
         ShieldDrain = owner.Weapon.ShieldDrain;
+        DamageType = owner.Weapon.DamageType;
         LifetimeTicks = Math.Max(1, (int)MathF.Ceiling(owner.Weapon.LifetimeSeconds * WorldSimulation.TickRate));
     }
 }
@@ -112,6 +115,13 @@ public sealed class CollectibleState
     public float Radius { get; }
     /// <summary>Mineral clock tick at which an unpicked drop vanishes; null for a pile that never expires.</summary>
     public long? ExpiresAt { get; internal set; }
+    /// <summary>
+    /// The pilot whose destroyed hull left this pile (RT-F043); that pilot's ship never collects it, anyone else's can. Null for
+    /// every other pile.
+    /// </summary>
+    public string? DroppedBy { get; internal init; }
+    /// <summary>The origin (computer) the dying pilot played from; no pilot from it collects this wreck. Null for every other pile.</summary>
+    public string? DroppedFrom { get; internal init; }
 
     internal CollectibleState(CollectibleSpawn spawn)
     {

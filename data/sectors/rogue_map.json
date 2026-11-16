@@ -1,7 +1,7 @@
 {
   "id": "rogue_map",
   "evidenceClassification": "ORIGINAL+RECONSTRUCTED+NEW",
-  "source": "Derived by OriginalMapBuilder from pinned LVL/Rogue.lvl (version 6, 1999 x 1998 tiles, offset 3, 3) through the G6 reader, and CFG/rogue.cfg [Terrain0..15] PrizeExpire (lines 260, 297, 334, 371, 408, 445, 482, 519, 556, 593, 630, 667, 704, 741, 778, 815); regenerate, never hand-edit.",
+  "source": "Derived by OriginalMapBuilder from pinned LVL/Rogue.lvl (version 6, 1999 x 1998 tiles, offset 3, 3) through the G6 reader, and CFG/rogue.cfg [Terrain0..15] PrizeExpire (lines 260, 297, 334, 371, 408, 445, 482, 519, 556, 593, 630, 667, 704, 741, 778, 815), Safety, DeleteLiveWeapons and EnergyRate; regenerate, never hand-edit.",
   "newRules": [
     "Tiles: blocked = LVL plane 2 physics (low 5 bits) is not 0, terrain = TerrainLookup[plane 0 & 0x7F] mod 16, 16 pixels per tile: the G6 reader's emulator readings (RECONSTRUCTED). Height rules (PhysicsLow/High) are not applied; every non-zero physics tile blocks.",
     "World coordinates are map pixels from the top-left tile. LIO positions are moved by the LVL OffsetX/OffsetY (3 tiles = 48 pixels) as the emulator does (Logic_Lio.Warp, ArenaLio.hideSpawn).",
@@ -33,6 +33,88 @@
     120,
     120,
     120
+  ],
+  "terrainRules": [
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": true,
+      "deleteLiveWeapons": false,
+      "energyRate": -2000
+    },
+    {
+      "safety": true,
+      "deleteLiveWeapons": true,
+      "energyRate": -2000
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": false,
+      "deleteLiveWeapons": false,
+      "energyRate": 0
+    },
+    {
+      "safety": true,
+      "deleteLiveWeapons": true,
+      "energyRate": -2000
+    }
   ],
   "tileEncoding": "rle-leb128-base64",
   "blockedTiles": 116065,

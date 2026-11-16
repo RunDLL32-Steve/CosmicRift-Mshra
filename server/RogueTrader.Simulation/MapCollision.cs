@@ -38,13 +38,21 @@ public static class MapCollision
     /// that passes exactly through a tile corner counts as entering every tile that meets there, so a shot cannot slip
     /// diagonally between two blocked tiles. A move that starts on a blocked tile, or ends at a non-finite point, hits at once.
     /// </summary>
-    public static bool Sweep(SectorMap map, Vector2 start, Vector2 end, out float fraction)
+    public static bool Sweep(SectorMap map, Vector2 start, Vector2 end, out float fraction) =>
+        SweepTiles(map, start, end, projectile: false, out fraction);
+
+    /// <summary>Where a projectile first reaches a wall or a terrain that deletes live weapons.</summary>
+    internal static bool SweepProjectile(SectorMap map, Vector2 start, Vector2 end, out float fraction) =>
+        SweepTiles(map, start, end, projectile: true, out fraction);
+
+    private static bool SweepTiles(SectorMap map, Vector2 start, Vector2 end, bool projectile, out float fraction)
     {
         ArgumentNullException.ThrowIfNull(map);
         fraction = 0;
-        if (map.IsBlocked(start) || !float.IsFinite(end.X) || !float.IsFinite(end.Y)) return true;
+        if (!float.IsFinite(start.X) || !float.IsFinite(start.Y) || !float.IsFinite(end.X) || !float.IsFinite(end.Y)) return true;
         const float size = SectorMap.TileSize;
         var (x, y) = SectorMap.TileOf(start);
+        if (StopsSweep(map, x, y, projectile)) return true;
         var d = end - start;
         int stepX = Math.Sign(d.X), stepY = Math.Sign(d.Y);
         var tMaxX = stepX == 0 ? float.PositiveInfinity : ((stepX > 0 ? (x + 1) * size : x * size) - start.X) / d.X;
@@ -60,18 +68,19 @@ public static class MapCollision
             {
                 x += stepX;
                 tMaxX += tDeltaX;
-                blocked = map.IsBlockedTile(x, y);
+                blocked = StopsSweep(map, x, y, projectile);
             }
             else if (tMaxY < tMaxX)
             {
                 y += stepY;
                 tMaxY += tDeltaY;
-                blocked = map.IsBlockedTile(x, y);
+                blocked = StopsSweep(map, x, y, projectile);
             }
             else
             {
                 // Exactly through a corner: the two side tiles and the diagonal one all meet the move here.
-                blocked = map.IsBlockedTile(x + stepX, y) || map.IsBlockedTile(x, y + stepY) || map.IsBlockedTile(x + stepX, y + stepY);
+                blocked = StopsSweep(map, x + stepX, y, projectile) || StopsSweep(map, x, y + stepY, projectile)
+                    || StopsSweep(map, x + stepX, y + stepY, projectile);
                 x += stepX;
                 y += stepY;
                 tMaxX += tDeltaX;
@@ -84,4 +93,7 @@ public static class MapCollision
             }
         }
     }
+
+    private static bool StopsSweep(SectorMap map, int x, int y, bool projectile) =>
+        projectile ? map.StopsProjectileAtTile(x, y) : map.IsBlockedTile(x, y);
 }

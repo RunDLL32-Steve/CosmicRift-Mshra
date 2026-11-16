@@ -4,7 +4,7 @@ The values come from pinned `ITM/Rogue_mp.itm` row 13 (cosmic-rift-assets `eb151
 
 Checks run in a cloud container (.NET SDK 8.0.134, with global.json changed only locally; Godot 4.5.1 mono headless):
 
--   `dotnet test tests/Unit`: 1,250 passed, 5 skipped (the pinned assets are present, so the original-data case ran).
+-   `dotnet test tests/Unit` after merging main (`22f0cd4`, with safe zones #128, armour #129, cannon units #133 and wreckage #134): 1,307 passed, 5 skipped. The pinned assets are present, so the original-data case ran.
 -   Godot import and `--smoke-test`: all flight, input and station smoke steps pass, including the new mine step.
 -   `python scripts/check-trackers.py`: TRACKERS_CONSISTENT, 397/22/375 unchanged.
 

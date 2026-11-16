@@ -66,13 +66,16 @@ public sealed partial class WorldSimulation
 
     /// <summary>
     /// Lays one mine where the ship is, at rest (the Plasma Mine's original muzzle velocity and inherited speed are both 0). It
-    /// needs a mine in the hold, the drop interval to have passed, and fewer than the per-pilot limit already lying in space.
+    /// needs a mine in the hold, the drop interval to have passed, fewer than the per-pilot limit already lying in space, and the
+    /// ship outside a safe zone.
     /// The unit leaves the hold at once and the world records it as a pickup of -1, so the profile is charged through the same
     /// saved queue as every pickup and a relaunch can never give a laid mine back.
     /// </summary>
     private void TryLayMine()
     {
         if (PlayerMine is not { } mine || TickNumber < _nextMineDropTick) return;
+        // No weapon is used in a safe zone (RT-F065), mines included.
+        if (IsSafe(Player)) return;
         if (_mines.Count(m => m.OwnerShipId == Player.Id && m.Definition.Id == mine.Id) >= mine.MaxLivePerPlayer) return;
         if (!Cargo.TryRemove(mine.ItemId, 1)) return;
         var id = ++_nextMineId;
@@ -85,7 +88,8 @@ public sealed partial class WorldSimulation
     /// <summary>
     /// Ages every mine, removes those whose life ran out, and sets off each armed mine that another ship has come within its
     /// proximity radius of (measured to the ship's edge). A blast reaches every ship other than the mine's owner whose centre is
-    /// inside the blast radius, with drain and damage falling linearly from inner to outer over that radius.
+    /// inside the blast radius, with drain and damage falling linearly from inner to outer over that radius, and armour applied
+    /// by damage type. Ships in a safe zone neither set a mine off nor take its blast (RT-F065).
     /// </summary>
     private void StepMines()
     {
@@ -98,7 +102,7 @@ public sealed partial class WorldSimulation
                 _mines.RemoveAt(index);
                 continue;
             }
-            var trigger = mine.IsArmed ? Ships().FirstOrDefault(s => s.Id != mine.OwnerShipId && !s.IsDestroyed
+            var trigger = mine.IsArmed ? Ships().FirstOrDefault(s => s.Id != mine.OwnerShipId && !s.IsDestroyed && !IsSafe(s)
                 && Vector2.Distance(s.Position, mine.Position) <= mine.Definition.ProximityRadius + s.Radius) : null;
             if (trigger is null)
             {
@@ -118,13 +122,13 @@ public sealed partial class WorldSimulation
         var hit = new List<string>();
         foreach (var ship in Ships())
         {
-            if (ship.Id == mine.OwnerShipId || ship.IsDestroyed) continue;
+            if (ship.Id == mine.OwnerShipId || ship.IsDestroyed || IsSafe(ship)) continue;
             var distance = Vector2.Distance(ship.Position, mine.Position);
             if (distance > d.BlastRadius) continue;
             var t = distance / d.BlastRadius;
             var drain = d.ShieldDrainInner + (d.ShieldDrainOuter - d.ShieldDrainInner) * t;
             var damage = d.DamageInner + (d.DamageOuter - d.DamageInner) * t;
-            ApplyDamage(ship, mine.OwnerShipId, d.Id, drain, damage);
+            ApplyDamage(ship, mine.OwnerShipId, d.Id, drain, damage, d.DamageType);
             hit.Add(ship.Id);
         }
         _detonations.Add(new MineDetonation(mine.Id, mine.OwnerShipId, mine.Position.X, mine.Position.Y, triggeredBy, hit, TickNumber));

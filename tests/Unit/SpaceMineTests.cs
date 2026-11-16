@@ -29,7 +29,7 @@ public sealed class SpaceMineTests
         ShieldDrainOuter = 0,
         DamageInner = 20,
         DamageOuter = 5,
-        DamageType = "Energy",
+        DamageType = DamageType.Energy,
         ArmSeconds = armSeconds,
         LifetimeSeconds = lifetimeSeconds,
         DropIntervalSeconds = 1.5f,
@@ -195,6 +195,19 @@ public sealed class SpaceMineTests
     }
 
     [Fact]
+    public void NoMineIsLaidInASafeZone()
+    {
+        var map = TestWorld.RogueMap;
+        var safe = Enumerable.Range(0, (int)(map.PixelWidth / 16)).SelectMany(x => Enumerable.Range(0, (int)(map.PixelHeight / 16)).Select(y => new Vector2(x * 16 + 8, y * 16 + 8)))
+            .First(p => map.IsSafeAt(p) && !map.IsBlocked(p));
+        var world = new WorldSimulation(TestWorld.RogueCatalog(), Cargo(), new Dictionary<string, int> { [MineItem] = 5 }, map: map, playerMine: Mine());
+        Assert.True(world.RestorePlayer(safe, 0, world.Player.Hull));
+        world.Tick(Lay);
+        Assert.Empty(world.Mines);
+        Assert.Equal(5, world.Cargo.Quantity(MineItem));
+    }
+
+    [Fact]
     public void CarryLimitCapsTheHoldAndTheCargoRule()
     {
         var cargo = Cargo();
@@ -273,7 +286,7 @@ public sealed class SpaceMineTests
         var munition = OriginalMineBuilder.PlasmaMine(OriginalItemCatalog.Load(OriginalAssets.Root!));
         Assert.Equal(("102", "Plasma Mine", 0L, 25L, 25L, 10), (munition.Id, munition.Name, munition.UnitWeight, munition.Buy, munition.Sell, munition.MaxCarried));
         var m = munition.Mine;
-        Assert.Equal((56f, 100f, 750f, 0f, 20f, 5f, "Energy"), (m.ProximityRadius, m.BlastRadius, m.ShieldDrainInner, m.ShieldDrainOuter, m.DamageInner, m.DamageOuter, m.DamageType));
+        Assert.Equal((56f, 100f, 750f, 0f, 20f, 5f, (DamageType?)DamageType.Energy), (m.ProximityRadius, m.BlastRadius, m.ShieldDrainInner, m.ShieldDrainOuter, m.DamageInner, m.DamageOuter, m.DamageType));
         Assert.Equal((0f, 60f, 1.5f, 3), (m.ArmSeconds, m.LifetimeSeconds, m.DropIntervalSeconds, m.MaxLivePerPlayer));
         Assert.Equal(munition, LoadStation().Munitions.Single() with { Mine = munition.Mine }); // shipped data matches the derivation
         Assert.Equal(m with { NewValues = null }, LoadStation().PlayerMine! with { NewValues = null });

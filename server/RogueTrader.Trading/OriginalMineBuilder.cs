@@ -26,7 +26,7 @@ public static class OriginalMineBuilder
     public const int UseAmmoIdField = 31;
 
     /// <summary>The per-damage-type blast radius fields, each followed by its inner, outer and mode fields.</summary>
-    private static readonly (int Radius, string Field, string Type)[] HullDamageRadii = [(151, "kinetic", "Kinetic"), (155, "explosive", "Explosive"), (159, "electronic", "Energy")];
+    private static readonly (int Radius, string Field)[] HullDamageRadii = [(151, "kinetic"), (155, "explosive"), (159, "electronic")];
     private const int EnergyDrainRadius = 171;
     private const int MaxLivePerTeamField = 132;
 
@@ -53,7 +53,8 @@ public static class OriginalMineBuilder
         var hull = HullDamageRadii.Where(d => r.Int(d.Radius + 1).Value != 0).ToList();
         if (hull.Count != 1)
             throw new OriginalDataException($"{item.Name} (ITM row {item.RowNumber}) carries {hull.Count} hull damage types, not one.");
-        var (hullRadiusField, fieldName, damageType) = hull[0];
+        var (hullRadiusField, fieldName) = hull[0];
+        var damageType = OriginalWeaponBuilder.DamageTypeOf(hullRadiusField + 1);
         var hullRadius = r.Int(hullRadiusField).Value;
         var drainRadius = r.Int(EnergyDrainRadius).Value;
         if (hullRadius <= 0 || drainRadius != hullRadius)
@@ -90,7 +91,7 @@ public static class OriginalMineBuilder
                 "Radii are read as map pixels; the mine goes off when a ship's edge comes within the proximity radius, and its blast reaches ships whose centre is inside the blast radius.",
                 "Drain and damage fall linearly from inner at the centre to outer at the blast radius (the raw damage mode fields are kept unread).",
                 "A mine never goes off for, or hurts, the pilot who laid it; a mine whose life runs out vanishes without a blast.",
-                $"Hull damage ignores the damage type and armour (RT-F041); f[{MaxLivePerTeamField}] maxLivePerTeam {r.Int(MaxLivePerTeamField).Value} is not applied (the sector has one pilot).",
+                $"Armour reduces the hull damage by its damage type as it does for cannon hits (RT-F041); f[{MaxLivePerTeamField}] maxLivePerTeam {r.Int(MaxLivePerTeamField).Value} is not applied (the sector has one pilot).",
             ],
         };
         mine.Validate();
