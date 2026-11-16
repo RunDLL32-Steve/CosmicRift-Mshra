@@ -155,7 +155,8 @@ public partial class GameClient : Node2D
             _hud.OriginalContentRequested += () => SetInspectionVisible(true);
             _hud.ReloadProfileRequested += () => ReloadProfile();
             AddChild(_hud);
-            _minimap = new MinimapView(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
+            _minimap = new MinimapView(_map, _view.Station, _view.Refinery, RadarLook.FromJson(ReadDefinition("ui/radar.json")),
+                OriginalUiArt.LoadIfAvailable()) { Outposts = _view.Outposts };
             _hud.AddChild(_minimap);
             _sectorMap = new SectorMapOverlay(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
             _hud.AddChild(_sectorMap);
@@ -900,9 +901,12 @@ public partial class GameClient : Node2D
         _world = NewWorld(restoreSavedShip: true, loadSector: false);
         _world.RestorePlayer(dock, heading, _world.Player.Hull); // out of this dock, with the hull it was parked with
         _view.SetWorld(_world);
-        SaveShip();
+        // The chosen ship now launches from this dock; until that is saved, the profile still has it where it was parked.
+        var launchUnsaved = SaveShip();
         ReconcileHold();
-        _stationScreen.SetStatus($"Now flying the {_catalog.Ship.Name}. The ship you left is parked in this hangar.");
+        _stationScreen.SetStatus(launchUnsaved is { } reason
+            ? $"Now flying the {_catalog.Ship.Name}, but its launch from this hangar is not saved yet ({Describe(reason)}). Saving is retried."
+            : $"Now flying the {_catalog.Ship.Name}. The ship you left is parked in this hangar.", error: launchUnsaved is not null);
         Notice($"Flying the {_catalog.Ship.Name}.");
         RefreshProfileViews(rebuildStation: true);
     }
