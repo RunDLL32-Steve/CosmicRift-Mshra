@@ -67,15 +67,38 @@ public sealed class GameCatalog
             throw new ArgumentException("A ship whose energy is its shield has no separate shield pool (maximum shield must be 0).");
         if (Ship.WeaponId is { } weaponId && !string.Equals(weaponId, Weapon.Id, StringComparison.Ordinal))
             throw new ArgumentException($"Ship '{Ship.Id}' starts with weapon '{weaponId}', not '{Weapon.Id}'.");
-        if (Ship.Hyper is { } hyper)
+        if (Ship.Hyper is { } hyper) ValidateHyper(hyper, Ship.Physics.Mass, "hyper");
+        if (Ship.Terrains is { } terrains)
         {
-            Nonnegative(hyper.ForwardThrust, "hyper forward thrust");
-            Nonnegative(hyper.ReverseThrust, "hyper reverse thrust");
-            Positive(hyper.MaximumSpeed, "hyper maximum speed");
-            Nonnegative(hyper.EnergyPerSecond, "hyper energy per second");
-            FiniteDerived(hyper.ForwardThrust / Ship.Physics.Mass, "hyper forward acceleration");
-            FiniteDerived(hyper.ReverseThrust / Ship.Physics.Mass, "hyper reverse acceleration");
-            FiniteSquared(hyper.MaximumSpeed, "hyper maximum speed");
+            var seen = new HashSet<int>();
+            foreach (var flight in terrains)
+            {
+                ArgumentNullException.ThrowIfNull(flight);
+                ArgumentNullException.ThrowIfNull(flight.Physics);
+                if (flight.Terrain is < 1 or > 15) throw new ArgumentException("A terrain flight entry needs a terrain number from 1 to 15.");
+                if (!seen.Add(flight.Terrain)) throw new ArgumentException($"Terrain {flight.Terrain} has more than one flight entry.");
+                var name = $"terrain {flight.Terrain}";
+                if (flight.Physics.Mass != Ship.Physics.Mass) throw new ArgumentException($"The {name} flight must keep the hull's mass.");
+                Nonnegative(flight.Physics.ForwardThrust, name + " forward thrust");
+                Nonnegative(flight.Physics.ReverseThrust, name + " reverse thrust");
+                Nonnegative(flight.Physics.RotationSpeed, name + " rotation speed");
+                Positive(flight.Physics.MaximumSpeed, name + " maximum speed");
+                if (flight.Physics.MaximumSpeed > Ship.Physics.MaximumSpeed)
+                    throw new ArgumentException($"The {name} top speed must not exceed the hull's open-space top speed.");
+                if (!(flight.Physics.AsteroidRestitution is >= 0 and <= 1))
+                    throw new ArgumentException($"The {name} restitution must be between zero and one.");
+                // Bounded well below a whole tick's worth of speed (0.1 per 10 ms is raw RollFriction 320; Rogue uses 30 and 45).
+                if (!(flight.FrictionPerTenMilliseconds >= 0 && flight.FrictionPerTenMilliseconds * 10 < 1))
+                    throw new ArgumentException($"The {name} friction must be at least 0 and below 0.1 per 10 ms.");
+                FiniteDerived(flight.Physics.ForwardThrust / flight.Physics.Mass, name + " forward acceleration");
+                FiniteDerived(flight.Physics.ReverseThrust / flight.Physics.Mass, name + " reverse acceleration");
+                if (flight.Hyper is { } terrainHyper)
+                {
+                    ValidateHyper(terrainHyper, Ship.Physics.Mass, name + " hyper");
+                    if (terrainHyper.MaximumSpeed > MathF.Max(Ship.Physics.MaximumSpeed, Ship.Hyper?.MaximumSpeed ?? 0))
+                        throw new ArgumentException($"The {name} hyper top speed must not exceed the hull's open-space speeds.");
+                }
+            }
         }
         Positive(Weapon.MuzzleVelocity, "muzzle velocity");
         Positive(Weapon.ProjectileRadius, "projectile radius");
@@ -126,6 +149,17 @@ public sealed class GameCatalog
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException($"The {kind} definition requires an ID.");
+    }
+
+    private static void ValidateHyper(ShipHyper hyper, float mass, string name)
+    {
+        Nonnegative(hyper.ForwardThrust, name + " forward thrust");
+        Nonnegative(hyper.ReverseThrust, name + " reverse thrust");
+        Positive(hyper.MaximumSpeed, name + " maximum speed");
+        Nonnegative(hyper.EnergyPerSecond, name + " energy per second");
+        FiniteDerived(hyper.ForwardThrust / mass, name + " forward acceleration");
+        FiniteDerived(hyper.ReverseThrust / mass, name + " reverse acceleration");
+        FiniteSquared(hyper.MaximumSpeed, name + " maximum speed");
     }
 
     private static void Positive(float value, string name)

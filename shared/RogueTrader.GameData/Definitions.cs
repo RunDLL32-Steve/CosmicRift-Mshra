@@ -17,6 +17,11 @@ public sealed record ShipDefinition
     /// </summary>
     public ShipHyper? Hyper { get; init; }
     /// <summary>
+    /// Flight inside map terrains other than open space (docks, trade zones), one entry per terrain the hull flies differently in;
+    /// null or a terrain left out means the ship flies with <see cref="Physics"/> and <see cref="Hyper"/> there.
+    /// </summary>
+    public IReadOnlyList<ShipTerrainFlight>? Terrains { get; init; }
+    /// <summary>
     /// Id of the weapon the hull starts with (a file <c>data/weapons/&lt;file&gt;</c> is named by the roster loader); null means the
     /// NEW Plasma cannon fixture (<c>plasma_cannon</c>).
     /// </summary>
@@ -25,6 +30,35 @@ public sealed record ShipDefinition
     public string? Source { get; init; }
     /// <summary>Values that are placeholders rather than original data, one note each (null when there are none listed).</summary>
     public IReadOnlyList<string>? NewValues { get; init; }
+
+    /// <summary>The flight entry for map terrain <paramref name="terrain"/>, or null when the ship flies its open-space values there.</summary>
+    public ShipTerrainFlight? TerrainFlight(int terrain)
+    {
+        if (terrain == 0 || Terrains is null) return null;
+        foreach (var flight in Terrains)
+            if (flight.Terrain == terrain) return flight;
+        return null;
+    }
+}
+
+/// <summary>
+/// How a hull flies inside one map terrain (original VEH terrain speed block, F12). While the ship's centre is on a tile of
+/// <see cref="Terrain"/>, these values replace the hull's open-space <see cref="ShipDefinition.Physics"/> and
+/// <see cref="ShipDefinition.Hyper"/>, and the ship loses <see cref="FrictionPerTenMilliseconds"/> of its speed every 10 ms.
+/// </summary>
+public sealed record ShipTerrainFlight
+{
+    /// <summary>Map terrain number, 1..15 (0 is open space and always flies the hull's own values).</summary>
+    public int Terrain { get; init; }
+    public ShipPhysics Physics { get; init; } = new();
+    /// <summary>
+    /// Share of the speed taken away every 10 ms; 0 is no drag. A step of <c>s</c> milliseconds keeps
+    /// <c>1 − FrictionPerTenMilliseconds × s / 10</c> of the speed (the emulator's friction formula).
+    /// </summary>
+    public float FrictionPerTenMilliseconds { get; init; }
+    /// <summary>The boost inside this terrain; null means the boost does not work here.</summary>
+    public ShipHyper? Hyper { get; init; }
+    public string? Source { get; init; }
 }
 
 /// <summary>

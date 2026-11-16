@@ -1,11 +1,40 @@
 # Changelog
 
+## The hangar keeps working after a failed save — November 16, 2026
+
+-   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).
+-   The Hangar now says so when the chosen ship's launch from the dock could not be saved, instead of reporting success.
+
+## Gas clouds are see-through and drift over ships — November 10, 2026
+
+-   Steve's ask: gas clouds no longer draw as solid blocks. `LVL/Rogue.lvl` gives each placed sprite draw flags that the map art did not read until now (format source: Gibbed `Level/Entity.cs` at the pinned InfantryOnline tools commit). 1,408 gas clouds (gasCloud, gasCloud1*, gasCloud2* and gasCloud3sm*) are "smart translucent" and drawn last, so the client now draws them over ships, shots and explosions at 50% opacity. The 275 small dense gasCloud4sm* clouds are opaque in the level, so they stay solid and under ships. The 50% strength is RECONSTRUCTED: the format source does not give it or say when it applies.
+-   Two other visible changes come from the same flags. The 61 safe-zone floor markings that the level marks smart translucent now also draw at 50%, still under ships. The 37 animated station dishes (`Dish_ani_`) are opaque but marked "drawn last", so they now draw over ships.
+-   `level.json` moves to schema 2; `scripts/run-client.ps1` re-stages an older copy on its own. No gameplay change.
+
+## The radar uses the original colours and frame — November 9, 2026
+
+-   The radar in the lower-right corner now uses Rogue Trader's own look. Your ship is drawn in the CFG `[Radar]` ColorSelf green (`0x00ff00`, `CFG/rogue.cfg` line 2278) and the practice targets in ColorEnemy red (`0xff4040`, line 2280). ColorFriendly yellow (`0xffff00`, line 2279) is loaded but nothing uses it yet, because there are no other ships. The values live in `data/ui/radar.json`, and `RadarLookTests` checks them against the pinned file.
+-   The frame is the original `[Uiart]` RadarBorder art (`cruiart,newradar`, line 2751): the RADAR title plate, the title bar, the side and bottom edges and the pipe on the lower-right corner. The art is never committed. `scripts/original-assets/stage_ui_art.py` checks `CFG/rogue.cfg` and `BLO/cruiart.blo` against their pins and writes the atlas and `ui.json` to the git-ignored `client/OriginalContent/ui/`. `run-client.ps1` and `export-windows.ps1` run it, and `sync-reference-assets.ps1` now fetches `cruiart.blo`. Without the art, the radar keeps its plain NEW frame.
+-   RECONSTRUCTED: how the eight pieces join into a frame (the native layout code is not available); pieces 4 and 7 are staged but not placed. Still NEW: the whole-map view, the station, outpost and mineral marks, and the colours read as 0xRRGGBB. RT-F064 and RT-F025 stay open: the original radar range, zoom, blip shapes, FontColor keys and line-of-sight rules are not applied.
+
 ## Client prediction knows the Shift boost and the walls — November 9, 2026
 
 -   Holding Shift is now part of what the client sends (`InputFlags.Hyper`), and the server applies it, so the boost works over the network path and not only in the local game. The motion audit allows a boosting ship its boost top speed.
 -   Client prediction runs the boost exactly as the server does: it engages only while thrusting with a tick's energy, pays 99 to 120 energy a second by hull, and pauses recharge. Snapshots now carry each ship's energy for this (wire version 2: 37 bytes per entity instead of 33; version 1 frames are refused). Energy spent by firing, mining or hits is still decided by the server alone and arrives in the next snapshot.
--   A predictor given the sector's tile map predicts wall bounces with the same code the server uses, so flying into a wall no longer snaps the ship back when the snapshot arrives. `ShipMotion` and `WorldSimulation` share one step for asteroids, walls, boost and recharge.
--   Evidence: `tests/Unit/Prediction/BoostAndWallPredictionTests.cs` (eight cases, every one compared bit for bit with a real `AuthoritativeSession` through the wire codec). No original feature checkbox changes; 397/22/375 unchanged.
+-   A predictor given the sector's tile map predicts wall bounces with the same code the server uses, so flying into a wall no longer snaps the ship back when the snapshot arrives. `ShipMotion` and `WorldSimulation` share one step for asteroids, walls, boost and terrain flight. Both use the terrain at the end of the tick for its energy rate.
+-   Evidence: `tests/Unit/Prediction/BoostAndWallPredictionTests.cs` covers wire inputs, authoritative corrections, and matching prediction as ships cross the three dock and trade terrains. No original feature checkbox changes; 397/22/375 unchanged.
+
+## Safe zones at the docks, Repair Docks and Trading Posts — November 8, 2026
+
+-   RT-F065 (gameplay slice): the three terrains that `CFG/rogue.cfg` marks `Safety=1` are now safe zones: Repair Docks (`[Terrain9]`), the SpaceDock store zones around each team's station (`[Terrain10]`) and the refinery and Trading Post zones (`[Terrain15]`). A ship in a safe zone cannot be hit, since shots fly straight through it, and cannot fire. The HUD shows SAFE ZONE while you are in one. The emulator does not enforce `Safety` on its server (its bots only skip targets standing in one), so "no damage, no firing" is a RECONSTRUCTED reading of the key, not proven against the original client.
+-   A shot that flies into a SpaceDock store zone or a refinery/trade zone disappears there (`DeleteLiveWeapons=1` on terrains 10 and 15). Shots still cross a Repair Dock (`DeleteLiveWeapons=0`), and they cannot damage a ship inside one.
+-   Sitting in any of the three zones drains energy (`EnergyRate=-2000`, read in tenths per second like the hull's own 1,050 recharge). The drain is added to the hull's recharge, so a 105-per-second hull loses 95 a second and empties in about 18 s, never going below 0. The news line of 9/06/01 says "You now lose energy when you sit in a safe zone surrounding a refinery/trading post. Dont dawdle." The CFG applies the same drain at the SpaceDocks and Repair Docks. Adding the drain to the recharge, and the unit, are NEW readings. Because energy is the shield, a ship that waits in a dock leaves with an empty shield.
+-   The rules travel in `data/sectors/rogue_map.json` (`terrainRules`, derived by `OriginalMapBuilder` from the CFG and still checked against the pinned originals). `WorldSimulation.DamagePlayer` stays a direct hook that ignores safe zones, so the station acceptance run can still damage a docked ship. Not done yet: the 60-second limit in Repair Docks and trade zones (`MaxTimeAllowed=60`, NWS 8/27/01 "sent to spec"), which needs a ruling on what "spec" means here.
+
+## Ships fly slower inside docks and trade zones — November 4, 2026
+
+-   Inside a Repair Dock, a SpaceDock or a Trading Post / refinery zone your ship now flies with the original values each hull has for that zone (VEH terrain blocks 9, 10 and 15): a top speed of 300 px/s, a slower turn (150°/s in docks, 195°/s in trade zones; the Hornet keeps its 248°/s in trade zones), and friction, so a coasting ship keeps only 24 % of its speed per second in a dock and 39 % in a trade zone. Holding thrust in a dock settles at about 117 px/s. The Shift boost does not work in these zones and costs no energy there. Open space is unchanged.
+-   Upgrades raise dock flight by the same share as open-space flight. The values are the hull data read in the same units as open space; the emulator looks up the zone's block but never applies it, so this is a reconstruction (G10 F12, now MATCH).
 
 ## Selected hull sprite correction — November 4, 2026
 

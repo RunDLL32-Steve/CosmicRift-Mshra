@@ -166,6 +166,72 @@ public sealed class BoostAndWallPredictionTests
         Assert.Equal(Ship(authority), predictor.Ship);
     }
 
+    [Theory]
+    [InlineData(9)]
+    [InlineData(10)]
+    [InlineData(15)]
+    public void TerrainFlightAndEnergyMatchWhenCrossingADock(byte terrain)
+    {
+        // One tile column of dock terrain: entering uses open-space flight and dock energy, leaving uses
+        // dock flight and open-space energy. These small values exercise the lower energy clamp and boost recovery.
+        const int size = 40;
+        const int dockColumn = 16;
+        const float dockStart = dockColumn * SectorMap.TileSize;
+        var tiles = new byte[size * size];
+        for (var y = 0; y < size; y++) tiles[y * size + dockColumn] = terrain;
+        var rules = Enumerable.Repeat(TerrainRule.Open, SectorMap.TerrainCount).ToArray();
+        rules[terrain] = new TerrainRule(Safety: true, EnergyRate: -2000);
+        var map = new SectorMap(size, size, tiles, Expire, terrainRules: rules);
+
+        var baseCatalog = BoostCatalog(dockStart - 2, 320, 6);
+        var dock = new ShipTerrainFlight
+        {
+            Terrain = terrain,
+            Physics = baseCatalog.Ship.Physics with { MaximumSpeed = 240, RotationSpeed = 1 },
+            FrictionPerTenMilliseconds = 0.03f,
+        };
+        var catalog = new GameCatalog(
+            baseCatalog.Ship with { Terrains = [dock] },
+            baseCatalog.Weapon,
+            baseCatalog.Sector with { PlayerSpawn = baseCatalog.Sector.PlayerSpawn with { VelocityX = 300 } });
+        var authority = new AuthoritativeSession(new WorldSimulation(catalog, map: map));
+        var predictor = new ShipPredictor(catalog, ControlledId, Snapshot(authority), 8, map);
+
+        void Step(float turn)
+        {
+            Assert.Equal(InputVerdict.Accepted, authority.Submit(Issue(predictor, 1, turn, InputFlags.Hyper)));
+            authority.Step();
+            Assert.Equal(Ship(authority), predictor.Ship);
+            Assert.Equal(ReconciliationVerdict.Accepted, predictor.Reconcile(Snapshot(authority)));
+        }
+
+        Step(0);
+        Assert.Equal(terrain, map.TerrainAt(authority.World.Player.Position));
+        Assert.True(authority.World.Player.IsHyperEngaged);
+        Assert.Equal(305, predictor.Ship.VelX, 4);
+        Assert.Equal(6 - 1 - 200f / 60, predictor.Ship.Energy, 4);
+
+        Step(1);
+        Assert.False(authority.World.Player.IsHyperEngaged);
+        Assert.Equal(240, authority.World.Player.Velocity.Length(), 3);
+        Assert.Equal(WorldSimulation.TickDuration, predictor.Ship.Rotation, 5);
+        Assert.Equal(0, predictor.Ship.Energy);
+
+        for (var tick = 0; tick < 8 && map.TerrainAt(authority.World.Player.Position) == terrain; tick++)
+            Step(0);
+        Assert.Equal(0, map.TerrainAt(authority.World.Player.Position));
+        Assert.False(authority.World.Player.IsHyperEngaged);
+        Assert.Equal(0.5f, predictor.Ship.Energy, 4);
+
+        Step(0);
+        Assert.False(authority.World.Player.IsHyperEngaged);
+        Assert.Equal(1, predictor.Ship.Energy, 4);
+        Step(0);
+        Assert.True(authority.World.Player.IsHyperEngaged);
+        Assert.Equal(0, predictor.Ship.Energy);
+        Assert.Empty(authority.MotionViolations);
+    }
+
     [Fact]
     public void TheMotionAuditAllowsTheBoostTopSpeed()
     {
@@ -183,22 +249,52 @@ public sealed class BoostAndWallPredictionTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void TheAuditUsesTheBoostTopSpeedOnlyOnATickThatBoosted(bool boost)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void TheAuditUsesTheStartingTerrainsTopSpeedAndTheBoostThatEngaged(bool boost, bool inDock)
     {
-        // Review R1-1: restoring the ship onto an asteroid's centre pushes it out far faster than it can fly, so the tick is
-        // flagged, and the finding's limit shows which top speed the audit used for that tick.
-        var catalog = BoostCatalog(energy: 1000, asteroids: [new AsteroidDefinition { X = 1000, Y = 0, Radius = 40 }]);
-        var authority = new AuthoritativeSession(new WorldSimulation(catalog));
-        Assert.True(authority.RestorePlayer(new Vector2(1000, 0), 0, authority.World.Player.Hull));
+        // Overlap recovery sends the ship farther than its speed allows and into a different tile. The audit must use the
+        // starting tile and the boost that engaged there, even for a ship with no open-space boost.
+        const byte terrain = 9;
+        const int asteroidX = 1000;
+        const float normalDockSpeed = 240;
+        const float boostedDockSpeed = 300;
+        var catalog = BoostCatalog(energy: 1000, asteroids: [new AsteroidDefinition { X = asteroidX, Y = 0, Radius = 40 }]);
+        SectorMap? map = null;
+        if (inDock)
+        {
+            const int width = 80;
+            const int height = 4;
+            var tiles = new byte[width * height];
+            tiles[asteroidX / SectorMap.TileSize] = terrain;
+            map = new SectorMap(width, height, tiles, Expire);
+            var dock = new ShipTerrainFlight
+            {
+                Terrain = terrain,
+                Physics = catalog.Ship.Physics with { MaximumSpeed = normalDockSpeed },
+                Hyper = Boost with { MaximumSpeed = boostedDockSpeed },
+            };
+            var ship = catalog.Ship with { Hyper = null, Terrains = [dock] };
+            catalog = new GameCatalog(ship, catalog.Weapon, catalog.Sector);
+        }
+        var authority = new AuthoritativeSession(new WorldSimulation(catalog, map: map));
+        Assert.True(authority.RestorePlayer(new Vector2(asteroidX, 0), 0, authority.World.Player.Hull));
         Assert.Equal(InputVerdict.Accepted, authority.Submit(new PlayerInput(1, 1, 0, 1, 0, boost ? InputFlags.Hyper : InputFlags.None)));
         authority.Step();
         Assert.Equal(boost, authority.World.Player.IsHyperEngaged);
         var finding = Assert.Single(authority.MotionViolations);
         Assert.Equal(MotionViolationKind.SpeedExceeded, finding.Kind);
-        var topSpeed = boost ? Boost.MaximumSpeed : 360;
-        Assert.Equal(topSpeed * WorldSimulation.TickDuration + SessionOptions.Default.DisplacementTolerance, finding.Limit, 4);
+        if (map is not null) Assert.Equal(0, map.TerrainAt(authority.World.Player.Position));
+        var expectedTopSpeed = (inDock, boost) switch
+        {
+            (true, true) => boostedDockSpeed,
+            (true, false) => normalDockSpeed,
+            (false, true) => Boost.MaximumSpeed,
+            (false, false) => catalog.Ship.Physics.MaximumSpeed,
+        };
+        Assert.Equal(expectedTopSpeed * WorldSimulation.TickDuration + SessionOptions.Default.DisplacementTolerance, finding.Limit, 4);
     }
 
     [Fact]

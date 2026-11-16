@@ -135,10 +135,12 @@ public sealed class AuthoritativeSession
         if (!_tickPending) return;
         _tickPending = false;
         var distance = Vector2.Distance(_tickStart, World.Player.Position);
-        // The limit is picked after the tick (review R1-1 on #131): the hull's boost top speed only on a tick that really boosted,
-        // otherwise its normal top speed, so the audit is no looser than the tick that ran.
+        // Audit the starting terrain's speed limit, using its boost cap only if the shared step engaged that boost (#131).
         var player = World.Player;
-        var topSpeed = player.IsHyperEngaged && player.Definition.Hyper is { } hyper ? hyper.MaximumSpeed : player.Definition.Physics.MaximumSpeed;
+        var flight = World.Map is { } map ? player.Definition.TerrainFlight(map.TerrainAt(_tickStart)) : null;
+        var hyper = flight is null ? player.Definition.Hyper : flight.Hyper;
+        var physics = flight?.Physics ?? player.Definition.Physics;
+        var topSpeed = player.IsHyperEngaged && hyper is not null ? hyper.MaximumSpeed : physics.MaximumSpeed;
         var limit = topSpeed * WorldSimulation.TickDuration + _options.DisplacementTolerance;
         if (distance > limit) Flag(new MotionViolation(ServerTick, MotionViolationKind.SpeedExceeded, distance, limit));
         _settledPosition = World.Player.Position;

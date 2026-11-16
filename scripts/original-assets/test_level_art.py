@@ -17,9 +17,9 @@ def lvl_fixture(entities, objects=(("O_Asteroids.blo", "RockA.cfs"), ("o_crmisc.
     refs = b"".join(a.encode().ljust(32, b"\0") + m.encode().ljust(32, b"\0") for a, m in list(objects) + list(floors))
     planes = bytes([4, 0]) * 3  # one RLE run of four zero tiles per plane
     table = b""
-    for x, y, word, animation, phase in entities:
+    for x, y, word, animation, phase, *bits_b in entities:
         record = bytearray(level_art.ENTITY_SIZE)
-        struct.pack_into("<hhHH", record, 0, x, y, word, animation)
+        struct.pack_into("<hhHHI", record, 0, x, y, word, animation, bits_b[0] if bits_b else 0)
         record[14] = phase
         table += bytes(record)
     return bytes(header) + refs + planes + table
@@ -30,9 +30,17 @@ class LevelArtTests(unittest.TestCase):
         objects, floors, entities = level_art.parse_level(lvl_fixture([(16, 48, 0, 4000, 25), (304, 16, 0x6001, 0, 0)]))
         self.assertEqual(objects[1], ("o_crmisc.blo", "safezone.cfs"))
         self.assertEqual(floors, [("f_default.blo", "default.cfs")])
-        self.assertEqual(entities[0], {"x": 16, "y": 48, "object": 0, "animationTime": 4000, "phase": 25, "frame": 0})
+        self.assertEqual(entities[0], {"x": 16, "y": 48, "object": 0, "animationTime": 4000, "phase": 25, "frame": 0,
+            "drawOrder": 0, "translucency": 0, "smartTranslucency": 0})
         self.assertEqual(entities[1]["object"], 1)
         self.assertEqual(entities[1]["frame"], 3)
+
+    def test_entities_read_draw_order_and_translucency_flags(self):
+        # Gas cloud record: BitsB = 0x94000000 (DrawOrder 5, SmartTransluency); BitsA top bits = Transluency 50%.
+        _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0, 0x4960, 0, 0x94000000), (0, 0, 0, 0x0FA0, 0, 0x10000000)]))
+        self.assertEqual((entities[0]["drawOrder"], entities[0]["translucency"], entities[0]["smartTranslucency"]), (5, 1, 1))
+        self.assertEqual(entities[0]["animationTime"], 0x4960)
+        self.assertEqual((entities[1]["drawOrder"], entities[1]["translucency"], entities[1]["smartTranslucency"]), (4, 0, 0))
 
     def test_uncovered_blocked_tiles_counts_walls_under_no_sprite_cell(self):
         physics = bytes([1, 1, 0, 1])  # 2 x 2 tiles; three blocked

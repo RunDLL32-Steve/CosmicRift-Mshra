@@ -19,7 +19,7 @@ public sealed class ShipMotion
     private readonly IReadOnlyList<AsteroidState> _asteroids;
     private readonly SectorMap? _map;
 
-    /// <param name="map">The walls the authority flies on (<see cref="WorldSimulation.Map"/>); null for open space.</param>
+    /// <param name="map">The walls and terrain the authority flies on (<see cref="WorldSimulation.Map"/>); null for open space.</param>
     public ShipMotion(GameCatalog catalog, SectorMap? map = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
@@ -38,43 +38,48 @@ public sealed class ShipMotion
         _ship.Velocity = state.Velocity;
         _ship.Heading = state.Heading;
         _ship.Energy = state.Energy;
-        Step(_ship, _asteroids, _map, input);
-        Recharge(_ship);
+        var (_, _, engagedHyper) = Step(_ship, _asteroids, _map, input);
+        Recharge(_ship, _map, engagedHyper);
         return new ShipMotionState(_ship.Position, _ship.Velocity, _ship.Heading, _ship.Energy);
     }
 
     // Authority and prediction share the exact operation order, clamp, swept asteroid collision and wall bounce.
-    internal static (int AsteroidHits, bool HitWall) Step(ShipState ship, IReadOnlyList<AsteroidState> asteroids, SectorMap? map,
+    internal static (int AsteroidHits, bool HitWall, ShipHyper? EngagedHyper) Step(ShipState ship, IReadOnlyList<AsteroidState> asteroids, SectorMap? map,
         ShipInput input)
     {
         var previous = ship.Position;
         var turn = float.IsFinite(input.Turn) ? Math.Clamp(input.Turn, -1, 1) : 0;
         var thrust = float.IsFinite(input.Thrust) ? Math.Clamp(input.Thrust, -1, 1) : 0;
-        var physics = ship.Definition.Physics;
+        // F12 samples the terrain at the start of the tick, before any movement or collision.
+        var flight = map is null ? null : ship.Definition.TerrainFlight(map.TerrainAt(previous));
+        var physics = flight?.Physics ?? ship.Definition.Physics;
+        var hyper = flight is null ? ship.Definition.Hyper : flight.Hyper;
         ship.Heading = MathF.IEEERemainder(ship.Heading + turn * physics.RotationSpeed * WorldSimulation.TickDuration, MathF.Tau);
-        // The Shift boost replaces the hull's thrust and top speed for this tick, only while thrusting and only when a whole
-        // tick's energy is there to pay for it; otherwise the ship flies on its normal values (and is clamped back to them).
-        var hyper = ship.Definition.Hyper;
+        // The Shift boost replaces the hull's thrust and top speed only while thrusting with a full tick's energy.
         var hyperCost = hyper is null ? 0 : hyper.EnergyPerSecond * WorldSimulation.TickDuration;
-        ship.IsHyperEngaged = input.Hyper && thrust != 0 && hyper is not null && ship.Energy >= hyperCost;
-        if (ship.IsHyperEngaged) ship.Energy -= hyperCost;
-        var forwardThrust = ship.IsHyperEngaged ? hyper!.ForwardThrust : physics.ForwardThrust;
-        var reverseThrust = ship.IsHyperEngaged ? hyper!.ReverseThrust : physics.ReverseThrust;
-        var maximumSpeed = ship.IsHyperEngaged ? hyper!.MaximumSpeed : physics.MaximumSpeed;
+        var engagedHyper = input.Hyper && thrust != 0 && ship.Energy >= hyperCost ? hyper : null;
+        ship.IsHyperEngaged = engagedHyper is not null;
+        if (engagedHyper is not null) ship.Energy -= hyperCost;
+        var forwardThrust = engagedHyper?.ForwardThrust ?? physics.ForwardThrust;
+        var reverseThrust = engagedHyper?.ReverseThrust ?? physics.ReverseThrust;
+        var maximumSpeed = engagedHyper?.MaximumSpeed ?? physics.MaximumSpeed;
         var force = thrust >= 0 ? thrust * forwardThrust : thrust * reverseThrust;
         var direction = new Vector2(MathF.Cos(ship.Heading), MathF.Sin(ship.Heading));
-        ship.Velocity = ClampSpeed(ship.Velocity + direction * (force / physics.Mass * WorldSimulation.TickDuration), maximumSpeed);
-        var asteroidHits = CircleCollision.MoveShip(ship, asteroids, WorldSimulation.TickDuration);
+        // The emulator applies friction to the combined velocity and thrust before the speed clamp.
+        var keep = flight is null ? 1 : WorldSimulation.TerrainSpeedRetainedPerTick(flight);
+        var velocity = ship.Velocity + direction * (force / physics.Mass * WorldSimulation.TickDuration);
+        ship.Velocity = ClampSpeed(velocity * keep, maximumSpeed);
+        var asteroidHits = CircleCollision.MoveShip(ship, asteroids, WorldSimulation.TickDuration, physics.AsteroidRestitution);
         var hitWall = map is not null && MapCollision.MoveShip(ship, previous, map, WorldSimulation.TickDuration);
-        return (asteroidHits, hitWall);
+        return (asteroidHits, hitWall, engagedHyper);
     }
 
-    /// <summary>One tick of reactor recharge, paused while the boost is engaged unless the hull recharges while boosting.</summary>
-    internal static void Recharge(ShipState ship)
+    /// <summary>Applies reactor recharge and the energy rate of the terrain at the end of movement.</summary>
+    internal static void Recharge(ShipState ship, SectorMap? map, ShipHyper? engagedHyper)
     {
-        if (ship.IsHyperEngaged && !ship.Definition.Hyper!.RechargeWhileEngaged) return;
-        ship.Energy = MathF.Min(ship.Definition.Reactor.MaximumEnergy,
-            ship.Energy + ship.Definition.Reactor.EnergyRegenerationPerSecond * WorldSimulation.TickDuration);
+        var recharge = engagedHyper is { RechargeWhileEngaged: false } ? 0 : ship.Definition.Reactor.EnergyRegenerationPerSecond;
+        var terrainRate = map?.RuleAt(ship.Position).EnergyPerSecond ?? 0;
+        ship.Energy = Math.Clamp(ship.Energy + (recharge + terrainRate) * WorldSimulation.TickDuration, 0, ship.Definition.Reactor.MaximumEnergy);
     }
 
     internal static Vector2 ClampSpeed(Vector2 velocity, float maximumSpeed) =>

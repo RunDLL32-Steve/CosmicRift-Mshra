@@ -36,7 +36,7 @@ public sealed class ShipPredictor
     public uint LastIssuedSequence { get; private set; }
     public int PendingCount => _pending.Count;
 
-    /// <param name="map">The authority's tile map (<see cref="WorldSimulation.Map"/>), so wall bounces are predicted; null for
+    /// <param name="map">The authority's tile map (<see cref="WorldSimulation.Map"/>), for prediction of walls, terrain flight and terrain energy; null for
     /// open space. Passing a different map than the authority's makes every wall contact a correction.</param>
     public ShipPredictor(GameCatalog catalog, uint controlledEntityId, WorldSnapshot initialSnapshot, int maxPending,
         SectorMap? map = null)
