@@ -24,6 +24,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Existing reference has tracked changes; no originals were overwritten.' }
     # The map art archives Rogue.lvl places (rocks, stations, walls) and the mineral prize sprites, for stage_level_art.py.
     $levelArt = @('BLO/O_Animated_Walls.blo','BLO/O_Asteroids.blo','BLO/O_GasClouds.blo','BLO/O_Neutral_Walls.blo','BLO/O_Specialtiles.blo','BLO/O_SpaceStation.blo','BLO/o_crmisc.blo','BLO/o_mapborder.blo','BLO/Resources.blo')
+    # The radar frame named by CFG [Uiart] RadarBorder, for stage_ui_art.py.
+    $levelArt += 'BLO/cruiart.blo'
     $include = (@($manifest.assets | Where-Object gitLfs | ForEach-Object originalPath) + $levelArt | Select-Object -Unique) -join ','
     git -C $referenceRoot lfs pull "--include=$include" '--exclude='
     if ($LASTEXITCODE -ne 0) { throw 'Original Git LFS retrieval failed.' }
