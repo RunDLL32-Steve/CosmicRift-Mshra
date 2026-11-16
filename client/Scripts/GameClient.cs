@@ -155,7 +155,8 @@ public partial class GameClient : Node2D
             _hud.OriginalContentRequested += () => SetInspectionVisible(true);
             _hud.ReloadProfileRequested += () => ReloadProfile();
             AddChild(_hud);
-            _minimap = new MinimapView(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
+            _minimap = new MinimapView(_map, _view.Station, _view.Refinery, RadarLook.FromJson(ReadDefinition("ui/radar.json")),
+                OriginalUiArt.LoadIfAvailable()) { Outposts = _view.Outposts };
             _hud.AddChild(_minimap);
             _sectorMap = new SectorMapOverlay(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
             _hud.AddChild(_sectorMap);
