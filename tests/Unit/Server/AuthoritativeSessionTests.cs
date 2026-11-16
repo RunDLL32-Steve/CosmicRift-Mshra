@@ -122,7 +122,7 @@ public sealed class AuthoritativeSessionTests
     [InlineData(0u, 1f, 0f, (byte)0)]
     [InlineData(1u, float.NaN, 0f, (byte)0)]
     [InlineData(1u, 0f, float.PositiveInfinity, (byte)0)]
-    [InlineData(1u, 0f, 0f, (byte)2)]
+    [InlineData(1u, 0f, 0f, (byte)4)]
     public void MalformedInputsAreInvalid(uint tick, float thrust, float turn, byte flags)
     {
         var session = NewSession();

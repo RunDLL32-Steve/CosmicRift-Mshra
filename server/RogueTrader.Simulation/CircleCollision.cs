@@ -26,7 +26,7 @@ internal static class CircleCollision
         return fraction is >= 0 and <= 1;
     }
 
-    internal static int MoveShip(ShipState ship, IReadOnlyList<AsteroidState> asteroids, float delta)
+    internal static int MoveShip(ShipState ship, IReadOnlyList<AsteroidState> asteroids, float delta, float restitution)
     {
         var collisions = 0;
         // Recover an overlapping spawn deterministically, including the coincident-center case.
@@ -42,7 +42,7 @@ internal static class CircleCollision
                     continue;
                 var normal = distance > 1e-6f ? offset / distance : Vector2.UnitX;
                 ship.Position = asteroid.Position + normal * (radius + Separation);
-                if (Reflect(ship, normal))
+                if (Reflect(ship, normal, restitution))
                     collisions++;
                 adjusted = true;
             }
@@ -74,19 +74,19 @@ internal static class CircleCollision
             var offset = ship.Position - hit.Position;
             var normal = offset.LengthSquared() > 1e-12f ? Vector2.Normalize(offset) : Vector2.UnitX;
             ship.Position = hit.Position + normal * (ship.Radius + hit.Radius + Separation);
-            if (Reflect(ship, normal))
+            if (Reflect(ship, normal, restitution))
                 collisions++;
             remaining *= 1 - earliest;
         }
         return collisions;
     }
 
-    private static bool Reflect(ShipState ship, Vector2 normal)
+    private static bool Reflect(ShipState ship, Vector2 normal, float restitution)
     {
         var inwardSpeed = Vector2.Dot(ship.Velocity, normal);
         if (inwardSpeed >= 0)
             return false;
-        ship.Velocity -= normal * ((1 + ship.Definition.Physics.AsteroidRestitution) * inwardSpeed);
+        ship.Velocity -= normal * ((1 + restitution) * inwardSpeed);
         return true;
     }
 }
