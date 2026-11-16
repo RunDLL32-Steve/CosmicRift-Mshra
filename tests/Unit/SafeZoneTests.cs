@@ -130,6 +130,36 @@ public sealed class SafeZoneTests
         Assert.Equal(1700, open.Player.Energy);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_SafeZonesEnergyRate_AppliesWithEitherTerrainBoostRechargePolicy(bool rechargeWhileEngaged)
+    {
+        // NEW fixture: boost is enabled in this terrain only, to exercise the combination of boost and terrain energy rules.
+        var boost = new ShipHyper
+        {
+            ForwardThrust = 100,
+            ReverseThrust = 100,
+            MaximumSpeed = 200,
+            EnergyPerSecond = 60,
+            RechargeWhileEngaged = rechargeWhileEngaged,
+        };
+        var ship = new ShipDefinition
+        {
+            Reactor = new ShipReactor { MaximumEnergy = 1700, EnergyRegenerationPerSecond = 105 },
+            Terrains = [new ShipTerrainFlight { Terrain = 9, Hyper = boost }],
+        };
+        var world = World(Fixture(RogueLikeRules()), 80, 0, ship: ship);
+        var initialEnergy = world.Player.Energy;
+
+        world.Tick(new ShipInput(1, 0, false, Hyper: true));
+
+        Assert.True(world.Player.IsHyperEngaged);
+        var recharge = rechargeWhileEngaged ? ship.Reactor.EnergyRegenerationPerSecond : 0;
+        var expectedRate = recharge - boost.EnergyPerSecond - 200;
+        Assert.Equal(initialEnergy + expectedRate * WorldSimulation.TickDuration, world.Player.Energy, 3);
+    }
+
     [Fact]
     public void A_MapWithoutRules_IsOpenSpace_AndBadRuleListsAreRefused()
     {
