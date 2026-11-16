@@ -32,7 +32,9 @@ No active rows: M1 to M9 are merged (see the history below).
 
 Only after every earlier cloud-eligible row is claimed, merged or blocked. Apply the listed dependencies as hard gates.
 
-No active rows: C1 is merged; C7 scoped library acceptance is verified and its [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) awaits final gates.
+-   RT-F044 (public refinery): both LIO refineries, plus the original all-held/free/timed refine with CFG radius 250 and one timed order at a time. IN REVIEW on `claude/project-thread-v252zd` (November 16, 2026). Native acceptance remains open.
+
+Otherwise no active rows: C1 is merged; C7 scoped library acceptance is verified and its [PR 117](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/117) awaits final gates.
 
 ## Completed queue history (not active work)
 

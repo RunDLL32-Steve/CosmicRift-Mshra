@@ -131,6 +131,18 @@ public sealed class StationPriceTable : IPriceSource
         return found;
     }
 
+    /// <summary>Adds the same refinery recipes at each of <paramref name="refineryIds"/> (every original refinery offers all three). Returns this table.</summary>
+    public StationPriceTable WithRefineRecipes(IEnumerable<string> refineryIds, IEnumerable<(string RecipeId, string InputItemId, string OutputItemId)> recipes)
+    {
+        ArgumentNullException.ThrowIfNull(refineryIds);
+        ArgumentNullException.ThrowIfNull(recipes);
+        var batch = recipes.ToArray();
+        var ids = refineryIds.ToArray();
+        if (batch.Length > 0 && ids.Length == 0) throw new ArgumentException("Refinery recipes need a refinery id.", nameof(refineryIds));
+        foreach (var id in ids) WithRefineRecipes(id, batch);
+        return this;
+    }
+
     /// <summary>Adds refinery recipes offered only at <paramref name="refineryId"/>; a repeated recipe id is refused. Returns this table.</summary>
     public StationPriceTable WithRefineRecipes(string refineryId, IEnumerable<(string RecipeId, string InputItemId, string OutputItemId)> recipes)
     {

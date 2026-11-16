@@ -21,6 +21,11 @@ public sealed class OriginalRefineryTests
         Assert.Equal(new[] { 2003, 2005, 2019 }, r.Select(x => x.InputItemId.Value));
         Assert.Equal(new[] { "Tellerium", "Krandazite", "Iron Ore" }, r.Select(x => x.Input.Name));
         Assert.Equal(new[] { 150, 150, 0 }, r.Select(x => x.RawField4.Value));
+        // Emulator ComputerProduct layout: f+2 Quantity, f+4 Time, f+6 PlayerItemNeededQuantity, f+7 Cost.
+        Assert.Equal(new[] { 150, 150, 0 }, r.Select(x => x.Time.Value));
+        Assert.All(r, x => Assert.Equal((-1, -1, 0), (x.OutputQuantity.Value, x.InputQuantity.Value, x.Cost.Value)));
+        Assert.Equal(new[] { 255, 269, 283 }, r.Select(x => x.OutputQuantity.FieldIndex));
+        Assert.Equal(new[] { 259, 273, 287 }, r.Select(x => x.InputQuantity.FieldIndex));
     }
 
     [RequiresOriginalAssetsFact]

@@ -5,6 +5,13 @@ using RogueTrader.Simulation;
 
 namespace RogueTrader.Trading;
 
+/// <summary>
+/// A refinery order waiting for its refining time to end: <see cref="Quantity"/> units of the recipe's input (all the pilot held
+/// when it was placed) at <see cref="RefineryId"/>, committed under <see cref="TransactionId"/> at <see cref="ReadyAt"/>.
+/// </summary>
+public sealed record RefineOrder(string TransactionId, StationRefineRecipe Recipe, string RefineryId, int Quantity, float ShipX, float ShipY,
+    DateTimeOffset ReadyAt);
+
 /// <summary>Outcome of opening or reloading the session profile, phrased for a client status line.</summary>
 public sealed record ProfileOpenOutcome(bool Succeeded, bool Created, ProfileLoadStatus Status, long Revision, string Message);
 
@@ -23,6 +30,7 @@ public sealed class StationProfileSession
     private readonly TradingService _trading;
     private readonly IProfileRepository _repository;
     private readonly string? _shipHullId;
+    private readonly TimeProvider _time;
 
     /// <param name="cargoCapacity">The flown ship's hold weight cap (<c>ShipDefinition.Cargo.Capacity</c>).</param>
     public StationProfileSession(IProfileRepository repository, StationDefinition station, string? shipHullId, long cargoCapacity,
@@ -31,6 +39,7 @@ public sealed class StationProfileSession
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         Station = station ?? throw new ArgumentNullException(nameof(station));
         _shipHullId = shipHullId;
+        _time = time ?? TimeProvider.System;
         Cargo = station.CreateCargoCatalog(cargoCapacity);
         _processor = new TransactionProcessor(repository, station.CreatePriceTable(), new FlownShipCargoPolicy(this), options ?? new PersistenceOptions(), time);
         Stations = new StationDirectory(station.Sites);
@@ -178,16 +187,66 @@ public sealed class StationProfileSession
                 new Dictionary<string, int> { [pickup.ItemId] = pickup.Quantity }), ct);
     }
 
-    /// <summary>Refines at the refinery: one unit of the recipe's input becomes one unit of its output (NEW reading, RT-F044 open).</summary>
-    public Task<TransactionResult> RefineAsync(string recipeId, int quantity, float shipX, float shipY, CancellationToken ct = default)
+    private readonly List<RefineOrder> _refineOrders = [];
+
+    /// <summary>Refinery orders placed and not yet delivered, oldest first.</summary>
+    public IReadOnlyList<RefineOrder> RefineOrders => _refineOrders;
+
+    /// <summary>True when an order's refining time has ended, so <see cref="DeliverRefinedAsync"/> has work to do.</summary>
+    public bool RefineOrderDue => _refineOrders.Count > 0 && _refineOrders[0].ReadyAt <= _time.GetUtcNow();
+
+    /// <summary>
+    /// Places an order at the refinery the ship is within range of (RT-F044, emulator ArenaComputer.produceRequest with the
+    /// pinned VEH id 400 blocks): every unit of the recipe's input the pilot holds now becomes as many units of its output, for
+    /// free, once the recipe's time (raw Time x 10 ms: 1.5 s for Tellerium and Krandazite, at once for Iron Ore) has passed.
+    /// With CFG ComputerProduceInParallel=0 a timed order is refused while another timed order is still being refined
+    /// (<see cref="RejectionReason.SiteBusy"/>); an untimed one is not. Nothing changes until <see cref="DeliverRefinedAsync"/>
+    /// commits the order in one transaction, so an order lost to a relaunch costs nothing and can never duplicate cargo.
+    /// </summary>
+    public RejectionReason OrderRefine(string recipeId, float shipX, float shipY)
     {
-        var profileId = RequireProfile();
-        var refinery = Station.Refinery?.StationId ?? Station.StationId; // without a refinery the core refuses: no recipes there
-        return _trading.RefineAsync(profileId, shipX, shipY, new RefineRequest(NewId(), profileId, refinery, recipeId, quantity), ct);
+        RequireProfile();
+        var profile = Profile;
+        if (profile is null) return RejectionReason.ProfileNotOpen;
+        var recipe = Station.RefineRecipe(recipeId);
+        if (recipe is null) return RejectionReason.NotForSale;
+        if (DockedAt(shipX, shipY) is not { Service: SiteServices.Refine } site) return RejectionReason.StationAccessDenied;
+        var held = profile.Inventory.GetValueOrDefault(recipe.InputItemId);
+        if (held <= 0) return RejectionReason.InsufficientInventory;
+        // The ore already promised to an order is not ordered twice; a second timed order waits for the first.
+        if (_refineOrders.Any(o => o.Recipe.InputItemId == recipe.InputItemId)) return RejectionReason.SiteBusy;
+        if (recipe.Duration > TimeSpan.Zero && _refineOrders.Any(o => o.Recipe.Duration > TimeSpan.Zero)) return RejectionReason.SiteBusy;
+        _refineOrders.Add(new RefineOrder(NewId(), recipe, site.StationId, held, shipX, shipY, _time.GetUtcNow() + recipe.Duration));
+        _refineOrders.Sort((a, b) => a.ReadyAt.CompareTo(b.ReadyAt));
+        return RejectionReason.None;
     }
 
-    public bool IsDockedAtRefinery(float shipX, float shipY) =>
-        Station.Refinery is { } refinery && Stations.IsDocked(refinery.StationId, shipX, shipY);
+    /// <summary>
+    /// Commits the oldest order whose time has ended, checked where the ship was when it was placed (the emulator checks range
+    /// only then). Returns null when no order is due. The core refuses it, changing nothing, when the pilot no longer holds the
+    /// ordered ore (for example the ship was destroyed and dropped its hold meanwhile).
+    /// </summary>
+    public async Task<(RefineOrder Order, TransactionResult Result)?> DeliverRefinedAsync(CancellationToken ct = default)
+    {
+        if (!RefineOrderDue) return null;
+        var order = _refineOrders[0];
+        _refineOrders.RemoveAt(0);
+        var profileId = RequireProfile();
+        var result = await _trading.RefineAsync(profileId, order.ShipX, order.ShipY,
+            new RefineRequest(order.TransactionId, profileId, order.RefineryId, order.Recipe.Id, order.Quantity), ct).ConfigureAwait(false);
+        return (order, result);
+    }
+
+    /// <summary>Places an order and, when it is untimed, delivers it at once; a timed order is refused here as not yet due.</summary>
+    public async Task<TransactionResult> RefineNowAsync(string recipeId, float shipX, float shipY, CancellationToken ct = default)
+    {
+        var refusal = OrderRefine(recipeId, shipX, shipY);
+        if (refusal != RejectionReason.None) return Refused(NewId(), refusal);
+        if (!RefineOrderDue) return Refused(_refineOrders[^1].TransactionId, RejectionReason.SiteBusy);
+        return (await DeliverRefinedAsync(ct).ConfigureAwait(false))!.Value.Result;
+    }
+
+    public bool IsDockedAtRefinery(float shipX, float shipY) => DockedAt(shipX, shipY) is { Service: SiteServices.Refine };
 
     /// <summary>
     /// Stable transaction id for one kill: the same sector instance, target wave and target always give the same id, so a

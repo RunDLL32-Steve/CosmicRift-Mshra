@@ -11,7 +11,7 @@
     "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
     "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor adds buy/200 hull points; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
     "Collectible piles: placement (offsets from the station) and quantities.",
-    "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded)."
+    "Refinery (RT-F044): both original refineries stand where LIO type 5 rows 13 'RefineryA' and 14 'RefineryB' place actor -400, and every recipe value is original (VEH id 400 ComputerProduct blocks, CFG [Vehicle] ComputerProduceRadius=250 and ComputerProduceInParallel=0, read with the emulator's ArenaComputer rules). NEW: the order is committed in one transaction when the refining time ends (the emulator takes the ore when the order is placed), so a lost order never loses or duplicates cargo; and 'one timed order at a time' is kept per pilot, because the emulator's single production line belongs to the whole arena."
   ],
   "x": 1936,
   "y": 1696,
@@ -997,35 +997,53 @@
   ],
   "refinery": {
     "stationId": "refinery",
-    "name": "Refinery",
+    "name": "Refinery A",
     "x": 10704,
     "y": 576,
-    "dockRadius": 150,
+    "dockRadius": 250,
     "recipes": [
       {
         "id": "refine_tellerium",
         "name": "Refine Tellerium",
         "inputItemId": "2003",
         "outputItemId": "2004",
-        "rawField4": 150
+        "time": 150,
+        "outputQuantity": -1,
+        "inputQuantity": -1,
+        "cost": 0
       },
       {
         "id": "refine_krandazite",
         "name": "Refine Krandazite",
         "inputItemId": "2005",
         "outputItemId": "2006",
-        "rawField4": 150
+        "time": 150,
+        "outputQuantity": -1,
+        "inputQuantity": -1,
+        "cost": 0
       },
       {
         "id": "refine_iron_ore",
         "name": "Refine Iron Ore",
         "inputItemId": "2019",
         "outputItemId": "2020",
-        "rawField4": 0
+        "time": 0,
+        "outputQuantity": -1,
+        "inputQuantity": -1,
+        "cost": 0
       }
     ]
   },
   "outposts": [
+    {
+      "stationId": "refinery_b",
+      "name": "Refinery B",
+      "service": "refine",
+      "x": 29456,
+      "y": 29728,
+      "dockRadius": 250,
+      "lioRow": 14
+    },
     {
       "stationId": "trading_post_a",
       "name": "Trading Outpost A",

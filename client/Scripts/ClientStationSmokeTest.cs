@@ -152,6 +152,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(client.AtRefinery && client.Station.RefineryMode && client.Station.TitleText == refinery.Name.ToUpperInvariant(),
                 "F at the refinery must open the refinery page.");
             Press($"refineall:{recipe.Id}");
+            // The original Refine Tellerium takes Time 150 x 10 ms: nothing changes until the order is delivered.
+            Require(session.RefineOrders.Count == 1 && session.Profile!.Inventory.GetValueOrDefault("2003") == savedOre + mined,
+                "A Tellerium order must wait its 1.5 s before the ore is refined.");
+            for (var frame = 0; frame < 600 && session.RefineOrders.Count > 0; frame++) await nextPhysicsFrame();
+            Require(session.RefineOrders.Count == 0, "The Tellerium order must be delivered after its refining time.");
+            await nextPhysicsFrame();
             var refinedUnits = session.Profile!.Inventory.GetValueOrDefault(recipe.OutputItemId);
             Require(refinedUnits == savedOre + mined && !session.Profile.Inventory.ContainsKey("2003") && readWorld().Cargo.Quantity(recipe.OutputItemId) == refinedUnits,
                 $"Refine all must turn the {savedOre + mined} Tellerium into Refined Tellerium in profile and hold.");
