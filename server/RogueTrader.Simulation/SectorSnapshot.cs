@@ -1,4 +1,5 @@
 using System.Numerics;
+using RogueTrader.GameData;
 
 namespace RogueTrader.Simulation;
 
@@ -21,6 +22,9 @@ public sealed record MineralSpawnSnapshot(string Id, long TicksUntilAttempt, lon
 /// <summary>An asteroid's remaining mining deposit in a <see cref="SectorSnapshot"/>.</summary>
 public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 
+/// <summary>A hazard's shot in flight: who fired it, where it is, its velocity and its age in ticks.</summary>
+public sealed record HazardProjectileSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks);
+
 /// <summary>
 /// The shared state of one sector that must outlive any one <see cref="WorldSimulation"/> (owner rule, November 2, 2026: the
 /// world keeps its state for as long as the server runs, so a client relaunch, a logout or a sector reset never refills it).
@@ -28,7 +32,8 @@ public sealed record AsteroidSnapshot(string Id, int ResourceQuantity);
 /// piles still in space (configured, mined and mineral piles alike), the mineral spawn timers and random state, the mining
 /// deposits, the meteor shower spawner timers, standing showers and meteors in flight (null in a snapshot saved before showers existed,
 /// so a relaunch cannot be used to dodge a meteor that is already on its way), and the defense satellite spawner timers and standing
-/// satellites with their hull (null in a snapshot saved before satellites existed). The player's ship, projectiles in flight and the per-world pickup and kill records are not part of it. Timers are
+/// satellites with their hull (null in a snapshot saved before satellites existed). The player's ship and shots and the per-world
+/// pickup and kill records are not part of it. Timers are
 /// stored as ticks remaining, so a snapshot does not depend on the tick count of the world that produced it.
 /// <paramref name="MapVersion"/> says which coordinates the pile positions use: 0 for the earlier 1,400-unit practice sector
 /// (and for any world without a map), <see cref="SectorMap.CoordinateVersion"/> for map pixels.
@@ -48,7 +53,7 @@ public sealed record SectorSnapshot(
     IReadOnlyList<MeteorSpawnSnapshot>? MeteorSpawns = null,
     IReadOnlyList<MeteorShowerSnapshot>? MeteorShowers = null,
     ulong MeteorRandomState = 0,
-    IReadOnlyList<MeteorSnapshot>? MeteorsInFlight = null,
+    IReadOnlyList<HazardProjectileSnapshot>? MeteorsInFlight = null,
     IReadOnlyList<SatelliteSpawnSnapshot>? SatelliteSpawns = null,
     IReadOnlyList<DefenseSatelliteSnapshot>? DefenseSatellites = null,
     ulong SatelliteRandomState = 0);
@@ -171,6 +176,39 @@ public sealed partial class WorldSimulation
         // Likewise for defense satellites: a snapshot saved before they existed leaves the spawners to place them fresh.
         if (snapshot.SatelliteSpawns is not null) RestoreSatellites(snapshot);
         return true;
+    }
+
+    private IReadOnlyList<HazardProjectileSnapshot> CaptureHazardProjectiles(string ownerPrefix) =>
+        _projectiles.Where(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal))
+            .Select(p => new HazardProjectileSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks)).ToArray();
+
+    private void RestoreHazardProjectiles(string ownerPrefix, WeaponDefinition weapon, IReadOnlyList<HazardProjectileSnapshot>? saved)
+    {
+        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal));
+        var lifetime = Math.Max(1, (int)MathF.Ceiling(weapon.LifetimeSeconds * TickRate));
+        foreach (var shot in saved ?? [])
+        {
+            if (shot is null || string.IsNullOrEmpty(shot.OwnerId) || !shot.OwnerId.StartsWith(ownerPrefix, StringComparison.Ordinal)
+                || !float.IsFinite(shot.X) || !float.IsFinite(shot.Y) || !float.IsFinite(shot.VelocityX) || !float.IsFinite(shot.VelocityY)
+                || shot.AgeTicks < 0 || shot.AgeTicks >= lifetime)
+                continue;
+            var velocity = new Vector2(shot.VelocityX, shot.VelocityY);
+            var speed = Math.Sqrt((double)velocity.X * velocity.X + (double)velocity.Y * velocity.Y);
+            // Preserve normal floating-point rounding. Clamp an oversized saved velocity without overflowing its length.
+            if (speed > weapon.MuzzleVelocity * 1.001) velocity *= (float)(weapon.MuzzleVelocity / speed);
+            _projectiles.Add(new ProjectileState(++_nextProjectileId, shot.OwnerId, weapon, new Vector2(shot.X, shot.Y), velocity)
+            {
+                AgeTicks = shot.AgeTicks,
+            });
+        }
+    }
+
+    private void AgeHazardProjectiles(string ownerPrefix, long ticks)
+    {
+        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal)
+            && ticks >= p.LifetimeTicks - p.AgeTicks);
+        foreach (var p in _projectiles)
+            if (p.OwnerShipId.StartsWith(ownerPrefix, StringComparison.Ordinal)) p.AgeTicks += (int)ticks;
     }
 
     /// <summary>

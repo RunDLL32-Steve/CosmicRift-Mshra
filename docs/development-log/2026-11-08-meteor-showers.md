@@ -33,4 +33,10 @@ Branch `claude/project-thread-w580ul`. Steve asked for the next roadmap features
 
 ## Review round 2 follow-up — November 10, 2026
 
--   R2-1 (minor): meteors in flight now age through time spent away (`ElapseWithoutTicking`: docked, paused or closed), so a meteor saved mid-flight cannot hit hours later on relaunch. Ones whose 20 s life runs out while away are dropped; they do not move while the world is not ticking. Test `MeteorsInFlight_AgeThroughTimeAway` (still there and older after a 1 s pause, gone after 21 s away); 19 cases.
+-   R2-1 (minor): meteors in flight now age through time spent away (`ElapseWithoutTicking`: docked, paused or closed), so a meteor saved mid-flight cannot hit hours later on relaunch. Ones whose 20 s life runs out while away are dropped; they do not move while the world is not ticking. `MeteorsInFlight_AgeThroughTimeAway` checks that the fixture shot remains after a 1 s pause and is gone after its lifetime.
+
+## Local review follow-up — November 10, 2026
+
+-   Meteor showers skip pilots in safe zones using the testbed's reconstructed RT-F065 safety rule. The test covers acquisition and an already-fired meteor passing through a pilot at a Repair Dock. The shared tile sweep now removes any projectile at the first DeleteLiveWeapons tile.
+-   A restored shower keeps its remaining firing interval. Restoring the same snapshot before the first tick replaces existing meteors in flight. The snapshot keeps its previous JSON field names. Tests cover cadence, repeated restore, elapsed expiry and oversized velocity.
+-   Windows `scripts/verify.ps1` passed with the pinned toolchain and original assets: build 0 warnings and 0 errors, 1,277 unit passes including 25 meteor cases and 5 unrelated key-listing skips, 6 integration passes, Godot import and all three smoke markers. TRACKERS_CONSISTENT. The provisional shower lifetime and native parity remain open.

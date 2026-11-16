@@ -161,7 +161,7 @@ public sealed partial class WorldSimulation
     {
         if (_shower is null) return;
         RunMeteorEvents(MeteorClock, MeteorClock);
-        if (Player.IsDestroyed || PlayersInSector <= 0) return;
+        if (Player.IsDestroyed || PlayersInSector <= 0 || IsSafe(Player)) return;
         foreach (var shower in _showers)
             if (MeteorClock >= shower.NextFireAt) FireMeteor(shower);
     }
@@ -177,16 +177,13 @@ public sealed partial class WorldSimulation
     /// <summary>
     /// Lets the spawners and shower removal run through <paramref name="ticks"/> in which the world did not tick (docked, paused or
     /// closed): each attempt and removal happens at its own tick, in the order ticking would run them. Nothing fires while the world
-    /// is not ticking; a shower that is still standing afterwards fires on the next tick.
+    /// is not ticking.
     /// </summary>
     private void ElapseMeteorShowers(long ticks)
     {
         // Meteors in flight age through time spent away (docked, paused or closed) like every other timer here, so one saved
         // mid-flight cannot hit long after its 20 s life; they do not move while the world is not ticking.
-        _projectiles.RemoveAll(p => p.OwnerShipId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal)
-            && ticks >= p.LifetimeTicks - p.AgeTicks);
-        foreach (var p in _projectiles)
-            if (p.OwnerShipId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal)) p.AgeTicks += (int)ticks;
+        AgeHazardProjectiles(MeteorShowerPrefix, ticks);
         if (_shower is null || _meteorSpawns.Length == 0)
         {
             _meteorIdleTicks = checked(_meteorIdleTicks + ticks);
@@ -311,14 +308,13 @@ public sealed partial class WorldSimulation
     }
 
     private void CaptureMeteors(out IReadOnlyList<MeteorSpawnSnapshot> spawns, out IReadOnlyList<MeteorShowerSnapshot> showers,
-        out IReadOnlyList<MeteorSnapshot> inFlight)
+        out IReadOnlyList<HazardProjectileSnapshot> inFlight)
     {
-        inFlight = _projectiles.Where(p => p.OwnerShipId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal))
-            .Select(p => new MeteorSnapshot(p.OwnerShipId, p.Position.X, p.Position.Y, p.Velocity.X, p.Velocity.Y, p.AgeTicks)).ToArray();
+        inFlight = CaptureHazardProjectiles(MeteorShowerPrefix);
         spawns = _meteorSpawns.Select(s => new MeteorSpawnSnapshot(s.Definition.Id,
             s.NextAttemptTick == 0 ? 0 : Math.Max(1, s.NextAttemptTick - MeteorClock), s.Placed)).ToArray();
         showers = _showers.Select(s => new MeteorShowerSnapshot(s.Id, s.SpawnId, s.Position.X, s.Position.Y,
-            s.RemoveAt is { } at ? Math.Max(1, at - MeteorClock) : null)).ToArray();
+            s.RemoveAt is { } at ? Math.Max(1, at - MeteorClock) : null, Math.Max(0, s.NextFireAt - MeteorClock))).ToArray();
     }
 
     private void RestoreMeteors(SectorSnapshot snapshot)
@@ -343,32 +339,21 @@ public sealed partial class WorldSimulation
             long? removeAt = s.RemoveInTicks is > 0 and var left
                 ? MeteorClock + (_shower.LifetimeTicks > 0 ? Math.Min(left, _shower.LifetimeTicks) : left)
                 : _shower.LifetimeTicks > 0 ? MeteorClock + _shower.LifetimeTicks : null;
-            _showers.Add(new MeteorShowerState(s.Id, s.SpawnId!, new Vector2(s.X, s.Y)) { RemoveAt = removeAt, NextFireAt = MeteorClock });
+            _showers.Add(new MeteorShowerState(s.Id, s.SpawnId!, new Vector2(s.X, s.Y))
+            {
+                RemoveAt = removeAt,
+                NextFireAt = MeteorClock + Math.Clamp(s.TicksUntilFire, 0, _shower.FireIntervalTicks),
+            });
         }
         if (saved.Count > 0) _meteorRandom = snapshot.MeteorRandomState;
         // Meteors already on their way keep coming after a relaunch (review #130 minor: a relaunch must not dodge a hit). Each one
         // keeps its position, velocity and age, so it lands or expires exactly when it would have.
-        var meteor = _shower.Meteor;
-        var lifetime = Math.Max(1, (int)MathF.Ceiling(meteor.LifetimeSeconds * TickRate));
-        foreach (var m in snapshot.MeteorsInFlight ?? [])
-        {
-            if (m is null || string.IsNullOrEmpty(m.OwnerId) || !m.OwnerId.StartsWith(MeteorShowerPrefix, StringComparison.Ordinal)
-                || !float.IsFinite(m.X) || !float.IsFinite(m.Y) || !float.IsFinite(m.VelocityX) || !float.IsFinite(m.VelocityY)
-                || m.AgeTicks < 0 || m.AgeTicks >= lifetime)
-                continue;
-            var velocity = new Vector2(m.VelocityX, m.VelocityY);
-            // A saved speed above the meteor's own is not trusted: it is put back to the meteor's speed in the same direction.
-            if (velocity.Length() > meteor.MuzzleVelocity * 1.001f) velocity = Vector2.Normalize(velocity) * meteor.MuzzleVelocity;
-            _projectiles.Add(new ProjectileState(++_nextProjectileId, m.OwnerId, meteor, new Vector2(m.X, m.Y), velocity) { AgeTicks = m.AgeTicks });
-        }
+        RestoreHazardProjectiles(MeteorShowerPrefix, _shower.Meteor, snapshot.MeteorsInFlight);
     }
 }
 
 /// <summary>One meteor shower spawner's timer in a <see cref="SectorSnapshot"/> (as <see cref="MineralSpawnSnapshot"/>).</summary>
 public sealed record MeteorSpawnSnapshot(string Id, long TicksUntilAttempt, long Placed);
 
-/// <summary>A meteor in flight in a <see cref="SectorSnapshot"/>: the shower that fired it, where it is, its velocity and its age in ticks.</summary>
-public sealed record MeteorSnapshot(string OwnerId, float X, float Y, float VelocityX, float VelocityY, int AgeTicks);
-
 /// <summary>A standing meteor shower in a <see cref="SectorSnapshot"/>; <paramref name="RemoveInTicks"/> is null when it has no time limit.</summary>
-public sealed record MeteorShowerSnapshot(string Id, string? SpawnId, float X, float Y, long? RemoveInTicks);
+public sealed record MeteorShowerSnapshot(string Id, string? SpawnId, float X, float Y, long? RemoveInTicks, long TicksUntilFire = 0);
