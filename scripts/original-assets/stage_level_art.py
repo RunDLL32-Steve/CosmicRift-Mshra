@@ -7,24 +7,30 @@ ITM/Rogue_mp.itm for the mineral prize graphics. Every original is checked again
 before it is read, and again afterwards. Output goes to client/OriginalContent/level/ (git-ignored):
 indexed PNG atlases with original palettes, plus level.json, which the client draws from.
 
-LVL entity reading (RECONSTRUCTED, not native evidence): each 17-byte record starts with int16 X and
-int16 Y in map pixels (the sprite cell's top-left corner, the same frame as the 16-pixel tile grid),
-then uint16 whose low 13 bits index the object table and whose top 3 bits pick the starting frame
-(only the safe-zone markings use them: their 5 frames are a corner, edges and a dotted fill, not an
-animation). A test render of Rogue.lvl shows the station trusses joining up and every rock sitting
-exactly on its collision tiles with this reading. uint16 at byte 6 is read as the entity's animation
-cycle in hundredths of a second; it is non-zero only on things that move (rocks, gas clouds, animated
-walls), and 0 means a still frame. Byte 14 is kept as a start phase in percent. These readings are
-provisional; the raw 17 bytes are not needed by the client and are not copied.
+LVL entity reading (FORMAT SOURCE: Gibbed.Infantry.FileFormats Level/Entity.cs at the pinned InfantryOnline tools commit
+93001c5, which reads each 17-byte record as int16 X, int16 Y, uint32 BitsA, uint32 BitsB, uint32 BitsC, byte BitsD):
+BitsA bits 0-12 = object index, 13-19 = FrameIndex (starting frame), 20-29 = AnimationTime, 30-31 = Transluency
+(0 opaque, 1 = 50%, 2 = 33%, 3 = 25%); BitsB bits 0-12 = TimeDelta, 13-25 = ExtraData, 26-28 = DrawOrder (0-2 static
+first/sorted/last, 3-5 dynamic first/sorted/last), 29-30 = DetailLevel, 31 = SmartTransluency; BitsC bits 0-7 = Value
+(signed), 8-15 = Saturation (signed), 16-22 = Hue, 23-29 = light; BitsD bits 0-5 = PaletteShift.
+X and Y are the sprite cell's top-left in map pixels (RECONSTRUCTED from a test render: the station trusses join up and
+every rock sits exactly on its collision tiles).
 
-Draw flags (FORMAT SOURCE, Gibbed.Infantry.FileFormats Level/Entity.cs at the pinned InfantryOnline tools commit,
-which reads the record as int16 X, int16 Y, uint32 BitsA, uint32 BitsB, uint32 BitsC, byte BitsD): BitsA bits
-30-31 = Transluency (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%), BitsB bits 26-28 = DrawOrder (0-2 static first/sorted/
-last, 3-5 dynamic first/sorted/last) and BitsB bit 31 = SmartTransluency. In Rogue.lvl every entity has
-Transluency 0; the gas clouds gasCloud, gasCloud1_, gasCloud2_ and gasCloud3sm_ (1,408 entities) are the only
-objects other than 61 safe-zone markings with SmartTransluency set, and they use DrawOrder 5 (dynamic last, over
-ships). gasCloud4sm_ (275 entities) is opaque DrawOrder 4 (dynamic sorted). How strong the native smart
-translucency is, and when the client applies it, is not in the format source; the client's 50% is RECONSTRUCTED.
+Animation timing (RECONSTRUCTED; the format source names the fields but not their units): the entity's AnimationTime and
+the CFS header's AnimationTime are read as milliseconds per frame. Gibbed's Blob Editor plays a CFS by stepping one frame
+per AnimationTime milliseconds (CfsPreviewControl, a WinForms Timer interval), and Rogue.lvl's entity values (150 gas
+clouds, 250/300 rocks, 100 map border) sit in the same range as the CFS values (100 gas clouds, 200 rocks, 50 map border),
+so both are taken as the same unit. An entity AnimationTime of 0 is a still frame: the 1,194 safe-zone markings carry 0
+and their five frames are a corner, edges and a dotted fill, not an animation. Earlier schemas read uint16 at byte 6 as
+hundredths of a second per cycle; that word is AnimationTime x 16 (plus FrameIndex bits 3-6), and byte 14 is Hue, not a
+start phase.
+
+In Rogue.lvl every entity has Transluency 0; the gas clouds gasCloud, gasCloud1_, gasCloud2_ and gasCloud3sm_ (1,408
+entities) are the only objects other than 61 safe-zone markings with SmartTransluency set, and they use DrawOrder 5
+(dynamic last, over ships). gasCloud4sm_ (275 entities) is opaque DrawOrder 4 (dynamic sorted). How strong the native
+smart translucency is, and when the client applies it, is not in the format source; the client's 50% is RECONSTRUCTED.
+927 gas clouds carry Value -10; the client darkens by Value percent (RECONSTRUCTED). Hue, Saturation and light are staged
+but not applied: their scale is unknown and Hue would recolour every station and wall.
 """
 from __future__ import annotations
 import argparse
@@ -46,7 +52,9 @@ HEADER_SIZE = 5152
 ENTITY_SIZE = 17
 OBJECT_MASK = 0x1FFF
 DRAW_ORDER_DYNAMIC_LAST = 5
-ENTITY_FIELDS = ("x", "y", "object", "animationTime", "phase", "frame", "drawOrder", "translucency", "smartTranslucency")
+ENTITY_FIELDS = ("x", "y", "object", "frame", "animationTime", "timeDelta", "drawOrder", "translucency", "smartTranslucency",
+    "value", "saturation", "hue", "light", "paletteShift")
+SCHEMA_VERSION = 3
 # Prize graphic of each mineral item: ITM item fields f[23]/f[24] (blob archive, member).
 MINERAL_ITEM_IDS = ("2003", "2005", "2019")
 
@@ -85,6 +93,11 @@ def cstring(raw: bytes) -> str:
     return raw.split(b"\0", 1)[0].decode("ascii")
 
 
+def signed_byte(value: int) -> int:
+    value &= 0xFF
+    return value - 256 if value > 127 else value
+
+
 def parse_level(data: bytes) -> tuple[list[tuple[str, str]], list[tuple[str, str]], list[dict]]:
     """Object references, floor references and entities of a version-6 LVL."""
     version, width, height, entity_count, floor_count, object_count = struct.unpack_from("<6i", data, 0)
@@ -101,13 +114,14 @@ def parse_level(data: bytes) -> tuple[list[tuple[str, str]], list[tuple[str, str
     entities = []
     for index in range(entity_count):
         raw = data[tail + index * ENTITY_SIZE:tail + (index + 1) * ENTITY_SIZE]
-        x, y, word, animation = struct.unpack_from("<hhHH", raw, 0)
-        bits_a, bits_b = struct.unpack_from("<II", raw, 4)
-        obj = word & OBJECT_MASK
+        x, y, bits_a, bits_b, bits_c, bits_d = struct.unpack("<hhIIIB", raw)
+        obj = bits_a & OBJECT_MASK
         if obj >= object_count:
             raise ValueError(f"Entity {index} names object {obj}; the table has {object_count}")
-        entities.append({"x": x, "y": y, "object": obj, "animationTime": animation, "phase": raw[14], "frame": word >> 13,
-            "drawOrder": (bits_b >> 26) & 7, "translucency": bits_a >> 30, "smartTranslucency": bits_b >> 31})
+        entities.append({"x": x, "y": y, "object": obj, "frame": (bits_a >> 13) & 0x7F, "animationTime": (bits_a >> 20) & 0x3FF,
+            "timeDelta": bits_b & 0x1FFF, "drawOrder": (bits_b >> 26) & 7, "translucency": bits_a >> 30,
+            "smartTranslucency": bits_b >> 31, "value": signed_byte(bits_c), "saturation": signed_byte(bits_c >> 8),
+            "hue": (bits_c >> 16) & 0x7F, "light": (bits_c >> 23) & 0x7F, "paletteShift": bits_d & 0x3F})
     return refs[:object_count], refs[object_count:], entities
 
 
@@ -222,12 +236,13 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
 
     over_ships = sum(1 for entity in entities if entity["drawOrder"] == DRAW_ORDER_DYNAMIC_LAST)
     translucent = sum(1 for entity in entities if entity["translucency"] or entity["smartTranslucency"])
-    level = {"schemaVersion": 2, "canonicalCommit": COMMIT,
+    level = {"schemaVersion": SCHEMA_VERSION, "canonicalCommit": COMMIT,
         "source": {"level": LVL_PATH, "levelSha256": sha(level_bytes), "items": ITM_PATH, "itemsSha256": sha(itm_bytes)},
-        "entityReading": "RECONSTRUCTED: x,y = top-left of the sprite cell in map pixels; object = uint16@4 & 0x1FFF; "
-            "frame = uint16@4 >> 13 (starting frame); animationTime = uint16@6 (hundredths of a second per cycle, 0 = still); "
-            "phase = byte 14 (percent). drawOrder = uint32@8 bits 26-28, translucency = uint32@4 bits 30-31, "
-            "smartTranslucency = uint32@8 bit 31 (format source: Gibbed Level/Entity.cs).",
+        "entityReading": "FORMAT SOURCE (Gibbed Level/Entity.cs): object = BitsA 0-12, frame = BitsA 13-19, animationTime = "
+            "BitsA 20-29, translucency = BitsA 30-31, timeDelta = BitsB 0-12, drawOrder = BitsB 26-28, smartTranslucency = BitsB 31, "
+            "value/saturation = signed BitsC 0-7/8-15, hue = BitsC 16-22, light = BitsC 23-29, paletteShift = BitsD 0-5. "
+            "RECONSTRUCTED: x,y = top-left of the sprite cell in map pixels; animationTime (entity and CFS) = milliseconds per frame, "
+            "entity 0 = still.",
         "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered,
         "floors": [{"archive": a, "member": m} for a, m in floors],
         "objects": object_table, "minerals": mineral_table,
