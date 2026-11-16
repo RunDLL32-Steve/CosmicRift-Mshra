@@ -12,7 +12,8 @@ LVL entity reading (FORMAT SOURCE: Gibbed.Infantry.FileFormats Level/Entity.cs a
 BitsA bits 0-12 = object index, 13-19 = FrameIndex (starting frame), 20-29 = AnimationTime, 30-31 = Transluency
 (0 opaque, 1 = 50%, 2 = 33%, 3 = 25%); BitsB bits 0-12 = TimeDelta, 13-25 = ExtraData, 26-28 = DrawOrder (0-2 static
 first/sorted/last, 3-5 dynamic first/sorted/last), 29-30 = DetailLevel, 31 = SmartTransluency; BitsC bits 0-7 = Value
-(signed), 8-15 = Saturation (signed), 16-22 = Hue, 23-29 = light; BitsD bits 0-5 = PaletteShift.
+(signed), 8-15 = Saturation (signed), 16-22 = Hue, 23-29 = light, 30 = ExtraDataMeaning, 31 = UnknownC_6;
+BitsD bits 0-5 = PaletteShift, 6-7 = UnknownD_1. The unknown fields are staged without interpretation.
 X and Y are the sprite cell's top-left in map pixels (RECONSTRUCTED from a test render: the station trusses join up and
 every rock sits exactly on its collision tiles).
 
@@ -53,8 +54,8 @@ ENTITY_SIZE = 17
 OBJECT_MASK = 0x1FFF
 DRAW_ORDER_DYNAMIC_LAST = 5
 ENTITY_FIELDS = ("x", "y", "object", "frame", "animationTime", "timeDelta", "drawOrder", "translucency", "smartTranslucency",
-    "value", "saturation", "hue", "light", "paletteShift")
-SCHEMA_VERSION = 3
+    "value", "saturation", "hue", "light", "paletteShift", "extraData", "detailLevel", "extraDataMeaning", "unknownC6", "unknownD1")
+SCHEMA_VERSION = 4
 # Prize graphic of each mineral item: ITM item fields f[23]/f[24] (blob archive, member).
 MINERAL_ITEM_IDS = ("2003", "2005", "2019")
 
@@ -121,7 +122,9 @@ def parse_level(data: bytes) -> tuple[list[tuple[str, str]], list[tuple[str, str
         entities.append({"x": x, "y": y, "object": obj, "frame": (bits_a >> 13) & 0x7F, "animationTime": (bits_a >> 20) & 0x3FF,
             "timeDelta": bits_b & 0x1FFF, "drawOrder": (bits_b >> 26) & 7, "translucency": bits_a >> 30,
             "smartTranslucency": bits_b >> 31, "value": signed_byte(bits_c), "saturation": signed_byte(bits_c >> 8),
-            "hue": (bits_c >> 16) & 0x7F, "light": (bits_c >> 23) & 0x7F, "paletteShift": bits_d & 0x3F})
+            "hue": (bits_c >> 16) & 0x7F, "light": (bits_c >> 23) & 0x7F, "paletteShift": bits_d & 0x3F,
+            "extraData": (bits_b >> 13) & 0x1FFF, "detailLevel": (bits_b >> 29) & 3,
+            "extraDataMeaning": (bits_c >> 30) & 1, "unknownC6": bits_c >> 31, "unknownD1": bits_d >> 6})
     return refs[:object_count], refs[object_count:], entities
 
 
@@ -239,8 +242,9 @@ def stage(source: Path, manifest_path: Path, out: Path) -> dict:
     level = {"schemaVersion": SCHEMA_VERSION, "canonicalCommit": COMMIT,
         "source": {"level": LVL_PATH, "levelSha256": sha(level_bytes), "items": ITM_PATH, "itemsSha256": sha(itm_bytes)},
         "entityReading": "FORMAT SOURCE (Gibbed Level/Entity.cs): object = BitsA 0-12, frame = BitsA 13-19, animationTime = "
-            "BitsA 20-29, translucency = BitsA 30-31, timeDelta = BitsB 0-12, drawOrder = BitsB 26-28, smartTranslucency = BitsB 31, "
-            "value/saturation = signed BitsC 0-7/8-15, hue = BitsC 16-22, light = BitsC 23-29, paletteShift = BitsD 0-5. "
+            "BitsA 20-29, translucency = BitsA 30-31; timeDelta = BitsB 0-12, extraData = BitsB 13-25, drawOrder = BitsB 26-28, "
+            "detailLevel = BitsB 29-30, smartTranslucency = BitsB 31; value/saturation = signed BitsC 0-7/8-15, hue = BitsC 16-22, "
+            "light = BitsC 23-29, extraDataMeaning = BitsC 30, unknownC6 = BitsC 31; paletteShift = BitsD 0-5, unknownD1 = BitsD 6-7. "
             "RECONSTRUCTED: x,y = top-left of the sprite cell in map pixels; animationTime (entity and CFS) = milliseconds per frame, "
             "entity 0 = still.",
         "blockedTiles": blocked, "uncoveredBlockedTiles": uncovered,

@@ -82,8 +82,8 @@ public sealed class OriginalLevelArt
     private const string ResourceRoot = "res://OriginalContent/level/";
     /// <summary>Bucket size for culling; larger than the biggest sprite (288-pixel station) so a sprite is found from its neighbours.</summary>
     private const int Bucket = 512;
-    private const int SchemaVersion = 3;
-    private const int Stride = 14;
+    private const int SchemaVersion = 4;
+    private const int Stride = 19;
     /// <summary>Frame time for simulation-placed rocks: 250 ms, the time Rogue.lvl gives most of its rocks (8,839 of 13,790).</summary>
     private const int PracticeRockFrameMs = 250;
 
@@ -98,22 +98,31 @@ public sealed class OriginalLevelArt
     private OriginalLevelArt(Document document)
     {
         if (document.SchemaVersion != SchemaVersion || document.CanonicalCommit != CanonicalCommit || document.EntityStride != Stride ||
-            document.Entities.Length % Stride != 0 || document.Objects.Count == 0)
+            document.Entities is not { Length: > 0 } || document.Entities.Length % Stride != 0 ||
+            document.Objects is not { Count: > 0 } || document.Minerals is null)
             throw new InvalidOperationException("Original level art schema or canonical commit mismatch; re-run stage_level_art.py.");
         foreach (var sprite in document.Objects.Concat(document.Minerals))
-            if (sprite.Width <= 0 || sprite.Height <= 0 || sprite.RowCount <= 0 || sprite.ColumnCount <= 0)
-                throw new InvalidOperationException($"Invalid original sprite layout: {sprite.Archive}::{sprite.Member}");
+            if (sprite is null || sprite.Width <= 0 || sprite.Height <= 0 || sprite.RowCount <= 0 || sprite.ColumnCount <= 0 ||
+                sprite.FrameCount <= 0 || sprite.FrameCount > (long)sprite.RowCount * sprite.ColumnCount)
+                throw new InvalidOperationException($"Invalid original sprite layout: {sprite?.Archive}::{sprite?.Member}");
+        for (var i = 0; i < document.Objects.Count; i++)
+            if (document.Objects[i].Index != i) throw new InvalidOperationException($"Original sprite {i} has an invalid object index.");
         _document = document;
         _objectTextures = new Texture2D?[document.Objects.Count];
-        _minerals = document.Minerals.ToDictionary(m => m.ItemId, StringComparer.Ordinal);
+        _minerals = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+        foreach (var mineral in document.Minerals)
+            if (string.IsNullOrWhiteSpace(mineral.ItemId) || !_minerals.TryAdd(mineral.ItemId, mineral))
+                throw new InvalidOperationException($"Invalid or duplicate original mineral item ID: {mineral.ItemId}");
         Entities = new Entity[document.Entities.Length / Stride];
         for (var i = 0; i < Entities.Length; i++)
         {
             var v = document.Entities.AsSpan(i * Stride, Stride);
             if ((uint)v[2] >= (uint)document.Objects.Count) throw new InvalidOperationException($"Entity {i} names an unknown object.");
-            if ((uint)v[3] > 0x7F || (uint)v[4] > 0x3FF || (uint)v[5] > 0x1FFF || (uint)v[6] > 7 || (uint)v[7] > 3 || (uint)v[8] > 1 ||
-                v[9] is < -128 or > 127 || v[10] is < -128 or > 127 || (uint)v[11] > 0x7F || (uint)v[12] > 0x7F || (uint)v[13] > 0x3F)
-                throw new InvalidOperationException($"Entity {i} has invalid draw fields.");
+            if (v[0] is < short.MinValue or > short.MaxValue || v[1] is < short.MinValue or > short.MaxValue ||
+                (uint)v[3] > 0x7F || (uint)v[4] > 0x3FF || (uint)v[5] > 0x1FFF || (uint)v[6] > 7 || (uint)v[7] > 3 || (uint)v[8] > 1 ||
+                v[9] is < -128 or > 127 || v[10] is < -128 or > 127 || (uint)v[11] > 0x7F || (uint)v[12] > 0x7F || (uint)v[13] > 0x3F ||
+                (uint)v[14] > 0x1FFF || (uint)v[15] > 3 || (uint)v[16] > 1 || (uint)v[17] > 1 || (uint)v[18] > 3)
+                throw new InvalidOperationException($"Entity {i} has invalid position or draw fields.");
             Entities[i] = new Entity(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8] == 1, v[9], v[10], v[11], v[12], v[13]);
             var key = BucketKey(Math.DivRem(v[0], Bucket).Quotient, Math.DivRem(v[1], Bucket).Quotient);
             if (!_buckets.TryGetValue(key, out var list)) _buckets[key] = list = [];
@@ -171,23 +180,23 @@ public sealed class OriginalLevelArt
     }
 
     /// <summary>Draws one placed sprite at its original position, animated through its frames.</summary>
-    public void Draw(CanvasItem canvas, int index, float seconds)
+    public void Draw(CanvasItem canvas, int index, double elapsedMilliseconds)
     {
         var e = Entities[index];
         var sprite = _document.Objects[e.Object];
         var texture = _objectTextures[e.Object] ??= LoadTexture(sprite);
-        // The entity's own cycle decides whether it moves: safe-zone markings and the map border carry 0 and stay still.
-        var frame = (e.Frame + FrameAt(sprite.FrameCount, e.AnimationTime, 0, seconds)) % sprite.FrameCount;
+        // Safe-zone markings carry a frame time of 0 and stay still.
+        var frame = (e.Frame + FrameAt(sprite.FrameCount, e.AnimationTime, 0, elapsedMilliseconds)) % sprite.FrameCount;
         canvas.DrawTextureRectRegion(texture, new Rect2(e.X, e.Y, sprite.Width, sprite.Height), FrameRect(sprite, frame), e.Modulate);
     }
 
     /// <summary>Draws a mineral's original prize sprite centred on <paramref name="centre"/>; false when the item has none staged.</summary>
-    public bool DrawMineral(CanvasItem canvas, string itemId, Vector2 centre, float seconds)
+    public bool DrawMineral(CanvasItem canvas, string itemId, Vector2 centre, double elapsedMilliseconds)
     {
         if (!_minerals.TryGetValue(itemId, out var sprite)) return false;
         if (!_mineralTextures.TryGetValue(itemId, out var texture)) _mineralTextures[itemId] = texture = LoadTexture(sprite);
         var size = new Vector2(sprite.Width, sprite.Height);
-        var frame = FrameAt(sprite.FrameCount, sprite.AnimationTime, 0, seconds);
+        var frame = FrameAt(sprite.FrameCount, sprite.AnimationTime, 0, elapsedMilliseconds);
         canvas.DrawTextureRectRegion(texture, new Rect2(centre - size / 2, size), FrameRect(sprite, frame));
         return true;
     }
@@ -203,13 +212,13 @@ public sealed class OriginalLevelArt
     }
 
     /// <summary>Draws object <paramref name="objectIndex"/> centred on <paramref name="centre"/> (for simulation-placed rocks).</summary>
-    public void DrawObjectCentred(CanvasItem canvas, int objectIndex, Vector2 centre, float seconds, int phase)
+    public void DrawObjectCentred(CanvasItem canvas, int objectIndex, Vector2 centre, double elapsedMilliseconds, int phase)
     {
         var sprite = _document.Objects[objectIndex];
         var texture = _objectTextures[objectIndex] ??= LoadTexture(sprite);
         var size = new Vector2(sprite.Width, sprite.Height);
         canvas.DrawTextureRectRegion(texture, new Rect2(centre - size / 2, size),
-            FrameRect(sprite, FrameAt(sprite.FrameCount, PracticeRockFrameMs, phase, seconds)));
+            FrameRect(sprite, FrameAt(sprite.FrameCount, PracticeRockFrameMs, phase, elapsedMilliseconds)));
     }
 
     /// <summary>Tiles (16 px) that some placed sprite's cell overlaps, row-major; the same test stage_level_art.py reports.</summary>
@@ -221,8 +230,9 @@ public sealed class OriginalLevelArt
             var sprite = _document.Objects[e.Object];
             int x0 = Math.Max(0, e.X / 16), y0 = Math.Max(0, e.Y / 16);
             int x1 = Math.Min(width - 1, (e.X + sprite.Width - 1) / 16), y1 = Math.Min(height - 1, (e.Y + sprite.Height - 1) / 16);
+            if (x0 > x1) continue;
             for (var y = y0; y <= y1; y++)
-                Array.Fill(covered, true, y * width + x0, Math.Max(0, x1 - x0 + 1));
+                Array.Fill(covered, true, y * width + x0, x1 - x0 + 1);
         }
         return covered;
     }
@@ -236,16 +246,17 @@ public sealed class OriginalLevelArt
     }
 
     /// <summary>
-    /// Frame shown at <paramref name="seconds"/> when each frame lasts <paramref name="frameMilliseconds"/> (entity and CFS
+    /// Frame shown at <paramref name="elapsedMilliseconds"/> when each frame lasts <paramref name="frameMilliseconds"/> (entity and CFS
     /// AnimationTime, RECONSTRUCTED as milliseconds per frame); 0 holds the first frame. <paramref name="phasePercent"/> offsets
     /// the start by a share of the cycle (only simulation-placed rocks use it; Rogue.lvl has no per-entity phase).
     /// </summary>
-    public static int FrameAt(int frameCount, int frameMilliseconds, int phasePercent, float seconds)
+    public static int FrameAt(int frameCount, int frameMilliseconds, int phasePercent, double elapsedMilliseconds)
     {
         if (frameCount <= 1 || frameMilliseconds <= 0) return 0;
-        var cycles = seconds * 1000f / ((float)frameMilliseconds * frameCount) + phasePercent / 100f;
-        var frame = (int)Math.Floor((cycles - Math.Floor(cycles)) * frameCount);
-        return Math.Clamp(frame, 0, frameCount - 1);
+        var elapsedFrames = elapsedMilliseconds / frameMilliseconds;
+        var phaseFrames = phasePercent * (double)frameCount / 100;
+        var frame = (int)(Math.Floor(elapsedFrames + phaseFrames) % frameCount);
+        return frame < 0 ? frame + frameCount : frame;
     }
 
     private static Rect2 FrameRect(Sprite sprite, int frame) =>
@@ -259,9 +270,9 @@ public sealed class OriginalLevelArt
         if (string.IsNullOrWhiteSpace(relative) || relative.Contains('\\') || relative.Contains(':') || relative.StartsWith('/') ||
             relative.Split('/').Any(part => part is "" or "." or ".."))
             throw new InvalidOperationException($"Unsafe original resource path: {relative}");
-        var texture = GD.Load<Texture2D>(ResourceRoot + relative)
+        var texture = GD.Load(ResourceRoot + relative) as Texture2D
             ?? throw new InvalidOperationException($"Missing original texture: {relative}. Run stage_level_art.py and import.");
-        if (texture.GetWidth() != sprite.Width * sprite.ColumnCount || texture.GetHeight() != sprite.Height * sprite.RowCount)
+        if (texture.GetWidth() != (long)sprite.Width * sprite.ColumnCount || texture.GetHeight() != (long)sprite.Height * sprite.RowCount)
             throw new InvalidOperationException($"Original atlas dimensions changed: {relative}.");
         return texture;
     }

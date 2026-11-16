@@ -219,7 +219,20 @@ public partial class GameClient : Node2D
             var fixtureRun = smokeRequested || hullSpriteCheck || originalInputRequested || _verifyOriginals || _capturePath is not null || _inspectionVisible || _stationVisible || _paused || _sectorMap.Visible;
             if (!fixtureRun || args.Contains("--capture-ship-picker")) ShowShipPicker();
             if (hullSpriteCheck) RunHullSpriteCheck();
-            else if (smokeRequested) RunInputSmokeTest();
+            else if (smokeRequested)
+            {
+                const int cloudFrameCount = 58;
+                const int cloudFrameMilliseconds = 150;
+                for (var step = 1; step <= 2 * cloudFrameCount; step++)
+                {
+                    var boundary = step * cloudFrameMilliseconds;
+                    if (OriginalLevelArt.FrameAt(cloudFrameCount, cloudFrameMilliseconds, 0, boundary - 0.001) != (step - 1) % cloudFrameCount ||
+                        OriginalLevelArt.FrameAt(cloudFrameCount, cloudFrameMilliseconds, 0, boundary) != step % cloudFrameCount)
+                        throw new InvalidOperationException($"The gas cloud animation missed a frame boundary at {boundary} ms.");
+                }
+                GD.Print("LEVEL_ART_FRAME_SMOKE_PASS: 116 frame boundaries checked.");
+                RunInputSmokeTest();
+            }
             else if (originalInputRequested) RunOriginalInputCheck();
         }
         catch (Exception exception)

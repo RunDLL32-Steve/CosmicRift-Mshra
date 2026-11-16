@@ -29,7 +29,7 @@ class LevelArtTests(unittest.TestCase):
         self.assertEqual(floors, [("f_default.blo", "default.cfs")])
         self.assertEqual(entities[0], {"x": 16, "y": 48, "object": 0, "frame": 0, "animationTime": 250, "timeDelta": 5,
             "drawOrder": 0, "translucency": 0, "smartTranslucency": 0, "value": 0, "saturation": 0, "hue": 0, "light": 0,
-            "paletteShift": 0})
+            "paletteShift": 0, "extraData": 0, "detailLevel": 0, "extraDataMeaning": 0, "unknownC6": 0, "unknownD1": 0})
         self.assertEqual((entities[1]["object"], entities[1]["frame"], entities[1]["animationTime"]), (1, 3, 0))
 
     def test_frame_index_uses_all_seven_bits(self):
@@ -49,6 +49,14 @@ class LevelArtTests(unittest.TestCase):
         _, _, entities = level_art.parse_level(lvl_fixture([(0, 0, 0, 0, bits_c, 0xC7)]))
         e = entities[0]
         self.assertEqual((e["value"], e["saturation"], e["hue"], e["light"], e["paletteShift"]), (-10, -3, 90, 50, 7))
+
+    def test_entities_preserve_unused_and_unknown_fields(self):
+        bits_b = 11 | 0x1FFF << 13 | 5 << 26 | 2 << 29 | 1 << 31
+        bits_c = 1 << 30 | 1 << 31
+        _, _, (entity,) = level_art.parse_level(lvl_fixture([(0, 0, 0, bits_b, bits_c, 2 << 6)]))
+        self.assertEqual((entity["timeDelta"], entity["extraData"], entity["drawOrder"], entity["detailLevel"],
+            entity["smartTranslucency"]), (11, 8191, 5, 2, 1))
+        self.assertEqual((entity["extraDataMeaning"], entity["unknownC6"], entity["unknownD1"]), (1, 1, 2))
 
     def test_uncovered_blocked_tiles_counts_walls_under_no_sprite_cell(self):
         physics = bytes([1, 1, 0, 1])  # 2 x 2 tiles; three blocked

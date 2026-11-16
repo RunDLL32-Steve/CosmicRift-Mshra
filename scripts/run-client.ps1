@@ -4,8 +4,15 @@ param([switch]$NoBuild)
 Push-Location $repoRoot
 try {
     $levelArt = Join-Path $repoRoot 'client/OriginalContent/level/level.json'
-    # Re-stage when the staged copy is missing or predates schema 3 (the full Gibbed entity fields: frame timing and Value).
-    $levelArtCurrent = (Test-Path -LiteralPath $levelArt) -and (Select-String -LiteralPath $levelArt -Pattern '"schemaVersion":3,' -SimpleMatch -Quiet)
+    # Re-stage missing, unreadable or incompatible derived level art.
+    $levelArtCurrent = $false
+    if (Test-Path -LiteralPath $levelArt -PathType Leaf) {
+        try {
+            $staged = Get-Content -LiteralPath $levelArt -Raw | ConvertFrom-Json
+            $levelArtCurrent = $staged.schemaVersion -eq 4 -and $staged.entityStride -eq 19 -and
+                $staged.canonicalCommit -ceq 'eb1514eaae7f9b9425307d9cc043c74ecdd15e35'
+        } catch { $levelArtCurrent = $false }
+    }
     if (-not $levelArtCurrent -and (Test-Path -LiteralPath (Join-Path $repoRoot '.tools/references/cosmic-rift-assets/LVL/Rogue.lvl'))) {
         # Original map art (asteroids, stations, walls); without it the game draws its plain NEW tiles.
         & python (Join-Path $PSScriptRoot 'original-assets/stage_level_art.py')
