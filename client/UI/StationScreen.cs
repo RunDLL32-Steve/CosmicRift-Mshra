@@ -16,7 +16,10 @@ public partial class StationScreen : CanvasLayer
     public event Action<string, int>? SellRequested;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
-    public event Action<string, int>? RefineRequested;
+    /// <summary>The pilot asked the refinery to refine all of a recipe's input (the original refines every unit held).</summary>
+    public event Action<string>? RefineRequested;
+    /// <summary>True while an order for this input item is still being refined; set by the client from the session.</summary>
+    public Func<string, bool> IsRefining { get; set; } = _ => false;
     public event Action<string>? BuyShipRequested;
     /// <summary>The pilot pressed FLY on an owned ship in the Hangar.</summary>
     public event Action<string>? SwitchShipRequested;
@@ -171,15 +174,16 @@ public partial class StationScreen : CanvasLayer
         Clear(_refinery);
         if (_station.Refinery is { } refinery)
         {
-            _refinery.AddChild(FlightHud.Label("Original refinery recipes. One input unit becomes one output unit, free (provisional reading).", 12, FlightHud.Muted));
-            _refinery.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 120, true), Cell("HELD", 50, true), Cell("OUTPUT", 130, true)));
+            _refinery.AddChild(FlightHud.Label("Original refinery recipes: every unit held is refined, one for one, free. Tellerium and Krandazite take 1.5 s; one timed order at a time.", 12, FlightHud.Muted));
+            _refinery.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 120, true), Cell("HELD", 50, true), Cell("OUTPUT", 130, true), Cell("TIME", 60, true)));
             foreach (var recipe in refinery.Recipes)
             {
                 var held = profile.Inventory.GetValueOrDefault(recipe.InputItemId);
+                var refining = IsRefining(recipe.InputItemId);
                 _refinery.AddChild(Row(Cell(recipe.Name, 150), Cell(_station.NameOf(recipe.InputItemId), 120), Cell(held.ToString(), 50),
                     Cell(_station.NameOf(recipe.OutputItemId), 130),
-                    ActionButton("REFINE 1", $"refine:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, 1)),
-                    ActionButton("REFINE ALL", $"refineall:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, held))));
+                    Cell(recipe.Duration > TimeSpan.Zero ? $"{recipe.Duration.TotalSeconds:0.#} s" : "at once", 60),
+                    ActionButton(refining ? "REFINING" : "REFINE", $"refineall:{recipe.Id}", held == 0 || refining, () => RefineRequested?.Invoke(recipe.Id))));
             }
         }
 

@@ -162,7 +162,8 @@ public partial class GameClient : Node2D
             _hud.AddChild(_sectorMap);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
-            _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
+            _stationScreen.RefineRequested += OrderRefine;
+            _stationScreen.IsRefining = input => _session?.RefineOrders.Any(o => o.Recipe.InputItemId == input) ?? false;
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
@@ -281,6 +282,7 @@ public partial class GameClient : Node2D
         _hud.Update(_world, _playCatalog);
         _minimap.Update(_world);
         _sectorMap.Update(_world);
+        if (_session is { RefineOrderDue: true }) DeliverRefined();
         RefreshProfileViews();
         if (_noticeExpiresMs != 0 && Time.GetTicksMsec() >= _noticeExpiresMs)
         {
@@ -1021,10 +1023,40 @@ public partial class GameClient : Node2D
         _ => "Upgrades, hulls and your hangar are here. Goods sell at the Trading Posts and repairs at the Repair Docks.",
     };
 
+    /// <summary>Places a refinery order for every unit of the recipe's input held (RT-F044); it is delivered from _Process when due.</summary>
+    private void OrderRefine(string recipeId)
+    {
+        if (_session is null) return;
+        var held = _session.Profile?.Inventory.GetValueOrDefault(_stationDefinition.RefineRecipe(recipeId)?.InputItemId ?? "") ?? 0;
+        var refusal = _session.OrderRefine(recipeId, PlayerX, PlayerY);
+        if (refusal != RejectionReason.None)
+            _stationScreen.SetStatus($"Refused: {Describe(refusal)}", error: true);
+        else if (!_session.RefineOrderDue)
+            _stationScreen.SetStatus($"Refining {held} {_stationDefinition.NameOf(_stationDefinition.RefineRecipe(recipeId)!.InputItemId)}...");
+        DeliverRefined();
+        RefreshProfileViews(rebuildStation: true);
+    }
+
+    /// <summary>Commits refinery orders whose time has ended, whether or not the station screen is still open.</summary>
+    private void DeliverRefined()
+    {
+        while (_session is { RefineOrderDue: true } session)
+        {
+            var delivered = Await(session.DeliverRefinedAsync());
+            if (delivered is not { } d) break;
+            ShowTransaction(d.Result, $"Refined {d.Order.Quantity} {_stationDefinition.NameOf(d.Order.Recipe.InputItemId)} into {_stationDefinition.NameOf(d.Order.Recipe.OutputItemId)}.", null);
+        }
+    }
+
     private void StationTransaction(Func<StationProfileSession, Task<TransactionResult>> run, string? success, string? repairId = null)
     {
         if (_session is null) return;
-        var result = Await(run(_session));
+        ShowTransaction(Await(run(_session)), success, repairId);
+    }
+
+    private void ShowTransaction(TransactionResult result, string? success, string? repairId)
+    {
+        if (_session is null) return;
         if (result.Status == TransactionStatus.Applied)
         {
             if (repairId is not null)
@@ -1064,6 +1096,7 @@ public partial class GameClient : Node2D
         RejectionReason.UpgradeSlotHeld => "an installed upgrade already holds that slot; nothing was charged.",
         RejectionReason.ShipAlreadyOwned => "you already own that hull.",
         RejectionReason.ShipRequirementNotMet => "you need a hull of the same race first.",
+        RejectionReason.SiteBusy => "the refinery is still working on an order.",
         RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };
