@@ -8,6 +8,9 @@ namespace RogueTrader.Protocol;
 /// </summary>
 public static class MessageCodec
 {
+    /// <summary>Every defined input flag; any other bit is reserved and rejected on both sides.</summary>
+    public const InputFlags KnownFlags = InputFlags.Fire | InputFlags.Hyper;
+
     // ---------------------------------------------------------------- decode
 
     /// <summary>Decode one complete frame. On failure <paramref name="message"/> is null and <paramref name="error"/> is not None.</summary>
@@ -64,7 +67,7 @@ public static class MessageCodec
         var turn = r.F32();
         var flags = r.U8();
         if (!r.Ok) return null;
-        if ((flags & ~(byte)InputFlags.Fire) != 0) { r.Fail(ProtocolError.InvalidFlags); return null; }
+        if ((flags & ~(byte)KnownFlags) != 0) { r.Fail(ProtocolError.InvalidFlags); return null; }
         return new PlayerInput(clientTick, seq, snap, thrust, turn, (InputFlags)flags);
     }
 
@@ -83,10 +86,10 @@ public static class MessageCodec
             var id = r.U32();
             var kind = r.U8();
             var x = r.F32(); var y = r.F32(); var vx = r.F32(); var vy = r.F32();
-            var rot = r.F32(); var hull = r.F32(); var shield = r.F32();
+            var rot = r.F32(); var hull = r.F32(); var shield = r.F32(); var energy = r.F32();
             if (!r.Ok) return null;
             if (!Enum.IsDefined((EntityKind)kind)) { r.Fail(ProtocolError.InvalidEnumValue); return null; }
-            entities[i] = new EntityState(id, (EntityKind)kind, x, y, vx, vy, rot, hull, shield);
+            entities[i] = new EntityState(id, (EntityKind)kind, x, y, vx, vy, rot, hull, shield, energy);
         }
         return new WorldSnapshot(tick, ack, entities);
     }
@@ -128,7 +131,7 @@ public static class MessageCodec
             case PlayerInput m:
                 w.U32(m.ClientTick); w.U32(m.Sequence); w.U32(m.LastSnapshotTick);
                 w.F32(m.Thrust); w.F32(m.Turn);
-                if (((byte)m.Flags & ~(byte)InputFlags.Fire) != 0) w.Fail(ProtocolError.InvalidFlags);
+                if (((byte)m.Flags & ~(byte)KnownFlags) != 0) w.Fail(ProtocolError.InvalidFlags);
                 w.U8((byte)m.Flags);
                 break;
             case WorldSnapshot m:
@@ -140,7 +143,7 @@ public static class MessageCodec
                     if (!Enum.IsDefined(e.Kind)) { w.Fail(ProtocolError.InvalidEnumValue); break; }
                     w.U32(e.EntityId); w.U8((byte)e.Kind);
                     w.F32(e.X); w.F32(e.Y); w.F32(e.VelX); w.F32(e.VelY);
-                    w.F32(e.Rotation); w.F32(e.Hull); w.F32(e.Shield);
+                    w.F32(e.Rotation); w.F32(e.Hull); w.F32(e.Shield); w.F32(e.Energy);
                 }
                 break;
             case TransactionRequest m:

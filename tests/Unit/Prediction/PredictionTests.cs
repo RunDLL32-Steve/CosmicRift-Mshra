@@ -20,7 +20,7 @@ public sealed class PredictionTests
     {
         var ship = session.World.Player;
         return new EntityState(ControlledId, EntityKind.Ship, ship.Position.X, ship.Position.Y,
-            ship.Velocity.X, ship.Velocity.Y, ship.Heading, ship.Hull, ship.Shield);
+            ship.Velocity.X, ship.Velocity.Y, ship.Heading, ship.Hull, ship.Shield, ship.Energy);
     }
 
     private static WorldSnapshot Snapshot(AuthoritativeSession session) =>
@@ -236,7 +236,7 @@ public sealed class PredictionTests
     [InlineData(0f, float.PositiveInfinity, (byte)0)]
     [InlineData(1.01f, 0f, (byte)0)]
     [InlineData(0f, -1.01f, (byte)0)]
-    [InlineData(0f, 0f, (byte)2)]
+    [InlineData(0f, 0f, (byte)4)]
     public void InvalidControlsConsumeNoIdentifiersOrMotion(float thrust, float turn, byte flags)
     {
         var predictor = Predictor(new AuthoritativeSession(new WorldSimulation(Catalog())));
@@ -408,6 +408,10 @@ public sealed class PredictionTests
         Assert.Equal(InputVerdict.Accepted, authority.Submit(input));
         authority.Step();
         Assert.Equal(1, authority.World.ShotsFired);
+        // Motion matches exactly; the shot's energy cost is authoritative only, so the next snapshot corrects energy.
+        Assert.Equal(Ship(authority) with { Energy = predictor.Ship.Energy }, predictor.Ship);
+        Assert.Equal(authority.World.Player.Energy + authority.World.Player.Weapon.EnergyCost, predictor.Ship.Energy, 4);
+        Assert.Equal(ReconciliationVerdict.Accepted, predictor.Reconcile(Snapshot(authority)));
         Assert.Equal(Ship(authority), predictor.Ship);
     }
 
