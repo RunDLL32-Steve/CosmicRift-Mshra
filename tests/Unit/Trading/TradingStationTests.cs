@@ -451,7 +451,8 @@ public sealed class TradingStationTests
         Assert.Equal(34, table.RawPrices.Count(p => p.RawSell == -1)); // RT-F049 audit: sentinel rows stay raw
 
         // Priced items trade through the full pipeline; cargo weights are the raw ITM masses and the capacity is a NEW fixture.
-        var traded = catalog.Items.First(i => i.Buy.Value > 0 && i.Sell.Value > 0);
+        // RT-F049: items with ITM f[13] -1 (cannons) hold at most one, so the two-unit round trip uses one with room for two.
+        var traded = catalog.Items.First(i => i.Buy.Value > 0 && i.Sell.Value > 0 && (i.MaxAllowed.Value == 0 || Math.Abs(i.MaxAllowed.Value) >= 2));
         var cargo = new CargoCatalog(long.MaxValue / 4, catalog.Items.Select(i => new CargoItemDefinition(i.Id.ToString(), i.Mass.Value)));
         var options = new PersistenceOptions();
         var repo = new InMemoryProfileRepository(options);

@@ -1,5 +1,11 @@
 # Changelog
 
+## Sell installed upgrades back, holding caps on purchases — November 17, 2026
+
+-   New: installed upgrades and armour can be sold back at a home store for the original resale price (ITM f[15], for example SuperBoosters cost 10,000 and resell for 7,500). The Upgrades page has a SELL button per module; the sale is saved before it is shown, cannot be repeated, and removes the module (so a sold armour stops protecting the ship). Armour resells for 0 credits and modules with the "cannot be sold" value -1 get no button. NEW transaction kind `SellUpgrade`; no profile schema change.
+-   New: a purchase that would take the number of items held past the original limit (ITM f[13]) is refused whole, as in the original server. Upgrades are already one of each.
+-   Recorded: each good and upgrade in `data/stations/trading_outpost.json` now carries the original droppable flag and holding cap. The game has no voluntary item drop yet, so the flag is not enforced anywhere; a destroyed ship still loses its hold as before.
+
 ## The hangar keeps working after a failed save — November 16, 2026
 
 -   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).

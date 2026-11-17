@@ -105,6 +105,14 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
         return ExecuteAsync(ctx, new Req(TransactionKind.BuyUpgrade, r.TransactionId, r.ProfileId, r.StationId, null, r.UpgradeId, 0, 0, null, shapeOk), ct);
     }
 
+    public Task<TransactionResult> SellUpgradeAsync(TransactionContext ctx, SellUpgradeRequest r, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ctx);
+        ArgumentNullException.ThrowIfNull(r);
+        var shapeOk = IdsOk(r.TransactionId, r.ProfileId, r.StationId) && IdOk(r.UpgradeId);
+        return ExecuteAsync(ctx, new Req(TransactionKind.SellUpgrade, r.TransactionId, r.ProfileId, r.StationId, null, r.UpgradeId, 0, 0, null, shapeOk), ct);
+    }
+
     public Task<TransactionResult> RepairAsync(TransactionContext ctx, RepairRequest r, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(ctx);
@@ -373,8 +381,11 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     if (!_prices.TryGetBuyUnitPrice(q.Place!, q.ItemId!, out var unit)) return RejectionReason.NotForSale;
                     if (unit < 0) return RejectionReason.InvalidPrice;
                     var total = checked(unit * (long)q.Quantity);
-                    if (c.Wallet < total) return RejectionReason.InsufficientFunds;
                     inventory.TryGetValue(q.ItemId!, out var held);
+                    // ITM f[13]: the emulator refuses a purchase that would take the held quantity past |maxAllowed| (never clamps).
+                    if (_prices.TryGetMaxQuantity(q.ItemId!, out var maxHeld) && held + (long)q.Quantity > maxHeld)
+                        return RejectionReason.MaxAllowedExceeded;
+                    if (c.Wallet < total) return RejectionReason.InsufficientFunds;
                     inventory[q.ItemId!] = checked(held + q.Quantity);
                     deltas[q.ItemId!] = q.Quantity;
                     currencyDelta = -total;
@@ -406,6 +417,17 @@ public sealed class TransactionProcessor(IProfileRepository repository, IPriceSo
                     upgradeId = q.UpgradeId;
                     currencyDelta = -price;
                     walletAfter = c.Wallet - price;
+                    break;
+                }
+                case TransactionKind.SellUpgrade:
+                {
+                    if (!c.Upgrades.Contains(q.UpgradeId!)) return RejectionReason.UpgradeNotOwned;
+                    if (!_prices.TryGetUpgradeSellPrice(q.Place!, q.UpgradeId!, out var price)) return RejectionReason.UpgradeNotSellable;
+                    if (price < 0) return RejectionReason.InvalidPrice;
+                    upgrades = upgrades.Remove(q.UpgradeId!);
+                    upgradeId = q.UpgradeId;
+                    currencyDelta = price;
+                    walletAfter = checked(c.Wallet + price);
                     break;
                 }
                 case TransactionKind.Repair:

@@ -17,6 +17,8 @@ public partial class StationScreen : CanvasLayer
     public event Action<string, int>? SellRequested;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
+    /// <summary>The pilot pressed SELL on an installed upgrade or armour (resale at its original ITM f[15] price, RT-F049).</summary>
+    public event Action<string>? SellUpgradeRequested;
     public event Action<string, int>? RefineRequested;
     public event Action<string>? BuyShipRequested;
     /// <summary>The pilot pressed FLY on an owned ship in the Hangar.</summary>
@@ -237,7 +239,10 @@ public partial class StationScreen : CanvasLayer
                     effect.TooltipText = ArmorDetail(upgrade.Effect.Armor) + "\n" + Summary(upgrade.Effect with { Armor = null });
                     effect.MouseFilter = Control.MouseFilterEnum.Pass;
                 }
-                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), effect, button));
+                var resale = upgrade.Sell is { } credits ? $"SELL {credits:N0}" : "NO SALE";
+                var sell = ActionButton(resale, $"sellupgrade:{upgrade.Id}", !owned || upgrade.Sell is null, () => SellUpgradeRequested?.Invoke(upgrade.Id));
+                sell.TooltipText = upgrade.Sell is null ? "This module cannot be sold back." : "Sell the installed module back at its original resale price.";
+                _upgrades.AddChild(Row(Cell(upgrade.Name, 190), Cell($"{upgrade.Price:N0} cr", 80), effect, button, sell));
             }
         }
     }

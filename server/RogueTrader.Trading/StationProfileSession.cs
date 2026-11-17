@@ -129,6 +129,20 @@ public sealed class StationProfileSession
         return _trading.BuyUpgradeAsync(profileId, shipX, shipY, new BuyUpgradeRequest(transactionId, profileId, SiteFor(SiteServices.Store, shipX, shipY), upgradeId), ct);
     }
 
+    /// <summary>
+    /// Sells an installed upgrade or armour back at the home store for its original resale price (RT-F049). The upgrade leaves the
+    /// profile in the same saved step, so a fitted armour is unfitted with the sale and the next best item of its slot (if any)
+    /// becomes active.
+    /// </summary>
+    public Task<TransactionResult> SellUpgradeAsync(string upgradeId, float shipX, float shipY, CancellationToken ct = default)
+    {
+        var profileId = RequireProfile();
+        return _trading.SellUpgradeAsync(profileId, shipX, shipY, new SellUpgradeRequest(NewId(), profileId, SiteFor(SiteServices.Store, shipX, shipY), upgradeId), ct);
+    }
+
+    /// <summary>The credits an installed upgrade pays when sold back, or null when it cannot be sold (raw -1 or unknown).</summary>
+    public long? UpgradeResale(string upgradeId) => Station.Upgrades.FirstOrDefault(u => u.Id == upgradeId)?.Sell;
+
     /// <summary>Why buying this upgrade now would have no effect (<see cref="RejectionReason.None"/> when it would).</summary>
     public RejectionReason UpgradeRefusal(string upgradeId)
     {

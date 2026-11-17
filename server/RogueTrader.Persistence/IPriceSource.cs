@@ -7,6 +7,26 @@ public interface IPriceSource
     bool TryGetSellUnitPrice(string stationId, string itemId, out long unitPrice);
     bool TryGetUpgradePrice(string stationId, string upgradeId, out long price);
 
+    /// <summary>
+    /// Credits paid for taking one installed upgrade back (ITM f[15]; 0 is a legal 0-credit sale). False means it cannot be sold
+    /// back here (raw -1, or not an upgrade of this store). Not offered unless a source overrides it.
+    /// </summary>
+    bool TryGetUpgradeSellPrice(string stationId, string upgradeId, out long price)
+    {
+        price = 0;
+        return false;
+    }
+
+    /// <summary>
+    /// The most units of an item a player may hold (|ITM f[13]|, emulator ScriptArena.handlePlayerShop); false means no limit
+    /// (raw 0). Not limited unless a source overrides it.
+    /// </summary>
+    bool TryGetMaxQuantity(string itemId, out int maxQuantity)
+    {
+        maxQuantity = 0;
+        return false;
+    }
+
     /// <summary>Price of one repair service; false means the service is not offered here. Not offered unless a source overrides it.</summary>
     bool TryGetRepairPrice(string stationId, string repairId, out long price)
     {

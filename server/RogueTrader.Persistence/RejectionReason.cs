@@ -23,4 +23,10 @@ public enum RejectionReason
     ShipNotActive,
     /// <summary>The hull can only be bought by a player who already owns one of the hulls it requires (original same-race rule).</summary>
     ShipRequirementNotMet,
+    /// <summary>The purchase would take the held quantity past the item's ITM f[13] maximum (emulator ScriptArena.handlePlayerShop; RT-F049).</summary>
+    MaxAllowedExceeded,
+    /// <summary>The player has not installed this upgrade, so there is nothing to sell back (RT-F049).</summary>
+    UpgradeNotOwned,
+    /// <summary>The upgrade has no resale price here: ITM f[15] is -1, or the store does not take it (RT-F049).</summary>
+    UpgradeNotSellable,
 }

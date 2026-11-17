@@ -11,6 +11,10 @@ public static class ItmFields
     public const int Mass = 7;
     /// <summary>Catalog "buy" field (raw, unscaled).</summary>
     public const int Buy = 8;
+    /// <summary>Emulator ItmInfo.Item <c>droppable</c> (0/1): whether a player may voluntarily drop the item (RT-F049).</summary>
+    public const int Droppable = 10;
+    /// <summary>Emulator <c>maxAllowed</c>: the most units a player may hold is its absolute value; 0 means no limit (RT-F049).</summary>
+    public const int MaxAllowed = 13;
     /// <summary>Catalog "sell" field (raw; -1 is a negative sentinel whose native meaning is unvalidated).</summary>
     public const int Sell = 15;
     public const int MinFieldCount = 31;
@@ -33,4 +37,8 @@ public sealed class OriginalItem
     public OriginalInt Mass => Record.Int(ItmFields.Mass);
     public OriginalInt Buy => Record.Int(ItmFields.Buy);
     public OriginalInt Sell => Record.Int(ItmFields.Sell);
+    /// <summary>Raw f[10]; any non-zero value reads as droppable (emulator <c>Convert.ToBoolean(int)</c>).</summary>
+    public bool Droppable => Record.Int(ItmFields.Droppable).Value != 0;
+    /// <summary>Raw f[13]; negative values are a per-item holding cap of the absolute value (upgrades -1, mass driver ammo -250), 0 is unlimited.</summary>
+    public OriginalInt MaxAllowed => Record.Int(ItmFields.MaxAllowed);
 }

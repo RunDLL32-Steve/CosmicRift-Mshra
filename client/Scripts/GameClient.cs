@@ -169,6 +169,8 @@ public partial class GameClient : Node2D
             _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
             _stationScreen.RefineRequested += (recipe, quantity) => StationTransaction(s => s.RefineAsync(recipe, quantity, PlayerX, PlayerY), $"Refined {quantity} {_stationDefinition.NameOf(_stationDefinition.Refinery!.Recipes.Single(r => r.Id == recipe).InputItemId)}.");
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
+            _stationScreen.SellUpgradeRequested += upgrade => StationTransaction(s => s.SellUpgradeAsync(upgrade, PlayerX, PlayerY),
+                $"Sold {_stationDefinition.NameOf(upgrade)} for {_session?.UpgradeResale(upgrade) ?? 0:N0} credits.");
             _stationScreen.RepairRequested += repair => StationTransaction(s => s.RepairAsync(repair, PlayerX, PlayerY, _world.Player.Hull, _playCatalog.Ship.Defense.MaximumHull), null, repair);
             _stationScreen.BuyShipRequested += hull => StationTransaction(s => s.BuyShipAsync(hull, PlayerX, PlayerY),
                 $"Bought the {_stationDefinition.NameOf(hull)}. It waits in your hangar; fly it from the Hangar page.");
@@ -1086,6 +1088,9 @@ public partial class GameClient : Node2D
         RejectionReason.InsufficientInventory => "not enough cargo to sell.",
         RejectionReason.CargoCapacityExceeded => "the hold is full.",
         RejectionReason.UpgradeAlreadyOwned => "upgrade already installed.",
+        RejectionReason.UpgradeNotOwned => "that module is not installed.",
+        RejectionReason.UpgradeNotSellable => "that module cannot be sold back.",
+        RejectionReason.MaxAllowedExceeded => "you already hold the maximum of that item.",
         RejectionReason.StationAccessDenied => "you are no longer docked.",
         RejectionReason.NotForSale => "not traded here.",
         RejectionReason.UpgradeHasNoEffect => "this upgrade has no effect yet; nothing was charged.",

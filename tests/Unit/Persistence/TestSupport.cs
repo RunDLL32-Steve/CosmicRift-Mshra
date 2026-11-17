@@ -70,6 +70,16 @@ internal sealed class FixturePriceSource : IPriceSource
         [(Fx.Station, Fx.UpgradeY)] = 300, // NEW provisional test fixture, not game balance
     };
 
+    /// <summary>Resale of installed upgrades; X pays 350, Y is a 0-credit sale, anything absent cannot be sold back (all NEW fixtures).</summary>
+    public Dictionary<(string Station, string Upgrade), long> UpgradeSell { get; } = new()
+    {
+        [(Fx.Station, Fx.UpgradeX)] = 350,
+        [(Fx.Station, Fx.UpgradeY)] = 0,
+    };
+
+    /// <summary>Holding caps (|ITM f[13]|); empty unless a test adds one (NEW fixtures).</summary>
+    public Dictionary<string, int> MaxQuantity { get; } = new();
+
     public Dictionary<(string Station, string Repair), long> Repair { get; } = new()
     {
         [(Fx.Station, Fx.RepairMinor)] = 40,  // NEW provisional test fixture, not game balance
@@ -82,6 +92,8 @@ internal sealed class FixturePriceSource : IPriceSource
         [(Fx.Station, Fx.Hull3)] = 0,    // NEW provisional test fixture: a free hull
     };
 
+    public bool TryGetUpgradeSellPrice(string stationId, string upgradeId, out long price) => UpgradeSell.TryGetValue((stationId, upgradeId), out price);
+    public bool TryGetMaxQuantity(string itemId, out int maxQuantity) => MaxQuantity.TryGetValue(itemId, out maxQuantity);
     public bool TryGetShipPrice(string stationId, string hullId, out long price) => Ship.TryGetValue((stationId, hullId), out price);
     public bool TryGetRepairPrice(string stationId, string repairId, out long price) => Repair.TryGetValue((stationId, repairId), out price);
     public bool TryGetBuyUnitPrice(string stationId, string itemId, out long unitPrice) => Buy.TryGetValue((stationId, itemId), out unitPrice);
@@ -212,6 +224,9 @@ internal sealed class Env
 
     public Task<TransactionResult> BuyUpgrade(string? id, string upgrade, bool stationAccess = true) =>
         Proc.BuyUpgradeAsync(Ctx(stationAccess), new BuyUpgradeRequest(id ?? Fx.NewId(), Fx.ProfileId, Fx.Station, upgrade));
+
+    public Task<TransactionResult> SellUpgrade(string? id, string upgrade, bool stationAccess = true, string station = Fx.Station) =>
+        Proc.SellUpgradeAsync(Ctx(stationAccess), new SellUpgradeRequest(id ?? Fx.NewId(), Fx.ProfileId, station, upgrade));
 
     public Task<TransactionResult> Repair(string? id, string repair, bool stationAccess = true, string station = Fx.Station) =>
         Proc.RepairAsync(Ctx(stationAccess), new RepairRequest(id ?? Fx.NewId(), Fx.ProfileId, station, repair));
