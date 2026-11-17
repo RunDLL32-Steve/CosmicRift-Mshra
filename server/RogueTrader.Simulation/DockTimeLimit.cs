@@ -14,8 +14,13 @@ namespace RogueTrader.Simulation;
 /// leave the ship, so they do not count as firing (NEW).
 /// </para>
 /// <para>
+/// Steve, Nov 17 2026 (NEW, not in the emulator): using a station counts as activity. While the pilot has a station screen open
+/// the clock stays at zero (<see cref="RegisterPlayerActivity"/>), so trading, repairing or buying never sends a pilot to
+/// spectator mode; the 60 seconds start again when the screen closes.
+/// </para>
+/// <para>
 /// The clock is real time (owner rules, Nov 1-2 2026): <see cref="ElapseWithoutTicking"/> adds the time the world is not
-/// ticking (paused, docked at a station screen, choosing a ship, logged out), so none of those can stop it, and the caller
+/// ticking (paused, choosing a ship, logged out), so none of those can stop it, and the caller
 /// persists <see cref="PlayerStillTicks"/> with the ship so a relaunch cannot restart it either.
 /// </para>
 /// </summary>
@@ -54,6 +59,17 @@ public sealed partial class WorldSimulation
     public long? DockTimeLeftTicks => DockTimeLimitSecondsHere is > 0 and var limit && !PlayerIsSpectator && !Player.IsDestroyed
         ? Math.Max(0, (long)limit * TickRate - PlayerStillTicks)
         : null;
+
+    /// <summary>
+    /// Restarts the dock clock because the pilot is active without moving: a station screen is open or a purchase was made
+    /// (Steve, Nov 17 2026, NEW). Call it before <see cref="ElapseWithoutTicking"/> each frame the station screen is open. Does
+    /// nothing for a spectator or a destroyed ship.
+    /// </summary>
+    public void RegisterPlayerActivity()
+    {
+        if (PlayerIsSpectator || Player.IsDestroyed) return;
+        RestartStillClock();
+    }
 
     /// <summary>
     /// Carries a still period over from a saved ship (time it stood still before it was saved plus the time since), so a relaunch

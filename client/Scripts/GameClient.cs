@@ -259,6 +259,8 @@ public partial class GameClient : Node2D
             if (_inspectionVisible || _stationVisible || _shipPickerVisible)
             {
                 _view.InputState = default;
+                // An open station screen is activity: the dock clock stays at zero while the pilot shops (Steve, Nov 17 2026).
+                if (_stationVisible) _world.RegisterPlayerActivity();
                 _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while docked, inspecting or choosing a ship
                 ObserveDockTime();
                 return;

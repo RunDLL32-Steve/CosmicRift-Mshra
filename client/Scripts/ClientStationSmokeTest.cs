@@ -214,19 +214,32 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 $"Full Repair must cost 500 credits and restore a full hull, got wallet {session.Profile.Wallet} and hull {readWorld().Player.Hull}.");
             GD.Print($"STATION SMOKE PASS: repair refused without charge at full hull and applied when damaged at {repairDock.Name}; Full Repair costs 500 for a full hull");
 
-            // The 60-second dock rule (CFG MaxTimeAllowed=60 on the Repair Docks): time at the station screen counts, a warning
-            // comes at 30 s still, and past 60 s the pilot is sent to spectator mode and must choose a ship to enter again, at
-            // the team spawn, with the hull damage kept. The world's own real-time path stands in for a minute at the screen.
+            // The 60-second dock rule (CFG MaxTimeAllowed=60 on the Repair Docks): an open station screen is activity and keeps
+            // the clock at zero (Steve, Nov 17 2026); once undocked, a warning comes at 30 s still, and past 60 s the pilot is sent
+            // to spectator mode and must choose a ship to enter again, at the team spawn, with the hull damage kept. The world's
+            // own real-time path stands in for the minutes that pass.
             readWorld().RestorePlayer(readWorld().Player.Position, readWorld().Player.Heading, player.Definition.Defense.MaximumHull - 20);
             Require(readWorld().DockTimeLimitSecondsHere == 60, $"{repairDock.Name} must limit a still ship to 60 s, got {readWorld().DockTimeLimitSecondsHere}.");
+            readWorld().ElapseWithoutTicking(59 * WorldSimulation.TickRate);
+            await nextPhysicsFrame();
+            readWorld().ElapseWithoutTicking(59 * WorldSimulation.TickRate);
+            await nextPhysicsFrame();
+            Require(client.StationVisible && !readWorld().PlayerIsSpectator && readWorld().PlayerStillTicks <= 1,
+                $"An open station screen must keep the dock clock at zero, got {readWorld().PlayerStillTicks} ticks still.");
+            await Undock();
             readWorld().ElapseWithoutTicking(30 * WorldSimulation.TickRate);
             await nextPhysicsFrame();
-            Require(hud.NoticeText.StartsWith("WARNING! Staying in this location for another 30 seconds", StringComparison.Ordinal) && client.StationVisible,
+            Require(hud.NoticeText.StartsWith("WARNING! Staying in this location for another 30 seconds", StringComparison.Ordinal) && !readWorld().PlayerIsSpectator,
                 $"30 s still at the Repair Dock must warn the pilot, got '{hud.NoticeText}'.");
-            readWorld().ElapseWithoutTicking(30 * WorldSimulation.TickRate);
+            await DockAt(repairDock); // docking again restarts the clock
+            await Undock();
+            readWorld().ElapseWithoutTicking(59 * WorldSimulation.TickRate);
+            await nextPhysicsFrame();
+            Require(!readWorld().PlayerIsSpectator, "Docking again must restart the dock clock.");
+            readWorld().ElapseWithoutTicking(2 * WorldSimulation.TickRate);
             await nextPhysicsFrame();
             Require(readWorld().PlayerIsSpectator && client.ShipPickerVisible && !client.StationVisible,
-                "Past 60 s still at the Repair Dock the pilot must be in spectator mode, with the station closed and the ship picker open.");
+                "Past 60 s still at the Repair Dock the pilot must be in spectator mode with the ship picker open.");
             var teamSpawn = readWorld().Catalog.Sector.PlayerSpawn;
             Require(session.Profile!.Ship is { } parked && Math.Abs(parked.X - teamSpawn.X) < 0.01f && Math.Abs(parked.Y - teamSpawn.Y) < 0.01f,
                 "A pilot sent to spectator mode must be saved at the team spawn, so a relaunch cannot put the ship back in the dock.");
@@ -234,7 +247,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
                 && Math.Abs(readWorld().Player.Position.X - teamSpawn.X) < 0.01f && Math.Abs(readWorld().Player.Position.Y - teamSpawn.Y) < 0.01f
                 && Math.Abs(readWorld().Player.Hull - (player.Definition.Defense.MaximumHull - 20)) < 0.01f,
                 $"Choosing a ship must bring the pilot back at the team spawn with the hull kept, got {readWorld().Player.Position} hull {readWorld().Player.Hull}.");
-            GD.Print($"STATION SMOKE PASS: 30 s still at {repairDock.Name} warned, 60 s sent the pilot to spectator mode, and choosing a ship entered again at the team spawn with the hull damage kept");
+            GD.Print($"STATION SMOKE PASS: the open station screen held the dock clock at zero; 30 s still at {repairDock.Name} warned, 60 s sent the pilot to spectator mode, and choosing a ship entered again at the team spawn with the hull damage kept");
             readWorld().RestorePlayer(readWorld().Player.Position, readWorld().Player.Heading, player.Definition.Defense.MaximumHull);
             await DockAt(repairDock);
             await Undock();

@@ -91,7 +91,28 @@ public sealed class DockTimeLimitTests
     }
 
     [Fact]
-    public void PausedDockedOrAwayTime_CountsTowardTheLimit()
+    public void StationActivity_KeepsTheClockAtZero_AndTheLimitStartsAgainAfterwards()
+    {
+        // Steve, Nov 17 2026: an open station screen (shopping, repairing) counts as activity.
+        var world = World(80);
+        for (var frame = 0; frame < LimitTicks * 3; frame++)
+        {
+            world.RegisterPlayerActivity();
+            world.ElapseWithoutTicking(1);
+        }
+        Assert.False(world.PlayerIsSpectator);
+        Assert.Equal(0, world.DockTimeWarnings);
+        Assert.Equal(1, world.PlayerStillTicks);
+        Idle(world, LimitTicks - 1);
+        Assert.False(world.PlayerIsSpectator);
+        world.Tick(default);
+        Assert.True(world.PlayerIsSpectator);
+        world.RegisterPlayerActivity(); // does not bring a spectator back
+        Assert.True(world.PlayerIsSpectator);
+    }
+
+    [Fact]
+    public void PausedOrAwayTime_CountsTowardTheLimit()
     {
         var world = World(80);
         Idle(world, 60);
