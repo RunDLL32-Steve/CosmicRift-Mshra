@@ -100,6 +100,16 @@ public sealed class MiningRewardTests
         var refinery = LoadStation().Refinery ?? throw new InvalidOperationException("The shipped station must carry the refinery.");
         Assert.Equal(new[] { ("2003", "2004"), ("2005", "2006"), ("2019", "2020") }, refinery.Recipes.Select(r => (r.InputItemId, r.OutputItemId)));
         Assert.Equal(new Vector2(10752 - 48, 624 - 48), new Vector2(refinery.X, refinery.Y)); // LIO row 13 minus the LVL offset
+        Assert.Equal("Refinery A", refinery.Name);
+        // ComputerProduct blocks of VEH id 400: Time 150/150/0 (x 10 ms), Quantity -1, PlayerItemNeededQuantity -1, Cost 0.
+        Assert.Equal(new[] { 150, 150, 0 }, refinery.Recipes.Select(r => r.Time));
+        Assert.All(refinery.Recipes, r => Assert.Equal((-1, -1, 0L), (r.OutputQuantity, r.InputQuantity, r.Cost)));
+        Assert.Equal(TimeSpan.FromSeconds(1.5), refinery.Recipes[0].Duration);
+        Assert.Equal(250, refinery.DockRadius); // CFG [Vehicle] ComputerProduceRadius
+        // LIO row 14 'RefineryB' places the second refinery.
+        var b = Assert.Single(LoadStation().Outposts, o => o.Service == SiteServices.Refine);
+        Assert.Equal(("refinery_b", "Refinery B", 14, 250f), (b.StationId, b.Name, b.LioRow, b.DockRadius));
+        Assert.Equal(new Vector2(29504 - 48, 29776 - 48), new Vector2(b.X, b.Y));
     }
 
     // ---- Simulation --------------------------------------------------------------------------------------------------
@@ -382,34 +392,108 @@ public sealed class MiningRewardTests
         Assert.Empty(session.Profile!.Inventory);
     }
 
-    // ---- Refinery ----------------------------------------------------------------------------------------------------
+    // ---- Refinery (RT-F044) -----------------------------------------------------------------------------------------
+
+    /// <summary>A clock the test moves by hand, so refining times are checked without waiting.</summary>
+    private sealed class ManualClock : TimeProvider
+    {
+        private DateTimeOffset _now = new(2026, 11, 16, 0, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => _now;
+        public void Advance(TimeSpan by) => _now += by;
+    }
+
+    private static async Task<StationProfileSession> OpenTimedAsync(ManualClock clock, IProfileRepository? repo = null)
+    {
+        var session = new StationProfileSession(repo ?? new InMemoryProfileRepository(), LoadStation(), "starter_interceptor", TestCargo.Capacity, time: clock);
+        Assert.True((await session.OpenOrCreateAsync(Profile)).Succeeded);
+        return session;
+    }
 
     [Fact]
-    public async Task Refine_TurnsOreIntoTheRefinedGood_OnlyAtTheRefinery()
+    public async Task Refine_TurnsEveryUnitHeldIntoTheRefinedGood_AfterTheOriginalTime_OnlyAtARefinery()
     {
-        var session = await OpenAsync();
+        var clock = new ManualClock();
+        var session = await OpenTimedAsync(clock);
         var refinery = session.Station.Refinery!;
         var recipe = refinery.Recipes.Single(r => r.InputItemId == "2003");
         Assert.Equal(TransactionStatus.Applied, (await session.GrantPickupAsync("a", new CargoPickup(0, "mineral:16:1", "2003", 40, 1))).Status);
 
-        Assert.Equal(RejectionReason.StationAccessDenied, (await session.RefineAsync(recipe.Id, 10, session.Station.X, session.Station.Y)).Reason);
+        Assert.Equal(RejectionReason.StationAccessDenied, session.OrderRefine(recipe.Id, session.Station.X, session.Station.Y));
         Assert.True(session.IsDockedAtRefinery(refinery.X, refinery.Y));
         Assert.False(session.IsDocked(refinery.X, refinery.Y));
-        Assert.Equal(RejectionReason.InsufficientInventory, (await session.RefineAsync(recipe.Id, 41, refinery.X, refinery.Y)).Reason);
-        Assert.Equal(RejectionReason.NotForSale, (await session.RefineAsync("no_such_recipe", 1, refinery.X, refinery.Y)).Reason);
+        Assert.Equal(RejectionReason.NotForSale, session.OrderRefine("no_such_recipe", refinery.X, refinery.Y));
+        Assert.Equal(RejectionReason.InsufficientInventory, session.OrderRefine(refinery.Recipes.Single(r => r.InputItemId == "2005").Id, refinery.X, refinery.Y));
+        // CFG ComputerProduceRadius=250: an order is taken 249 pixels away, not 251.
+        Assert.False(session.IsDockedAtRefinery(refinery.X + 251, refinery.Y));
         var wallet = session.Profile!.Wallet;
 
-        var refined = await session.RefineAsync(recipe.Id, 40, refinery.X, refinery.Y);
+        Assert.Equal(RejectionReason.None, session.OrderRefine(recipe.Id, refinery.X + 249, refinery.Y));
+        var order = Assert.Single(session.RefineOrders);
+        Assert.Equal(40, order.Quantity); // PlayerItemNeededQuantity -1: every unit held
+        Assert.False(session.RefineOrderDue);
+        Assert.Null(await session.DeliverRefinedAsync());
+        Assert.Equal(40, session.Profile!.Inventory["2003"]); // nothing changes until the order is delivered
+
+        clock.Advance(TimeSpan.FromMilliseconds(1499)); // Time 150 x 10 ms
+        Assert.False(session.RefineOrderDue);
+        clock.Advance(TimeSpan.FromMilliseconds(1));
+        Assert.True(session.RefineOrderDue);
+        var (delivered, refined) = (await session.DeliverRefinedAsync())!.Value;
+        Assert.Same(order, delivered);
         Assert.Equal(TransactionStatus.Applied, refined.Status);
         Assert.Equal(new Dictionary<string, int> { ["2003"] = -40, ["2004"] = 40 }, refined.ItemDeltas);
         Assert.False(session.Profile!.Inventory.ContainsKey("2003"));
         Assert.Equal(40, session.Profile.Inventory["2004"]);
-        Assert.Equal(wallet, session.Profile.Wallet);
+        Assert.Equal(wallet, session.Profile.Wallet); // Cost 0
+        Assert.Empty(session.RefineOrders);
 
         // Refined Tellerium then trades at a Trading Post at the original recipe value.
         var trade = session.Station.Trades.Single(t => t.InputItemId == "2004");
-        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, session.Station.SitesOffering(SiteServices.Trade)[0].X, session.Station.SitesOffering(SiteServices.Trade)[0].Y)).Status);
+        var post = session.Station.SitesOffering(SiteServices.Trade)[0];
+        Assert.Equal(TransactionStatus.Applied, (await session.SellAsync("2004", 40, post.X, post.Y)).Status);
         Assert.Equal(wallet + 40 * trade.CreditsPerUnit, session.Profile!.Wallet);
+    }
+
+    [Fact]
+    public async Task Refinery_TakesOneTimedOrderAtATime_ButIronOreIsRefinedAtOnce()
+    {
+        var clock = new ManualClock();
+        var session = await OpenTimedAsync(clock);
+        var refinery = session.Station.Refinery!;
+        string Id(string input) => refinery.Recipes.Single(r => r.InputItemId == input).Id;
+        await session.GrantPickupAsync("a", new CargoPickup(0, "p:1", "2003", 3, 1));
+        await session.GrantPickupAsync("b", new CargoPickup(1, "p:2", "2005", 2, 1));
+        await session.GrantPickupAsync("c", new CargoPickup(2, "p:3", "2019", 4, 1));
+
+        Assert.Equal(RejectionReason.None, session.OrderRefine(Id("2003"), refinery.X, refinery.Y));
+        // CFG ComputerProduceInParallel=0: "Unable to produce - object is busy."
+        Assert.Equal(RejectionReason.SiteBusy, session.OrderRefine(Id("2005"), refinery.X, refinery.Y));
+        Assert.Equal(RejectionReason.SiteBusy, session.OrderRefine(Id("2003"), refinery.X, refinery.Y));
+        // Refine Iron Ore has Time 0, so the emulator produces it at once even while the line is busy.
+        var alloy = await session.RefineNowAsync(Id("2019"), refinery.X, refinery.Y);
+        Assert.Equal(TransactionStatus.Applied, alloy.Status);
+        Assert.Equal(4, session.Profile!.Inventory["2020"]);
+        Assert.Equal(3, session.Profile.Inventory["2003"]);
+
+        clock.Advance(TimeSpan.FromSeconds(1.5));
+        Assert.Equal(TransactionStatus.Applied, (await session.DeliverRefinedAsync())!.Value.Result.Status);
+        Assert.Equal(RejectionReason.None, session.OrderRefine(Id("2005"), refinery.X, refinery.Y));
+        Assert.Equal(RejectionReason.SiteBusy, (await session.RefineNowAsync(Id("2005"), refinery.X, refinery.Y)).Reason);
+        clock.Advance(TimeSpan.FromSeconds(1.5));
+        await session.DeliverRefinedAsync();
+        Assert.Equal(new Dictionary<string, int> { ["2004"] = 3, ["2006"] = 2, ["2020"] = 4 }, session.Profile!.Inventory.ToDictionary());
+    }
+
+    [Fact]
+    public async Task BothOriginalRefineries_RefineTheSameRecipes()
+    {
+        var clock = new ManualClock();
+        var session = await OpenTimedAsync(clock);
+        var b = Assert.Single(session.Station.SitesOffering(SiteServices.Refine), s => s.StationId != session.Station.Refinery!.StationId);
+        Assert.True(session.IsDockedAtRefinery(b.X, b.Y));
+        await session.GrantPickupAsync("a", new CargoPickup(0, "p:1", "2019", 5, 1));
+        Assert.Equal(TransactionStatus.Applied, (await session.RefineNowAsync(session.Station.Refinery!.Recipes[2].Id, b.X, b.Y)).Status);
+        Assert.Equal(5, session.Profile!.Inventory["2020"]);
     }
 
     [Fact]
@@ -421,15 +505,16 @@ public sealed class MiningRewardTests
         Assert.True((await old.OpenOrCreateAsync(Profile)).Succeeded);
         Assert.Equal(TransactionStatus.Applied, (await old.GrantPickupAsync("old", new CargoPickup(0, "mineral:16:1", "2003", 60, 1))).Status);
 
-        var session = await OpenAsync(repo);
+        var clock = new ManualClock();
+        var session = await OpenTimedAsync(clock, repo);
         var refinery = session.Station.Refinery!;
         var recipe = refinery.Recipes.Single(r => r.InputItemId == "2003");
         Assert.True(session.Cargo.WeightOf(session.Profile!.Inventory) > session.Cargo.Capacity);
 
-        // Refining 10 makes the hold lighter (2,750,000) but leaves it over the cap: allowed, because it is no heavier than before.
-        Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(recipe.Id, 10, refinery.X, refinery.Y)).Status);
-        Assert.True(session.Cargo.WeightOf(session.Profile!.Inventory) > session.Cargo.Capacity);
-        Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(recipe.Id, 50, refinery.X, refinery.Y)).Status);
+        // Refining makes the hold lighter, so it is allowed although the hold starts over the cap.
+        Assert.Equal(RejectionReason.None, session.OrderRefine(recipe.Id, refinery.X, refinery.Y));
+        clock.Advance(recipe.Duration);
+        Assert.Equal(TransactionStatus.Applied, (await session.DeliverRefinedAsync())!.Value.Result.Status);
         Assert.Equal(60, session.Profile!.Inventory["2004"]);
         Assert.False(session.Profile.Inventory.ContainsKey("2003"));
     }
@@ -456,7 +541,7 @@ public sealed class MiningRewardTests
         var session = await OpenAsync(repo);
         var refinery = session.Station.Refinery!;
         await session.GrantPickupAsync("a", new CargoPickup(0, "mineral:14:1", "2019", 10, 1));
-        Assert.Equal(TransactionStatus.Applied, (await session.RefineAsync(refinery.Recipes[2].Id, 10, refinery.X, refinery.Y)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.RefineNowAsync(refinery.Recipes[2].Id, refinery.X, refinery.Y)).Status);
 
         var reopened = await OpenAsync(repo);
         Assert.True(PlayerProfile.CurrentSchemaVersion >= 4);
@@ -467,16 +552,49 @@ public sealed class MiningRewardTests
     }
 
     [Fact]
+    public async Task AnOrderLostBeforeDelivery_ChangesNothing()
+    {
+        // A relaunch drops orders that were not delivered: the ore stays in the hold and nothing is refined.
+        var repo = new InMemoryProfileRepository();
+        var clock = new ManualClock();
+        var session = await OpenTimedAsync(clock, repo);
+        var refinery = session.Station.Refinery!;
+        await session.GrantPickupAsync("a", new CargoPickup(0, "p:1", "2003", 7, 1));
+        Assert.Equal(RejectionReason.None, session.OrderRefine(refinery.Recipes[0].Id, refinery.X, refinery.Y));
+
+        var relaunched = await OpenTimedAsync(clock, repo);
+        clock.Advance(TimeSpan.FromSeconds(5));
+        Assert.Empty(relaunched.RefineOrders);
+        Assert.Null(await relaunched.DeliverRefinedAsync());
+        Assert.Equal(new Dictionary<string, int> { ["2003"] = 7 }, relaunched.Profile!.Inventory.ToDictionary());
+    }
+
+    [Fact]
     public void Station_RejectsARefineryRecipeForAnUnknownGood()
     {
         const string json = """
             { "stationId": "s", "name": "S", "dockRadius": 5, "goods": [ { "id": "a", "name": "A", "unitWeight": 1 } ],
               "refinery": { "stationId": "r", "name": "R", "x": 0, "y": 0, "dockRadius": 5,
-                "recipes": [ { "id": "x", "name": "X", "inputItemId": "a", "outputItemId": "b", "rawField4": 0 } ] } }
+                "recipes": [ { "id": "x", "name": "X", "inputItemId": "a", "outputItemId": "b", "time": 0 } ] } }
             """;
         Assert.Throws<InvalidDataException>(() => StationDefinition.FromJson(json));
     }
 
+    [Theory]
+    [InlineData("\"inputQuantity\": 2")]
+    [InlineData("\"outputQuantity\": 3")]
+    [InlineData("\"cost\": 10")]
+    [InlineData("\"time\": -1")]
+    public void Station_RejectsARefineryRecipeTheCoreCannotRefine(string field)
+    {
+        var json = """
+            { "stationId": "s", "name": "S", "dockRadius": 5,
+              "goods": [ { "id": "a", "name": "A", "unitWeight": 2 }, { "id": "b", "name": "B", "unitWeight": 1 } ],
+              "refinery": { "stationId": "r", "name": "R", "x": 100, "y": 0, "dockRadius": 5,
+                "recipes": [ { "id": "x", "name": "X", "inputItemId": "a", "outputItemId": "b", FIELD } ] } }
+            """.Replace("FIELD", field);
+        Assert.Throws<InvalidDataException>(() => StationDefinition.FromJson(json));
+    }
     /// <summary>Fails the next save once, as if the disk refused it.</summary>
     private sealed class FaultyRepository(IProfileRepository inner) : IProfileRepository
     {

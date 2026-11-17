@@ -23,4 +23,6 @@ public enum RejectionReason
     ShipNotActive,
     /// <summary>The hull can only be bought by a player who already owns one of the hulls it requires (original same-race rule).</summary>
     ShipRequirementNotMet,
+    /// <summary>The refinery is still working on an order (CFG ComputerProduceInParallel=0, emulator "object is busy").</summary>
+    SiteBusy,
 }

@@ -14,10 +14,16 @@ namespace RogueTrader.Client;
 /// </summary>
 public partial class StationScreen : CanvasLayer
 {
-    public event Action<string, int>? SellRequested;
+    /// <summary>The pilot asked the Trading Post to trade all of a recipe's input (the original trades every unit held).</summary>
+    public event Action<string>? TradeRequested;
+    /// <summary>True while an order for this input item is still being traded; set by the client from the session.</summary>
+    public Func<string, bool> IsTrading { get; set; } = _ => false;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
-    public event Action<string, int>? RefineRequested;
+    /// <summary>The pilot asked the refinery to refine all of a recipe's input (the original refines every unit held).</summary>
+    public event Action<string>? RefineRequested;
+    /// <summary>True while an order for this input item is still being refined; set by the client from the session.</summary>
+    public Func<string, bool> IsRefining { get; set; } = _ => false;
     public event Action<string>? BuyShipRequested;
     /// <summary>The pilot pressed FLY on an owned ship in the Hangar.</summary>
     public event Action<string>? SwitchShipRequested;
@@ -155,15 +161,16 @@ public partial class StationScreen : CanvasLayer
         _revision.Text = $"Profile {profile.ProfileId}  ·  revision {profile.Revision}  ·  every purchase is saved before it is shown";
 
         Clear(_market);
-        _market.AddChild(FlightHud.Label("Original Trading Outpost recipes. Credits per unit are the raw original value (provisional reading).", 12, FlightHud.Muted));
-        _market.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 150, true), Cell("HELD", 50, true), Cell("CR / UNIT", 70, true)));
+        _market.AddChild(FlightHud.Label("Original Trading Outpost recipes: every unit held is traded for its credits. Refined ore takes 1.5 s; one timed order at a time.", 12, FlightHud.Muted));
+        _market.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 150, true), Cell("HELD", 50, true), Cell("CR / UNIT", 70, true), Cell("TIME", 60, true)));
         foreach (var trade in _station.Trades)
         {
             var held = profile.Inventory.GetValueOrDefault(trade.InputItemId);
+            var trading = IsTrading(trade.InputItemId);
             _market.AddChild(Row(Cell(trade.Name, 150), Cell(_station.NameOf(trade.InputItemId), 150), Cell(held.ToString(), 50),
                 Cell(trade.CreditsPerUnit.ToString("N0"), 70),
-                ActionButton("TRADE 1", $"sell:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, 1)),
-                ActionButton("TRADE ALL", $"sellall:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, held))));
+                Cell(trade.Duration > TimeSpan.Zero ? $"{trade.Duration.TotalSeconds:0.#} s" : "at once", 60),
+                ActionButton(trading ? "TRADING" : "TRADE", $"sellall:{trade.InputItemId}", held == 0 || trading, () => TradeRequested?.Invoke(trade.Id))));
         }
         var untraded = profile.Inventory.Where(p => p.Value > 0 && _station.Trades.All(t => t.InputItemId != p.Key)).ToArray();
         if (untraded.Length > 0)
@@ -172,15 +179,16 @@ public partial class StationScreen : CanvasLayer
         Clear(_refinery);
         if (_station.Refinery is { } refinery)
         {
-            _refinery.AddChild(FlightHud.Label("Original refinery recipes. One input unit becomes one output unit, free (provisional reading).", 12, FlightHud.Muted));
-            _refinery.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 120, true), Cell("HELD", 50, true), Cell("OUTPUT", 130, true)));
+            _refinery.AddChild(FlightHud.Label("Original refinery recipes: every unit held is refined, one for one, free. Tellerium and Krandazite take 1.5 s; one timed order at a time.", 12, FlightHud.Muted));
+            _refinery.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 120, true), Cell("HELD", 50, true), Cell("OUTPUT", 130, true), Cell("TIME", 60, true)));
             foreach (var recipe in refinery.Recipes)
             {
                 var held = profile.Inventory.GetValueOrDefault(recipe.InputItemId);
+                var refining = IsRefining(recipe.InputItemId);
                 _refinery.AddChild(Row(Cell(recipe.Name, 150), Cell(_station.NameOf(recipe.InputItemId), 120), Cell(held.ToString(), 50),
                     Cell(_station.NameOf(recipe.OutputItemId), 130),
-                    ActionButton("REFINE 1", $"refine:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, 1)),
-                    ActionButton("REFINE ALL", $"refineall:{recipe.Id}", held == 0, () => RefineRequested?.Invoke(recipe.Id, held))));
+                    Cell(recipe.Duration > TimeSpan.Zero ? $"{recipe.Duration.TotalSeconds:0.#} s" : "at once", 60),
+                    ActionButton(refining ? "REFINING" : "REFINE", $"refineall:{recipe.Id}", held == 0 || refining, () => RefineRequested?.Invoke(recipe.Id))));
             }
         }
 

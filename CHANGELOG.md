@@ -1,5 +1,23 @@
 # Changelog
 
+## The original Trading Post rules — November 17, 2026
+
+-   The Trading Posts now follow the original record (RT-F045). VEH id 404's four product blocks are read with the emulator's 14-field ComputerProduct layout, the same one the Refinery uses. Each block has Quantity -1, PlayerItemNeededQuantity -1 and Cost 0. A trade therefore hands in every unit of the good you hold, for one credit item per unit, for free. Each credit item is a type 1 MultiItem, and its f[31] Cash is paid per item: 55 for Refined Tellerium, 80 for Refined Krandazite, 300 for Wreckage and 20 for Alloy (emulator `Player.applyMultiItem`).
+-   Trade Tellerium and Trade Krandazite have Time 150, so they pay after 1.5 s. Trade Wreckage and Trade Alloy have Time 0 and pay at once.
+-   CFG `[Vehicle] ComputerProduceRadius=250`: both Trading Posts take orders within 250 map pixels, up from the provisional 150. CFG `ComputerProduceInParallel=0`: a timed trade is refused while any other timed order runs, and that includes a refinery order. An instant trade is never refused for that.
+-   The Market page has one TRADE button per recipe (all held), shows each recipe's time and reads TRADING while an order runs. The order is paid even if you undock first.
+-   No cheating and no loss, as at the refineries. Nothing changes until the trade's time ends, and then it commits in one transaction. A trade lost to a relaunch pays nothing and takes nothing, and a trade whose goods are gone by then is refused.
+-   `StationTrade.rawField4` becomes `time`, with `outputQuantity`, `inputQuantity` and `cost` taken from the record. `data/stations/trading_outpost.json` is regenerated. Still open for RT-F045: native client acceptance and the NWS row 303 Wreckage 20-vs-100 note.
+
+## Both original Refineries, with the original refine rules — November 16, 2026
+
+-   Refinery B is now on the map. `LIO/Rogue.lio` rows 13 'RefineryA' and 14 'RefineryB' both place actor -400 (VEH id 400, the Refinery). Refinery A stays at map (10704, 576), and Refinery B stands at (29456, 29728) in the south-east. Both offer the same three recipes, and the radar and sector map show both.
+-   The refine rules now follow the original record. VEH id 400's three product blocks use the emulator's 14-field ComputerProduct layout (`VehComputerFields`, InfantryOnline `ArenaComputer` at the pinned commit). Each block has Quantity -1, PlayerItemNeededQuantity -1 and Cost 0, and Time 150, 150 and 0. A refine therefore turns every unit of the ore you hold into the same number of refined units, for free. Tellerium and Krandazite take 1.5 s (Time x 10 ms). Iron Ore turns into Alloy at once.
+-   CFG `[Vehicle] ComputerProduceInParallel=0`: while a timed order is still running, a new timed order is refused ("the refinery is still working on an order"). An untimed Iron Ore order is not. CFG `ComputerProduceRadius=250`: the Refinery takes orders within 250 map pixels, up from the provisional 150.
+-   The Refinery page has one REFINE button per recipe (all held), shows each recipe's time and reads REFINING while an order runs. The order is delivered even if you undock first.
+-   No cheating and no loss. Nothing changes until the order's time ends, and then it commits in one transaction. If the order is lost to a relaunch, or the ore is gone by then, nothing is refined and nothing is lost. (The emulator takes the ore when the order is placed.) The emulator's single production line belongs to the whole arena. Here it is kept per pilot, because station services are still per profile.
+-   New `RejectionReason.SiteBusy`. `StationRefineRecipe.rawField4` becomes `time`, with `outputQuantity`, `inputQuantity` and `cost` taken from the record. `data/stations/trading_outpost.json` is regenerated. Still open for RT-F044: native client acceptance. The Trading Posts and Repair Docks are computers with the same 250 radius and Time fields, and they are left to RT-F045/RT-F047.
+
 ## The hangar keeps working after a failed save — November 16, 2026
 
 -   Fixed: one failed profile write while flying (a periodic ship save, for example) left the save core refusing every later ship save until the game was relaunched. The Hangar and the ship picker then refused every ship change ("could not be saved (ProfileNotOpen)"), and the damage taken after the failure was never saved, so a relaunch brought back the older, healthier hull. A ship save that hits such a refusal now reads the profile back from disk once and saves the same condition again, so the next save after the disk recovers goes through and the hangar parks the ship exactly as it docked. Covered by `OwnedShipSessionTests.TheHangar_StillSwitchesAfterAFailedShipSave_AndParksTheLatestHull` (fails on main with `ProfileNotOpen`).

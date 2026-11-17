@@ -37,20 +37,21 @@ public static class OriginalStationBuilder
 
     private static readonly string[] NewValueNotes =
     [
-        "Position: the main station is the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; it sells upgrades and hulls and holds the hangar. Every other team's home store stands at the open store-zone (terrain 10) point nearest the centre of its LIO station-area row. Dock radius 150 map pixels everywhere.",
+        "Position: the main station is the Cold Harbor SpaceDock (LIO row 11, map 1936, 1696), whose terrain 10 is the original store zone; it sells upgrades and hulls and holds the hangar. Every other team's home store stands at the open store-zone (terrain 10) point nearest the centre of its LIO station-area row. Dock radius 150 map pixels at the stores and Repair Docks; the refineries and Trading Posts use the original CFG ComputerProduceRadius 250.",
         "Services (Steve, November 4, 2026): goods and the Trading Outpost recipes trade only at the Trading Posts (LIO type 5 rows placing actor -404, VEH 404 Trading Outpost, terrain 15), and repairs are sold only at the Repair Docks (actor -407, VEH 407 Repair Dock, terrain 9). Upgrades and hulls sell at every team's home store (NEW: whether the original restricted a store to its team is unknown).",
         "Starting wallet 0 (follows CFG FirstTimeInvSetup setcash=0; RPG f[38]=3499 unproven alternative).",
-        "Trading Outpost pays the credit item's raw f[31] value per input unit; recipe quantities and f+4 undecoded.",
+        "Trading Posts (RT-F045): every recipe value is original (VEH id 404 ComputerProduct blocks read with the emulator's ArenaComputer rules: every unit held is handed in, one credit item per unit, free; Trade Tellerium and Trade Krandazite take Time 150 x 10 ms = 1.5 s, Wreckage and Alloy are instant; each credit item pays its ITM f[31] Cash, applied by Player.applyMultiItem), and the posts are used within CFG [Vehicle] ComputerProduceRadius=250. NEW, as at the refineries: the order is committed in one transaction when its time ends, and 'one timed order at a time' (ComputerProduceInParallel=0) is kept per pilot across the refineries and Trading Posts.",
         "Repair raw f[33] amount read as hull points; price 10 credits per point (original buy is 0). Full Repair (500 credits, Steve's price) restores the whole hull.",
         "Upgrade effects: raw f[42..44] as thousandths of forward thrust / maximum speed / rotation; maneuver thrusters +5/10/15% rotation, capacitors +25/50/75% maximum energy, chargers and Moltor core +25/50/75% regeneration by tier; armor protects by damage type from ITM f[52..57] (Ignore in thousandths of a hull point, Percent read as per mille) and its f[42..44] penalty applies like the other blocks; HyperDrive abilities have no effect yet. Only the highest-priced owned item per held category f[20] is active.",
         "Collectible piles: placement (offsets from the station) and quantities.",
-        "Refinery: placed at LIO row 13 'RefineryA' (actor -400, LIO 10752, 624; map 10704, 576 after the LVL offset); the second refinery (row 14) is not placed yet; dock radius 150 map pixels; each recipe turns one input unit into one output unit for free (RT-F044 quantities, costs and f+4 undecoded).",
+        "Refinery (RT-F044): both original refineries stand where LIO type 5 rows 13 'RefineryA' and 14 'RefineryB' place actor -400, and every recipe value is original (VEH id 400 ComputerProduct blocks, CFG [Vehicle] ComputerProduceRadius=250 and ComputerProduceInParallel=0, read with the emulator's ArenaComputer rules). NEW: the order is committed in one transaction when the refining time ends (the emulator takes the ore when the order is placed), so a lost order never loses or duplicates cargo; and 'one timed order at a time' is kept per pilot, because the emulator's single production line belongs to the whole arena.",
     ];
 
     public const string RefineryId = "refinery";
     /// <summary>Actor id that LIO type 5 rows 13 and 14 place (VEH id 400 is the Refinery).</summary>
     public const int RefineryActor = -OriginalRefinery.VehicleId;
-    private const float RefineryDockRadius = 150;
+    /// <summary>CFG [Vehicle] key: how close a pilot must be to use a computer vehicle such as the refinery (emulator handlePlayerProduce).</summary>
+    public const string ComputerProduceRadiusKey = "ComputerProduceRadius";
 
     public const int TradingPostActor = -OriginalTradingPost.VehicleId;
     /// <summary>VEH id 407 is the Repair Dock; LIO type 5 rows place it as actor -407.</summary>
@@ -74,8 +75,10 @@ public static class OriginalStationBuilder
         var veh = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, PinnedAssets.Veh), PinnedAssets.Veh.RelativePath);
         var lio = RawRecordReader.Parse(AssetIntegrity.ReadVerified(assetsRoot, OriginalSafeZones.LioRogue), OriginalSafeZones.LioRogue.RelativePath);
         var home = teams.FirstOrDefault(t => t.Index == OriginalMapBuilder.PilotTeam)?.Name;
-        return Build(items, OriginalTradingPost.FromRecords(veh, items), home ?? StationName(veh), Refinery(veh, lio, items),
-            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items), Outposts(veh, lio, map, teams));
+        var produceRadius = OriginalCfg.LoadRogue(assetsRoot).Section("Vehicle").Int(ComputerProduceRadiusKey);
+        var (refinery, moreRefineries) = Refineries(veh, lio, items, map, produceRadius);
+        return Build(items, OriginalTradingPost.FromRecords(veh, items), home ?? StationName(veh), refinery,
+            OriginalShipBuilder.StationShips(OriginalHullCatalog.Load(assetsRoot), items), [.. moreRefineries, .. Outposts(veh, lio, map, teams, produceRadius)]);
     }
 
     /// <summary>
@@ -83,13 +86,15 @@ public static class OriginalStationBuilder
     /// home store of every team after the first, at the open point nearest the centre of the LIO station-area row (type 8) whose
     /// name, without spaces, starts with the team's name.
     /// </summary>
-    private static IReadOnlyList<ServiceSite> Outposts(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio, SectorMap map, IReadOnlyList<TeamDefinition> teams)
+    /// <param name="produceRadius">CFG [Vehicle] ComputerProduceRadius: how close a pilot must be to use a Trading Post (a computer vehicle).</param>
+    private static IReadOnlyList<ServiceSite> Outposts(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio, SectorMap map, IReadOnlyList<TeamDefinition> teams,
+        float produceRadius)
     {
         var sites = new List<ServiceSite>();
-        foreach (var (actor, service, vehicle, prefix) in new[]
+        foreach (var (actor, service, vehicle, prefix, radius) in new[]
                  {
-                     (TradingPostActor, SiteServices.Trade, OriginalTradingPost.VehicleId, "trading_post"),
-                     (RepairDockActor, SiteServices.Repair, RepairDockVehicleId, "repair_dock"),
+                     (TradingPostActor, SiteServices.Trade, OriginalTradingPost.VehicleId, "trading_post", produceRadius),
+                     (RepairDockActor, SiteServices.Repair, RepairDockVehicleId, "repair_dock", DockRadius),
                  })
         {
             var name = VehName(veh, vehicle);
@@ -98,7 +103,7 @@ public static class OriginalStationBuilder
                 var letter = row.Value(3).Trim('"')[^1..].ToUpperInvariant();
                 var at = new Vector2(OriginalMapBuilder.World(row.Int(4).Value), OriginalMapBuilder.World(row.Int(5).Value));
                 if (map.IsBlocked(at)) throw new OriginalDataException($"LIO row {row.RowNumber} {name} stands on a blocked tile.");
-                sites.Add(new ServiceSite($"{prefix}_{letter.ToLowerInvariant()}", $"{name} {letter}", service, at.X, at.Y, DockRadius) { LioRow = row.RowNumber });
+                sites.Add(new ServiceSite($"{prefix}_{letter.ToLowerInvariant()}", $"{name} {letter}", service, at.X, at.Y, radius) { LioRow = row.RowNumber });
             }
         }
         static string Squash(string text) => string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
@@ -121,17 +126,39 @@ public static class OriginalStationBuilder
         return row.Value(3).Trim('"');
     }
 
-    /// <summary>The refinery: name and recipes from VEH id 400, position from the first LIO type 5 row that places actor -400.</summary>
-    private static RefineryDefinition Refinery(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio, OriginalItemCatalog items)
+    /// <summary>
+    /// The refineries: name and recipes from VEH id 400, one per LIO type 5 row that places actor -400, in LIO order and named
+    /// after the letter ending the LIO name. The first keeps the station id <see cref="RefineryId"/> (saved ledgers name it); the
+    /// others are refine outposts. Each is usable within the CFG ComputerProduceRadius.
+    /// </summary>
+    private static (RefineryDefinition First, IReadOnlyList<ServiceSite> More) Refineries(IReadOnlyList<RawRecord> veh, IReadOnlyList<RawRecord> lio,
+        OriginalItemCatalog items, SectorMap map, float radius)
     {
-        var row = lio.First(r => r.FieldCount == OriginalMineralSpawns.FieldCount && r.Value(0) == "5" && r.Int(OriginalMineralSpawns.ItemField).Value == RefineryActor);
-        var name = veh.Single(v => v.FieldCount > 3 && v.Value(2) == OriginalRefinery.VehicleId.ToString(CultureInfo.InvariantCulture)).Value(3);
-        return new RefineryDefinition(RefineryId, string.IsNullOrWhiteSpace(name) ? "Refinery" : name,
-            OriginalMapBuilder.World(row.Int(4).Value), OriginalMapBuilder.World(row.Int(5).Value), RefineryDockRadius)
+        var rows = lio.Where(r => r.FieldCount == OriginalMineralSpawns.FieldCount && r.Value(0) == "5" && r.Int(OriginalMineralSpawns.ItemField).Value == RefineryActor).ToList();
+        if (rows.Count != OriginalRefinery.PlacementCount)
+            throw new OriginalDataException($"LIO places the refinery {rows.Count} times, expected {OriginalRefinery.PlacementCount}.");
+        var name = VehName(veh, OriginalRefinery.VehicleId);
+        if (string.IsNullOrWhiteSpace(name)) name = "Refinery";
+        var sites = rows.Select(row =>
         {
-            Recipes = OriginalRefinery.FromRecords(veh, items)
-                .Select(r => new StationRefineRecipe(Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.OutputItemId.Value), r.RawField4.Value)).ToList(),
+            var letter = row.Value(3).Trim('"')[^1..].ToUpperInvariant();
+            var at = new Vector2(OriginalMapBuilder.World(row.Int(4).Value), OriginalMapBuilder.World(row.Int(5).Value));
+            if (map.IsBlocked(at)) throw new OriginalDataException($"LIO row {row.RowNumber} {name} stands on a blocked tile.");
+            return (Letter: letter, At: at, Row: row.RowNumber);
+        }).ToList();
+        var first = sites[0];
+        var refinery = new RefineryDefinition(RefineryId, $"{name} {first.Letter}", first.At.X, first.At.Y, radius)
+        {
+            Recipes = OriginalRefinery.FromRecords(veh, items).Select(r => new StationRefineRecipe(Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.OutputItemId.Value), r.Time.Value)
+            {
+                OutputQuantity = r.OutputQuantity.Value,
+                InputQuantity = r.InputQuantity.Value,
+                Cost = r.Cost.Value,
+            }).ToList(),
         };
+        var more = sites.Skip(1).Select(s => new ServiceSite($"{RefineryId}_{s.Letter.ToLowerInvariant()}", $"{name} {s.Letter}", SiteServices.Refine, s.At.X, s.At.Y, radius)
+            { LioRow = s.Row }).ToList();
+        return (refinery, more);
     }
 
     public static StationDefinition Build(OriginalItemCatalog items, IReadOnlyList<OriginalTradeRecipe> recipes, string stationName,
@@ -142,8 +169,12 @@ public static class OriginalStationBuilder
         var goods = items.Resources.Select(i => new StationGood(Key(i.Id), i.Name, i.Mass.Value,
             i.Buy.Value > 0 ? i.Buy.Value : null, i.Sell.Value > 0 ? i.Sell.Value : null)).ToList();
         var trades = recipes.Select(r => new StationTrade(
-            Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.CreditItemId.Value), r.CreditItem.Name,
-            r.CreditItem.Record.Int(31).Value, r.RawField4.Value)).ToList();
+            Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.CreditItemId.Value), r.CreditItem.Name, r.Cash.Value, r.Time.Value)
+        {
+            OutputQuantity = r.OutputQuantity.Value,
+            InputQuantity = r.InputQuantity.Value,
+            Cost = r.Cost.Value,
+        }).ToList();
         var repairs = OriginalEffectAmountRow.All(items).Select(r => new StationRepair(Key(r.Item.Id), r.Item.Name,
             r.Amount.Value * RepairPricePerPoint, r.Amount.Value, $"ITM id {r.Item.Id} f[33]={r.Amount.Value}")
         {

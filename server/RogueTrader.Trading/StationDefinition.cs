@@ -12,19 +12,46 @@ namespace RogueTrader.Trading;
 public sealed record StationGood(string Id, string Name, long UnitWeight, long? Buy, long? Sell);
 
 /// <summary>
-/// A Trading Outpost recipe (RT-F045): each unit of <see cref="InputItemId"/> handed in pays <see cref="CreditsPerUnit"/>.
-/// The input, credit item and raw value are original; paying the raw f[31] value per unit is a NEW/provisional reading
-/// (recipe quantities, f+4 and the award flow are undecoded).
+/// A Trading Outpost recipe (RT-F045), one ComputerProduct block of VEH id 404: every unit of <see cref="InputItemId"/> handed
+/// in pays <see cref="CreditsPerUnit"/>. Every value is original. The emulator's ArenaComputer reads <see cref="InputQuantity"/>
+/// -1 as "every unit of the input the pilot holds" and <see cref="OutputQuantity"/> -1 as "that many credit items", charges
+/// <see cref="Cost"/>, and delivers a product whose <see cref="Time"/> is above 0 after Time x 10 ms. A credit item is a type 1
+/// MultiItem, and its f[31] Cash (<see cref="CreditsPerUnit"/>) is paid per item (Player.applyMultiItem).
 /// </summary>
-public sealed record StationTrade(string Id, string Name, string InputItemId, string CreditItemId, string CreditName, long CreditsPerUnit, int RawField4);
+public sealed record StationTrade(string Id, string Name, string InputItemId, string CreditItemId, string CreditName, long CreditsPerUnit, int Time)
+{
+    /// <summary>Raw f+2 Quantity; the only shape the Trading Posts implement is -1 (one credit item per unit handed in).</summary>
+    public int OutputQuantity { get; init; } = -1;
+    /// <summary>Raw f+6 PlayerItemNeededQuantity; the only shape the Trading Posts implement is -1 (all units held).</summary>
+    public int InputQuantity { get; init; } = -1;
+    /// <summary>Raw f+7 Cost in credits; the only shape the Trading Posts implement is 0.</summary>
+    public long Cost { get; init; }
+    /// <summary>How long the Trading Post works on the order: raw Time x 10 ms (the emulator's ArenaComputer).</summary>
+    [JsonIgnore] public TimeSpan Duration => TimeSpan.FromMilliseconds(Math.Max(0, Time) * 10L);
+}
 
 /// <summary>
-/// A public refinery recipe (RT-F044): <see cref="InputItemId"/> becomes <see cref="OutputItemId"/>. Name and both items are
-/// original (VEH id 400); converting one unit into one unit for free is a NEW/provisional reading (f+4 and quantities undecoded).
+/// A public refinery recipe (RT-F044), one ComputerProduct block of VEH id 400: <see cref="InputItemId"/> becomes
+/// <see cref="OutputItemId"/>. Every value is original. The emulator's ArenaComputer reads <see cref="InputQuantity"/> -1 as
+/// "every unit of the input the pilot holds" and <see cref="OutputQuantity"/> -1 as "that many units x 1", charges
+/// <see cref="Cost"/>, and delivers a product whose <see cref="Time"/> is above 0 after Time x 10 ms.
 /// </summary>
-public sealed record StationRefineRecipe(string Id, string Name, string InputItemId, string OutputItemId, int RawField4);
+public sealed record StationRefineRecipe(string Id, string Name, string InputItemId, string OutputItemId, int Time)
+{
+    /// <summary>Raw f+2 Quantity; the only shape the refinery implements is -1 (one output unit per input unit used).</summary>
+    public int OutputQuantity { get; init; } = -1;
+    /// <summary>Raw f+6 PlayerItemNeededQuantity; the only shape the refinery implements is -1 (all units held).</summary>
+    public int InputQuantity { get; init; } = -1;
+    /// <summary>Raw f+7 Cost in credits; the only shape the refinery implements is 0.</summary>
+    public long Cost { get; init; }
+    /// <summary>How long the refinery works on the order: raw Time x 10 ms (the emulator's ArenaComputer).</summary>
+    [JsonIgnore] public TimeSpan Duration => TimeSpan.FromMilliseconds(Math.Max(0, Time) * 10L);
+}
 
-/// <summary>A refinery the ship docks at separately from the station (original refineries are their own sites).</summary>
+/// <summary>
+/// The first refinery, which the ship docks at separately from the station (original refineries are their own sites), and
+/// the recipes every refinery offers. Further refineries are <see cref="StationDefinition.Outposts"/> with the refine service.
+/// </summary>
 public sealed record RefineryDefinition(string StationId, string Name, float X, float Y, float DockRadius)
 {
     public IReadOnlyList<StationRefineRecipe> Recipes { get; init; } = [];
@@ -40,7 +67,7 @@ public static class SiteServices
     public const string Trade = "trade";
     /// <summary>A Repair Dock: the repair rows.</summary>
     public const string Repair = "repair";
-    /// <summary>A refinery: the refinery recipes.</summary>
+    /// <summary>A refinery: the refinery recipes (the main <see cref="StationDefinition.Refinery"/> and any refine outposts).</summary>
     public const string Refine = "refine";
 
     public static bool IsKnown(string? service) => service is Store or Trade or Repair or Refine;
@@ -187,8 +214,14 @@ public sealed class StationDefinition
             .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)), stores)
             .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)), stores)
             .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)), stores)
-            .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
+            .WithRefineRecipes(Ids(SiteServices.Refine), Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
     }
+
+    /// <summary>The Trading Post recipe with this id, or null.</summary>
+    public StationTrade? Trade(string tradeId) => Trades.FirstOrDefault(t => t.Id == tradeId);
+
+    /// <summary>The refinery recipe with this id, or null.</summary>
+    public StationRefineRecipe? RefineRecipe(string recipeId) => Refinery?.Recipes.FirstOrDefault(r => r.Id == recipeId);
 
     public long? SellPrice(string itemId) =>
         Trades.FirstOrDefault(t => t.InputItemId == itemId)?.CreditsPerUnit ?? Goods.FirstOrDefault(g => g.Id == itemId)?.Sell;
@@ -234,8 +267,12 @@ public sealed class StationDefinition
         {
             if (Goods.All(g => g.Id != trade.InputItemId)) throw new InvalidDataException($"Trade '{trade.Id}' input '{trade.InputItemId}' is not a station good.");
             if (trade.CreditsPerUnit <= 0) throw new InvalidDataException($"Trade '{trade.Id}' must pay a positive amount.");
+            // The sell core pays one credit item per unit handed in, for free: the pinned blocks' shape.
+            if (trade.OutputQuantity != -1 || trade.InputQuantity != -1 || trade.Cost != 0 || trade.Time < 0)
+                throw new InvalidDataException($"Trade '{trade.Id}' must use all units held, pay one credit item per unit, be free and take a non-negative time.");
         }
         if (Trades.GroupBy(t => t.InputItemId).Any(g => g.Count() > 1)) throw new InvalidDataException("Two trades share one input item.");
+        if (Trades.GroupBy(t => t.Id).Any(g => g.Count() > 1)) throw new InvalidDataException("Two trades share one id.");
         if (Refinery is { } refinery)
         {
             if (refinery.StationId == StationId) throw new InvalidDataException("The refinery needs its own station id.");
@@ -244,14 +281,20 @@ public sealed class StationDefinition
                 if (recipe is null) throw new InvalidDataException("Null refinery recipe.");
                 if (Goods.All(g => g.Id != recipe.InputItemId) || Goods.All(g => g.Id != recipe.OutputItemId) || recipe.InputItemId == recipe.OutputItemId)
                     throw new InvalidDataException($"Refinery recipe '{recipe.Id}' must turn one station good into another.");
+                // The transaction core turns each input unit used into one output unit for free: the pinned blocks' shape.
+                if (recipe.OutputQuantity != -1 || recipe.InputQuantity != -1 || recipe.Cost != 0 || recipe.Time < 0)
+                    throw new InvalidDataException($"Refinery recipe '{recipe.Id}' must use all units held, make one per unit, be free and take a non-negative time.");
             }
+            if (refinery.Recipes.GroupBy(r => r.Id).Any(g => g.Count() > 1)) throw new InvalidDataException("Two refinery recipes share one id.");
             _ = refinery.Site;
         }
         foreach (var outpost in Outposts)
         {
             if (outpost is null || string.IsNullOrEmpty(outpost.StationId)) throw new InvalidDataException("An outpost needs a station id.");
-            if (!SiteServices.IsKnown(outpost.Service) || outpost.Service == SiteServices.Refine)
+            if (!SiteServices.IsKnown(outpost.Service))
                 throw new InvalidDataException($"Outpost '{outpost.StationId}' offers an unknown service '{outpost.Service}'.");
+            if (outpost.Service == SiteServices.Refine && Refinery is null)
+                throw new InvalidDataException($"Refine outpost '{outpost.StationId}' needs the refinery's recipes.");
         }
         _ = new StationDirectory(Sites); // duplicate ids, positions and radii
         foreach (var upgrade in Upgrades)
