@@ -86,6 +86,8 @@ Each item names the row it would settle. None of them can be done in the cloud c
 4.  Speed decay with no input in open space and in a Repair Dock (RollFriction, terrain 9).
 5.  Hyper: how it is engaged, top speed reached and energy drained per second (HyperTopSpeed, HyperThrust, HyperEnergyCost).
 6.  ~~Which terrain indexes the Rogue LVL uses~~: settled without a native run. Decoding the pinned `Rogue.lvl` with the emulator's LVL layout finds only terrains 0, 9, 10 and 15, so the 1–8 and 11–14 blocks are never reached ([Zone-Assets comparison](ZONE_ASSETS_COMPARISON.md#3-the-map-which-terrains-the-rogue-lvl-uses-closes-g8-item-6)). The G6 reader still owns a tested parser.
+7.  Plasma Cannon shot (G10 W2/W3, November 9, 2026): from a ship at rest, the shot's speed in pixels or tiles per second (the game reads 220 px/s, 13.75 tiles/s), how far it flies before it vanishes (1210 px, about 76 tiles, in 5.5 s), and its speed when fired straight ahead at top speed (545 px/s if the whole ship velocity is inherited, W4).
+8.  Ship size (G10 F11): the distance between two ship centres at first contact, to check VEH f[35] = 21 px as the collision radius.
 
 Until then the scale and every fallback stay open, and the prototype keeps its NEW values.
 

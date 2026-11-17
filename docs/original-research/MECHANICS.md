@@ -22,6 +22,8 @@ The [G9 ledger](../../scripts/original-assets/plan.d/g9.md) indexes accepted dat
 
 ## Evidence rules
 
+The November 10, 2026 RT-F074 review read Gibbed `Level/Entity.cs` through the GitHub API at pinned InfantryOnline Tools commit `93001c57845269e87b32a2bf042257c7ef61298c`. The format reader's masks account for all 17 bytes of each placed entity. In the pinned Rogue LVL, the bit named `UnknownC_6` is set on 21,833 of 22,356 entities. ExtraData, DetailLevel, ExtraDataMeaning and the high two bits of BitsD are zero on every entity. The stage retains these values. Their native behavior remains UNKNOWN. Animation time in milliseconds per frame, smart translucency at 50% and Value as brightness percent remain RECONSTRUCTED. [Pinned format source](https://github.com/InfantryOnline/Infantry-Online-Tools/blob/93001c57845269e87b32a2bf042257c7ef61298c/InfantryOnline.Tools/Tools.External/Gibbed/Gibbed.Infantry.FileFormats/Level/Entity.cs) · [RT-F074 staging plan](../../scripts/original-assets/plan.d/rt-f074.md)
+
 | Classification | Use                                                                                                                                                                            |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | VERIFIED       | The specific claim is present in an original source that was actually read, or in sufficiently direct surviving evidence. Scope the claim to the documented game/version/mode. |
