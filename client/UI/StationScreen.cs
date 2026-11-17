@@ -14,7 +14,10 @@ namespace RogueTrader.Client;
 /// </summary>
 public partial class StationScreen : CanvasLayer
 {
-    public event Action<string, int>? SellRequested;
+    /// <summary>The pilot asked the Trading Post to trade all of a recipe's input (the original trades every unit held).</summary>
+    public event Action<string>? TradeRequested;
+    /// <summary>True while an order for this input item is still being traded; set by the client from the session.</summary>
+    public Func<string, bool> IsTrading { get; set; } = _ => false;
     public event Action<string>? RepairRequested;
     public event Action<string>? UpgradeRequested;
     /// <summary>The pilot asked the refinery to refine all of a recipe's input (the original refines every unit held).</summary>
@@ -158,15 +161,16 @@ public partial class StationScreen : CanvasLayer
         _revision.Text = $"Profile {profile.ProfileId}  ·  revision {profile.Revision}  ·  every purchase is saved before it is shown";
 
         Clear(_market);
-        _market.AddChild(FlightHud.Label("Original Trading Outpost recipes. Credits per unit are the raw original value (provisional reading).", 12, FlightHud.Muted));
-        _market.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 150, true), Cell("HELD", 50, true), Cell("CR / UNIT", 70, true)));
+        _market.AddChild(FlightHud.Label("Original Trading Outpost recipes: every unit held is traded for its credits. Refined ore takes 1.5 s; one timed order at a time.", 12, FlightHud.Muted));
+        _market.AddChild(Row(Cell("RECIPE", 150, true), Cell("INPUT", 150, true), Cell("HELD", 50, true), Cell("CR / UNIT", 70, true), Cell("TIME", 60, true)));
         foreach (var trade in _station.Trades)
         {
             var held = profile.Inventory.GetValueOrDefault(trade.InputItemId);
+            var trading = IsTrading(trade.InputItemId);
             _market.AddChild(Row(Cell(trade.Name, 150), Cell(_station.NameOf(trade.InputItemId), 150), Cell(held.ToString(), 50),
                 Cell(trade.CreditsPerUnit.ToString("N0"), 70),
-                ActionButton("TRADE 1", $"sell:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, 1)),
-                ActionButton("TRADE ALL", $"sellall:{trade.InputItemId}", held == 0, () => SellRequested?.Invoke(trade.InputItemId, held))));
+                Cell(trade.Duration > TimeSpan.Zero ? $"{trade.Duration.TotalSeconds:0.#} s" : "at once", 60),
+                ActionButton(trading ? "TRADING" : "TRADE", $"sellall:{trade.InputItemId}", held == 0 || trading, () => TradeRequested?.Invoke(trade.Id))));
         }
         var untraded = profile.Inventory.Where(p => p.Value > 0 && _station.Trades.All(t => t.InputItemId != p.Key)).ToArray();
         if (untraded.Length > 0)

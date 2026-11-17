@@ -12,11 +12,23 @@ namespace RogueTrader.Trading;
 public sealed record StationGood(string Id, string Name, long UnitWeight, long? Buy, long? Sell);
 
 /// <summary>
-/// A Trading Outpost recipe (RT-F045): each unit of <see cref="InputItemId"/> handed in pays <see cref="CreditsPerUnit"/>.
-/// The input, credit item and raw value are original; paying the raw f[31] value per unit is a NEW/provisional reading
-/// (recipe quantities, f+4 and the award flow are undecoded).
+/// A Trading Outpost recipe (RT-F045), one ComputerProduct block of VEH id 404: every unit of <see cref="InputItemId"/> handed
+/// in pays <see cref="CreditsPerUnit"/>. Every value is original. The emulator's ArenaComputer reads <see cref="InputQuantity"/>
+/// -1 as "every unit of the input the pilot holds" and <see cref="OutputQuantity"/> -1 as "that many credit items", charges
+/// <see cref="Cost"/>, and delivers a product whose <see cref="Time"/> is above 0 after Time x 10 ms. A credit item is a type 1
+/// MultiItem, and its f[31] Cash (<see cref="CreditsPerUnit"/>) is paid per item (Player.applyMultiItem).
 /// </summary>
-public sealed record StationTrade(string Id, string Name, string InputItemId, string CreditItemId, string CreditName, long CreditsPerUnit, int RawField4);
+public sealed record StationTrade(string Id, string Name, string InputItemId, string CreditItemId, string CreditName, long CreditsPerUnit, int Time)
+{
+    /// <summary>Raw f+2 Quantity; the only shape the Trading Posts implement is -1 (one credit item per unit handed in).</summary>
+    public int OutputQuantity { get; init; } = -1;
+    /// <summary>Raw f+6 PlayerItemNeededQuantity; the only shape the Trading Posts implement is -1 (all units held).</summary>
+    public int InputQuantity { get; init; } = -1;
+    /// <summary>Raw f+7 Cost in credits; the only shape the Trading Posts implement is 0.</summary>
+    public long Cost { get; init; }
+    /// <summary>How long the Trading Post works on the order: raw Time x 10 ms (the emulator's ArenaComputer).</summary>
+    [JsonIgnore] public TimeSpan Duration => TimeSpan.FromMilliseconds(Math.Max(0, Time) * 10L);
+}
 
 /// <summary>
 /// A public refinery recipe (RT-F044), one ComputerProduct block of VEH id 400: <see cref="InputItemId"/> becomes
@@ -205,6 +217,9 @@ public sealed class StationDefinition
             .WithRefineRecipes(Ids(SiteServices.Refine), Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
     }
 
+    /// <summary>The Trading Post recipe with this id, or null.</summary>
+    public StationTrade? Trade(string tradeId) => Trades.FirstOrDefault(t => t.Id == tradeId);
+
     /// <summary>The refinery recipe with this id, or null.</summary>
     public StationRefineRecipe? RefineRecipe(string recipeId) => Refinery?.Recipes.FirstOrDefault(r => r.Id == recipeId);
 
@@ -252,8 +267,12 @@ public sealed class StationDefinition
         {
             if (Goods.All(g => g.Id != trade.InputItemId)) throw new InvalidDataException($"Trade '{trade.Id}' input '{trade.InputItemId}' is not a station good.");
             if (trade.CreditsPerUnit <= 0) throw new InvalidDataException($"Trade '{trade.Id}' must pay a positive amount.");
+            // The sell core pays one credit item per unit handed in, for free: the pinned blocks' shape.
+            if (trade.OutputQuantity != -1 || trade.InputQuantity != -1 || trade.Cost != 0 || trade.Time < 0)
+                throw new InvalidDataException($"Trade '{trade.Id}' must use all units held, pay one credit item per unit, be free and take a non-negative time.");
         }
         if (Trades.GroupBy(t => t.InputItemId).Any(g => g.Count() > 1)) throw new InvalidDataException("Two trades share one input item.");
+        if (Trades.GroupBy(t => t.Id).Any(g => g.Count() > 1)) throw new InvalidDataException("Two trades share one id.");
         if (Refinery is { } refinery)
         {
             if (refinery.StationId == StationId) throw new InvalidDataException("The refinery needs its own station id.");

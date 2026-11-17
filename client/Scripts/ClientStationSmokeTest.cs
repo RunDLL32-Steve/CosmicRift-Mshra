@@ -178,8 +178,9 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
 
             var trade = station.Trades.Single(t => t.InputItemId == pile.ItemId);
             var walletBeforeTrade = session.Profile!.Wallet; // after the kill reward above
+            Require(trade.Duration == TimeSpan.Zero, "The original Trade Wreckage is instant (Time 0).");
             Press($"sellall:{pile.ItemId}");
-            Require(session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0,
+            Require(session.TradeOrders.Count == 0 && session.Profile!.Inventory.GetValueOrDefault(pile.ItemId) == 0 && readWorld().Cargo.Quantity(pile.ItemId) == 0,
                 "Trade all must hand the whole input stack in.");
             Require(session.Profile.Wallet == walletBeforeTrade + pile.Quantity * trade.CreditsPerUnit, "The recipe must pay its credits per unit.");
             Require(client.Station.CreditsText == $"CREDITS  {session.Profile.Wallet:N0}", "The station screen must show the saved wallet.");
@@ -187,6 +188,12 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var refinedTrade = station.Trades.Single(t => t.InputItemId == recipe.OutputItemId);
             var walletBeforeRefined = session.Profile.Wallet;
             Press($"sellall:{recipe.OutputItemId}");
+            // The original Trade Tellerium takes Time 150 x 10 ms: nothing is paid until the order is delivered.
+            Require(session.TradeOrders.Count == 1 && session.Profile!.Wallet == walletBeforeRefined,
+                "A Refined Tellerium trade must wait its 1.5 s before it pays.");
+            for (var frame = 0; frame < 600 && session.TradeOrders.Count > 0; frame++) await nextPhysicsFrame();
+            Require(session.TradeOrders.Count == 0, "The Refined Tellerium trade must be delivered after its trading time.");
+            await nextPhysicsFrame();
             Require(session.Profile!.Wallet == walletBeforeRefined + refinedUnits * refinedTrade.CreditsPerUnit && !session.Profile.Inventory.ContainsKey(recipe.OutputItemId),
                 "Trading the refined ore must pay its recipe value per unit.");
             GD.Print($"STATION SMOKE PASS: {refinedTrade.Name} paid {refinedUnits * refinedTrade.CreditsPerUnit} credits for the refined ore at {post.Name}");
@@ -358,7 +365,7 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, Trading Post trade of wreckage and refined ore, Repair Dock repair guard, Cold Harbor store and hangar for the first pilot's team, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, Trading Post instant wreckage trade and timed refined-ore trade, Repair Dock repair guard, Cold Harbor store and hangar for the first pilot's team, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

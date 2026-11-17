@@ -1,5 +1,14 @@
 # Changelog
 
+## The original Trading Post rules — November 17, 2026
+
+-   The Trading Posts now follow the original record (RT-F045). VEH id 404's four product blocks are read with the emulator's 14-field ComputerProduct layout, the same one the Refinery uses. Each block has Quantity -1, PlayerItemNeededQuantity -1 and Cost 0. A trade therefore hands in every unit of the good you hold, for one credit item per unit, for free. Each credit item is a type 1 MultiItem, and its f[31] Cash is paid per item: 55 for Refined Tellerium, 80 for Refined Krandazite, 300 for Wreckage and 20 for Alloy (emulator `Player.applyMultiItem`).
+-   Trade Tellerium and Trade Krandazite have Time 150, so they pay after 1.5 s. Trade Wreckage and Trade Alloy have Time 0 and pay at once.
+-   CFG `[Vehicle] ComputerProduceRadius=250`: both Trading Posts take orders within 250 map pixels, up from the provisional 150. CFG `ComputerProduceInParallel=0`: a timed trade is refused while any other timed order runs, and that includes a refinery order. An instant trade is never refused for that.
+-   The Market page has one TRADE button per recipe (all held), shows each recipe's time and reads TRADING while an order runs. The order is paid even if you undock first.
+-   No cheating and no loss, as at the refineries. Nothing changes until the trade's time ends, and then it commits in one transaction. A trade lost to a relaunch pays nothing and takes nothing, and a trade whose goods are gone by then is refused.
+-   `StationTrade.rawField4` becomes `time`, with `outputQuantity`, `inputQuantity` and `cost` taken from the record. `data/stations/trading_outpost.json` is regenerated. Still open for RT-F045: native client acceptance and the NWS row 303 Wreckage 20-vs-100 note.
+
 ## Both original Refineries, with the original refine rules — November 16, 2026
 
 -   Refinery B is now on the map. `LIO/Rogue.lio` rows 13 'RefineryA' and 14 'RefineryB' both place actor -400 (VEH id 400, the Refinery). Refinery A stays at map (10704, 576), and Refinery B stands at (29456, 29728) in the south-east. Both offer the same three recipes, and the radar and sector map show both.

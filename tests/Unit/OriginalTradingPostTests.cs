@@ -22,6 +22,10 @@ public sealed class OriginalTradingPostTests
         Assert.Equal(new[] { 2004, 2006, 2008, 2020 }, r.Select(x => x.InputItemId.Value));
         Assert.Equal(new[] { "Refined Tellerium", "Refined Krandazite", "Wreckage", "Alloy" }, r.Select(x => x.InputItem.Name));
         Assert.Equal(new[] { 150, 150, 0, 0 }, r.Select(x => x.RawField4.Value));
+        // ComputerProduct shape (emulator layout): every unit held, one credit item per unit, free.
+        Assert.All(r, x => Assert.Equal((-1, -1, 0), (x.OutputQuantity.Value, x.InputQuantity.Value, x.Cost.Value)));
+        Assert.Equal(new[] { 150, 150, 0, 0 }, r.Select(x => x.Time.Value));
+        Assert.Equal(new[] { 55, 80, 300, 20 }, r.Select(x => x.Cash.Value));
     }
 
     [RequiresOriginalAssetsFact]

@@ -12,6 +12,13 @@ namespace RogueTrader.Trading;
 public sealed record RefineOrder(string TransactionId, StationRefineRecipe Recipe, string RefineryId, int Quantity, float ShipX, float ShipY,
     DateTimeOffset ReadyAt);
 
+/// <summary>
+/// A Trading Post order waiting for its trading time to end: <see cref="Quantity"/> units of the recipe's input (all the pilot
+/// held when it was placed) at <see cref="PostId"/>, committed under <see cref="TransactionId"/> at <see cref="ReadyAt"/>.
+/// </summary>
+public sealed record TradeOrder(string TransactionId, StationTrade Trade, string PostId, int Quantity, float ShipX, float ShipY,
+    DateTimeOffset ReadyAt);
+
 /// <summary>Outcome of opening or reloading the session profile, phrased for a client status line.</summary>
 public sealed record ProfileOpenOutcome(bool Succeeded, bool Created, ProfileLoadStatus Status, long Revision, string Message);
 
@@ -214,8 +221,7 @@ public sealed class StationProfileSession
         var held = profile.Inventory.GetValueOrDefault(recipe.InputItemId);
         if (held <= 0) return RejectionReason.InsufficientInventory;
         // The ore already promised to an order is not ordered twice; a second timed order waits for the first.
-        if (_refineOrders.Any(o => o.Recipe.InputItemId == recipe.InputItemId)) return RejectionReason.SiteBusy;
-        if (recipe.Duration > TimeSpan.Zero && _refineOrders.Any(o => o.Recipe.Duration > TimeSpan.Zero)) return RejectionReason.SiteBusy;
+        if (InputPromised(recipe.InputItemId) || (recipe.Duration > TimeSpan.Zero && TimedOrderPending)) return RejectionReason.SiteBusy;
         _refineOrders.Add(new RefineOrder(NewId(), recipe, site.StationId, held, shipX, shipY, _time.GetUtcNow() + recipe.Duration));
         _refineOrders.Sort((a, b) => a.ReadyAt.CompareTo(b.ReadyAt));
         return RejectionReason.None;
@@ -244,6 +250,74 @@ public sealed class StationProfileSession
         if (refusal != RejectionReason.None) return Refused(NewId(), refusal);
         if (!RefineOrderDue) return Refused(_refineOrders[^1].TransactionId, RejectionReason.SiteBusy);
         return (await DeliverRefinedAsync(ct).ConfigureAwait(false))!.Value.Result;
+    }
+
+    /// <summary>True when an order already holds this input item, so it is not ordered twice.</summary>
+    private bool InputPromised(string itemId) =>
+        _refineOrders.Any(o => o.Recipe.InputItemId == itemId) || _tradeOrders.Any(o => o.Trade.InputItemId == itemId);
+
+    /// <summary>
+    /// True while any timed order is still running. CFG ComputerProduceInParallel=0 gives the emulator one production line for
+    /// every computer, so a refinery order and a Trading Post order wait for each other (kept per pilot here, NEW).
+    /// </summary>
+    private bool TimedOrderPending =>
+        _refineOrders.Any(o => o.Recipe.Duration > TimeSpan.Zero) || _tradeOrders.Any(o => o.Trade.Duration > TimeSpan.Zero);
+
+    private readonly List<TradeOrder> _tradeOrders = [];
+
+    /// <summary>Trading Post orders placed and not yet delivered, oldest first.</summary>
+    public IReadOnlyList<TradeOrder> TradeOrders => _tradeOrders;
+
+    /// <summary>True when a trade's time has ended, so <see cref="DeliverTradedAsync"/> has work to do.</summary>
+    public bool TradeOrderDue => _tradeOrders.Count > 0 && _tradeOrders[0].ReadyAt <= _time.GetUtcNow();
+
+    /// <summary>
+    /// Places an order at the Trading Post the ship is within range of (RT-F045, emulator ArenaComputer.produceRequest with the
+    /// pinned VEH id 404 blocks): every unit of the recipe's input the pilot holds now is handed in for as many credit items,
+    /// each paying its ITM f[31] Cash, once the recipe's time (raw Time x 10 ms: 1.5 s for Refined Tellerium and Refined
+    /// Krandazite, at once for Wreckage and Alloy) has passed. A timed order is refused while any other timed order runs
+    /// (<see cref="RejectionReason.SiteBusy"/>). Nothing changes until <see cref="DeliverTradedAsync"/> commits the order in one
+    /// transaction, so an order lost to a relaunch costs nothing and can never pay twice.
+    /// </summary>
+    public RejectionReason OrderTrade(string tradeId, float shipX, float shipY)
+    {
+        RequireProfile();
+        var profile = Profile;
+        if (profile is null) return RejectionReason.ProfileNotOpen;
+        var trade = Station.Trade(tradeId);
+        if (trade is null) return RejectionReason.NotForSale;
+        if (DockedAt(shipX, shipY) is not { Service: SiteServices.Trade } site) return RejectionReason.StationAccessDenied;
+        var held = profile.Inventory.GetValueOrDefault(trade.InputItemId);
+        if (held <= 0) return RejectionReason.InsufficientInventory;
+        if (InputPromised(trade.InputItemId) || (trade.Duration > TimeSpan.Zero && TimedOrderPending)) return RejectionReason.SiteBusy;
+        _tradeOrders.Add(new TradeOrder(NewId(), trade, site.StationId, held, shipX, shipY, _time.GetUtcNow() + trade.Duration));
+        _tradeOrders.Sort((a, b) => a.ReadyAt.CompareTo(b.ReadyAt));
+        return RejectionReason.None;
+    }
+
+    /// <summary>
+    /// Commits the oldest trade whose time has ended, checked where the ship was when it was placed (the emulator checks range
+    /// only then). Returns null when no trade is due. The core refuses it, changing nothing, when the pilot no longer holds the
+    /// ordered units.
+    /// </summary>
+    public async Task<(TradeOrder Order, TransactionResult Result)?> DeliverTradedAsync(CancellationToken ct = default)
+    {
+        if (!TradeOrderDue) return null;
+        var order = _tradeOrders[0];
+        _tradeOrders.RemoveAt(0);
+        var profileId = RequireProfile();
+        var result = await _trading.SellAsync(profileId, order.ShipX, order.ShipY,
+            new SellRequest(order.TransactionId, profileId, order.PostId, order.Trade.InputItemId, order.Quantity), ct).ConfigureAwait(false);
+        return (order, result);
+    }
+
+    /// <summary>Places a trade and, when it is untimed, delivers it at once; a timed trade is refused here as not yet due.</summary>
+    public async Task<TransactionResult> TradeNowAsync(string tradeId, float shipX, float shipY, CancellationToken ct = default)
+    {
+        var refusal = OrderTrade(tradeId, shipX, shipY);
+        if (refusal != RejectionReason.None) return Refused(NewId(), refusal);
+        if (!TradeOrderDue) return Refused(_tradeOrders[^1].TransactionId, RejectionReason.SiteBusy);
+        return (await DeliverTradedAsync(ct).ConfigureAwait(false))!.Value.Result;
     }
 
     public bool IsDockedAtRefinery(float shipX, float shipY) => DockedAt(shipX, shipY) is { Service: SiteServices.Refine };

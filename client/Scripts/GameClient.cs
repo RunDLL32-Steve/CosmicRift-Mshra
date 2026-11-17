@@ -166,7 +166,8 @@ public partial class GameClient : Node2D
             _sectorMap = new SectorMapOverlay(_map, _view.Station, _view.Refinery) { Outposts = _view.Outposts };
             _hud.AddChild(_sectorMap);
             _stationScreen = new StationScreen(_stationDefinition) { Visible = false };
-            _stationScreen.SellRequested += (item, quantity) => StationTransaction(s => s.SellAsync(item, quantity, PlayerX, PlayerY), $"Traded {quantity} {_stationDefinition.NameOf(item)} for {quantity * (_stationDefinition.SellPrice(item) ?? 0):N0} credits.");
+            _stationScreen.TradeRequested += OrderTrade;
+            _stationScreen.IsTrading = input => _session?.TradeOrders.Any(o => o.Trade.InputItemId == input) ?? false;
             _stationScreen.RefineRequested += OrderRefine;
             _stationScreen.IsRefining = input => _session?.RefineOrders.Any(o => o.Recipe.InputItemId == input) ?? false;
             _stationScreen.UpgradeRequested += upgrade => StationTransaction(s => s.BuyUpgradeAsync(upgrade, PlayerX, PlayerY), $"Installed {_stationDefinition.NameOf(upgrade)}.");
@@ -301,6 +302,7 @@ public partial class GameClient : Node2D
         _minimap.Update(_world);
         _sectorMap.Update(_world);
         if (_session is { RefineOrderDue: true }) DeliverRefined();
+        if (_session is { TradeOrderDue: true }) DeliverTraded();
         RefreshProfileViews();
         if (_noticeExpiresMs != 0 && Time.GetTicksMsec() >= _noticeExpiresMs)
         {
@@ -1065,6 +1067,32 @@ public partial class GameClient : Node2D
         RefreshProfileViews(rebuildStation: true);
     }
 
+    /// <summary>Places a Trading Post order for every unit of the recipe's input held (RT-F045); it is delivered from _Process when due.</summary>
+    private void OrderTrade(string tradeId)
+    {
+        if (_session is null) return;
+        var trade = _stationDefinition.Trade(tradeId);
+        var held = _session.Profile?.Inventory.GetValueOrDefault(trade?.InputItemId ?? "") ?? 0;
+        var refusal = _session.OrderTrade(tradeId, PlayerX, PlayerY);
+        if (refusal != RejectionReason.None)
+            _stationScreen.SetStatus($"Refused: {Describe(refusal)}", error: true);
+        else if (!_session.TradeOrderDue)
+            _stationScreen.SetStatus($"Trading {held} {_stationDefinition.NameOf(trade!.InputItemId)}...");
+        DeliverTraded();
+        RefreshProfileViews(rebuildStation: true);
+    }
+
+    /// <summary>Commits Trading Post orders whose time has ended, whether or not the station screen is still open.</summary>
+    private void DeliverTraded()
+    {
+        while (_session is { TradeOrderDue: true } session)
+        {
+            var delivered = Await(session.DeliverTradedAsync());
+            if (delivered is not { } d) break;
+            ShowTransaction(d.Result, $"Traded {d.Order.Quantity} {_stationDefinition.NameOf(d.Order.Trade.InputItemId)} for {d.Order.Quantity * d.Order.Trade.CreditsPerUnit:N0} credits.", null);
+        }
+    }
+
     /// <summary>Commits refinery orders whose time has ended, whether or not the station screen is still open.</summary>
     private void DeliverRefined()
     {
@@ -1124,7 +1152,7 @@ public partial class GameClient : Node2D
         RejectionReason.UpgradeSlotHeld => "an installed upgrade already holds that slot; nothing was charged.",
         RejectionReason.ShipAlreadyOwned => "you already own that hull.",
         RejectionReason.ShipRequirementNotMet => "you need a hull of the same race first.",
-        RejectionReason.SiteBusy => "the refinery is still working on an order.",
+        RejectionReason.SiteBusy => "the refinery or Trading Post is still working on an order.",
         RejectionReason.NothingToRepair => "the hull is already at maximum (or the ship is destroyed); nothing was charged.",
         _ => reason.ToString(),
     };
