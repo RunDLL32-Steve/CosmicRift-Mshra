@@ -77,6 +77,7 @@ public sealed partial class WorldSimulation
         _miningEquipment = mining?.Equipment;
         _mineralSpawns = CreateMineralSpawns(minerals, cargo);
         _mineralRandom = minerals?.Seed ?? 0;
+        RestartStillClock();
     }
 
     public void Tick(ShipInput input)
@@ -84,9 +85,10 @@ public sealed partial class WorldSimulation
         TickNumber++;
         if (TargetRespawnTick is { } respawnAt && TickNumber >= respawnAt) RespawnTargets();
         StepMineralSpawns();
-        if (!Player.IsDestroyed)
+        if (!Player.IsDestroyed && !PlayerIsSpectator)
         {
             var previous = Player.Position;
+            var shotsBefore = ShotsFired;
             var engagedHyper = MovePlayer(input);
             CollectPickups(previous);
             // Existing swept pickups precede extraction; new drops use only the current position.
@@ -98,6 +100,7 @@ public sealed partial class WorldSimulation
             Player.Energy = Math.Clamp(Player.Energy + (recharge + terrainRate) * TickDuration, 0, Player.Definition.Reactor.MaximumEnergy);
             if (input.Fire)
                 TryFire();
+            TrackPlayerStillness(fired: ShotsFired != shotsBefore);
         }
         MoveProjectiles();
     }
@@ -127,6 +130,7 @@ public sealed partial class WorldSimulation
     {
         if (!float.IsFinite(hullPoints) || hullPoints < 0)
             throw new ArgumentOutOfRangeException(nameof(hullPoints), "Damage must be finite and non-negative.");
+        if (PlayerIsSpectator) return 0; // a spectator's ship is out of the game
         var before = Player.Hull;
         Player.Hull = MathF.Max(0, before - hullPoints);
         return before - Player.Hull;
@@ -146,6 +150,7 @@ public sealed partial class WorldSimulation
         Player.Heading = MathF.IEEERemainder(heading, MathF.Tau);
         Player.Velocity = Vector2.Zero;
         Player.Hull = MathF.Min(Player.Definition.Defense.MaximumHull, hull);
+        RestartStillClock(); // a placement is a warp, which restarts the dock clock (see ContinuePlayerStillness)
         return true;
     }
 
@@ -180,7 +185,7 @@ public sealed partial class WorldSimulation
     /// <summary>
     /// Counts time that passes while the world is not ticking (the player is docked, paused or in the inspector, or the game
     /// was closed) toward a pending target-group respawn and toward the mineral spawn timers, so both run on real elapsed time
-    /// (owner rules, November 1 and 2, 2026). Mineral spawns place the piles that fall due in that time; nothing else moves
+    /// (owner rules, November 1 and 2, 2026), and toward the 60-second dock clock (<see cref="PlayerStillTicks"/>). Mineral spawns place the piles that fall due in that time; nothing else moves
     /// and <see cref="TickNumber"/> does not change. The group respawns at once if its delay has run out.
     /// </summary>
     public void ElapseWithoutTicking(int ticks)
@@ -188,6 +193,7 @@ public sealed partial class WorldSimulation
         ArgumentOutOfRangeException.ThrowIfNegative(ticks);
         if (ticks == 0) return;
         ElapseMineralSpawns(ticks);
+        ElapseStillness(ticks); // the dock clock runs while paused, docked or away too
         if (TargetRespawnTick is not { } respawnAt) return;
         TargetRespawnTick = respawnAt - ticks;
         if (TargetRespawnTick <= TickNumber) RespawnTargets();

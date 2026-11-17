@@ -13,7 +13,12 @@ namespace RogueTrader.Simulation;
 /// CFG <c>EnergyRate</c>, raw: tenths of an energy unit per second (the VEH EnergyRate scale, see OriginalEnergyScale), added to
 /// the hull's own recharge while the ship is on this terrain. Rogue's safe zones have -2000, a 200 energy-per-second drain.
 /// </param>
-public sealed record TerrainRule(bool Safety = false, bool DeleteLiveWeapons = false, int EnergyRate = 0)
+/// <param name="MaxTimeAllowed">
+/// CFG <c>MaxTimeAllowed</c>, in seconds (0: no limit). A pilot whose ship stands still on this terrain for longer is sent to
+/// spectator mode, with a warning at half the time (the InfantryOnline emulator's reading, Arena.poll). Rogue has 60 on the
+/// Repair Docks (Terrain9) and the Refinery/Trade Zone (Terrain15).
+/// </param>
+public sealed record TerrainRule(bool Safety = false, bool DeleteLiveWeapons = false, int EnergyRate = 0, int MaxTimeAllowed = 0)
 {
     /// <summary>Open space with no safe-zone rule (CFG [Terrain0] of Rogue).</summary>
     public static readonly TerrainRule Open = new();
@@ -164,7 +169,7 @@ public sealed class SectorMap
     /// <summary>How long a drop lying at <paramref name="position"/> lasts: the PrizeExpire of the terrain under it, in ticks.</summary>
     public long PrizeExpireTicksAt(Vector2 position) => _prizeExpireTicks[TerrainAt(position)];
 
-    /// <summary>Safe-zone rules per terrain number (CFG [Terrain0..15] Safety, DeleteLiveWeapons, EnergyRate).</summary>
+    /// <summary>Safe-zone rules per terrain number (CFG [Terrain0..15] Safety, DeleteLiveWeapons, EnergyRate, MaxTimeAllowed).</summary>
     public IReadOnlyList<TerrainRule> TerrainRules => _rules;
 
     /// <summary>The safe-zone rule of the terrain under a position (open space outside the map).</summary>

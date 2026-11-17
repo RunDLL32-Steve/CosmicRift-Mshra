@@ -115,7 +115,7 @@ public partial class WorldView : Node2D
         foreach (var rock in _world.Asteroids) DrawAsteroid(ToGodot(rock.Position), rock.Radius);
         foreach (var target in _world.Targets)
             if (!target.IsDestroyed) DrawShip(target, false);
-        if (!_world.Player.IsDestroyed) DrawShip(_world.Player, true);
+        if (!_world.Player.IsDestroyed && !_world.PlayerIsSpectator) DrawShip(_world.Player, true);
         foreach (var projectile in _world.Projectiles)
         {
             var position = ToGodot(projectile.Position);

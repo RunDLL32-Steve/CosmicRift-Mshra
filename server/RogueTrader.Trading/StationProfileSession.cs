@@ -229,7 +229,8 @@ public sealed class StationProfileSession
 
     /// <summary>
     /// Saves the ship's hull and position to the profile (last write wins; no wallet or cargo change), marked with the coordinate
-    /// version it was flown in (<see cref="ShipCondition.MapPixels"/> on the full-size map, the default).
+    /// version it was flown in (<see cref="ShipCondition.MapPixels"/> on the full-size map, the default) and, for the 60-second
+    /// dock rule, when it last moved (<paramref name="stillSinceUtc"/>).
     /// </summary>
     /// <remarks>
     /// A failed profile write leaves the transaction core refusing every later change until the profile is read back from disk.
@@ -240,10 +241,10 @@ public sealed class StationProfileSession
     /// and saves the same condition again.
     /// </remarks>
     public async Task<ShipConditionResult> SaveShipAsync(float hull, float x, float y, float heading, int coordinateVersion = ShipCondition.MapPixels,
-        CancellationToken ct = default)
+        DateTimeOffset? stillSinceUtc = null, CancellationToken ct = default)
     {
         var profileId = RequireProfile();
-        var ship = new ShipCondition(hull, x, y, heading, coordinateVersion);
+        var ship = new ShipCondition(hull, x, y, heading, coordinateVersion, stillSinceUtc);
         var context = new TransactionContext(profileId, StationAccessVerified: false);
         var result = await _processor.SaveShipConditionAsync(context, profileId, ship, ct).ConfigureAwait(false);
         if (!NeedsReload(result.Reason)) return result;

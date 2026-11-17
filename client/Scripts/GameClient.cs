@@ -87,6 +87,10 @@ public partial class GameClient : Node2D
     /// <summary>Sector id of the 1,400-unit practice sector the game flew before the full-size map; its save is moved onto the map once.</summary>
     private const string LegacySectorId = "first_contact";
     private MinimapView _minimap = null!;
+    // The 60-second dock rule: the world whose warnings and spectator sends were last shown, and how many warnings it had.
+    private WorldSimulation? _dockWorld;
+    private int _dockWarningsSeen;
+    private bool _spectatorShown;
     private SectorMapOverlay _sectorMap = null!;
 
     /// <summary>The weapon definition a ship definition starts with, as the roster names it.</summary>
@@ -255,7 +259,10 @@ public partial class GameClient : Node2D
             if (_inspectionVisible || _stationVisible || _shipPickerVisible)
             {
                 _view.InputState = default;
+                // An open station screen is activity: the dock clock stays at zero while the pilot shops (Steve, Nov 17 2026).
+                if (_stationVisible) _world.RegisterPlayerActivity();
                 _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while docked, inspecting or choosing a ship
+                ObserveDockTime();
                 return;
             }
             if (_smokeTest is not null)
@@ -277,12 +284,14 @@ public partial class GameClient : Node2D
                 CommitPickups();
                 CommitKills();
                 CommitDestruction();
+                ObserveDockTime();
                 if (_world.TickNumber - _lastShipSaveTick >= ShipSaveIntervalTicks) SaveShip();
             }
             else
             {
                 _view.InputState = default;
                 _world.ElapseWithoutTicking(1); // the target respawn timer keeps running while paused
+                ObserveDockTime();
             }
         }
         catch (Exception exception)
@@ -667,7 +676,8 @@ public partial class GameClient : Node2D
         {
             // Each saved ship carries its own coordinate version (review R1-2): one saved in the old practice sector keeps its
             // hull and heading but starts at the spawn, whichever ship it is and whenever it is next flown.
-            world.RestorePlayer(ShipPlacement.Position(ship, _map, world.Player.Position), ship.Heading, ship.Hull);
+            if (world.RestorePlayer(ShipPlacement.Position(ship, _map, world.Player.Position), ship.Heading, ship.Hull))
+                world.ContinuePlayerStillness(ShipPlacement.StillTicks(ship, ClockUtcNow)); // the dock clock ran on while it was parked
         }
         return world;
     }
@@ -766,7 +776,12 @@ public partial class GameClient : Node2D
         if (_session?.Profile is null || _world is null) return null;
         var player = _world.Player;
         if (player.IsDestroyed) return null; // a wreck is recorded as a destruction (CommitDestruction), never saved as a condition
-        var result = Await(_session.SaveShipAsync(player.Hull, player.Position.X, player.Position.Y, player.Heading, ShipPlacement.CoordinateVersionFor(_map)));
+        // A pilot in spectator mode comes back at the team spawn, so the ship is saved there; otherwise it is saved where it is,
+        // with when it last moved, so the 60-second dock clock keeps running while the pilot is away.
+        var spawn = _catalog.Sector.PlayerSpawn;
+        var (x, y, heading) = _world.PlayerIsSpectator ? (spawn.X, spawn.Y, spawn.Heading) : (player.Position.X, player.Position.Y, player.Heading);
+        var stillSince = _world.PlayerIsSpectator ? (DateTimeOffset?)null : ShipPlacement.StillSince(_world.PlayerStillTicks, ClockUtcNow);
+        var result = Await(_session.SaveShipAsync(player.Hull, x, y, heading, ShipPlacement.CoordinateVersionFor(_map), stillSince));
         if (!result.Saved) _profileStatus = $"Ship condition could not be saved ({result.Reason}).";
         _lastShipSaveTick = _world.TickNumber;
         return result.Saved ? null : result.Reason;
@@ -829,6 +844,59 @@ public partial class GameClient : Node2D
         _session?.FlyShip(_catalog.Ship.Cargo.Capacity);
     }
 
+    private DateTimeOffset ClockUtcNow => _sectorStore?.UtcNow ?? DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// The 60-second dock rule (CFG MaxTimeAllowed on the Repair Docks and Trade Zones): shows the world's half-time warning, and
+    /// when the world sends the pilot to spectator mode, closes whatever screen is open, saves the ship at the team spawn and
+    /// shows the ship picker, which is how a spectator enters again. The world decides both; this only displays them.
+    /// </summary>
+    private void ObserveDockTime()
+    {
+        if (_world is null) return;
+        if (!ReferenceEquals(_world, _dockWorld))
+        {
+            _dockWorld = _world;
+            _dockWarningsSeen = 0;
+        }
+        if (_world.DockTimeWarnings > _dockWarningsSeen)
+        {
+            _dockWarningsSeen = _world.DockTimeWarnings;
+            if (!_world.PlayerIsSpectator)
+                Notice(string.Format(System.Globalization.CultureInfo.InvariantCulture, WorldSimulation.DockTimeWarningFormat, _world.DockTimeLimitSecondsHere / 2), warning: true);
+        }
+        if (!_world.PlayerIsSpectator)
+        {
+            _spectatorShown = false;
+            return;
+        }
+        if (_spectatorShown) return;
+        _spectatorShown = true;
+        if (_stationVisible) SetStationVisible(false);
+        if (_inspectionVisible) SetInspectionVisible(false);
+        if (_paused)
+        {
+            _paused = false;
+            _hud.SetMenuVisible(false);
+        }
+        SetSectorMapVisible(false);
+        SaveShip(); // saved at the team spawn, where it comes back
+        Notice(WorldSimulation.SentToSpectatorMessage, warning: true);
+        if (_session?.Profile is { OwnedShips.Count: > 0 })
+        {
+            ShowShipPicker();
+            _shipPicker.SetStatus($"{WorldSimulation.SentToSpectatorMessage} Choose a ship to enter.", error: true);
+            return;
+        }
+        // Offline there is no picker: the ship enters again at once, at the team spawn.
+        var spawn = _catalog.Sector.PlayerSpawn;
+        _world.ReturnFromSpectator(new System.Numerics.Vector2(spawn.X, spawn.Y), spawn.Heading);
+        _spectatorShown = false;
+        Notice($"{WorldSimulation.SentToSpectatorMessage} Back at the team spawn.", warning: true);
+    }
+
+    public bool PlayerIsSpectator => _world.PlayerIsSpectator;
+
     public void ShowShipPicker()
     {
         if (_session?.Profile is not { } profile || profile.OwnedShips.Count == 0) return; // offline: keep flying the starter
@@ -872,11 +940,15 @@ public partial class GameClient : Node2D
         // The chosen ship enters the game with the hull it was saved with: a damaged ship stays damaged across a relaunch or a
         // ship pick and is repaired at the station's Full Repair for 500 credits (Steve, Nov 4 2026). A ship never flown (new or
         // just bought) and a ship respawned after destruction have no saved condition, so they start at full hull.
+        // Choosing a ship is how a spectator enters again (CFG ExitSpectatorMessage: "You must choose a ship before you can enter.
+        // Press f11."): the emulator's unspec re-enters the arena, so the ship comes back at the team spawn, still damaged.
+        var returned = _world.ReturnFromSpectator(new System.Numerics.Vector2(_catalog.Sector.PlayerSpawn.X, _catalog.Sector.PlayerSpawn.Y), _catalog.Sector.PlayerSpawn.Heading);
+        if (returned) _spectatorShown = false;
         SaveShip();
         _shipPickerVisible = false;
         _shipPicker.Visible = false;
         _hud.Visible = !_stationVisible && !_inspectionVisible;
-        Notice($"Flying the {_catalog.Ship.Name}.");
+        Notice(returned ? $"Flying the {_catalog.Ship.Name}, back from spectator mode at the team spawn." : $"Flying the {_catalog.Ship.Name}.");
     }
 
     /// <summary>

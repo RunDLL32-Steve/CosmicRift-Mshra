@@ -81,6 +81,31 @@ public sealed class ProfileSerializerTests
     }
 
     [Fact]
+    public void Schema7Ships_ReadAsJustMoved_AndSchema8KeepsWhenEachShipLastMoved()
+    {
+        // The 60-second dock rule: schema 8 saves when each ship last moved, so the dock clock runs on while the pilot is away.
+        var since = new DateTimeOffset(2026, 11, 16, 7, 30, 15, 250, TimeSpan.Zero);
+        var profile = Rich() with
+        {
+            Ship = new ShipCondition(42.5f, 10, -20, 1.25f, ShipCondition.MapPixels, since),
+            OwnedShips = Rich().OwnedShips.SetItem("fixture-hull-2", new ShipCondition(7, 300, 400, -0.5f, ShipCondition.MapPixels, since.AddHours(-3))),
+        };
+        var back = ProfileSerializer.Decode(ProfileSerializer.Serialize(profile), ProfileSchemaMigrations.BuiltIn).Profile!;
+        Assert.Equal(profile.Ship, back.Ship);
+        Assert.Equal(since.AddHours(-3), back.OwnedShips["fixture-hull-2"]!.StillSinceUtc);
+
+        var payload = PayloadOf(profile);
+        payload["ship"]!.AsObject().Remove("stillSinceUtc");
+        payload["ownedShips"]!["fixture-hull-2"]!.AsObject().Remove("stillSinceUtc");
+        var old = ProfileSerializer.Decode(WithPayload(payload.ToJsonString(), version: 7), ProfileSchemaMigrations.BuiltIn);
+        Assert.True(old.Profile is not null, string.Join("; ", old.Diagnostics.Select(d => d.Message)));
+        Assert.Equal(8, old.Profile!.SchemaVersion);
+        Assert.Null(old.Profile.Ship!.StillSinceUtc);
+        Assert.Null(old.Profile.OwnedShips["fixture-hull-2"]!.StillSinceUtc);
+        Assert.Equal(ShipCondition.MapPixels, old.Profile.Ship.CoordinateVersion);
+    }
+
+    [Fact]
     public void SaveLoad_RoundTripPreservesWalletInventoryUpgradesHullAndWindow()
     {
         var original = Rich();

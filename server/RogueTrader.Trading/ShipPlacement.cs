@@ -22,6 +22,22 @@ public static class ShipPlacement
         return onMap == savedOnMap ? new Vector2(ship.X, ship.Y) : spawn;
     }
 
+    /// <summary>
+    /// How long a saved ship has stood still at <paramref name="nowUtc"/>, in simulation ticks (the 60-second dock rule): the time
+    /// since <see cref="ShipCondition.StillSinceUtc"/>, so the clock ran on while the pilot was away. A condition without the field
+    /// (saved before schema 8) or one dated in the future reads as a ship that has just moved.
+    /// </summary>
+    public static long StillTicks(ShipCondition ship, DateTimeOffset nowUtc)
+    {
+        ArgumentNullException.ThrowIfNull(ship);
+        if (ship.StillSinceUtc is not { } since || since >= nowUtc) return 0;
+        return (long)Math.Min(long.MaxValue / 2, Math.Floor((nowUtc - since).TotalSeconds * WorldSimulation.TickRate));
+    }
+
+    /// <summary>When a ship that has stood still for <paramref name="stillTicks"/> at <paramref name="nowUtc"/> last moved.</summary>
+    public static DateTimeOffset StillSince(long stillTicks, DateTimeOffset nowUtc) =>
+        nowUtc - TimeSpan.FromSeconds(Math.Max(0, stillTicks) / (double)WorldSimulation.TickRate);
+
     /// <summary>The coordinate version a ship saved now carries: map pixels on a map, the practice sector's otherwise.</summary>
     public static int CoordinateVersionFor(SectorMap? map) => map is null ? ShipCondition.LegacyPracticeSector : ShipCondition.MapPixels;
 }
