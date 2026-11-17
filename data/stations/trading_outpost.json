@@ -21,37 +21,51 @@
     {
       "id": "2003",
       "name": "Tellerium",
-      "unitWeight": 50000
+      "unitWeight": 50000,
+      "droppable": true,
+      "maxAllowed": 0
     },
     {
       "id": "2004",
       "name": "Refined Tellerium",
-      "unitWeight": 25000
+      "unitWeight": 25000,
+      "droppable": false,
+      "maxAllowed": 0
     },
     {
       "id": "2005",
       "name": "Krandazite",
-      "unitWeight": 100000
+      "unitWeight": 100000,
+      "droppable": true,
+      "maxAllowed": 0
     },
     {
       "id": "2006",
       "name": "Refined Krandazite",
-      "unitWeight": 50000
+      "unitWeight": 50000,
+      "droppable": false,
+      "maxAllowed": 0
     },
     {
       "id": "2008",
       "name": "Wreckage",
-      "unitWeight": 200000
+      "unitWeight": 200000,
+      "droppable": true,
+      "maxAllowed": 0
     },
     {
       "id": "2019",
       "name": "Iron Ore",
-      "unitWeight": 100000
+      "unitWeight": 100000,
+      "droppable": true,
+      "maxAllowed": 0
     },
     {
       "id": "2020",
       "name": "Alloy",
-      "unitWeight": 75000
+      "unitWeight": 75000,
+      "droppable": false,
+      "maxAllowed": 0
     }
   ],
   "trades": [
@@ -130,6 +144,9 @@
         100,
         0
       ],
+      "sell": 7500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0.08,
         "maximumSpeed": 0.1,
@@ -151,6 +168,9 @@
         50,
         0
       ],
+      "sell": 3000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0.05,
         "maximumSpeed": 0.05,
@@ -172,6 +192,9 @@
         150,
         0
       ],
+      "sell": 8500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0.08,
         "maximumSpeed": 0.15,
@@ -193,6 +216,9 @@
         0,
         0
       ],
+      "sell": 3000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -214,6 +240,9 @@
         0,
         0
       ],
+      "sell": 7500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -235,6 +264,9 @@
         0,
         0
       ],
+      "sell": 5000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -256,6 +288,9 @@
         0,
         0
       ],
+      "sell": 11000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -277,6 +312,9 @@
         0,
         0
       ],
+      "sell": 5000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -298,6 +336,9 @@
         0,
         0
       ],
+      "sell": 11000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -319,6 +360,9 @@
         185,
         0
       ],
+      "sell": 11000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0.1,
         "maximumSpeed": 0.185,
@@ -340,6 +384,9 @@
         135,
         0
       ],
+      "sell": 7000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0.05,
         "maximumSpeed": 0.135,
@@ -361,6 +408,9 @@
         0,
         0
       ],
+      "sell": 15000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -382,6 +432,9 @@
         0,
         0
       ],
+      "sell": 11000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -403,6 +456,9 @@
         0,
         0
       ],
+      "sell": 15000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -420,6 +476,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 18,
       "rawModifiers": [],
+      "sell": 1000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -437,6 +496,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 0,
       "rawModifiers": [],
+      "sell": 1500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -454,6 +516,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 18,
       "rawModifiers": [],
+      "sell": 2000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -471,6 +536,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 18,
       "rawModifiers": [],
+      "sell": 3000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -488,6 +556,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 18,
       "rawModifiers": [],
+      "sell": 1000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -505,6 +576,9 @@
       "family": "HyperDrive Systems",
       "heldCategory": 18,
       "rawModifiers": [],
+      "sell": 2000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -526,6 +600,9 @@
         0,
         50
       ],
+      "sell": 3000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -547,6 +624,9 @@
         0,
         100
       ],
+      "sell": 7500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -568,6 +648,9 @@
         0,
         150
       ],
+      "sell": 11000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0,
@@ -589,6 +672,9 @@
         75,
         0
       ],
+      "sell": 1500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0.075,
@@ -610,6 +696,9 @@
         125,
         0
       ],
+      "sell": 3500,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0.125,
@@ -631,6 +720,9 @@
         180,
         0
       ],
+      "sell": 5000,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": 0,
         "maximumSpeed": 0.18,
@@ -652,6 +744,9 @@
         -75,
         -20
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.075,
         "maximumSpeed": -0.075,
@@ -687,6 +782,9 @@
         -100,
         -25
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.1,
         "maximumSpeed": -0.1,
@@ -722,6 +820,9 @@
         -50,
         -15
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.05,
         "maximumSpeed": -0.05,
@@ -757,6 +858,9 @@
         -50,
         -25
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.06,
         "maximumSpeed": -0.05,
@@ -792,6 +896,9 @@
         -100,
         -35
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.1,
         "maximumSpeed": -0.1,
@@ -827,6 +934,9 @@
         -100,
         -25
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.1,
         "maximumSpeed": -0.1,
@@ -862,6 +972,9 @@
         -100,
         -25
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.1,
         "maximumSpeed": -0.1,
@@ -897,6 +1010,9 @@
         -75,
         -20
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.075,
         "maximumSpeed": -0.075,
@@ -932,6 +1048,9 @@
         -100,
         -35
       ],
+      "sell": 0,
+      "droppable": false,
+      "maxAllowed": -1,
       "effect": {
         "forwardThrust": -0.1,
         "maximumSpeed": -0.1,

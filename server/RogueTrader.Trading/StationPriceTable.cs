@@ -17,6 +17,8 @@ public sealed class StationPriceTable : IPriceSource
     private readonly Dictionary<(string Station, string Item), long> _buy = new();
     private readonly Dictionary<(string Station, string Item), long> _sell = new();
     private readonly Dictionary<(string Station, string Upgrade), long> _upgrade = new();
+    private readonly Dictionary<(string Station, string Upgrade), long> _upgradeSell = new();
+    private readonly Dictionary<string, int> _maxQuantity = new();
     private readonly Dictionary<(string Station, string Repair), long> _repair = new();
     private readonly Dictionary<(string Station, string Hull), long> _ship = new();
     private readonly Dictionary<(string Station, string Hull), IReadOnlyCollection<string>> _shipRequirement = new();
@@ -78,6 +80,15 @@ public sealed class StationPriceTable : IPriceSource
             if (OriginalUpgradeCategories.Contains(i.Category) && i.Buy.Value > 0)
                 foreach (var station in table._stationIds)
                     table._upgrade[(station, Key(i))] = i.Buy.Value;
+        // Resale (RT-F049, emulator ScriptArena.handlePlayerShop): raw f[15] -1 cannot be sold, anything else pays f[15] per unit,
+        // so 0 is a legal 0-credit sale. Offered for installed upgrades and armour only; cargo keeps the stricter "> 0" rule above.
+        foreach (var i in items.Items)
+        {
+            if (OriginalUpgradeCategories.Contains(i.Category) && i.Sell.Value >= 0)
+                foreach (var station in table._stationIds)
+                    table._upgradeSell[(station, Key(i))] = i.Sell.Value;
+            if (i.MaxAllowed.Value != 0) table._maxQuantity[Key(i)] = Math.Abs(i.MaxAllowed.Value);
+        }
         table.RawPrices = items.Items.Select(i => new RawItemPrice(Key(i), i.Buy.Value, i.Sell.Value)).ToArray();
         return table;
     }
@@ -93,6 +104,32 @@ public sealed class StationPriceTable : IPriceSource
 
     public bool TryGetUpgradePrice(string stationId, string upgradeId, out long price) =>
         _upgrade.TryGetValue((stationId, upgradeId), out price);
+
+    public bool TryGetUpgradeSellPrice(string stationId, string upgradeId, out long price) =>
+        _upgradeSell.TryGetValue((stationId, upgradeId), out price);
+
+    public bool TryGetMaxQuantity(string itemId, out int maxQuantity) =>
+        _maxQuantity.TryGetValue(itemId, out maxQuantity);
+
+    /// <summary>
+    /// Adds explicit resale prices for installed upgrades (NEW fixtures or hand-authored data; 0 is a legal 0-credit sale, an
+    /// absent id cannot be sold back). A repeated id is refused. Returns this table.
+    /// </summary>
+    public StationPriceTable WithUpgradeSellPrices(IEnumerable<(string UpgradeId, long Price)> prices, IEnumerable<string>? at = null) =>
+        AddPrices(prices, _upgradeSell, "upgrade resale", at);
+
+    /// <summary>Adds per-item holding caps (|ITM f[13]|); an entry must be positive and a repeated item is refused. Returns this table.</summary>
+    public StationPriceTable WithMaxQuantities(IEnumerable<(string ItemId, int Max)> limits)
+    {
+        ArgumentNullException.ThrowIfNull(limits);
+        var batch = limits.ToArray();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (item, max) in batch)
+            if (string.IsNullOrEmpty(item) || max <= 0 || !seen.Add(item) || _maxQuantity.ContainsKey(item))
+                throw new ArgumentException($"Invalid or duplicate holding cap for '{item}'.", nameof(limits));
+        foreach (var (item, max) in batch) _maxQuantity[item] = max;
+        return this;
+    }
 
     public bool TryGetShipPrice(string stationId, string hullId, out long price) =>
         _ship.TryGetValue((stationId, hullId), out price);

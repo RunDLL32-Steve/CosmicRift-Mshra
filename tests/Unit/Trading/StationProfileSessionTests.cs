@@ -127,6 +127,64 @@ public sealed class StationProfileSessionTests
     }
 
     [Fact]
+    public async Task SellUpgrade_AtTheStore_PaysRawResale_AndUnfitsTheModule()
+    {
+        // RT-F049: the shipped station carries ITM f[15] for every upgrade; SuperBoosters buy 10000, resale 7500.
+        var station = LoadStation();
+        var boosters = station.Upgrades.Single(u => u.Name == "SuperBoosters");
+        var armour = station.Upgrades.Single(u => u.Name == "Duraplas Armor");
+        Assert.Equal((10000L, (long?)7500), (boosters.Price, boosters.Sell));
+        Assert.Equal((long?)0, armour.Sell); // every original armour resells for 0 credits (legal 0-credit sale)
+        var repo = new InMemoryProfileRepository();
+        await repo.CreateAsync(PlayerProfile.CreateNew(Profile, 30000, "starter_interceptor")); // NEW fixture wallet
+        var session = await OpenAsync(repo, station);
+        var wallet = session.Profile!.Wallet;
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(boosters.Id, station.X, station.Y)).Status);
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(armour.Id, station.X, station.Y)).Status);
+        Assert.Contains(armour.Id, UpgradeEffects.Active(station, session.Profile!.Upgrades).Select(u => u.Id));
+
+        // Not at a Trading Post, and not while out of range.
+        Assert.Equal(RejectionReason.StationAccessDenied, (await session.SellUpgradeAsync(boosters.Id, Post(station).X, Post(station).Y)).Reason);
+
+        var sold = await session.SellUpgradeAsync(boosters.Id, station.X, station.Y);
+        Assert.Equal(TransactionStatus.Applied, sold.Status);
+        Assert.Equal(7500, sold.CurrencyDelta);
+        Assert.Equal(wallet - 10000 - armour.Price + 7500, session.Profile!.Wallet);
+        Assert.DoesNotContain(boosters.Id, session.Profile.Upgrades);
+
+        var armourSold = await session.SellUpgradeAsync(armour.Id, station.X, station.Y);
+        Assert.Equal(TransactionStatus.Applied, armourSold.Status);
+        Assert.Equal(0, armourSold.CurrencyDelta);
+        Assert.Empty(session.Profile!.Upgrades);
+        Assert.Empty(UpgradeEffects.Active(station, session.Profile.Upgrades)); // the armour no longer applies
+        Assert.Equal(RejectionReason.UpgradeNotOwned, (await session.SellUpgradeAsync(armour.Id, station.X, station.Y)).Reason);
+
+        // Sold modules can be bought again, and a reload keeps the sale.
+        Assert.Equal(TransactionStatus.Applied, (await session.BuyUpgradeAsync(boosters.Id, station.X, station.Y)).Status);
+        Assert.Equal(7500, session.UpgradeResale(boosters.Id));
+    }
+
+    [Fact]
+    public void ShippedStation_RecordsBuyResaleDropAndCapFlags_AndNeverOffersAFreeUpgrade()
+    {
+        var station = LoadStation();
+        Assert.All(station.Upgrades, u => Assert.Equal(-1, u.MaxAllowed)); // one of each; ownership is a set
+        Assert.All(station.Upgrades, u => Assert.False(u.Droppable));
+        Assert.All(station.Upgrades, u => Assert.NotNull(u.Sell)); // no upgrade row of the pinned ITM has f[15] -1
+        var prices = station.CreatePriceTable();
+        var store = station.StationId;
+        foreach (var u in station.Upgrades)
+        {
+            Assert.Equal(u.Price > 0, prices.TryGetUpgradePrice(store, u.Id, out _));
+            Assert.True(prices.TryGetUpgradeSellPrice(store, u.Id, out var resale));
+            Assert.Equal(u.Sell, resale);
+        }
+        Assert.False(prices.TryGetUpgradeSellPrice(Post(station).StationId, station.Upgrades[0].Id, out _)); // resale is a store service
+        // Raw droppable flags: the three mined ores and the wreckage can be dropped, refined goods cannot.
+        Assert.Equal(["2003", "2005", "2008", "2019"], station.Goods.Where(g => g.Droppable).Select(g => g.Id).ToArray());
+    }
+
+    [Fact]
     public async Task TradingOutpost_PaysRecipeCreditsPerUnit_AndUpgradeUsesOriginalPrice()
     {
         var station = LoadStation();

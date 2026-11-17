@@ -250,6 +250,16 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             Require(client.Station.StatusText.Contains("not enough credits"), $"The refusal must be explained, got '{client.Station.StatusText}'.");
             GD.Print($"STATION SMOKE PASS: {upgrade.Name} bought at its original price and its effect applied; unaffordable purchase refused");
 
+            // Resale (RT-F049): the installed module sells back for its raw ITM f[15], leaves the profile and stops applying.
+            var walletBeforeSale = session.Profile!.Wallet;
+            Require(upgrade.Sell is not null && !FindAction($"sellupgrade:{upgrade.Id}").Disabled, "An installed module with a resale price must offer SELL.");
+            Press($"sellupgrade:{upgrade.Id}");
+            Require(!session.Profile!.Upgrades.Contains(upgrade.Id) && session.Profile.Wallet == walletBeforeSale + upgrade.Sell!.Value,
+                $"Selling {upgrade.Name} must pay its resale price and remove it, got wallet {session.Profile.Wallet}.");
+            Require(readWorld().Player.Definition.Physics.MaximumSpeed == baseSpeed && FindAction($"sellupgrade:{upgrade.Id}").Disabled,
+                "A sold upgrade must stop applying and its SELL must close.");
+            GD.Print($"STATION SMOKE PASS: {upgrade.Name} sold back for {upgrade.Sell.Value:N0} credits");
+
             // Ship Hulls page: the twelve original exchanges at their original price, open only to a pilot of the same race.
             var hulls = station.Ships ?? throw new InvalidOperationException("The shipped station must sell the original hulls.");
             var active = session.Profile!.ShipHullId!;
@@ -348,11 +358,11 @@ public sealed class ClientStationSmokeTest(GameClient client, FlightHud hud, Fun
             var restored = readWorld().Player;
             Require(Math.Abs(restored.Position.X - ship.X) < 0.01f && Math.Abs(restored.Position.Y - ship.Y) < 0.01f && Math.Abs(restored.Hull - ship.Hull) < 0.01f,
                 "The relaunched ship must be where it was saved, with the saved hull.");
-            Require(restored.Definition.Physics.MaximumSpeed > baseSpeed, "The relaunched ship must keep its upgrade effect.");
+            Require(restored.Definition.Physics.MaximumSpeed == baseSpeed && !reopened.Upgrades.Contains(upgrade.Id), "The relaunched ship must stay without the module that was sold back.");
             await nextPhysicsFrame();
             Require(hud.CreditsText == $"CREDITS  {reopened.Wallet:N0}", "The HUD must show the reopened wallet.");
             GD.Print($"STATION SMOKE PASS: reload and reopen restored revision {reopened.Revision}, wallet {reopened.Wallet}, hull {ship.Hull:0} at ({ship.X:0}, {ship.Y:0}), {reopened.Upgrades.Count} upgrade(s)");
-            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, Trading Post trade of wreckage and refined ore, Repair Dock repair guard, Cold Harbor store and hangar for the first pilot's team, upgrade effect, inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
+            GD.Print("CLIENT_STATION_SMOKE_PASS: HUD, pickup save retry, kill reward and duplicate, no target re-arm on reset with a new world id, original mineral pickup kept across a failed save and reload then saved once, refinery dock and refine, Trading Post trade of wreckage and refined ore, Repair Dock repair guard, Cold Harbor store and hangar for the first pilot's team, upgrade effect and resale (kept across destruction and relaunch), inactive-upgrade and funds refusals, no pile respawn on reset, reload or relaunch, sector kept across relaunch, ship picker keeping hull damage, Full Repair for 500, destruction penalty with the cargo dropped into space, ship save, reload and reopen verified.");
             return true;
         }
         catch (Exception exception)

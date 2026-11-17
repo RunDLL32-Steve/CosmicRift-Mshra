@@ -140,7 +140,11 @@ public static class OriginalStationBuilder
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(recipes);
         var goods = items.Resources.Select(i => new StationGood(Key(i.Id), i.Name, i.Mass.Value,
-            i.Buy.Value > 0 ? i.Buy.Value : null, i.Sell.Value > 0 ? i.Sell.Value : null)).ToList();
+            i.Buy.Value > 0 ? i.Buy.Value : null, i.Sell.Value > 0 ? i.Sell.Value : null)
+        {
+            Droppable = i.Droppable,
+            MaxAllowed = i.MaxAllowed.Value,
+        }).ToList();
         var trades = recipes.Select(r => new StationTrade(
             Slug(r.Name), r.Name, Key(r.InputItemId.Value), Key(r.CreditItemId.Value), r.CreditItem.Name,
             r.CreditItem.Record.Int(31).Value, r.RawField4.Value)).ToList();
@@ -192,6 +196,9 @@ public static class OriginalStationBuilder
             Family = family,
             HeldCategory = item.Record.Int(20).Value,
             RawModifiers = modifiers,
+            Sell = item.Sell.Value >= 0 ? item.Sell.Value : null,
+            Droppable = item.Droppable,
+            MaxAllowed = item.MaxAllowed.Value,
             Effect = effect,
             EffectBasis = basis,
         };

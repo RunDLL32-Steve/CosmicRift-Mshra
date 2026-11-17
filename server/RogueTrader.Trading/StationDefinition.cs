@@ -9,7 +9,13 @@ namespace RogueTrader.Trading;
 /// One cargo item the station knows. <see cref="UnitWeight"/> is the raw ITM mass for original items. Buy/sell are whole
 /// currency units; null means not offered (original resources have raw buy 0 and sell 0/-1: no shop trades them).
 /// </summary>
-public sealed record StationGood(string Id, string Name, long UnitWeight, long? Buy, long? Sell);
+public sealed record StationGood(string Id, string Name, long UnitWeight, long? Buy, long? Sell)
+{
+    /// <summary>ITM f[10]: whether a player may voluntarily drop the item (RT-F049). Recorded; the game has no voluntary drop yet.</summary>
+    public bool Droppable { get; init; }
+    /// <summary>ITM f[13] raw: a negative value caps the held quantity at its absolute value, 0 is unlimited (RT-F049).</summary>
+    public int MaxAllowed { get; init; }
+}
 
 /// <summary>
 /// A Trading Outpost recipe (RT-F045): each unit of <see cref="InputItemId"/> handed in pays <see cref="CreditsPerUnit"/>.
@@ -105,6 +111,15 @@ public sealed record StationUpgrade(string Id, string Name, long Price)
     /// <summary>Raw ITM f[20]; upgrades sharing one are treated as one slot (only the best-priced owned one is active).</summary>
     public int HeldCategory { get; init; }
     public IReadOnlyList<int> RawModifiers { get; init; } = [];
+    /// <summary>
+    /// ITM f[15] resale price per module; null when the raw value is -1 (cannot be sold back). 0 is a legal 0-credit sale (every
+    /// original armour row), as in the emulator (RT-F049).
+    /// </summary>
+    public long? Sell { get; init; }
+    /// <summary>ITM f[10]: voluntary drop permission (RT-F049). Every original upgrade row is 0; recorded only.</summary>
+    public bool Droppable { get; init; }
+    /// <summary>ITM f[13] raw (-1 on every buyable original upgrade, so one of each; ownership is a set, which already enforces it).</summary>
+    public int MaxAllowed { get; init; }
     public UpgradeEffect Effect { get; init; } = UpgradeEffect.None;
     public string EffectBasis { get; init; } = "";
 }
@@ -184,7 +199,10 @@ public sealed class StationDefinition
         return new StationPriceTable(Ids(SiteServices.Trade), Goods.Select(g =>
                 (g.Id, g.Buy, Trades.FirstOrDefault(t => t.InputItemId == g.Id) is { } trade ? trade.CreditsPerUnit : g.Sell)))
             .WithRepairPrices(Repairs.Select(r => (r.Id, r.Price)), Ids(SiteServices.Repair))
-            .WithUpgradePrices(Upgrades.Select(u => (u.Id, u.Price)), stores)
+            // A raw buy of 0 means "cannot be bought" (emulator: buyPrice == 0 returns), so a free upgrade is never offered.
+            .WithUpgradePrices(Upgrades.Where(u => u.Price > 0).Select(u => (u.Id, u.Price)), stores)
+            .WithUpgradeSellPrices(Upgrades.Where(u => u.Sell is not null).Select(u => (u.Id, u.Sell!.Value)), stores)
+            .WithMaxQuantities(Goods.Where(g => g.MaxAllowed != 0).Select(g => (g.Id, Math.Abs(g.MaxAllowed))))
             .WithShipPrices((Ships ?? []).Select(h => (h.HullId, h.Price)), stores)
             .WithShipRequirements((Ships ?? []).Where(h => h.RequiresOneOf is { Count: > 0 }).Select(h => (h.HullId, (IReadOnlyCollection<string>)h.RequiresOneOf!)), stores)
             .WithRefineRecipes(Refinery?.StationId ?? "", Refinery?.Recipes.Select(r => (r.Id, r.InputItemId, r.OutputItemId)) ?? []);
