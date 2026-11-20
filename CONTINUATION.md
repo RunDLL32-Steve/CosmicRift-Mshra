@@ -49,6 +49,8 @@ Select an unclaimed item from [TASK_QUEUE.md](TASK_QUEUE.md), then read its sepa
 
 G5's raw weapon, ammo and child-entry audit is merged. Use its [evidence and remaining native questions](docs/tasks/g5.md) before proposing work on RT-F036/F037/F040.
 
+The G6 data reader is merged and supplies the full-size Godot map. The [G6 brief](docs/tasks/g6.md) distinguishes that completed dependency from remaining native delivery, coordinate, collision and display checks.
+
 The remaining fidelity gates include native Start/profile/entry and engine choice (RT-F380/F384), actual delivery/offline patch readiness (RT-F387/F393), unresolved original reference semantics (RT-F377–379/F386/F069), and original gameplay/persistence acceptance. Use the task briefs and [feature catalog](docs/original-research/FEATURE_CATALOG.md) for exact scope; all unfinished feature boxes stay open.
 
 Do not repeat merged hull-loader, persistence-core, cargo, mining, trading, replay, codec or provisional-AI work. Extend only after its dependencies and original semantics are validated. Preserve canonical data, distinguish generic tests from original behavior and keep later expansion deferred.

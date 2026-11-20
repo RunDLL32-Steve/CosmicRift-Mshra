@@ -11,7 +11,7 @@ No native client was run and no footage was measured. "Expected" therefore means
 -   **MISSING**: the original has the feature and the prototype does not.
 -   **OPEN**: the original value is known but its unit or meaning is not, so no verdict is possible yet.
 
-Sources: VEH = `VEH/Rogue.veh`, ITM = `ITM/Rogue_mp.itm`, CFG = `CFG/rogue.cfg`, all fowlmouth/cosmic-rift-assets `eb1514e`; IOS = InfantryOnline/Infantry-Online-Server `bb97579`, `dotnetcore/`. The prototype ship is `data/ships/starter_interceptor.json` and its weapon `data/weapons/plasma_cannon.json` (both NEW); the original row compared is the Asp (VEH row 18, terrain 0), the hull a new player starts in, and its starting Plasma Cannon (ITM id 1004, RT-F035).
+Sources: VEH = `VEH/Rogue.veh`, ITM = `ITM/Rogue_mp.itm`, CFG = `CFG/rogue.cfg`, all fowlmouth/cosmic-rift-assets `eb1514e`; IOS = InfantryOnline/Infantry-Online-Server `bb97579`, `dotnetcore/`. The prototype ship is `data/ships/starter_interceptor.json` and its weapon `data/weapons/plasma_cannon.json` (both NEW); the original row compared is the Asp (`VEH/Rogue.veh` physical line 20, vehicle 2002, terrain 0), the hull a new player starts in, and its starting Plasma Cannon (ITM id 1004, RT-F035).
 
 ## 1. Flight (Asp, open space)
 

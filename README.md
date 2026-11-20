@@ -31,6 +31,8 @@ C7 has **scoped prediction library acceptance verified**; [PR 117](https://githu
 
 The merged G5 audit records weapon, ammo and child-entry references and the remaining native evaluator questions. [G5 brief](docs/tasks/g5.md)
 
+The merged G6 reader supplies the testbed's derived Rogue map. The pinned LVL/LIO source and native map acceptance are tracked separately. [G6 brief](docs/tasks/g6.md)
+
 ## C1 raw BLO reader — November 2, 2026
 
 C1 scoped raw-reader acceptance is verified and [PR 116](https://github.com/RunDLL32-Steve/CosmicRift-Mshra/pull/116) merged. The pure C# reader preserves owned bytes, raw directory fields, ordinals, offsets, lengths and payload hashes for all **89 pinned archives / 1,262 members**, guarded by canonical path, length and SHA-256 verification. See the [contract](docs/original-research/C1_BLO_READER_CONTRACT.md) and [evidence](docs/development-log/2026-11-02-c1-blo-reader.md). Extraction, pixels, dependency resolution, native/gameplay acceptance and RT-F023/RT-F069 remain open.
